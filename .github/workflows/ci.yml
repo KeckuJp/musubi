@@ -91,13 +91,35 @@ jobs:
         # The preview publishes no requirement-traceability reference, coverage identifier or
         # internal codename. This is a repository-local scan with no external input, so it
         # keeps working in a fork.
+        #
+        # Both of the scan's streams are discarded. A match is the text this step exists to
+        # keep out of the public tree, quoted with the path it was found at, and grep's own
+        # diagnostics name the path they could not read; a public log, annotation, summary
+        # and cache keep whatever is written to them, and no later commit un-says it. So the
+        # step reports one of the three fixed sentences below and nothing else.
+        #
+        # The status is classified in full rather than read as a boolean. `if grep` files
+        # status 2 -- the scan did not finish -- under "no match", which is the one answer an
+        # incomplete scan cannot give. `-q` is not used: it returns at the first match, so an
+        # input it never reached could not be reported as unreadable.
         run: |
+          set -euo pipefail
           pattern='(EC-[0-9]{3}|UN-[0-9]{3}|CAP-[0-9]+|AUD2-[0-9]+|ADR-[0-9]+|SFA-[0-9]+|DR-[0-9]+)'
-          if grep -rnE "$pattern" crates README.md CONTRIBUTING.md AGENTS.md --include='*.rs' --include='*.md'; then
-            echo "::error::a private identifier reached the public tree"
-            exit 1
-          fi
-          echo "no private identifier"
+          status=0
+          grep -rnE "$pattern" crates README.md CONTRIBUTING.md AGENTS.md --include='*.rs' --include='*.md' >/dev/null 2>&1 || status=$?
+          case "$status" in
+            0)
+              echo "::error::a private identifier reached the public tree"
+              exit 1
+              ;;
+            1)
+              echo "no private identifier"
+              ;;
+            *)
+              echo "::error::the private identifier scan did not complete"
+              exit 1
+              ;;
+          esac
 
   offline:
     name: tests run with no network
@@ -107,9 +129,85 @@ jobs:
     # prose, because a test that quietly acquired a network dependency would fail here.
     steps:
       - uses: actions/checkout@v4
+      # The one part of this job that needs the network, and it finishes before the isolation
+      # below begins. Everything after it reads what this step has already written to disk.
       - run: cargo fetch --locked
-      - name: Block outbound connections, then test
+      - name: Take the network from the tests, not from the runner
+        # An earlier form of this step set the machine's own OUTPUT policy to DROP. That is not
+        # scoped to the tests: the runner agent shares the host's filtering with them, and an
+        # agent that cannot reach GitHub stops reporting rather than failing a test. It also
+        # leaves the machine changed, so undoing it is a step someone has to remember.
+        #
+        # `unshare --net` answers the same question without either problem. The child gets a
+        # network namespace of its own, empty but for loopback; the runner keeps the namespace
+        # it started in, nothing on the machine is reconfigured, and the kernel destroys the
+        # namespace when the last process in it exits, so the cleanup cannot be skipped.
+        #
+        # Every tool it uses is already on the runner image (util-linux, iproute2, coreutils),
+        # so this adds nothing to install. If one is missing, or the isolation cannot be shown
+        # to be real from inside, the job stops before the tests run: a suite that quietly ran
+        # with the network available would report the opposite of what this job is named for.
         run: |
-          sudo iptables -P OUTPUT DROP
-          sudo iptables -A OUTPUT -o lo -j ACCEPT
-          cargo test --workspace --offline
+          set -euo pipefail
+
+          for tool in unshare ip readlink; do
+            if ! command -v "$tool" >/dev/null 2>&1; then
+              echo "::error::$tool is needed to isolate the tests, and running them with the runner's network would not be the check this job claims to be"
+              exit 1
+            fi
+          done
+
+          # The namespace the runner agent reports this job from. It is read here and handed to
+          # the child, which compares it with its own before it execs anything. The comparison
+          # has to happen inside the one process that goes on to run the tests: a check made in
+          # a separate `unshare` would say that the tool works, not that these tests ran under
+          # it, and it would stay green if the line below stopped isolating.
+          runner_net_namespace="$(readlink /proc/self/ns/net)"
+
+          # One invocation: it proves where it is, then becomes the tests. The account is the
+          # one that ran the fetch, so the tests read the registry it populated and root leaves
+          # nothing of its own behind; `env` restores the settings this job declares, which
+          # `sudo` would otherwise reset, and it is what finds `cargo` on that PATH.
+          sudo -n unshare --net -- bash -euo pipefail -c '
+            runner_net_namespace="$1"; shift
+
+            if [ "$(readlink /proc/self/ns/net)" = "$runner_net_namespace" ]; then
+              echo "::error::the tests are about to run in the same network namespace as the runner agent, which is the one thing this step exists to prevent"
+              exit 1
+            fi
+
+            interfaces=0
+            while read -r _index name _rest; do
+              name="${name%:}"
+              name="${name%%@*}"
+              if [ "$name" != "lo" ]; then
+                echo "::error::the isolated namespace carries $name as well as loopback, so it is not the empty namespace these tests need"
+                exit 1
+              fi
+              interfaces=$((interfaces + 1))
+            done < <(ip -o link show)
+            if [ "$interfaces" -eq 0 ]; then
+              echo "::error::the isolated namespace listed no interface at all, so what it holds is unknown and the tests must not run in it"
+              exit 1
+            fi
+
+            # A datagram socket asks the kernel for a route to a documentation address. With no
+            # interface but loopback there is none, so this must fail; connecting a UDP socket
+            # sends nothing, and there is nowhere for it to send to. If it succeeds, a route out
+            # exists and this run is not the offline run the job is named for.
+            if (exec 3<>/dev/udp/192.0.2.1/9) 2>/dev/null; then
+              echo "::error::a socket in the isolated namespace found a route out"
+              exit 1
+            fi
+
+            ip link set lo up
+            exec "$@"
+          ' isolated "$runner_net_namespace" \
+            sudo -n -u "$(id -un)" env \
+              "HOME=$HOME" \
+              "PATH=$PATH" \
+              "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}" \
+              "RUSTUP_HOME=${RUSTUP_HOME:-$HOME/.rustup}" \
+              "RUSTFLAGS=${RUSTFLAGS:-}" \
+              "CARGO_TERM_COLOR=${CARGO_TERM_COLOR:-always}" \
+              cargo test --workspace --offline

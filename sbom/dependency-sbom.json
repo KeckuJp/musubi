@@ -2,7 +2,7 @@
   "schemaVersion": "musubi.sbom.dependency/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "lockfileSha256": "sha256:990f77c7a513e557fcbe33c08b90087960a1112af97b453fe29da04c9363e5b7",
+    "lockfileSha256": "sha256:ea6861c094be200a05fdf68cc33307c17983378927850f443b9c1a03f7cd770c",
     "coveragePolicy": "ALL_LOCKFILE_PACKAGES_WITH_CHECKSUM_BOUND_LICENSE_EVIDENCE"
   },
   "generator": {
@@ -112,6 +112,15 @@
         "musubi-civil-reference-pack",
         "musubi-conformance"
       ]
+    },
+    {
+      "name": "musubi-decoded-csv",
+      "version": "0.1.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": []
     },
     {
       "name": "musubi-types",

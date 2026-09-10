@@ -1,0 +1,10 @@
+[package]
+name = "musubi-decoded-csv"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Read-only decoded telemetry CSV with preserved fields and explicit boot time"
+
+[lints]
+workspace = true
