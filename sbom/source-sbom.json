@@ -2,8 +2,8 @@
   "schemaVersion": "musubi.sbom.source/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "inventoryDigest": "sha256:c28e26ac720220d404c35b878f339eb95c36ba6753a25c10b954244593566c02",
-    "inventoryFileCount": 49,
+    "inventoryDigest": "sha256:bf93d045ff3ac9a891f5d554b0ea405ddbad23b67c3f2333425ad4354c565dff",
+    "inventoryFileCount": 54,
     "inventoryCoveragePolicy": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
     "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
     "excludedPaths": [
@@ -50,14 +50,14 @@
     },
     {
       "path": "Cargo.lock",
-      "sha256": "sha256:ea6861c094be200a05fdf68cc33307c17983378927850f443b9c1a03f7cd770c",
-      "bytes": 2865,
+      "sha256": "sha256:a5c561a183a2134d3c06a8374dacc84c6ef599e534b5efed149ff45cf015cd4d",
+      "bytes": 5420,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "Cargo.toml",
-      "sha256": "sha256:90619b9c5951f43bf2c358ae020ca3dd523f3c59abe67e0660117ae830936a31",
-      "bytes": 1773,
+      "sha256": "sha256:86c41582b6652a4d138cc5f075b269ad3ac74f4b5bbea1fbd039f94e577aa464",
+      "bytes": 1895,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -68,14 +68,14 @@
     },
     {
       "path": "NOTICE",
-      "sha256": "sha256:26d7bd941b6912f8d2dcbe63255b3f2e21128f48e78a1cd40d98f81717c3a9c2",
-      "bytes": 1036,
+      "sha256": "sha256:80051d991b113f41ccf30c03aacb48a319e25bbf76969c570d4acaeb52a579d4",
+      "bytes": 1276,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "README.md",
-      "sha256": "sha256:2e266735d74fa8873906e56606a06f3d695e2f5241277fae2b7cec4fbc749f00",
-      "bytes": 5868,
+      "sha256": "sha256:127e493af75d311efdead17d18cd1cb66504adc195a514091662e9722d20f832",
+      "bytes": 6096,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -244,6 +244,36 @@
       "path": "crates/decoded-csv/tests/parse.rs",
       "sha256": "sha256:4a7274ded76edd1b7f0c8a3484af8cc7b9943a7ca725bc70499898b93cf1c2b6",
       "bytes": 2056,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/jsonl-log/Cargo.toml",
+      "sha256": "sha256:3b955f923ee747b3e7ad14cc5e2b58b18a93d6e1e896b08b2b89036ff5489db6",
+      "bytes": 347,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/jsonl-log/README.md",
+      "sha256": "sha256:4ea4e5dafd485dfe8df938dc3015d79ef3d2c489ac9d8f01c3b6d08484a91686",
+      "bytes": 2819,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/jsonl-log/examples/inspect.rs",
+      "sha256": "sha256:fa485cb085df07c6d673530cb3e126caf31dc88d69a9bb8deb81ef8cdba4a27f",
+      "bytes": 800,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/jsonl-log/src/lib.rs",
+      "sha256": "sha256:ad108133b3144a29806fbbc7106f10906787f0a367add408a4cf46e836d4afb1",
+      "bytes": 6058,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/jsonl-log/tests/parse.rs",
+      "sha256": "sha256:7e364ddd9e75660d0ead81bab868fdc9d593b2a36fe9d879b7ca12e3c98e21da",
+      "bytes": 4012,
       "spdxLicenseId": "Apache-2.0"
     },
     {

@@ -9,8 +9,8 @@ of this distribution for the full text.
 Third-party components
 ----------------------
 
-This source distribution contains no vendored third-party source. Its one
-external dependency is resolved from the crate registry at build time:
+This source distribution contains no vendored third-party source. Its direct
+external dependencies are resolved from the crate registry at build time:
 
   sha2 (RustCrypto)   Apache-2.0 OR MIT
                       Used by musubi-core for the content digest over the
@@ -19,6 +19,11 @@ external dependency is resolved from the crate registry at build time:
                       crate that must have no network in its closure can depend
                       on it.
 
-The remaining entries in the lockfile are that crate's own transitive
+  serde              Apache-2.0 OR MIT
+  serde_json         Apache-2.0 OR MIT
+                      Used by musubi-jsonl-log for offline decoded JSON records.
+                      No external binary-log decoder is included or invoked.
+
+The remaining entries in the lockfile are these crates' transitive
 dependencies. Their licences and their exact versions are recorded in Cargo.lock
 and are checked by the cargo-deny policy in deny.toml on every CI run.

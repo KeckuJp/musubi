@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
     "crates/decoded-csv",
+    "crates/jsonl-log",
     "crates/types",
     "crates/core",
     "crates/adapter-spi",
@@ -11,6 +12,7 @@ members = [
 
 # Each crate is usable by someone who has this tree and nothing else:
 #   decoded-csv            offline decoded telemetry table parsing; no dependencies.
+#   jsonl-log              offline decoded JSONL records, explicit time accounting and retention.
 #
 #   types                  the Common Object Model subset and the Evidence envelope. Pure data;
 #                          no value defined there carries a method.
