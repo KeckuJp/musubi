@@ -1,0 +1,12 @@
+[package]
+name = "musubi-jsonl-log"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Offline reader for decoded JSONL log exports, retaining timed and untimed records"
+[lints]
+workspace = true
+[dependencies]
+serde = "1"
+serde_json = { version = "1", features = ["float_roundtrip"] }

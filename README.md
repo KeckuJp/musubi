@@ -35,6 +35,7 @@ Three things follow from taking that seriously:
 | `musubi-core` | Deterministic normalisation, MARK derivation, canonical bytes and the content digest, the quarantine boundary for untrusted input, and a store-and-forward buffer that holds observations across a broken link and drains them in causal order. No network crate in its dependency closure. |
 | `musubi-adapter-spi` | The contract an adapter implements, plus one worked adapter over a synthetic wire. Copy it and rewrite one function. |
 | `musubi-decoded-csv` | A dependency-free reader for unquoted decoded telemetry CSV. Keeps unknown columns and units, and rejects malformed rows or unsupported time units. See `crates/decoded-csv/README.md`. |
+| `musubi-jsonl-log` | An offline reader for decoded JSONL exports. Retains unknown fields and untimed records alongside explicit boot-time indices; does not infer units or platform identity. See `crates/jsonl-log/README.md`. |
 | `musubi-conformance` | A harness that checks any adapter against the structural invariants, including a static scan for a write surface the adapter has not declared. Runnable against your own crate. |
 | `musubi-civil-reference-pack` | Seven synthetic sources -- an agricultural aircraft and ground vehicle, a camera, a multispectral head, an RTK base, a weather station, health telemetry -- and six consumer views, so you can exercise all of the above without any other data. |
 
