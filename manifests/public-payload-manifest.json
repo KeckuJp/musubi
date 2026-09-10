@@ -1,15 +1,15 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "98f25a400b3d7701d6233ad9d06c4f60a262b188",
-  "payloadGitTreeOid": "d5494522d661bc135ab2974b9f9f9039efd4091d",
-  "payloadTreeDigest": "sha256:b56272188096e77519d518c10c6863ffb8ac5c92c51edaf6cdbce5868a63d8f0",
+  "payloadCommit": "7273ec4f0785c5c921247d64349a4a0c031b3d63",
+  "payloadGitTreeOid": "a0c3bb03294a92aa39dedea131d2a2bf4500dc80",
+  "payloadTreeDigest": "sha256:a18906c18287a029a9f2438a26d167ef82dcd69ec7077d82b83f7f35d16af9be",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
-  "fileCount": 47,
+  "fileCount": 51,
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "contentDigest": "sha256:5027d51775cb17259d6a29134126b3d0bcfcc72d307c10c95a6f9ebef7246edd",
+      "contentDigest": "sha256:7a0c2128a26dd4504a8c8dea6b490216b46ac5c34753c0d6f94d373fddced9ac",
       "mode": "100644"
     },
     {
@@ -34,12 +34,12 @@
     },
     {
       "path": "Cargo.lock",
-      "contentDigest": "sha256:990f77c7a513e557fcbe33c08b90087960a1112af97b453fe29da04c9363e5b7",
+      "contentDigest": "sha256:ea6861c094be200a05fdf68cc33307c17983378927850f443b9c1a03f7cd770c",
       "mode": "100644"
     },
     {
       "path": "Cargo.toml",
-      "contentDigest": "sha256:235699816390572d4b4e67aaa174ffb33fb63d034d03af1bd18e1c7d62970874",
+      "contentDigest": "sha256:90619b9c5951f43bf2c358ae020ca3dd523f3c59abe67e0660117ae830936a31",
       "mode": "100644"
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "path": "README.md",
-      "contentDigest": "sha256:de5cd33e61b2b76d00302af64955eea47b7c29c5e4c71c9d6c8f74ef856fe71f",
+      "contentDigest": "sha256:2e266735d74fa8873906e56606a06f3d695e2f5241277fae2b7cec4fbc749f00",
       "mode": "100644"
     },
     {
@@ -178,6 +178,26 @@
       "mode": "100644"
     },
     {
+      "path": "crates/decoded-csv/Cargo.toml",
+      "contentDigest": "sha256:ab573163de4610e5526c32680959817b400bd84a168fe4fb01162eec708e6465",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/decoded-csv/README.md",
+      "contentDigest": "sha256:edfc9cd60d0a0de2f94f1924df57e56df2fec7df419f71f5f1f397c557f55b3a",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/decoded-csv/src/lib.rs",
+      "contentDigest": "sha256:d7b3f8c4ed491bdb2fe493080898eb21a849643a1d00b4de8cf04e60f2c62b27",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/decoded-csv/tests/parse.rs",
+      "contentDigest": "sha256:4a7274ded76edd1b7f0c8a3484af8cc7b9943a7ca725bc70499898b93cf1c2b6",
+      "mode": "100644"
+    },
+    {
       "path": "crates/types/Cargo.toml",
       "contentDigest": "sha256:4dec52a30e92a7d56cb3505ba213c8d2dc7b6d7b4cc23213856be8ef14a9342f",
       "mode": "100644"
@@ -214,12 +234,12 @@
     },
     {
       "path": "sbom/dependency-sbom.json",
-      "contentDigest": "sha256:f4f5e02e044bbb3d860ccde554b321a7c6c6ed07274dd4d62c89a9d5b9c16c3b",
+      "contentDigest": "sha256:953f6cd53840f76d8d8c4cd6ceda4ba336803c4a80a0e531dd28c981c938b434",
       "mode": "100644"
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:88537e45275a675f990f6a2d1e5f8d274d52527627bcba0e5d4fa40c9225d30b",
+      "contentDigest": "sha256:adba039268bf6876960ca76b09c59bd322be6b919c5aa9ddf07892f68743cfd3",
       "mode": "100644"
     },
     {
