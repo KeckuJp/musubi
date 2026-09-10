@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "musubi.publication.public-release-manifest.v1",
+  "releaseClass": "PUBLIC_SOURCE_PREVIEW",
+  "payloadCommit": "1fcdc4c833cf625b0b16740d39ea30153408f472",
+  "payloadManifestDigest": "sha256:6f39328a6ce55569b779746cffbe507cbca1f90eed08f5e7ac786b93f884da4b",
+  "payloadTreeDigest": "sha256:3f5b7611e91c17c01afba0087ac844c8035a7319a874ad61f694bea6fe723122",
+  "sourceUrl": "https://github.com/KeckuJp/musubi",
+  "targetPackages": [
+    "musubi-adapter-spi",
+    "musubi-civil-reference-pack",
+    "musubi-conformance",
+    "musubi-core",
+    "musubi-types",
+    "musubi-decoded-csv",
+    "musubi-jsonl-log"
+  ],
+  "copyright": "Copyright 2026 Musubi contributors",
+  "noticePath": "NOTICE",
+  "version": "0.0.0",
+  "buildInstructions": "Use Rust 1.96.0 as pinned in rust-toolchain.toml; run cargo test --workspace --locked. Local macOS synthetic tests passed for this source update. No isolated-runtime, hardware or device compatibility claim.",
+  "license": {
+    "spdxIdentifier": "Apache-2.0",
+    "version": "2.0",
+    "textPath": "LICENSE",
+    "textDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435"
+  },
+  "licenseOsiReview": {
+    "reviewerIdentity": "Arai",
+    "confirmationDate": "2026-09-10",
+    "officialReferenceDigest": "sha256:11ad769f2d8ff205ba73515a3430ddcae22eb902ef89e81f4a0aa84c483bcad1",
+    "reviewEvidenceDigest": "sha256:f94fb55f305bd48b1f4246dfe2163a8eff0739cfd78457a1c5a5a09a34998099"
+  },
+  "licenseRestrictionReview": {
+    "deterministicScanResult": "NO_RESTRICTION_FOUND",
+    "humanReviewResult": "NO_RESTRICTION_FOUND",
+    "humanReviewerIdentity": "Arai",
+    "evidenceDigest": "sha256:7afd48c40b335d23a31b03adb9ed9a90d94e084e20e0e48354f1bf5611f18387"
+  },
+  "dependencyLock": {
+    "path": "Cargo.lock",
+    "digest": "sha256:a5c561a183a2134d3c06a8374dacc84c6ef599e534b5efed149ff45cf015cd4d"
+  },
+  "sbom": {
+    "sourceSbomPath": "sbom/source-sbom.json",
+    "sourceSbomDigest": "sha256:950e5cc14916ca396e53b794eb17861e1c9f51351ce590607adbbae64db15eaa",
+    "dependencySbomPath": "sbom/dependency-sbom.json",
+    "dependencySbomDigest": "sha256:d3015c61cb34bfb0a448ff9f5ebe595b39444f1116274d5e3d93f52a9b3263ff",
+    "coveragePolicy": "SOURCE_PACKAGE_DEPENDENCY_INVENTORY_EXCLUDING_SBOM_AND_GENERATED_METADATA"
+  },
+  "policies": {
+    "securityContact": "oss@kecku.com -- see SECURITY.md. Please do not open a public issue for something exploitable.",
+    "contributionPolicy": "DCO 1.1 sign-off on every commit; no CLA. Contributions arrive as pull requests against this repository and are reviewed here. See CONTRIBUTING.md.",
+    "trademarkPolicy": "Trademarks: see Section 6 of LICENSE.",
+    "conformancePolicy": "musubi-conformance checks an adapter against the structural invariants of the object model and scans for a write surface the adapter has not declared. A pass is a statement about those invariants only. It is not certification, and it is not a claim of compatibility with any product, platform, protocol implementation or device; nothing here has been tested against one."
+  },
+  "maintainabilityStatement": "No independent-maintenance claim. Whether someone outside the original authors can maintain this has not been demonstrated.",
+  "claimCeiling": "SOURCE_ONLY: no binary, and no compatibility with any product, platform or device is claimed or tested.",
+  "nonClaims": [
+    "NOT_ISOLATED_EXECUTION_VERIFIED",
+    "NOT_BINARY_RELEASE",
+    "NOT_PUBLIC_ALPHA",
+    "NOT_PRODUCTION_READY",
+    "NOT_FIELD_VALIDATED",
+    "NOT_DEVICE_SUPPORT",
+    "NOT_ALL_DEVICE_COMPATIBILITY",
+    "NOT_HUMAN_MAINTAINER_VERIFIED",
+    "NOT_INDEPENDENTLY_MAINTAINABLE",
+    "NOT_COMMUNITY_READY"
+  ]
+}
