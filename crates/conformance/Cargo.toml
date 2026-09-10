@@ -1,0 +1,16 @@
+[package]
+name = "musubi-conformance"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Adapter conformance harness. Runs any Normalizer against golden and adversarial fixtures and checks the structural invariants of the Common Object Model, plus a static scan for a write surface the adapter has not declared. Adapter-agnostic by construction, so an adapter author can run it against their own crate."
+
+[lints]
+workspace = true
+
+[dependencies]
+# The contract layer only. The harness takes a `&dyn Normalizer`, so it depends on no adapter,
+# and an adapter author outside this workspace can depend on it to check their own crate.
+musubi-core = { path = "../core" }
+musubi-types = { path = "../types" }

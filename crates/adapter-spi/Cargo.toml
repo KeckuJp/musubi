@@ -1,0 +1,17 @@
+[package]
+name = "musubi-adapter-spi"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "The Musubi adapter SPI and a worked adapter that uses it. Read-only: the tap trait has no send method and the source manifest declares zero egress. Copy the template, rewrite one parse function for your device wire, and get sealed evidence with the same MARK vocabulary every other adapter uses."
+
+[lints]
+workspace = true
+
+[dependencies]
+# Path dependencies only. The wire in `template` is parsed by hand rather than with a
+# serialization library, so an adapter author inherits no dependency from the shortest path,
+# and the core's no-network closure is unchanged.
+musubi-types = { path = "../types" }
+musubi-core = { path = "../core" }

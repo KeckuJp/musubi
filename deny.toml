@@ -1,0 +1,39 @@
+# cargo-deny policy for the public workspace.
+#
+# The bans section is the one that carries weight here. `core` must have no network or
+# async-runtime crate anywhere in its dependency closure, because the whole design rests on the
+# deterministic path having no way to reach the outside. Run it scoped to the crate whose
+# closure you mean:
+#
+#     cargo deny --manifest-path crates/core/Cargo.toml check bans
+#
+# A run at the workspace root does not scope per crate, so it would answer a different question
+# from the one asked.
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[bans]
+multiple-versions = "warn"
+# Network and async-runtime crates. None of these may appear in the closure of the
+# deterministic core: an adapter that needs a transport brings it into its own crate, and a
+# store-and-forward transport is a separate process.
+deny = [
+    { name = "tokio" },
+    { name = "hyper" },
+    { name = "reqwest" },
+    { name = "ureq" },
+    { name = "async-std" },
+    { name = "smol" },
+    { name = "isahc" },
+]
+
+[licenses]
+version = 2
+allow = ["Apache-2.0", "MIT", "BSD-3-Clause", "BSD-2-Clause", "Unicode-3.0", "ISC"]
+confidence-threshold = 0.9
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/KeckuJp/musubi/schemas/public-release-manifest.schema.json",
+  "title": "PublicReleaseManifestV1",
+  "description": "Lives in the public metadata commit beside PublicPayloadManifestV1 and binds that manifest's digest, the payload commit, and the canonical release fields. Private coordinates and the metadata commit's own SHA are forbidden. licenseOsiReview carries a reviewer identity distinct from the implementer, a confirmation date and an official reference bytes digest; a license name plus the current clock is not a substitute. Binary provenance and artifact attestation may be deferred as a stated non-claim, but this source metadata and the OSI-list evidence may not.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "releaseClass", "payloadCommit", "payloadManifestDigest",
+    "sourceUrl", "targetPackages", "copyright", "noticePath", "license",
+    "licenseOsiReview", "licenseRestrictionReview", "dependencyLock",
+    "sbom", "buildInstructions", "version", "policies", "claimCeiling", "nonClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "musubi.publication.public-release-manifest.v1" },
+    "releaseClass": { "enum": ["PUBLIC_SOURCE_PREVIEW"] },
+    "payloadCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "payloadManifestDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "payloadTreeDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "sourceUrl": { "type": "string", "pattern": "^https://[^\\s]+$" },
+    "targetPackages": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "copyright": { "type": "string", "minLength": 1 },
+    "noticePath": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "buildInstructions": { "type": "string", "minLength": 1 },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spdxIdentifier", "version", "textPath", "textDigest"],
+      "properties": {
+        "spdxIdentifier": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "textPath": { "type": "string", "minLength": 1 },
+        "textDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "licenseOsiReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewerIdentity", "confirmationDate", "officialReferenceDigest", "reviewEvidenceDigest"],
+      "properties": {
+        "reviewerIdentity": { "type": "string", "minLength": 1 },
+        "confirmationDate": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "officialReferenceDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "reviewEvidenceDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "licenseRestrictionReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deterministicScanResult", "humanReviewResult", "humanReviewerIdentity", "evidenceDigest"],
+      "description": "Any field-of-use, customer, country or use restriction, or any obligation to obtain a service from the publisher, is a FAIL. The deterministic scan and the human review are separate results and neither substitutes for the other.",
+      "properties": {
+        "deterministicScanResult": { "enum": ["NO_RESTRICTION_FOUND", "RESTRICTION_FOUND"] },
+        "humanReviewResult": { "enum": ["NO_RESTRICTION_FOUND", "RESTRICTION_FOUND", "PENDING"] },
+        "humanReviewerIdentity": { "type": "string", "minLength": 1 },
+        "evidenceDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "dependencyLock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "digest"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "sbom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceSbomPath", "sourceSbomDigest", "dependencySbomPath", "dependencySbomDigest", "coveragePolicy"],
+      "properties": {
+        "sourceSbomPath": { "type": "string", "minLength": 1 },
+        "sourceSbomDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "dependencySbomPath": { "type": "string", "minLength": 1 },
+        "dependencySbomDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "coveragePolicy": { "const": "SOURCE_PACKAGE_DEPENDENCY_INVENTORY_EXCLUDING_SBOM_AND_GENERATED_METADATA" }
+      }
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["securityContact", "contributionPolicy", "trademarkPolicy", "conformancePolicy"],
+      "properties": {
+        "securityContact": { "type": "string", "minLength": 1 },
+        "contributionPolicy": { "type": "string", "minLength": 1 },
+        "trademarkPolicy": { "type": "string", "minLength": 1 },
+        "conformancePolicy": { "type": "string", "minLength": 1 }
+      }
+    },
+    "maintainabilityStatement": {
+      "type": "string",
+      "description": "Required wording that maintainability by an independent human maintainer is unverified for a preview.",
+      "minLength": 1
+    },
+    "claimCeiling": { "type": "string", "minLength": 1 },
+    "nonClaims": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+  }
+}

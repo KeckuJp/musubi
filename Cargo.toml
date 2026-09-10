@@ -1,0 +1,41 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/types",
+    "crates/core",
+    "crates/adapter-spi",
+    "crates/conformance",
+    "crates/civil-reference-pack",
+]
+
+# Five crates, and the reason there are only five is the point of the preview rather than an
+# omission. Each one has to be usable on its own by someone who has this tree and nothing else:
+#
+#   types                  the Common Object Model subset and the Evidence envelope. Pure data;
+#                          no value defined there carries a method.
+#   core                   deterministic normalisation, MARK derivation, canonical bytes and the
+#                          content digest, plus the quarantine boundary and the net-free
+#                          store-and-forward machinery. No network crate in its closure.
+#   adapter-spi            the contract an adapter implements, and one worked adapter.
+#   conformance            the harness that checks an adapter against the structural invariants,
+#                          runnable by an adapter author against their own crate.
+#   civil-reference-pack   synthetic sources and consumer views, so the four above can be
+#                          exercised end to end without any other pack.
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.96"
+license = "Apache-2.0"
+authors = ["Musubi contributors"]
+repository = "https://github.com/KeckuJp/musubi"
+
+# No code in this workspace is allowed to use `unsafe`. This is the lint half; the CI workflow
+# scans for the token as well, because a lint that a crate can opt out of is not a floor.
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"

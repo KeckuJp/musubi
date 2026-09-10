@@ -1,0 +1,115 @@
+name: ci
+
+# Self-contained: everything below runs from this repository alone. No secret, no external
+# service, and no job that another repository has to provide.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  build-test:
+    name: build, test, fmt, clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned toolchain
+        # rust-toolchain.toml pins the version. Installing it explicitly means the log records
+        # which toolchain ran rather than leaving it to whatever the runner image happens to
+        # carry.
+        run: |
+          rustup show active-toolchain
+          rustup component add rustfmt clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all --check
+      - run: cargo build --workspace --all-targets
+      - run: cargo test --workspace
+      - name: Clippy, advisory
+        # Cargo.toml declares this workspace's clippy lints at `warn` -- pedantic and nursery
+        # among them. A clippy warning here is a diagnostic to read, not a failure. The job's
+        # `RUSTFLAGS: -D warnings` above would override that declaration and make every one of
+        # them an error, which is a threshold neither the workspace nor the acceptance run
+        # states; emptying RUSTFLAGS for this step alone restores the declared one.
+        #
+        # This is not `|| true`. Clippy's own exit code still decides the step, so a
+        # deny-level lint or a compile error fails the job. The strict rustc threshold on
+        # build and test above is untouched, and so is every check in the two jobs below.
+        env:
+          RUSTFLAGS: ""
+        run: cargo clippy --workspace --all-targets
+
+  boundary:
+    name: boundary properties
+    runs-on: ubuntu-latest
+    # These are the properties the project's documentation claims. A claim nobody checks
+    # decays, so each one is a command with an exit code rather than a sentence in a README.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: No unsafe anywhere
+        # The workspace lint forbids it. This is the second half: a lint a crate can opt out of
+        # is not a floor, so the token is scanned for as well.
+        run: |
+          if grep -rnE '(^|[^A-Za-z_])unsafe[[:space:]]*(\{|fn|impl|trait)' crates --include='*.rs'; then
+            echo "::error::unsafe found; this workspace forbids it"
+            exit 1
+          fi
+          echo "no unsafe"
+
+      - name: No network or async-runtime crate in the core's closure
+        # Scoped to the crate whose closure is being asserted. A run at the workspace root does
+        # not scope per crate and would answer a different question.
+        run: |
+          cargo install cargo-deny --locked
+          cargo deny --manifest-path crates/core/Cargo.toml check bans
+
+      - name: The core reaches no socket
+        # A dependency check cannot see a direct use of the standard library's networking, so
+        # the source is scanned too. Test code is included: a test that opens a socket makes the
+        # closure claim false in the build that matters most.
+        run: |
+          if grep -rnE 'std::net|TcpStream|TcpListener|UdpSocket' crates/core/src; then
+            echo "::error::the core must not reach a socket"
+            exit 1
+          fi
+          echo "no socket in the core"
+
+      - name: No write surface on a type that declares it has none
+        # The conformance harness owns this check; running it here is what keeps the claim
+        # honest as the crates change.
+        run: cargo test -p musubi-conformance
+
+      - name: The public tree carries no private identifier
+        # The preview publishes no requirement-traceability reference, coverage identifier or
+        # internal codename. This is a repository-local scan with no external input, so it
+        # keeps working in a fork.
+        run: |
+          pattern='(EC-[0-9]{3}|UN-[0-9]{3}|CAP-[0-9]+|AUD2-[0-9]+|ADR-[0-9]+|SFA-[0-9]+|DR-[0-9]+)'
+          if grep -rnE "$pattern" crates README.md CONTRIBUTING.md AGENTS.md --include='*.rs' --include='*.md'; then
+            echo "::error::a private identifier reached the public tree"
+            exit 1
+          fi
+          echo "no private identifier"
+
+  offline:
+    name: tests run with no network
+    runs-on: ubuntu-latest
+    # Every test in this repository is deterministic and offline. Asserting that by fetching
+    # first and then building with the network taken away is stronger than asserting it in
+    # prose, because a test that quietly acquired a network dependency would fail here.
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo fetch --locked
+      - name: Block outbound connections, then test
+        run: |
+          sudo iptables -P OUTPUT DROP
+          sudo iptables -A OUTPUT -o lo -j ACCEPT
+          cargo test --workspace --offline

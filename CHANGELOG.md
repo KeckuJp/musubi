@@ -1,0 +1,43 @@
+# Changelog
+
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project does
+not yet follow semantic versioning, because it has not yet made a compatibility promise to
+version against.
+
+## [Unreleased]
+
+The first source preview. Nothing has been released yet, so everything below is an initial
+state rather than a change from one.
+
+### Added
+
+- `musubi-types`: the Common Object Model subset -- timestamps with observation and reception
+  time held apart, position, platform domain and state, track, payload feed, health -- together
+  with the MARK envelope and the Evidence envelope. Pure data; no value in the crate carries a
+  method.
+- `musubi-core`: deterministic normalisation, MARK derivation from quality facts, canonical
+  bytes and a content digest over them, verification of that digest on receipt, a quarantine
+  boundary for untrusted input, a vector clock for causal comparison, and a bounded
+  store-and-forward buffer that holds observations across a broken link and drains them in
+  causal order without dropping any.
+- `musubi-adapter-spi`: the adapter contract -- a read-only source manifest, a tap trait with no
+  send method, and the shared vocabulary for refusing input -- plus one worked adapter over a
+  synthetic wire.
+- `musubi-conformance`: a harness that runs any adapter against golden and adversarial fixtures
+  and checks the structural invariants, plus a static scan for a write surface the adapter has
+  not declared.
+- `musubi-civil-reference-pack`: seven synthetic sources and six consumer views, generated from
+  an integer seed, so the whole pipeline can be exercised offline with no other data.
+
+### Known limits
+
+Stated here as well as in the README, because a changelog is where someone looks to find out
+what a version does not do yet.
+
+- The content digest is tamper-evident, not tamper-proof: without a signature, an adversary can
+  recompute it. Signing and key management are not in this preview.
+- The Common Object Model enumeration carries one variant, `PlatformState`. Sensors in the
+  reference pack therefore report about the platform that carries them.
+- No binary is published, and no compatibility with any product, platform or device is claimed
+  or tested.
+- The API is not stable. Pin an exact revision.

@@ -1,0 +1,13 @@
+[package]
+name = "musubi-types"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "The Musubi Common Object Model subset and the MARK envelope. Pure data with no execution surface: no value defined in this crate carries a method."
+
+[lints]
+workspace = true
+
+[dependencies]
+# None. The object model is the one thing that must be readable without pulling anything in.

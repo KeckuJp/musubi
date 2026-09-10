@@ -1,0 +1,16 @@
+[package]
+name = "musubi-civil-reference-pack"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "A synthetic civil reference pack: an agricultural aircraft and ground vehicle, a camera, a multispectral head, an RTK base, a weather station and health telemetry, with farm, maintenance, inspection, logistics, disaster-response and industrial consumer views. Every value is generated from an integer seed by this crate; nothing here was recorded from any deployment, device or site."
+
+[lints]
+workspace = true
+
+[dependencies]
+# Path dependencies only. The pack generates its own values and parses its own wire, so it
+# adds nothing to a consumer's dependency tree.
+musubi-types = { path = "../types" }
+musubi-core = { path = "../core" }

@@ -1,0 +1,7 @@
+# Pinned so that a build here is reproducible, and pinned at a floor rather than at a
+# convenience: 1.96.0 is the first stable release that carries the fix for CVE-2026-5223
+# (symlink extraction in Cargo). It also supports edition 2024, which this workspace uses.
+[toolchain]
+channel = "1.96.0"
+components = ["clippy", "rustfmt"]
+profile = "minimal"

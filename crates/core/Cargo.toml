@@ -1,0 +1,19 @@
+[package]
+name = "musubi-core"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "The deterministic read-only core: normalize into the Common Object Model, derive a MARK, seal a content digest, quarantine untrusted input, and hold observations across a broken link without dropping any. No network crate in its dependency closure."
+
+[lints]
+workspace = true
+
+[dependencies]
+musubi-types = { path = "../types" }
+# sha2 is the one external dependency in this workspace, and it is here because hand-rolling a
+# hash for the content digest would be worse. It is pure computation with no input or output of
+# its own, so it does not put anything reachable into this crate's closure. `default-features =
+# false` keeps it that way; the cargo-deny bans list and the CI closure check are what enforce
+# it rather than this comment.
+sha2 = { version = "0.10", default-features = false }

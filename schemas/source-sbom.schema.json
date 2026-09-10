@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/KeckuJp/musubi/schemas/source-sbom.schema.json",
+  "title": "Source SBOM",
+  "description": "Every non-generated file in a published source payload, named by its exact content, together with a digest of that inventory as a whole. This is the schema only. An instance describes one candidate, is generated from that candidate, and is therefore not authored here: an instance written before a candidate exists would carry digests of nothing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "subject", "generator", "files"],
+  "properties": {
+    "schemaVersion": { "const": "musubi.sbom.source/1" },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "inventoryDigest",
+        "inventoryFileCount",
+        "inventoryCoveragePolicy",
+        "treeDigestSpecVersion",
+        "excludedPaths"
+      ],
+      "description": "The inventory this SBOM describes, which is a set the SBOM is not a member of. A commit or a payload tree object would name a thing this document is inside, so the subject is the digest of the non-generated files instead, computed before any generated file exists. No commit and no tree object may be named: they are not optional properties here, they are absent.",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The public repository identity, and nothing that locates a private working tree."
+        },
+        "inventoryDigest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "The content-and-mode tree digest of exactly the files listed below, computed by the stated spec version. A reader with the payload recomputes it rather than being told it."
+        },
+        "inventoryFileCount": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How many files the inventory covers. An empty inventory is not an inventory, so the minimum is one."
+        },
+        "inventoryCoveragePolicy": {
+          "const": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
+          "description": "What the inventory covers, as a constant rather than prose, so a verifier can assert it instead of reading it."
+        },
+        "treeDigestSpecVersion": {
+          "const": "musubi-content-mode-tree-v1",
+          "description": "Which digest spec inventoryDigest was computed by. A digest with no stated rule cannot be recomputed."
+        },
+        "excludedPaths": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "The four generated paths the inventory leaves out: both SBOMs and both metadata manifests. Bounded to exactly four, so a fifth exclusion or a missing one is refused here rather than argued about later.",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "description": "What produced this document. An SBOM whose producer is unknown cannot be reproduced, and an SBOM nobody can reproduce is a assertion rather than a record.",
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "description": "One entry per file. An empty payload is not a payload, so the minimum is one.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "bytes", "spdxLicenseId"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*\\.\\.)[^\\u0000]+$",
+            "description": "Relative to the payload root. Absolute paths and parent traversal are refused here rather than at extraction time."
+          },
+          "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "bytes": { "type": "integer", "minimum": 0 },
+          "spdxLicenseId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Required on every file. Licensing is a per-file condition: a file published with no stated licence is published under none, and a repository-level statement does not reach a file it does not cover."
+          },
+          "gitBlobOid": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+        }
+      }
+    }
+  }
+}

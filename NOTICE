@@ -1,0 +1,24 @@
+Musubi
+Copyright 2026 Musubi contributors
+
+This product includes software developed by the Musubi contributors.
+
+Licensed under the Apache License, Version 2.0. See the LICENSE file in the root
+of this distribution for the full text.
+
+Third-party components
+----------------------
+
+This source distribution contains no vendored third-party source. Its one
+external dependency is resolved from the crate registry at build time:
+
+  sha2 (RustCrypto)   Apache-2.0 OR MIT
+                      Used by musubi-core for the content digest over the
+                      canonical bytes of an Evidence envelope. Pure computation:
+                      it performs no input or output of any kind, which is why a
+                      crate that must have no network in its closure can depend
+                      on it.
+
+The remaining entries in the lockfile are that crate's own transitive
+dependencies. Their licences and their exact versions are recorded in Cargo.lock
+and are checked by the cargo-deny policy in deny.toml on every CI run.

@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/KeckuJp/musubi/schemas/dependency-sbom.schema.json",
+  "title": "Dependency SBOM",
+  "description": "The resolved dependency closure of a published payload, bound to the lockfile it was resolved from by content. Schema only; an instance is generated from a candidate's lockfile joined to separately recorded licence evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "subject", "generator", "packages"],
+  "properties": {
+    "schemaVersion": { "const": "musubi.sbom.dependency/1" },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "lockfileSha256", "coveragePolicy"],
+      "description": "What this closure was resolved from. The lockfile is named by content, and no commit is named: a commit would be a coordinate this document is published inside, and it is not what the closure was resolved from.",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The public repository identity, and nothing that locates a private working tree."
+        },
+        "lockfileSha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "The lockfile this closure was resolved from, by content. Naming the file by path would name whichever lockfile was present at generation time."
+        },
+        "coveragePolicy": {
+          "const": "ALL_LOCKFILE_PACKAGES_WITH_CHECKSUM_BOUND_LICENSE_EVIDENCE",
+          "description": "What the closure covers, as a constant rather than prose: every package the lockfile names, each with licence evidence bound to the checksum the lockfile states. A lockfile carries no licences, so evidence recorded elsewhere is what fills the field, never the workspace's own licence copied down."
+        }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "packages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "version",
+          "source",
+          "spdxLicenseId",
+          "licenseEvidenceDigest",
+          "directDependencyOf"
+        ],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "version": { "type": "string", "minLength": 1 },
+          "source": {
+            "type": "string",
+            "description": "Where the package came from: a registry URL, or the literal \"workspace\" for a member of this workspace. A package with no stated origin cannot be checked against one."
+          },
+          "spdxLicenseId": { "type": "string", "minLength": 1 },
+          "licenseEvidenceDigest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "description": "The bytes the stated licence was read from, by digest. Required beside the identifier, because an identifier with no evidence behind it is an assertion that nobody can check and that a workspace-wide licence could have supplied."
+          },
+          "checksum": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+          "directDependencyOf": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "description": "Which workspace members depend on this package directly. Empty means it is transitive only, which is the answer to \"why is this here\" that a flat list cannot give."
+          }
+        }
+      }
+    }
+  }
+}

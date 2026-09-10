@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/KeckuJp/musubi/schemas/public-payload-manifest.schema.json",
+  "title": "PublicPayloadManifestV1",
+  "description": "Lives in the public metadata commit and enumerates every file of the immediately preceding payload commit, bound to that commit, its Git tree object ID and its Musubi content-and-mode digest. This manifest and the release manifest are not in the payload commit, so both are out of their own coverage. Private coordinates are forbidden: public-relative paths only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "payloadCommit", "payloadGitTreeOid", "payloadTreeDigest", "coveragePolicy", "fileCount", "files"],
+  "properties": {
+    "schemaVersion": { "const": "musubi.publication.public-payload-manifest.v1" },
+    "payloadCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "payloadGitTreeOid": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "payloadTreeDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "treeDigestSpecVersion": { "const": "musubi-content-mode-tree-v1" },
+    "coveragePolicy": { "const": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST" },
+    "fileCount": { "type": "integer", "minimum": 1 },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "contentDigest", "mode"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^(?:(?!\\.\\.?(?:/|$))[A-Za-z0-9._-]+)(?:/(?:(?!\\.\\.?(?:/|$))[A-Za-z0-9._-]+))*$" },
+          "contentDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "mode": { "enum": ["100644", "100755"] }
+        }
+      }
+    }
+  }
+}
