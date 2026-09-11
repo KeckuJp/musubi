@@ -1,15 +1,15 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "dfd77c867ae26fd59162a96cd80f48a8a6cd7d64",
-  "payloadGitTreeOid": "96cc4ea1e4d84b606f274138b6d6210b3ac80de0",
-  "payloadTreeDigest": "sha256:22026c1b67fc4da116854fa7ec84f1074b12e9729015d6893a5581c8c8525b52",
+  "payloadCommit": "d30adb9c86be0566e6d88820a6365e8acd059d24",
+  "payloadGitTreeOid": "ce20b8fac4c514a31782b1797c269d8551975abe",
+  "payloadTreeDigest": "sha256:52a0a1a01e82e7286df6dca54268495d10e4bb8318822d3d62f261cfd23dac38",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
-  "fileCount": 79,
+  "fileCount": 82,
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "contentDigest": "sha256:397667491669522ab6c74d782008b0a5df2cafc6dc625ec43012c3c7972b4663",
+      "contentDigest": "sha256:8ab6cdb9f6d54ff22a2e624229fd920136249b5eeb606131407a2853eddba7df",
       "mode": "100644"
     },
     {
@@ -19,7 +19,7 @@
     },
     {
       "path": "CHANGELOG.md",
-      "contentDigest": "sha256:f12bf2e63aed4acd671ce5e5108f290a8be6df78da4f66719a2b58b40dd393b8",
+      "contentDigest": "sha256:3c8cec8cf8207b25a3b74f1a4c205c2d2f0b8480a312609770ee4a5b3b392a87",
       "mode": "100644"
     },
     {
@@ -319,7 +319,12 @@
     },
     {
       "path": "docs/adapt-recorded-input.md",
-      "contentDigest": "sha256:db74d6fb143dd9efd5f5da4a0be251b0e7e0d31cdc09874313167d395bcbbdc8",
+      "contentDigest": "sha256:5dcfb6e468ddbd89a5ae277b40d2db98c63f58fa7c63734f209347dc3849472d",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/migrate-recorded-counter.md",
+      "contentDigest": "sha256:53fc15c64f5ac374cbf4d1796223539ae6c0aa0aed938ec8789113281041e902",
       "mode": "100644"
     },
     {
@@ -349,7 +354,7 @@
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:2a3b5d23239acfa9182703f389132995d54aa786b4719fab7b9b1cab1a700fe1",
+      "contentDigest": "sha256:021dc57d30a1b4b2f70f7cba244f4a0fefbe33e1883e697bc5237a839612a901",
       "mode": "100644"
     },
     {
@@ -388,8 +393,18 @@
       "mode": "100644"
     },
     {
+      "path": "scripts/remap_jsonl_counter.py",
+      "contentDigest": "sha256:536e270105cb7e08dadfd0ae678586ff85d5a9c79acf098dc0e972013bb21468",
+      "mode": "100644"
+    },
+    {
       "path": "tests/test_blackbox_recording.py",
       "contentDigest": "sha256:2d917ab690560245d849c4acae83f23e6a896558a0be5175fc267ddd57a1cc27",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_jsonl_counter_remap.py",
+      "contentDigest": "sha256:303a8ac07d9b5620d5f12c1ef31c718b197b091eeea6df5bb8a1b894177506e0",
       "mode": "100644"
     },
     {
