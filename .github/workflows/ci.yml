@@ -32,6 +32,8 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo build --workspace --all-targets
       - run: cargo test --workspace
+      - name: Offline recording stage (synthetic inputs and mocked decoder)
+        run: python3 -m unittest discover -s tests -p test_blackbox_recording.py
       - name: Clippy, advisory
         # Cargo.toml declares this workspace's clippy lints at `warn` -- pedantic and nursery
         # among them. A clippy warning here is a diagnostic to read, not a failure. The job's
@@ -106,7 +108,7 @@ jobs:
           set -euo pipefail
           pattern='(EC-[0-9]{3}|UN-[0-9]{3}|CAP-[0-9]+|AUD2-[0-9]+|ADR-[0-9]+|SFA-[0-9]+|DR-[0-9]+)'
           status=0
-          grep -rnE "$pattern" crates README.md CONTRIBUTING.md AGENTS.md --include='*.rs' --include='*.md' >/dev/null 2>&1 || status=$?
+          grep -rnE "$pattern" crates scripts tests docs README.md CONTRIBUTING.md AGENTS.md --include='*.rs' --include='*.md' --include='*.py' >/dev/null 2>&1 || status=$?
           case "$status" in
             0)
               echo "::error::a private identifier reached the public tree"

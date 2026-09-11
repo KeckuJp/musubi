@@ -41,6 +41,10 @@ Three things follow from taking that seriously:
 
 ## Try it
 
+For the optional operator-installed raw-recording to CSV stage, see
+[Offline raw-recording to CSV stage](docs/recorded-blackbox.md).
+It stops at decoded CSV and does not establish device compatibility.
+
 ```
 cargo test --workspace
 ```
