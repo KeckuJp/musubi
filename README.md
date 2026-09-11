@@ -31,6 +31,7 @@ Three things follow from taking that seriously:
 
 | crate | what it is |
 |---|---|
+| `musubi-miniseed2` | An offline, dependency-free reader for big-endian miniSEED2 Steim-1/2 records. Retains raw blockettes and declared time metadata; returns instrument counts, not calibrated physical values. See [reader usage and limits](crates/miniseed2/README.md). |
 | `musubi-types` | The Common Object Model subset and the Evidence envelope. Pure data: no value in the crate carries a method. |
 | `musubi-core` | Deterministic normalisation, MARK derivation, canonical bytes and the content digest, the quarantine boundary for untrusted input, and a store-and-forward buffer that holds observations across a broken link and drains them in causal order. No network crate in its dependency closure. |
 | `musubi-adapter-spi` | The contract an adapter implements, plus one worked adapter over a synthetic wire. Copy it and rewrite one function. |

@@ -2,7 +2,7 @@
   "schemaVersion": "musubi.sbom.dependency/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "lockfileSha256": "sha256:a5c561a183a2134d3c06a8374dacc84c6ef599e534b5efed149ff45cf015cd4d",
+    "lockfileSha256": "sha256:9d6f289561786a92b86bdb15695a933e677471a8e8b699be0d20cfacb85a1d7d",
     "coveragePolicy": "ALL_LOCKFILE_PACKAGES_WITH_CHECKSUM_BOUND_LICENSE_EVIDENCE"
   },
   "generator": {
@@ -142,6 +142,15 @@
     },
     {
       "name": "musubi-jsonl-log",
+      "version": "0.1.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": []
+    },
+    {
+      "name": "musubi-miniseed2",
       "version": "0.1.0",
       "source": "workspace",
       "spdxLicenseId": "Apache-2.0",

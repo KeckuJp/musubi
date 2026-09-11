@@ -11,6 +11,10 @@ state rather than a change from one.
 
 ### Added
 
+- `musubi-miniseed2`: a standalone recorded-file decoder for the big-endian Steim-1/2 subset,
+  an offline inspection example and synthetic tests. No recording, third-party decoder or
+  equipment-specific common-model mapping is included.
+
 - `musubi-types`: the Common Object Model subset -- timestamps with observation and reception
   time held apart, position, platform domain and state, track, payload feed, health -- together
   with the MARK envelope and the Evidence envelope. Pure data; no value in the crate carries a
