@@ -11,6 +11,11 @@ state rather than a change from one.
 
 ### Added
 
+- Offline whitespace pose-text conversion with comment accounting and named numeric
+  extensions. Explicit non-decreasing timestamp parsing preserves equal-time rows
+  without changing the strict default. Includes a CSV inspection example and a
+  standalone reproduction recipe; no common-model pose mapping is included.
+
 - `musubi-miniseed2`: a standalone recorded-file decoder for the big-endian Steim-1/2 subset,
   an offline inspection example and synthetic tests. No recording, third-party decoder or
   equipment-specific common-model mapping is included.

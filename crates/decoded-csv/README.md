@@ -1,7 +1,7 @@
 # Decoded telemetry CSV
 
 `musubi-decoded-csv` reads an unquoted decoded telemetry CSV into rows with a
-boot-relative microsecond timestamp and all source columns. Unknown column names,
+declared microsecond timestamp and all source columns. Unknown column names,
 unit suffixes, text, empty values and column order are retained. It has no dependencies.
 Cell text is trimmed and finite numeric cells are typed; retention is semantic, not
 byte-for-byte preservation of whitespace or number spelling.
@@ -28,3 +28,10 @@ compatibility guarantee. The tests use authored synthetic inputs; no third-party
 log or source is bundled.
 
 Run `cargo test -p musubi-decoded-csv`.
+
+For explicitly non-decreasing recorded time, call `parse_non_decreasing` instead
+of `parse`. Equal timestamps and their rows stay in source order; decreases still
+fail. This is opt-in and does not infer causal order, synchronization, or a boot
+clock from the historical `boot_us` member name. See the
+[pose-text conversion recipe](../../docs/recorded-pose-text.md) for a complete
+offline example with comment accounting and named numeric extensions.
