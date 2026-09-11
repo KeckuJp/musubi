@@ -11,6 +11,9 @@ state rather than a change from one.
 
 ### Added
 
+- A profile-only GPS schema migration example and synthetic public-adapter
+  regressions for renamed boot counters and changed units. No runtime changes.
+
 - An explicit offline JSONL counter remapper and migration recipe. Caller-declared
   boot counters are normalized without changing the reader or core; complete source
   records remain available as unsealed sidecars. Includes synthetic regression tests.

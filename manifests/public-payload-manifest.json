@@ -1,8 +1,8 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "d30adb9c86be0566e6d88820a6365e8acd059d24",
-  "payloadGitTreeOid": "ce20b8fac4c514a31782b1797c269d8551975abe",
-  "payloadTreeDigest": "sha256:52a0a1a01e82e7286df6dca54268495d10e4bb8318822d3d62f261cfd23dac38",
+  "payloadCommit": "fbd31b04daed823bb0ae198e17650d9d2233ad44",
+  "payloadGitTreeOid": "a59659e9726b7101d69a98d289b26e7bd2f9c4ee",
+  "payloadTreeDigest": "sha256:730fec2da6209d93653c7de061815a8f77ef7f76efcc8b3f4a9f6d216d5d9082",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
   "fileCount": 82,
@@ -19,7 +19,7 @@
     },
     {
       "path": "CHANGELOG.md",
-      "contentDigest": "sha256:3c8cec8cf8207b25a3b74f1a4c205c2d2f0b8480a312609770ee4a5b3b392a87",
+      "contentDigest": "sha256:0e07a62629db2c07f4665797677b45d4c1c2094d52df97081e88bd1eccda08bc",
       "mode": "100644"
     },
     {
@@ -324,7 +324,7 @@
     },
     {
       "path": "docs/migrate-recorded-counter.md",
-      "contentDigest": "sha256:53fc15c64f5ac374cbf4d1796223539ae6c0aa0aed938ec8789113281041e902",
+      "contentDigest": "sha256:f12ff823d1ec74cf632c1eccebe391147baddd9a6e46ba07951a52dd517c2920",
       "mode": "100644"
     },
     {
@@ -354,7 +354,7 @@
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:021dc57d30a1b4b2f70f7cba244f4a0fefbe33e1883e697bc5237a839612a901",
+      "contentDigest": "sha256:5b58edb7ba3784ddc4110ba3ad38a3fc15d11af31e8dcefede75321e18eee867",
       "mode": "100644"
     },
     {
@@ -404,7 +404,7 @@
     },
     {
       "path": "tests/test_jsonl_counter_remap.py",
-      "contentDigest": "sha256:303a8ac07d9b5620d5f12c1ef31c718b197b091eeea6df5bb8a1b894177506e0",
+      "contentDigest": "sha256:48c5d6e8f6a9cbb72699e41afc6be84693b15b36f872c5536ace4124f105598d",
       "mode": "100644"
     },
     {

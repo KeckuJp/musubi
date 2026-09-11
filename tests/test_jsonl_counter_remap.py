@@ -23,6 +23,30 @@ def profile(field="T", unit="ms"):
 
 
 class CounterRemapTests(unittest.TestCase):
+    def test_copter_gps_schema_migration_requires_updated_clock_profile(self):
+        # Generated values: only field shapes follow the recorded schema distinction.
+        position = {"Lat": 21.125, "Lng": -42.75, "Alt": 18.5, "Status": 3}
+        unknown = {"future": [False, {"tag": "synthetic-only"}]}
+        old = {"meta": {"type": "GPS"}, "data": {
+            **position, **unknown, "T": 2468, "TimeMS": 345678000, "Week": 2345}}
+        modern = {"meta": {"type": "GPS"}, "data": {
+            **position, **unknown, "TimeUS": 2468000, "GMS": 456789000, "GWk": 2456, "I": 0}}
+        with self.assertRaises(ValueError):
+            MODULE.remap(encode([modern]), profile("T", "ms"))
+        results = [json.loads(MODULE.remap(encode([source]), clock))
+                   for source, clock in [(old, profile("T", "ms")),
+                                         (modern, profile("TimeUS", "us"))]]
+        for source, result in zip([old, modern], results):
+            self.assertEqual(result["source_record"], source)
+            self.assertEqual(result["data"]["future"], unknown["future"])
+            self.assertEqual(result["data"]["TimeUS"], 2468000)
+            self.assertEqual({key: result["data"][key] for key in position}, position)
+        self.assertNotIn("TimeMS", results[0]["data"])
+        self.assertEqual(results[0]["source_record"]["data"]["TimeMS"], 345678000)
+        self.assertEqual(results[1]["data"]["GMS"], 456789000)
+        self.assertNotEqual(results[0]["data"]["TimeUS"], old["data"]["TimeMS"] * 1000)
+        self.assertNotEqual(results[1]["data"]["TimeUS"], modern["data"]["GMS"] * 1000)
+
     def test_explicit_boot_counter_preserves_complete_original_and_other_rows(self):
         rows = [
             {"meta": {"type": "GPS", "extra": 7}, "data": {
@@ -39,6 +63,60 @@ class CounterRemapTests(unittest.TestCase):
         self.assertEqual(got[0]["extra"], rows[0]["extra"])
         self.assertEqual(got[0]["data"]["T"], 1234)
         self.assertEqual(got[1], rows[1])
+
+    @unittest.skipUnless(os.environ.get("MUSUBI_PUBLIC_REPLAY_ROOT"),
+                         "public-only E2E: set MUSUBI_PUBLIC_REPLAY_ROOT to projected public workspace")
+    def test_copter_gps_migration_and_third_input_reach_same_spi_contract(self):
+        position = {"Lat": 21.125, "Lng": -42.75, "Alt": 18.5, "Status": 3}
+        unknown = {"future": [False, {"tag": "synthetic-only"}]}
+        old = {"meta": {"type": "GPS"}, "data": {
+            **position, **unknown, "T": 2468, "TimeMS": 345678000, "Week": 2345}}
+        modern = {"meta": {"type": "GPS"}, "data": {
+            **position, **unknown, "TimeUS": 2468000, "GMS": 456789000, "GWk": 2456, "I": 0}}
+        third = {"meta": {"type": "GPS"}, "data": {
+            "Lat": -11.25, "Lng": 62.125, "Alt": -7.5, "Status": 3,
+            "future": {"other": [9, True]}, "TimeUS": 9876543,
+            "GMS": 567890000, "GWk": 2567, "I": 0}}
+        updated_profile = profile("TimeUS", "us")
+        with self.assertRaises(ValueError):
+            MODULE.remap(encode([modern]), profile("T", "ms"))
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mapping = root / "mapping.json"
+            mapping.write_text(json.dumps({"message_type": "GPS", "latitude_field": "Lat",
+                "longitude_field": "Lng", "altitude_field": "Alt", "position_units": "deg-m-msl"}))
+            mapped_results = []
+            for observation, clock, expected_boot in [(old, profile("T", "ms"), 2468000),
+                    (modern, updated_profile, 2468000), (third, updated_profile, 9876543)]:
+                rows = [observation, {"meta": {"type": "META"}, "data": {}},
+                        {"meta": {"type": "OTHER"}, "data": {"TimeUS": 8}}]
+                converted = MODULE.remap(encode(rows), clock)
+                source = root / "remapped.jsonl"
+                source.write_bytes(converted)
+                completed = subprocess.run(["cargo", "run", "--quiet", "--offline", "--locked",
+                    "-p", "musubi-adapter-spi", "--example", "ingest_recorded_jsonl", "--",
+                    str(source), str(mapping), "synthetic", "1700000000123"],
+                    cwd=Path(os.environ["MUSUBI_PUBLIC_REPLAY_ROOT"]), capture_output=True, check=False)
+                self.assertEqual(completed.returncode, 0, completed.stderr.decode())
+                report = json.loads(completed.stdout)
+                self.assertEqual(report["records"], [json.loads(line) for line in converted.splitlines()])
+                self.assertEqual(report["records"][0]["source_record"], observation)
+                self.assertEqual(report["records"][0]["data"]["future"], observation["data"]["future"])
+                self.assertEqual(report["untimed_indices"], [1])
+                self.assertEqual(report["unmapped_indices"], [2])
+                self.assertEqual(report["rejected"], [])
+                self.assertEqual(len(report["mapped"]), 1)
+                mapped = report["mapped"][0]
+                self.assertEqual((mapped["record_index"], mapped["boot_us"]), (0, expected_boot))
+                self.assertEqual(mapped["domain"], "Unknown")
+                self.assertEqual(mapped["time_confidence"], 0)
+                self.assertIsNone(mapped["observed_at"])
+                self.assertEqual(mapped["received_at"], 1700000000123)
+                self.assertEqual(mapped["position"], {"lat_deg": observation["data"]["Lat"],
+                    "lon_deg": observation["data"]["Lng"], "alt_m": observation["data"]["Alt"]})
+                mapped_results.append(mapped)
+            for key in ["boot_us", "position", "domain", "time_confidence", "observed_at", "received_at"]:
+                self.assertEqual(mapped_results[0][key], mapped_results[1][key])
 
     def test_new_microseconds_and_unseen_field_values_use_same_implementation(self):
         for field, unit, value, expected in [

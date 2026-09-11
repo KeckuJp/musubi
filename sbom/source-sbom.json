@@ -2,7 +2,7 @@
   "schemaVersion": "musubi.sbom.source/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "inventoryDigest": "sha256:4a7b1b214a9d51a5bcbd20f60da3a709092bcefb75467e828067e4c69f65b3a2",
+    "inventoryDigest": "sha256:674c6118dd4ea753dd476fc44b42386d8edda6a5a0b4dcd37add7bf76fc25002",
     "inventoryFileCount": 80,
     "inventoryCoveragePolicy": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
     "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
@@ -32,8 +32,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "sha256:3c8cec8cf8207b25a3b74f1a4c205c2d2f0b8480a312609770ee4a5b3b392a87",
-      "bytes": 3361,
+      "sha256": "sha256:0e07a62629db2c07f4665797677b45d4c1c2094d52df97081e88bd1eccda08bc",
+      "bytes": 3516,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -398,8 +398,8 @@
     },
     {
       "path": "docs/migrate-recorded-counter.md",
-      "sha256": "sha256:53fc15c64f5ac374cbf4d1796223539ae6c0aa0aed938ec8789113281041e902",
-      "bytes": 7402,
+      "sha256": "sha256:f12ff823d1ec74cf632c1eccebe391147baddd9a6e46ba07951a52dd517c2920",
+      "bytes": 10425,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -482,8 +482,8 @@
     },
     {
       "path": "tests/test_jsonl_counter_remap.py",
-      "sha256": "sha256:303a8ac07d9b5620d5f12c1ef31c718b197b091eeea6df5bb8a1b894177506e0",
-      "bytes": 9346,
+      "sha256": "sha256:48c5d6e8f6a9cbb72699e41afc6be84693b15b36f872c5536ace4124f105598d",
+      "bytes": 14769,
       "spdxLicenseId": "Apache-2.0"
     },
     {

@@ -95,6 +95,62 @@ with no output file; remapping a previously mapped input must fail on the reserv
 `source_record` collision. Malformed/truncated JSON, duplicate keys, nonfinite
 values, missing counters, bool/fractional/negative counters and overflow fail.
 
+## Same-family GPS schema change: profile-only adaptation
+
+A concrete schema distinction in Copter DataFlash GPS exports is `T` in boot
+milliseconds versus `TimeUS` in boot microseconds. The older `TimeMS` and newer
+`GMS` are satellite week-relative milliseconds, not interchangeable boot clocks.
+Check the versioned producer definitions and the actual exported fields; do not
+select a profile solely from a firmware family or filename. An external decoder
+must first produce the JSONL `meta.type` / `data` shape used by this reader.
+The decoder is not bundled, and already decoded positions must not be scaled again.
+
+For an old GPS export with a verified `T` boot counter, use:
+
+```json
+{"message_type":"GPS","counter_field":"T","counter_unit":"ms"}
+```
+
+For a new export with a verified `TimeUS` boot counter, use:
+
+```json
+{"message_type":"GPS","counter_field":"TimeUS","counter_unit":"us"}
+```
+
+The position profile can remain unchanged when the decoded position semantics agree:
+
+```json
+{"message_type":"GPS","latitude_field":"Lat","longitude_field":"Lng","altitude_field":"Alt","position_units":"deg-m-msl","fix_field":"Status","min_fix":3}
+```
+
+Run the same remap and adapter commands above with these profiles and your approved
+export paths. First apply the **old** counter profile to the new export: missing
+`T` must fail, and no output should be created. Then change only the counter
+profile and verify the report against an independent source. Preserve the old
+profile and repeat the old-input regression. Reserve another export before making
+the change and apply the unchanged new profile to it. If that export has a different
+schema, report the limit rather than tailoring an exception to its filename.
+
+To reproduce this exact field/unit distinction without downloading recordings:
+
+```sh
+MUSUBI_PUBLIC_REPLAY_ROOT="$PWD" python3 -m unittest discover -s tests -p test_jsonl_counter_remap.py -v
+```
+
+The GPS migration tests use authored synthetic values: an old `T=2468` record and
+a new `TimeUS=2468000` record must yield the same boot counter and position. A
+separate synthetic input checks reuse. The suite verifies rejection under the old
+profile, the public adapter path, retained unknown fields, record accounting and
+unchanged Unknown domain. No firmware-specific runtime code, reader change, core
+change or extra dependency is needed for this mapping.
+
+Inspect all accounting categories, not only mapped positions. Non-position records
+remain untimed or unmapped as appropriate; insufficient GPS fix is explicitly
+rejected and can make the adapter exit nonzero. Retention is not successful semantic
+mapping. Multi-GPS instance fields are retained, but this recipe does not create
+separate vehicle identities or infer instance selection. This example is not a
+blanket compatibility claim for any Copter version or complete recording.
+
 ## Limits and migration discipline
 
 - The complete input is validated before opening a new output file. Existing
@@ -131,6 +187,8 @@ the same task; neither is a runtime dependency or publication authority.
 > accounting category, domain and clock confidence. Run the old-input regression,
 > wrong-profile and source-record-collision controls and the indicated tests.
 > Save exact commands and actual results in the new migration-run directory.
+> Also run the GPS schema-migration tests above: explain why T/ms cannot process
+> the TimeUS/us input and why the position profile and runtime can remain unchanged.
 > Do not change source, core, dependencies, publish, access recordings, contact a
 > device or read outside this public workspace. Finish after this bounded replay.
 
