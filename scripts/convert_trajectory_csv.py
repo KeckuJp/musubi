@@ -11,7 +11,7 @@ import io
 from pathlib import Path
 
 
-def convert(text, time_column):
+def convert(text, time_column, *, allow_equal_time=False):
     rows = list(csv.reader(io.StringIO(text), strict=True))
     if len(rows) < 2 or time_column not in rows[0] or len(set(rows[0])) != len(rows[0]):
         raise ValueError("missing time/data or duplicate column")
@@ -35,7 +35,8 @@ def convert(text, time_column):
         if not us.is_finite() or us != us.to_integral_value() or us < 0 or us > 2**63 - 1:
             raise ValueError("time must be finite/nonnegative and exactly representable as i64 microseconds")
         value = int(us)
-        if previous is not None and value <= previous: raise ValueError("time must increase")
+        if previous is not None and (value < previous or (value == previous and not allow_equal_time)):
+            raise ValueError("time must increase (equal time requires explicit opt-in)")
         # The current target CSV reader is intentionally unquoted; unsupported strings fail here.
         if any(any(c in value for c in '\r\n,"') for value in row): raise ValueError("quoted cell requires a different reader")
         writer.writerow([str(value)] + row)

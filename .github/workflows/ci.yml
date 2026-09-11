@@ -36,6 +36,8 @@ jobs:
         run: python3 -m unittest discover -s tests -p test_blackbox_recording.py
       - name: Recorded CSV time conversion (synthetic inputs)
         run: python3 -m unittest discover -s tests -p test_trajectory_conversion.py
+      - name: Recorded pose text conversion (synthetic inputs)
+        run: python3 -m unittest discover -s tests -p test_pose_text_conversion.py
       - name: Clippy, advisory
         # Cargo.toml declares this workspace's clippy lints at `warn` -- pedantic and nursery
         # among them. A clippy warning here is a diagnostic to read, not a failure. The job's

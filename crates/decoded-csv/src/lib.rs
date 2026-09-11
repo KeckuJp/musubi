@@ -106,6 +106,19 @@ fn value(text: &str, line: usize) -> Result<Value, ParseError> {
 /// Rejects raw/binary input, quotes, ragged rows, ambiguous columns, missing data, unsupported
 /// time units and invalid or non-increasing timestamps.
 pub fn parse(bytes: &[u8], time_column: &str) -> Result<Table, ParseError> {
+    parse_ordered(bytes, time_column, false)
+}
+
+/// Retain equal-time records in source order, without asserting an order between their events.
+/// All other validation is identical to [`parse`]; decreasing time remains an error.
+///
+/// # Errors
+/// Returns the same structural/value errors as [`parse`] and rejects decreasing timestamps.
+pub fn parse_non_decreasing(bytes: &[u8], time_column: &str) -> Result<Table, ParseError> {
+    parse_ordered(bytes, time_column, true)
+}
+
+fn parse_ordered(bytes: &[u8], time_column: &str, allow_equal: bool) -> Result<Table, ParseError> {
     let text = std::str::from_utf8(bytes).map_err(|_| error(1, "not UTF-8"))?;
     if text.contains('"') || text.contains('\0') {
         return Err(error(1, "quoted or binary input is unsupported"));
@@ -151,7 +164,7 @@ pub fn parse(bytes: &[u8], time_column: &str) -> Result<Table, ParseError> {
             .ok()
             .and_then(|v| u64::try_from(v).ok())
             .ok_or(error(line_number, "time must be a nonnegative integer"))?;
-        if previous.is_some_and(|p| boot_us <= p) {
+        if previous.is_some_and(|p| boot_us < p || (!allow_equal && boot_us == p)) {
             return Err(error(line_number, "time must be strictly increasing"));
         }
         previous = Some(boot_us);

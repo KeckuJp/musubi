@@ -42,6 +42,10 @@ Three things follow from taking that seriously:
 
 ## Try it
 
+For whitespace-separated position/quaternion records with explicit equal-time
+handling and comment accounting, see [Recorded pose text](docs/recorded-pose-text.md).
+This reuses the CSV table reader; it does not provide a pose-to-Observation adapter.
+
 For the optional operator-installed raw-recording to CSV stage, see
 [Offline raw-recording to CSV stage](docs/recorded-blackbox.md).
 It stops at decoded CSV and does not establish device compatibility.
