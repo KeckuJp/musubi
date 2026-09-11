@@ -1,0 +1,10 @@
+[package]
+name = "musubi-miniseed2"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Read-only structural decoder for FDSN miniSEED 2.x data records (Steim-1/Steim-2 only), from the public SEED 2.4 reference manual"
+
+[lints]
+workspace = true

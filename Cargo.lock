@@ -119,6 +119,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "musubi-miniseed2"
+version = "0.1.0"
+
+[[package]]
 name = "musubi-types"
 version = "0.0.0"
 

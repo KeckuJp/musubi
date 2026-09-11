@@ -1,9 +1,9 @@
 {
   "schemaVersion": "musubi.publication.public-release-manifest.v1",
   "releaseClass": "PUBLIC_SOURCE_PREVIEW",
-  "payloadCommit": "32b72b9109c7925ef0398bfaf4e859a4ae4bb890",
-  "payloadManifestDigest": "sha256:311a1a759e7f168a0f10166e1d716ab7795ecc676471fb8b959c5fe0906365f7",
-  "payloadTreeDigest": "sha256:0a3a424490dae500c98be1399baa9b92c5b8509aef92421811a68af166b5d0dd",
+  "payloadCommit": "6b8d40ca2dd24a216ce434a91da48e3665bb49a8",
+  "payloadManifestDigest": "sha256:691b48d5c2d31ca31ce9c8392f66e8bdbcd23fab337da56ed4570e4c462ba647",
+  "payloadTreeDigest": "sha256:0c65ca1f5e0d4e47700c3fda91de35e0857cc9049ef85840d4e497ebeb9916c6",
   "sourceUrl": "https://github.com/KeckuJp/musubi",
   "targetPackages": [
     "musubi-adapter-spi",
@@ -12,7 +12,8 @@
     "musubi-core",
     "musubi-types",
     "musubi-decoded-csv",
-    "musubi-jsonl-log"
+    "musubi-jsonl-log",
+    "musubi-miniseed2"
   ],
   "copyright": "Copyright 2026 Musubi contributors",
   "noticePath": "NOTICE",
@@ -38,13 +39,13 @@
   },
   "dependencyLock": {
     "path": "Cargo.lock",
-    "digest": "sha256:a5c561a183a2134d3c06a8374dacc84c6ef599e534b5efed149ff45cf015cd4d"
+    "digest": "sha256:9d6f289561786a92b86bdb15695a933e677471a8e8b699be0d20cfacb85a1d7d"
   },
   "sbom": {
     "sourceSbomPath": "sbom/source-sbom.json",
-    "sourceSbomDigest": "sha256:ebd277624d2fe64a53f85ab715047cc4e5f077b3dd724a955810befe926789db",
+    "sourceSbomDigest": "sha256:85ac88c7815602d5d5856d95dc0f7bdf447867fae1fca477ec0f909869262287",
     "dependencySbomPath": "sbom/dependency-sbom.json",
-    "dependencySbomDigest": "sha256:d3015c61cb34bfb0a448ff9f5ebe595b39444f1116274d5e3d93f52a9b3263ff",
+    "dependencySbomDigest": "sha256:72595aa52225f43af1f76719b8a931dba7d160e2b04b821e1309775a8f51e313",
     "coveragePolicy": "SOURCE_PACKAGE_DEPENDENCY_INVENTORY_EXCLUDING_SBOM_AND_GENERATED_METADATA"
   },
   "policies": {
