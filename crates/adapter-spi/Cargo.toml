@@ -10,8 +10,9 @@ description = "The Musubi adapter SPI and a worked adapter that uses it. Read-on
 workspace = true
 
 [dependencies]
-# Path dependencies only. The wire in `template` is parsed by hand rather than with a
-# serialization library, so an adapter author inherits no dependency from the shortest path,
-# and the core's no-network closure is unchanged.
+# The text template parses by hand. The recorded example reuses the public JSONL reader.
+# The core's no-network closure is unchanged.
 musubi-types = { path = "../types" }
 musubi-core = { path = "../core" }
+musubi-jsonl-log = { path = "../jsonl-log" }
+serde_json = { version = "1", features = ["float_roundtrip"] }
