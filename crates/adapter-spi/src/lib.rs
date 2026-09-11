@@ -27,15 +27,16 @@
 //!
 //! ## Dependencies
 //!
-//! `musubi-types` and `musubi-core` only. No serialization library, no network, no
-//! downstream dialect crate. The wire in [`template`] is parsed by hand so that the shortest
-//! path from device to evidence adds nothing to your dependency tree.
+//! The text template parses its wire by hand. [`recorded_jsonl`] additionally reuses
+//! `musubi-jsonl-log` and its JSON value representation. No network or downstream dialect
+//! crate is involved; the core dependency closure is unchanged.
 //!
 //! ## Scope
 //!
 //! An in-process adapter. Component packaging, a multi-language SDK and a live network tap
 //! are not here, and this crate does not claim them.
 
+pub mod recorded_jsonl;
 pub mod spi;
 pub mod template;
 

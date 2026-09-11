@@ -79,7 +79,9 @@ name = "musubi-adapter-spi"
 version = "0.0.0"
 dependencies = [
  "musubi-core",
+ "musubi-jsonl-log",
  "musubi-types",
+ "serde_json",
 ]
 
 [[package]]

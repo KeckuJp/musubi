@@ -42,6 +42,10 @@ Three things follow from taking that seriously:
 
 ## Try it
 
+To adapt a decoded input into the public common model with a small explicit mapping,
+follow [Adapt a recorded input](docs/adapt-recorded-input.md). It includes a second
+input and optional Codex/Claude Code instructions; no AI account is needed to run it.
+
 For whitespace-separated position/quaternion records with explicit equal-time
 handling and comment accounting, see [Recorded pose text](docs/recorded-pose-text.md).
 This reuses the CSV table reader; it does not provide a pose-to-Observation adapter.

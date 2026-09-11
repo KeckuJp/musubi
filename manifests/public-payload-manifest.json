@@ -1,11 +1,11 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "9769788bc7286cdfbc3fa489228f439e88f9d3fa",
-  "payloadGitTreeOid": "ceae7acba77ea45d520a9a4a650e3345cd3ec51d",
-  "payloadTreeDigest": "sha256:3030eb5f4cc0d35d1d556df1f766e4af8086cfeabc3ffa86c1de4543a1aa69cb",
+  "payloadCommit": "dfd77c867ae26fd59162a96cd80f48a8a6cd7d64",
+  "payloadGitTreeOid": "96cc4ea1e4d84b606f274138b6d6210b3ac80de0",
+  "payloadTreeDigest": "sha256:22026c1b67fc4da116854fa7ec84f1074b12e9729015d6893a5581c8c8525b52",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
-  "fileCount": 74,
+  "fileCount": 79,
   "files": [
     {
       "path": ".github/workflows/ci.yml",
@@ -19,7 +19,7 @@
     },
     {
       "path": "CHANGELOG.md",
-      "contentDigest": "sha256:4c0538883ec0667e69f2d252a319f206a70ec085e9041f2b64ab41d895da1ea8",
+      "contentDigest": "sha256:f12bf2e63aed4acd671ce5e5108f290a8be6df78da4f66719a2b58b40dd393b8",
       "mode": "100644"
     },
     {
@@ -34,7 +34,7 @@
     },
     {
       "path": "Cargo.lock",
-      "contentDigest": "sha256:9d6f289561786a92b86bdb15695a933e677471a8e8b699be0d20cfacb85a1d7d",
+      "contentDigest": "sha256:0d068bf844132146c6d4db423fcfe390e350648efd78dcd61477e365d6d1d8a3",
       "mode": "100644"
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "path": "README.md",
-      "contentDigest": "sha256:f7dc87538dcf9f5d50f53f50b499b6460253a3bd486a1e2044a5322674e1c893",
+      "contentDigest": "sha256:f90173f186b2cc0757cd5c16d1052abdb3a766d955c8c09c3830ad9310561d1d",
       "mode": "100644"
     },
     {
@@ -69,12 +69,27 @@
     },
     {
       "path": "crates/adapter-spi/Cargo.toml",
-      "contentDigest": "sha256:11a84e1ebe7f1fe6bfd8c8ffeadf6b6d58db1969456a5d9dfdce060825b14d71",
+      "contentDigest": "sha256:4f05c1915ee54f803b94e1297cc5667fd5a575f2210022cb5b6577d4d8c144a0",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/adapter-spi/README.md",
+      "contentDigest": "sha256:1315ec2de66ddb414572d6b8e1b3e3226bea087f0b1d88f41242e912aeed707c",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/adapter-spi/examples/ingest_recorded_jsonl.rs",
+      "contentDigest": "sha256:ccf278191f3ea1d6af9d60f9a42868e3aa6d9149564476139199b16ee8cca3e1",
       "mode": "100644"
     },
     {
       "path": "crates/adapter-spi/src/lib.rs",
-      "contentDigest": "sha256:ab2b839f67582b872440d72dfc8a0480eda819a989036a98c9cbd5376169a019",
+      "contentDigest": "sha256:46044bbef25ae9b9b302d4c0020ff568869306c697d8fe0ba4fdd46d4ab8239b",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/adapter-spi/src/recorded_jsonl.rs",
+      "contentDigest": "sha256:5587e6cfe7a31b0e4e11cb0032133d5c92787c3919c01242068825fc6fd5a7af",
       "mode": "100644"
     },
     {
@@ -95,6 +110,11 @@
     {
       "path": "crates/adapter-spi/src/template_tests.rs",
       "contentDigest": "sha256:89db03737df5bba221d67c9f512fd50889cd4f9e5d12164ec9dd6c3f1a775db0",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/adapter-spi/tests/recorded_jsonl.rs",
+      "contentDigest": "sha256:48ed2c9765e5bd6bb88c1c35c87cbd28e3af676e8fbec4fac0ef56cb098fc2c4",
       "mode": "100644"
     },
     {
@@ -298,6 +318,11 @@
       "mode": "100644"
     },
     {
+      "path": "docs/adapt-recorded-input.md",
+      "contentDigest": "sha256:db74d6fb143dd9efd5f5da4a0be251b0e7e0d31cdc09874313167d395bcbbdc8",
+      "mode": "100644"
+    },
+    {
       "path": "docs/recorded-blackbox.md",
       "contentDigest": "sha256:f7040131f3d90f7d02089e9059ded5f38842bd94ff065f1aacd7049538783dd3",
       "mode": "100644"
@@ -319,12 +344,12 @@
     },
     {
       "path": "sbom/dependency-sbom.json",
-      "contentDigest": "sha256:72595aa52225f43af1f76719b8a931dba7d160e2b04b821e1309775a8f51e313",
+      "contentDigest": "sha256:af33afa85089d6b3be05b3e8eef7bdf07517eb50304dc7d40e6216d8d3b51ad6",
       "mode": "100644"
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:51e203586d598f0734e5529b569d895c5b57eac83db4356b577d9f631711d07b",
+      "contentDigest": "sha256:2a3b5d23239acfa9182703f389132995d54aa786b4719fab7b9b1cab1a700fe1",
       "mode": "100644"
     },
     {

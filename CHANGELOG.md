@@ -11,6 +11,10 @@ state rather than a change from one.
 
 ### Added
 
+- A recorded JSONL adapter example connecting the existing reader to the public
+  common model, core-derived MARK and sealed envelope. Includes an explicit mapping
+  profile, retained-record accounting, failure tests and a reusable development recipe.
+
 - Offline whitespace pose-text conversion with comment accounting and named numeric
   extensions. Explicit non-decreasing timestamp parsing preserves equal-time rows
   without changing the strict default. Includes a CSV inspection example and a
