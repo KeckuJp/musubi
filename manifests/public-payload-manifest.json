@@ -1,15 +1,15 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "1fcdc4c833cf625b0b16740d39ea30153408f472",
-  "payloadGitTreeOid": "d12fc14007f5fae693bdb9598202e051060898c4",
-  "payloadTreeDigest": "sha256:3f5b7611e91c17c01afba0087ac844c8035a7319a874ad61f694bea6fe723122",
+  "payloadCommit": "9ad3df8ff1e5d70799f3aff0e1166faa4029f011",
+  "payloadGitTreeOid": "51a11f084ba1946191bf0da951056f4fc95626ac",
+  "payloadTreeDigest": "sha256:b242704e7d700f0523dc929f43ee97264ed6131bb0119aa9735f02967ba49ab0",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
-  "fileCount": 56,
+  "fileCount": 59,
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "contentDigest": "sha256:7a0c2128a26dd4504a8c8dea6b490216b46ac5c34753c0d6f94d373fddced9ac",
+      "contentDigest": "sha256:1860ea709fcf08054ad4c0aa60b09b68e581241cac8c6ad324ff4d2d5180c67c",
       "mode": "100644"
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "path": "README.md",
-      "contentDigest": "sha256:127e493af75d311efdead17d18cd1cb66504adc195a514091662e9722d20f832",
+      "contentDigest": "sha256:7fd8669cb9caeff89b25439cf8c54df2bbc695589da8ba653e51bd740b15c0d8",
       "mode": "100644"
     },
     {
@@ -253,6 +253,11 @@
       "mode": "100644"
     },
     {
+      "path": "docs/recorded-blackbox.md",
+      "contentDigest": "sha256:f7040131f3d90f7d02089e9059ded5f38842bd94ff065f1aacd7049538783dd3",
+      "mode": "100644"
+    },
+    {
       "path": "rust-toolchain.toml",
       "contentDigest": "sha256:089dfdee3211aaef5b3a8ae8c989790d63ab71f8da627d9974d5aa3ce706a0d6",
       "mode": "100644"
@@ -264,7 +269,7 @@
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:950e5cc14916ca396e53b794eb17861e1c9f51351ce590607adbbae64db15eaa",
+      "contentDigest": "sha256:28839f20963e8def09c0cd512dc59e9e0d6e056289977a9c3058147fe5cef995",
       "mode": "100644"
     },
     {
@@ -285,6 +290,16 @@
     {
       "path": "schemas/source-sbom.schema.json",
       "contentDigest": "sha256:bc3b32c29c79b097a66e0391606ff62f5fe1db9bc4c4eebfc2c75b641211d29f",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/decode_blackbox_recording.py",
+      "contentDigest": "sha256:7d02dd34aa9e88f5b07ab747a2b5e84a1a2cfc2c5bfcfc52fe34e8fdb449c35c",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_blackbox_recording.py",
+      "contentDigest": "sha256:2d917ab690560245d849c4acae83f23e6a896558a0be5175fc267ddd57a1cc27",
       "mode": "100644"
     }
   ]
