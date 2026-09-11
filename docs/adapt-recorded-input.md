@@ -4,6 +4,9 @@ This worked path connects a decoded JSONL reader to the public common model thro
 the adapter SPI. It is an offline development example, not device support or live
 integration. Python is optional; Rust is pinned in `rust-toolchain.toml`.
 
+For counter-field or clock-unit differences, see the explicit
+[recorded counter migration recipe](migrate-recorded-counter.md).
+
 ## 1. Investigate before choosing a change
 
 Keep the original file. Establish the format, numeric units, coordinate frame, time
