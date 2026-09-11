@@ -45,6 +45,10 @@ For the optional operator-installed raw-recording to CSV stage, see
 [Offline raw-recording to CSV stage](docs/recorded-blackbox.md).
 It stops at decoded CSV and does not establish device compatibility.
 
+For a recorded CSV with a known seconds column, see
+[Recorded CSV time-column conversion](docs/recorded-trajectory.md).
+The small conversion stage reuses the existing table reader without inferring clock quality.
+
 ```
 cargo test --workspace
 ```

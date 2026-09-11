@@ -2,8 +2,8 @@
   "schemaVersion": "musubi.sbom.source/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "inventoryDigest": "sha256:8705bff90def33ce4acc532711d60a2920c3092d4d235e5741d4dee5b0f7ce2f",
-    "inventoryFileCount": 57,
+    "inventoryDigest": "sha256:5ff1481bf1dda3d31b3cc43bf0b0c397b91e971943e091230359e7d3b75df0e8",
+    "inventoryFileCount": 61,
     "inventoryCoveragePolicy": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
     "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
     "excludedPaths": [
@@ -20,8 +20,8 @@
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "sha256:1860ea709fcf08054ad4c0aa60b09b68e581241cac8c6ad324ff4d2d5180c67c",
-      "bytes": 10788,
+      "sha256": "sha256:0e665cc3690812597d1a9f87e8c60cecf3ba8e19ae0cd788fda22ce957b2c19b",
+      "bytes": 10934,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -74,8 +74,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "sha256:7fd8669cb9caeff89b25439cf8c54df2bbc695589da8ba653e51bd740b15c0d8",
-      "bytes": 6299,
+      "sha256": "sha256:ea54f3bdec187c2728f8b8a4d237c2f5b9565edf78dec50c1131c74a0ac75061",
+      "bytes": 6513,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -235,6 +235,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "crates/decoded-csv/examples/inspect.rs",
+      "sha256": "sha256:a571d4398ae3c888f45d7236189449b05e709300e830e7195367e79bbe731028",
+      "bytes": 554,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "crates/decoded-csv/src/lib.rs",
       "sha256": "sha256:d7b3f8c4ed491bdb2fe493080898eb21a849643a1d00b4de8cf04e60f2c62b27",
       "bytes": 5475,
@@ -319,6 +325,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "docs/recorded-trajectory.md",
+      "sha256": "sha256:db7bbe0edf032c0c8d287591cd05ae7ab26b5fcf5b9d40843e190d6dc91a95bc",
+      "bytes": 3201,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "rust-toolchain.toml",
       "sha256": "sha256:089dfdee3211aaef5b3a8ae8c989790d63ab71f8da627d9974d5aa3ce706a0d6",
       "bytes": 352,
@@ -349,6 +361,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_trajectory_csv.py",
+      "sha256": "sha256:af938f790adbc556b323be5b3d5ce49e792188a0c30babb0ce8640468336324f",
+      "bytes": 2531,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/decode_blackbox_recording.py",
       "sha256": "sha256:7d02dd34aa9e88f5b07ab747a2b5e84a1a2cfc2c5bfcfc52fe34e8fdb449c35c",
       "bytes": 3602,
@@ -358,6 +376,12 @@
       "path": "tests/test_blackbox_recording.py",
       "sha256": "sha256:2d917ab690560245d849c4acae83f23e6a896558a0be5175fc267ddd57a1cc27",
       "bytes": 6822,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_trajectory_conversion.py",
+      "sha256": "sha256:589a22fe16c4b83a51145e9872307d05a1d86034702d9ab43582ffbbc6bb80f4",
+      "bytes": 4565,
       "spdxLicenseId": "Apache-2.0"
     }
   ]
