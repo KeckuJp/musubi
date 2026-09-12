@@ -1,11 +1,11 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "453e9299e3545cef448ffbcb97c38b9174b63763",
-  "payloadGitTreeOid": "7b87f4100549724818c1a3463cb518289f4d1c59",
-  "payloadTreeDigest": "sha256:f10f13920e8aaac0580c519b9f56204fd212b468c390564b1281622cb717928a",
+  "payloadCommit": "23748e781a4a5b3493f2de9e5fcc9e06c614fca3",
+  "payloadGitTreeOid": "68797a08edc66c3d841875c9a232d7704c83b873",
+  "payloadTreeDigest": "sha256:8eb68e3b4e17bb60c4b5f949a68fce1fe7414b90462d8431723b4db154d30f2b",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
-  "fileCount": 92,
+  "fileCount": 94,
   "files": [
     {
       "path": ".github/workflows/ci.yml",
@@ -19,7 +19,7 @@
     },
     {
       "path": "CHANGELOG.md",
-      "contentDigest": "sha256:44f6b7f7d6f39d69e08d97e684052045811b79c2f03030cdff5ea73baff1d567",
+      "contentDigest": "sha256:e06f9873197138833bf99ed318bed0dec28899fe046de75ea9f7e897f35f89d9",
       "mode": "100644"
     },
     {
@@ -319,7 +319,7 @@
     },
     {
       "path": "docs/adapt-position-csv.md",
-      "contentDigest": "sha256:8cb50e2240b7ef02aa21bcd939ad6b17175dd2697cbb7be50fef6f90a66dfb24",
+      "contentDigest": "sha256:9b519ca94b91508a6cfeb09298af86a398e2dc86d42878f6efe7a40a644d0d71",
       "mode": "100644"
     },
     {
@@ -379,7 +379,7 @@
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:44a2a9d63ba2a0a59865cc9209aece2850b97bf4fbe15e5fcc2f599b33ca07ce",
+      "contentDigest": "sha256:885355ceebfeb6a099494565f195889d545731676ef1a058f7a686937eb48748",
       "mode": "100644"
     },
     {
@@ -410,6 +410,11 @@
     {
       "path": "scripts/convert_position_csv.py",
       "contentDigest": "sha256:dc21531cd11c9454ff9a8f0c1698fbc2e112934c40607922fc89761169459bf8",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_position_csv_batches.py",
+      "contentDigest": "sha256:a2ba24502409d987b631c3a8ed80f93e58a69258604a02633ef29705afbddfe0",
       "mode": "100644"
     },
     {
@@ -450,6 +455,11 @@
     {
       "path": "tests/test_position_boundary_regressions.py",
       "contentDigest": "sha256:39e3362a77475c8172fd169cf9938f6e9e704716de0eeadab095dea074ef140e",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_position_csv_batches.py",
+      "contentDigest": "sha256:c3ce392cb57df2c7d30a428fa15dd26548e19787fb0fed059bc5ac395185ff56",
       "mode": "100644"
     },
     {

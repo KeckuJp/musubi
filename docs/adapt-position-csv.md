@@ -146,7 +146,7 @@ An OS write failure can leave a partial new file. Shell redirection for the SPI 
 also create or overwrite a report even when the command fails: always use new paths
 and inspect exit status. File existence alone is not success.
 
-Conversion bounds are **16 MiB for input and total output**, **64 KiB per physical
+The single-file converter's bounds are **16 MiB for input and total output**, **64 KiB per physical
 input line**, **63 KiB per generated JSONL record**, and **4,096 bytes per profile**.
 The generated-record limit leaves 1 KiB headroom for downstream numeric serialization.
 Counters are unsigned decimal integers and must fit `u64` after unit conversion.
@@ -160,6 +160,42 @@ Envelope digests cover mapped common-model and claim content, not every retained
 unknown field or the complete report. Digests are not signatures, source authentication
 or proof of measurement quality. Preserve originals, settings and full results under
 your data-handling policy; do not post recordings or diagnostic output publicly by default.
+
+## Optional bounded batches
+
+Retaining source fields can make JSONL larger than its CSV. If a valid CSV fits the
+16 MiB input limit but the complete JSONL exceeds the single-file output limit, use
+the explicit batch wrapper. It reuses the same converter and profile; it does not
+increase the reader's limits, remove fields, split a record or change its meaning.
+
+```sh
+python3 scripts/convert_position_csv_batches.py position-example/first.csv position-example/conversion.json position-example/new-batch
+```
+
+Use a new directory. Exit 0 creates numbered JSONL parts, each at most 16 MiB, and
+`manifest.json` last. Input remains limited to 16 MiB; total generated JSONL is
+limited to 64 MiB. The record/line/profile limits above still apply. This is bounded
+batch conversion, not unbounded streaming or direct binary-log ingestion.
+All validation precedes directory creation. Existing directories, files and symlinks
+are refused. An I/O failure can leave incomplete output; never resume into that
+directory or treat file existence as success. Errors are fixed text without source
+data. Preserve diagnostics privately and retry with a new directory after correction.
+
+The `position-csv-batch/v1` manifest contains hashes of exact input/profile bytes,
+the total `records`, and ordered `parts` with `name`, zero-based `first_record_index`,
+`records`, `bytes` and `sha256`. These hashes detect byte changes, not authenticity.
+Verify all parts and contiguous offsets before replay, then ingest each part with
+the same mapping using the command in section 3. Keep one report per part; never
+concatenate reports as if their local record indices were global. The global index
+is `first_record_index + record_index`. Check that every source row has exactly one
+mapped, rejected, untimed or unmapped outcome across all reports. Do not discard a
+part that fails. Equal/decreasing counters and unknown fields remain in source order.
+
+For small inputs, concatenating the ordered JSONL parts is byte-for-byte identical
+to the single-file converter output. This equivalence does not mean a concatenated
+large result fits the reader: feed the bounded parts separately. The batch wrapper
+adds no platform-domain, fix-quality or clock-confidence claim. Run its authored
+regressions with `python3 -m unittest discover -s tests -p test_position_csv_batches.py`.
 
 ## Optional separate Blackbox GPS stream
 

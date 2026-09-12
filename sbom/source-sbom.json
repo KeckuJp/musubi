@@ -2,8 +2,8 @@
   "schemaVersion": "musubi.sbom.source/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "inventoryDigest": "sha256:ec1d4debbd646ce0ae262744a54767ba41ac0f9c13a34b8c8a8267f2b151f9d5",
-    "inventoryFileCount": 90,
+    "inventoryDigest": "sha256:ded84b49324d6e640e94b88a28890bf050f5ac4333a7e9fd2053a3e1f815edc7",
+    "inventoryFileCount": 92,
     "inventoryCoveragePolicy": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
     "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
     "excludedPaths": [
@@ -32,8 +32,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "sha256:44f6b7f7d6f39d69e08d97e684052045811b79c2f03030cdff5ea73baff1d567",
-      "bytes": 4156,
+      "sha256": "sha256:e06f9873197138833bf99ed318bed0dec28899fe046de75ea9f7e897f35f89d9",
+      "bytes": 4393,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -392,8 +392,8 @@
     },
     {
       "path": "docs/adapt-position-csv.md",
-      "sha256": "sha256:8cb50e2240b7ef02aa21bcd939ad6b17175dd2697cbb7be50fef6f90a66dfb24",
-      "bytes": 10074,
+      "sha256": "sha256:9b519ca94b91508a6cfeb09298af86a398e2dc86d42878f6efe7a40a644d0d71",
+      "bytes": 12433,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -493,6 +493,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_position_csv_batches.py",
+      "sha256": "sha256:a2ba24502409d987b631c3a8ed80f93e58a69258604a02633ef29705afbddfe0",
+      "bytes": 4771,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_trajectory_csv.py",
       "sha256": "sha256:fc50c7a7799f57a3110b98bed4ae9923ce63a0920e0829b8a6f4cf0bf01ed621",
       "bytes": 2657,
@@ -538,6 +544,12 @@
       "path": "tests/test_position_boundary_regressions.py",
       "sha256": "sha256:39e3362a77475c8172fd169cf9938f6e9e704716de0eeadab095dea074ef140e",
       "bytes": 5191,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_position_csv_batches.py",
+      "sha256": "sha256:c3ce392cb57df2c7d30a428fa15dd26548e19787fb0fed059bc5ac395185ff56",
+      "bytes": 12691,
       "spdxLicenseId": "Apache-2.0"
     },
     {
