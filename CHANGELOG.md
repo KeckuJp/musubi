@@ -11,6 +11,10 @@ state rather than a change from one.
 
 ### Added
 
+- An opt-in bounded position-CSV batch wrapper. Complete records retain source
+  order and fields, with part hashes and record offsets; existing single-file,
+  reader and core limits remain unchanged. Includes synthetic boundary tests.
+
 - Two explicit GPS CSV layout profiles, synthetic regressions and a migration/reuse
   recipe. Reuses the existing converter, reader and public adapter without runtime changes.
 
