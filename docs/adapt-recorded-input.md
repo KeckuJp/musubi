@@ -108,6 +108,19 @@ field or provide an archival evidence format. Keep originals and profiles separa
 
 ## 5. Use Codex or Claude Code as an engineering assistant
 
+When a retained field distinguishes recorded channels of one platform, first check
+whether that distinction appears only in `records` or also in common claim provenance.
+Use the optional `source_channel_path` in the adapter README to bind a declared string
+label into provenance. For example, extend the synthetic LOCATION rows above with
+`"channel":"left"` or `"channel":"right"` inside `data`, then add
+`"source_channel_path":["data","channel"]` to the profile. Both mapped items must keep
+the same platform ID and carry their own `recorded-channel:` annotation. The unmodified
+profile omits this annotation; the new profile rejects a selected row missing its label.
+Reuse the implementation on another layout by changing only the literal path. Do not
+invent vehicle identities or treat recorded labels as verified hardware identities.
+Run `cargo test --locked -p musubi-adapter-spi --test recorded_channels` for synthetic
+profile, rejection, accounting and digest-tamper regressions.
+
 Both tools can use the same instructions below. They are optional development tools,
 not runtime dependencies, and they grant no merge/publication/device authority.
 Use a separate working copy with public source and authorized synthetic inputs only.
