@@ -8,7 +8,7 @@ observations into the core object model.
 
 ## Input contract
 
-The structural gate requires one raw Blackbox recording with a header declaring
+The default structural gate requires one raw Blackbox recording with a header declaring
 Betaflight 4.2.x and a complete End of log event. This is a format/profile
 restriction, not verified support for every firmware revision or device.
 CSV, INAV headers, other revision families, concatenated logs and missing
@@ -67,10 +67,45 @@ you need them. Missing sampled loop iterations and recorded main frames are
 different counts. The stage does not claim complete binary-field coverage,
 automatic version adaptation, live operation or device compatibility.
 
+## Optional separate GPS stream
+
+Use `--stream gps` to select G records instead of main records. This explicit path
+admits 4.2.x/4.3.x headers; default main mode still admits only 4.2.x. The header
+filter is not evidence that every revision or recording can be decoded. Every
+corrupt/unreadable count still rejects the run, even if GPS rows appear usable.
+
+Decoder compatibility is a separate prerequisite. Some decoder revisions do not
+consume firmware event payloads such as flight-mode changes, or require a GPS home
+frame before exporting positions. A complete file and a permitted firmware header
+do not bypass these limitations. Keep the diagnostic failure; use an independently
+verified decoder for the exact recording format. This repository neither installs
+nor bundles a decoder or a compatibility patch.
+
+```sh
+python3 scripts/decode_blackbox_recording.py /path/to/blackbox_decode recording.bfl gps-output --stream gps
+```
+
+The decoder must accept `--output-dir`, `--prefix`, `--unit-frame-time us` and
+`--unit-gps-speed mps`. It writes into the new owned `decoder-output/` directory.
+The wrapper selects `decoded.01.gps.csv`, checks its rows against exactly one
+positive G-frame count, and copies those bytes to `decoded.csv`. Main CSV, GPX
+and event files remain separate, unnormalized sidecars. No `--merge-gps` or
+cached-position repetition is used; main-frame and sampling-gap counts stay distinct.
+
+Declared output units are microseconds for `time (us)`, degrees for `GPS_coord[0]`
+and `GPS_coord[1]`, and native **decimetres** for `GPS_altitude`. A displayed header
+is not an altitude-unit guarantee. Use the independently established decoder/firmware
+contract and an explicit `dm`/`msl` position profile with
+[the position conversion recipe](adapt-position-csv.md). The recipe is a separate
+normalization step; `decode.json` deliberately keeps `common_output: NOT_RUN`.
+Satellite counts alone do not establish a fix or aircraft identity. Missing GPS
+output is a failure, not permission to fabricate positions from the main stream.
+
 ## Tests
 
 ```sh
 python3 -m unittest discover -s tests -p test_blackbox_recording.py
+python3 -m unittest discover -s tests -p test_blackbox_gps_stream.py
 cargo test -p musubi-decoded-csv
 ```
 

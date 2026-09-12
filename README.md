@@ -46,6 +46,11 @@ To adapt a decoded input into the public common model with a small explicit mapp
 follow [Adapt a recorded input](docs/adapt-recorded-input.md). It includes a second
 input and optional Codex/Claude Code instructions; no AI account is needed to run it.
 
+For explicitly declared geodetic CSV columns, boot-counter units and MSL altitude,
+follow [Adapt a position CSV](docs/adapt-position-csv.md). Its two authored inputs
+reuse one profile through the existing public model; it does not convert local
+coordinates or infer a coordinate frame, clock calibration or fix quality.
+
 For whitespace-separated position/quaternion records with explicit equal-time
 handling and comment accounting, see [Recorded pose text](docs/recorded-pose-text.md).
 This reuses the CSV table reader; it does not provide a pose-to-Observation adapter.
