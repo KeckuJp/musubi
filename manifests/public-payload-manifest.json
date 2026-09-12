@@ -1,15 +1,15 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "fbd31b04daed823bb0ae198e17650d9d2233ad44",
-  "payloadGitTreeOid": "a59659e9726b7101d69a98d289b26e7bd2f9c4ee",
-  "payloadTreeDigest": "sha256:730fec2da6209d93653c7de061815a8f77ef7f76efcc8b3f4a9f6d216d5d9082",
+  "payloadCommit": "90b39de36b912ffe592c3576490e1d5721a8771d",
+  "payloadGitTreeOid": "21d4bb934c6b4c96e08aea917f324bec6f1367f2",
+  "payloadTreeDigest": "sha256:c5f567ebd9d162f28ef6d6e0dc28f91182c83369724ddce0f1a6bfabd920b173",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
-  "fileCount": 82,
+  "fileCount": 87,
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "contentDigest": "sha256:8ab6cdb9f6d54ff22a2e624229fd920136249b5eeb606131407a2853eddba7df",
+      "contentDigest": "sha256:ed4cf816ec0c8c40880972daf0e3c36f21ce5d3ffc10b8ca2c9ce00c28df48e5",
       "mode": "100644"
     },
     {
@@ -19,7 +19,7 @@
     },
     {
       "path": "CHANGELOG.md",
-      "contentDigest": "sha256:0e07a62629db2c07f4665797677b45d4c1c2094d52df97081e88bd1eccda08bc",
+      "contentDigest": "sha256:20148e65dbeba3dde5377f71a6fcf1310c73df8d6bc17060d2023fc2adbbe90f",
       "mode": "100644"
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "path": "README.md",
-      "contentDigest": "sha256:f90173f186b2cc0757cd5c16d1052abdb3a766d955c8c09c3830ad9310561d1d",
+      "contentDigest": "sha256:d9de09797abd70d5d9810ef0a1863144a4f0834178b5ce73c93927462d78a52f",
       "mode": "100644"
     },
     {
@@ -318,6 +318,11 @@
       "mode": "100644"
     },
     {
+      "path": "docs/adapt-position-csv.md",
+      "contentDigest": "sha256:8cb50e2240b7ef02aa21bcd939ad6b17175dd2697cbb7be50fef6f90a66dfb24",
+      "mode": "100644"
+    },
+    {
       "path": "docs/adapt-recorded-input.md",
       "contentDigest": "sha256:5dcfb6e468ddbd89a5ae277b40d2db98c63f58fa7c63734f209347dc3849472d",
       "mode": "100644"
@@ -329,7 +334,7 @@
     },
     {
       "path": "docs/recorded-blackbox.md",
-      "contentDigest": "sha256:f7040131f3d90f7d02089e9059ded5f38842bd94ff065f1aacd7049538783dd3",
+      "contentDigest": "sha256:3b58a55e7e547b1b2d49fc6a97588b92532ff382b6b05ebae94a8ffa89de174f",
       "mode": "100644"
     },
     {
@@ -354,7 +359,7 @@
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:5b58edb7ba3784ddc4110ba3ad38a3fc15d11af31e8dcefede75321e18eee867",
+      "contentDigest": "sha256:5130a2fd4ade591e2e0a08c1181eaad29ba5e110801723815d5f736b366ea54b",
       "mode": "100644"
     },
     {
@@ -383,18 +388,28 @@
       "mode": "100644"
     },
     {
+      "path": "scripts/convert_position_csv.py",
+      "contentDigest": "sha256:dc21531cd11c9454ff9a8f0c1698fbc2e112934c40607922fc89761169459bf8",
+      "mode": "100644"
+    },
+    {
       "path": "scripts/convert_trajectory_csv.py",
       "contentDigest": "sha256:fc50c7a7799f57a3110b98bed4ae9923ce63a0920e0829b8a6f4cf0bf01ed621",
       "mode": "100644"
     },
     {
       "path": "scripts/decode_blackbox_recording.py",
-      "contentDigest": "sha256:7d02dd34aa9e88f5b07ab747a2b5e84a1a2cfc2c5bfcfc52fe34e8fdb449c35c",
+      "contentDigest": "sha256:637a893ad9444c559f29b86e532143311e4d2c2349014b68e101dc1636e108bf",
       "mode": "100644"
     },
     {
       "path": "scripts/remap_jsonl_counter.py",
       "contentDigest": "sha256:536e270105cb7e08dadfd0ae678586ff85d5a9c79acf098dc0e972013bb21468",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_blackbox_gps_stream.py",
+      "contentDigest": "sha256:d492da74247acb36bfa38bcd23e0dedf7727974c61e3064a7db17f8369da9191",
       "mode": "100644"
     },
     {
@@ -410,6 +425,16 @@
     {
       "path": "tests/test_pose_text_conversion.py",
       "contentDigest": "sha256:ac644bd8009d8eb83a9a33f7473642f56044a1f25cbbe9640283359a2e4f81d0",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_position_boundary_regressions.py",
+      "contentDigest": "sha256:39e3362a77475c8172fd169cf9938f6e9e704716de0eeadab095dea074ef140e",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_position_csv_conversion.py",
+      "contentDigest": "sha256:e4f5e6ea26067546d38f9982b9e499e8a1c77182a2a2cffff9a744182cdad8a1",
       "mode": "100644"
     },
     {

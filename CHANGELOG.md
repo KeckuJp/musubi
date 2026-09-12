@@ -11,6 +11,13 @@ state rather than a change from one.
 
 ### Added
 
+- An explicit position-CSV converter, with source-field retention, boot-counter and
+  coordinate-unit declarations, public common-model replay and a reusable development
+  recipe. No core, reader, model or dependency change.
+- Optional separate GPS-stream export in the existing offline recording stage, without
+  merging held GPS values into main rows. Includes synthetic corruption/accounting tests;
+  an external decoder is still required and is not bundled.
+
 - A profile-only GPS schema migration example and synthetic public-adapter
   regressions for renamed boot counters and changed units. No runtime changes.
 
