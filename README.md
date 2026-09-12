@@ -51,6 +51,10 @@ follow [Adapt a position CSV](docs/adapt-position-csv.md). Its two authored inpu
 reuse one profile through the existing public model; it does not convert local
 coordinates or infer a coordinate frame, clock calibration or fix quality.
 
+For the explicit integer-coordinate and degree-coordinate GPS CSV layouts, see
+[GPS CSV layout migration](docs/adapt-px4-position-csv.md). It reuses the same
+converter with two profiles and a separate synthetic confirmation input.
+
 For whitespace-separated position/quaternion records with explicit equal-time
 handling and comment accounting, see [Recorded pose text](docs/recorded-pose-text.md).
 This reuses the CSV table reader; it does not provide a pose-to-Observation adapter.

@@ -44,6 +44,8 @@ jobs:
         run: MUSUBI_PUBLIC_REPLAY_ROOT="$PWD" python3 -m unittest discover -s tests -p 'test_position_*.py'
       - name: Separate recording GPS stream (synthetic input and mocked decoder)
         run: python3 -m unittest discover -s tests -p test_blackbox_gps_stream.py
+      - name: Explicit GPS CSV layout profiles (synthetic inputs and public SPI)
+        run: MUSUBI_PUBLIC_REPLAY_ROOT="$PWD" python3 -m unittest discover -s tests -p test_px4_position_profiles.py
       - name: Clippy, advisory
         # Cargo.toml declares this workspace's clippy lints at `warn` -- pedantic and nursery
         # among them. A clippy warning here is a diagnostic to read, not a failure. The job's

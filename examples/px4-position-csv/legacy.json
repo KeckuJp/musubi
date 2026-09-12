@@ -1,0 +1,11 @@
+{
+  "message_type": "RECORDED_POSITION",
+  "counter_field": "timestamp",
+  "counter_unit": "us",
+  "latitude_field": "lat",
+  "longitude_field": "lon",
+  "angle_unit": "degE7",
+  "altitude_field": "alt",
+  "altitude_unit": "mm",
+  "altitude_reference": "msl"
+}

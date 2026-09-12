@@ -2,8 +2,8 @@
   "schemaVersion": "musubi.sbom.source/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "inventoryDigest": "sha256:cbf546069c2d2382c0d4bd579978b0b339bcc2f3b28d03dee510d81f13dea709",
-    "inventoryFileCount": 85,
+    "inventoryDigest": "sha256:ec1d4debbd646ce0ae262744a54767ba41ac0f9c13a34b8c8a8267f2b151f9d5",
+    "inventoryFileCount": 90,
     "inventoryCoveragePolicy": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
     "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
     "excludedPaths": [
@@ -20,8 +20,8 @@
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "sha256:ed4cf816ec0c8c40880972daf0e3c36f21ce5d3ffc10b8ca2c9ce00c28df48e5",
-      "bytes": 11613,
+      "sha256": "sha256:715cfc5bd4cc672ec0262ec29e5ef785ccf408293686be9eebe47d5da44fe0a3",
+      "bytes": 11811,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -32,8 +32,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "sha256:20148e65dbeba3dde5377f71a6fcf1310c73df8d6bc17060d2023fc2adbbe90f",
-      "bytes": 3979,
+      "sha256": "sha256:44f6b7f7d6f39d69e08d97e684052045811b79c2f03030cdff5ea73baff1d567",
+      "bytes": 4156,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -74,8 +74,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "sha256:d9de09797abd70d5d9810ef0a1863144a4f0834178b5ce73c93927462d78a52f",
-      "bytes": 7614,
+      "sha256": "sha256:6eb7031ec0b867068d1da0c2662cc1f5bfa9b67675087d65d4cc8bc5686ee51d",
+      "bytes": 7846,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -397,6 +397,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "docs/adapt-px4-position-csv.md",
+      "sha256": "sha256:f39bd4cc70e96e06939de7066149758681bac77d5536d1417d8f8a44226c83de",
+      "bytes": 5329,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "docs/adapt-recorded-input.md",
       "sha256": "sha256:5dcfb6e468ddbd89a5ae277b40d2db98c63f58fa7c63734f209347dc3849472d",
       "bytes": 7447,
@@ -424,6 +430,24 @@
       "path": "docs/recorded-trajectory.md",
       "sha256": "sha256:db7bbe0edf032c0c8d287591cd05ae7ab26b5fcf5b9d40843e190d6dc91a95bc",
       "bytes": 3201,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/px4-position-csv/legacy.json",
+      "sha256": "sha256:72ccf447c5804f90755f77e94a104e7ac93e95a4b95d1ed6beb9e774c3759dbe",
+      "bytes": 261,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/px4-position-csv/modern.json",
+      "sha256": "sha256:7e6b13cd6aa420612a77739a7ed5c7a0a1ce7de33071e361644c8eccf6b99538",
+      "bytes": 288,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/px4-position-csv/position.json",
+      "sha256": "sha256:24627256f9ddaa52e5dd0072c14c3d71c9a5f48d634f28504078dbafed4ac86e",
+      "bytes": 190,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -520,6 +544,12 @@
       "path": "tests/test_position_csv_conversion.py",
       "sha256": "sha256:e4f5e6ea26067546d38f9982b9e499e8a1c77182a2a2cffff9a744182cdad8a1",
       "bytes": 11680,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_px4_position_profiles.py",
+      "sha256": "sha256:454c7680af81d4386aa0cf7a9671f8c0ff63b11c9c55003eb95af8e729aaf04c",
+      "bytes": 10819,
       "spdxLicenseId": "Apache-2.0"
     },
     {
