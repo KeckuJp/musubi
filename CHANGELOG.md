@@ -11,6 +11,9 @@ state rather than a change from one.
 
 ### Added
 
+- Two explicit GPS CSV layout profiles, synthetic regressions and a migration/reuse
+  recipe. Reuses the existing converter, reader and public adapter without runtime changes.
+
 - An explicit position-CSV converter, with source-field retention, boot-counter and
   coordinate-unit declarations, public common-model replay and a reusable development
   recipe. No core, reader, model or dependency change.

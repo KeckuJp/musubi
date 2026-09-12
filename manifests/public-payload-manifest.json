@@ -1,15 +1,15 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "90b39de36b912ffe592c3576490e1d5721a8771d",
-  "payloadGitTreeOid": "21d4bb934c6b4c96e08aea917f324bec6f1367f2",
-  "payloadTreeDigest": "sha256:c5f567ebd9d162f28ef6d6e0dc28f91182c83369724ddce0f1a6bfabd920b173",
+  "payloadCommit": "453e9299e3545cef448ffbcb97c38b9174b63763",
+  "payloadGitTreeOid": "7b87f4100549724818c1a3463cb518289f4d1c59",
+  "payloadTreeDigest": "sha256:f10f13920e8aaac0580c519b9f56204fd212b468c390564b1281622cb717928a",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
-  "fileCount": 87,
+  "fileCount": 92,
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "contentDigest": "sha256:ed4cf816ec0c8c40880972daf0e3c36f21ce5d3ffc10b8ca2c9ce00c28df48e5",
+      "contentDigest": "sha256:715cfc5bd4cc672ec0262ec29e5ef785ccf408293686be9eebe47d5da44fe0a3",
       "mode": "100644"
     },
     {
@@ -19,7 +19,7 @@
     },
     {
       "path": "CHANGELOG.md",
-      "contentDigest": "sha256:20148e65dbeba3dde5377f71a6fcf1310c73df8d6bc17060d2023fc2adbbe90f",
+      "contentDigest": "sha256:44f6b7f7d6f39d69e08d97e684052045811b79c2f03030cdff5ea73baff1d567",
       "mode": "100644"
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "path": "README.md",
-      "contentDigest": "sha256:d9de09797abd70d5d9810ef0a1863144a4f0834178b5ce73c93927462d78a52f",
+      "contentDigest": "sha256:6eb7031ec0b867068d1da0c2662cc1f5bfa9b67675087d65d4cc8bc5686ee51d",
       "mode": "100644"
     },
     {
@@ -323,6 +323,11 @@
       "mode": "100644"
     },
     {
+      "path": "docs/adapt-px4-position-csv.md",
+      "contentDigest": "sha256:f39bd4cc70e96e06939de7066149758681bac77d5536d1417d8f8a44226c83de",
+      "mode": "100644"
+    },
+    {
       "path": "docs/adapt-recorded-input.md",
       "contentDigest": "sha256:5dcfb6e468ddbd89a5ae277b40d2db98c63f58fa7c63734f209347dc3849472d",
       "mode": "100644"
@@ -348,6 +353,21 @@
       "mode": "100644"
     },
     {
+      "path": "examples/px4-position-csv/legacy.json",
+      "contentDigest": "sha256:72ccf447c5804f90755f77e94a104e7ac93e95a4b95d1ed6beb9e774c3759dbe",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/px4-position-csv/modern.json",
+      "contentDigest": "sha256:7e6b13cd6aa420612a77739a7ed5c7a0a1ce7de33071e361644c8eccf6b99538",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/px4-position-csv/position.json",
+      "contentDigest": "sha256:24627256f9ddaa52e5dd0072c14c3d71c9a5f48d634f28504078dbafed4ac86e",
+      "mode": "100644"
+    },
+    {
       "path": "rust-toolchain.toml",
       "contentDigest": "sha256:089dfdee3211aaef5b3a8ae8c989790d63ab71f8da627d9974d5aa3ce706a0d6",
       "mode": "100644"
@@ -359,7 +379,7 @@
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:5130a2fd4ade591e2e0a08c1181eaad29ba5e110801723815d5f736b366ea54b",
+      "contentDigest": "sha256:44a2a9d63ba2a0a59865cc9209aece2850b97bf4fbe15e5fcc2f599b33ca07ce",
       "mode": "100644"
     },
     {
@@ -435,6 +455,11 @@
     {
       "path": "tests/test_position_csv_conversion.py",
       "contentDigest": "sha256:e4f5e6ea26067546d38f9982b9e499e8a1c77182a2a2cffff9a744182cdad8a1",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_px4_position_profiles.py",
+      "contentDigest": "sha256:454c7680af81d4386aa0cf7a9671f8c0ff63b11c9c55003eb95af8e729aaf04c",
       "mode": "100644"
     },
     {

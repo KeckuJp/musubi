@@ -1,0 +1,8 @@
+{
+  "message_type": "RECORDED_POSITION",
+  "latitude_field": "lat_deg",
+  "longitude_field": "lon_deg",
+  "altitude_field": "alt_m",
+  "position_units": "deg-m-msl",
+  "domain": "unknown"
+}
