@@ -44,6 +44,7 @@ pub struct Mapping {
     altitude_field: String,
     domain: PlatformDomain,
     fix: Option<(String, u64)>,
+    source_channel_path: Option<Vec<String>>,
 }
 impl Mapping {
     /// Parse a single JSON object. Unknown keys and unsupported units are errors.
@@ -91,6 +92,7 @@ impl Mapping {
             "fix_field",
             "min_fix",
             "position_units",
+            "source_channel_path",
         ];
         if obj.keys().any(|k| !keys.contains(&k.as_str())) {
             return Err(failure(source, "unknown-profile-key"));
@@ -123,6 +125,25 @@ impl Mapping {
             )),
             _ => return Err(failure(source, "invalid-fix-policy")),
         };
+        let source_channel_path = obj
+            .get("source_channel_path")
+            .map(|value| {
+                let parts = value
+                    .as_array()
+                    .filter(|parts| (1..=8).contains(&parts.len()))
+                    .ok_or_else(|| failure(source, "invalid-channel-path"))?;
+                parts
+                    .iter()
+                    .map(|part| {
+                        let key = part
+                            .as_str()
+                            .ok_or_else(|| failure(source, "invalid-channel-path"))?;
+                        token(key, source)?;
+                        Ok(key.to_owned())
+                    })
+                    .collect::<Result<Vec<_>, NormalizeError>>()
+            })
+            .transpose()?;
         Ok(Self {
             message_type: field("message_type")?,
             latitude_field: field("latitude_field")?,
@@ -130,6 +151,7 @@ impl Mapping {
             altitude_field: field("altitude_field")?,
             domain,
             fix,
+            source_channel_path,
         })
     }
 }
@@ -186,12 +208,33 @@ impl Normalizer for RecordedJsonlNormalizer {
                 return Err(failure(source, "insufficient-fix"));
             }
         }
-        let notes = vec![
+        let mut notes = vec![
             QualityNote::neutral("position-units:deg-m-msl-declared"),
             QualityNote::neutral("timestamp:boot-counter-not-epoch"),
             QualityNote::neutral("confidence:adapter-assigned"),
             QualityNote::neutral("source-sidecar:not-sealed"),
         ];
+        if let Some(path) = &m.source_channel_path {
+            // Literal object keys only: no array indexing, dotted paths or coercion.
+            let mut selected = record;
+            for key in path {
+                selected = selected
+                    .as_object()
+                    .and_then(|object| object.get(key))
+                    .ok_or_else(|| failure(source, "invalid-source-channel"))?;
+            }
+            let label = selected
+                .as_str()
+                .filter(|label| {
+                    (1..=64).contains(&label.len())
+                        && label
+                            .bytes()
+                            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'_' | b'-' | b'.'))
+                })
+                .ok_or_else(|| failure(source, "invalid-source-channel"))?;
+            notes.push(QualityNote::neutral(format!("recorded-channel:{label}")));
+            notes.push(QualityNote::neutral("channel-identity:source-asserted"));
+        }
         let mark = derive_mark(&ObservationQuality {
             source_id: source.clone(),
             adapter_slug: ADAPTER_SLUG.into(),

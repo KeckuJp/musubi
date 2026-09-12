@@ -42,6 +42,21 @@ Change field names in a second profile to reuse the same adapter with another in
 do not add record-specific exceptions. Field names refer directly to members of `data`.
 Input extensions are retained even though profile extensions are rejected.
 
+For observations from multiple recorded channels of the **same platform**, optionally
+add `"source_channel_path":["data","source_record","I"]`. This is a path of 1..8
+literal object keys starting at the record root, not dotted syntax, wildcard matching
+or array indexing. Each key obeys the identifier limits below. The selected value must
+be a string of 1..64 ASCII letters, digits, `_`, `-` or `.`. Labels such as `01` remain
+distinct from `1`; numeric JSON values are not coerced. Missing or invalid labels in
+selected timed records produce indexed rejections, never a fallback channel.
+
+The mapping adds `recorded-channel:<label>` and `channel-identity:source-asserted`
+to common claim provenance, covered by the existing envelope digest. The platform ID
+remains the caller's vehicle label. A channel label is not authenticated identity, a
+physical receiver count, a valid-fix assertion or a fusion instruction. Domain, time
+and confidence policies are unchanged. Without this option, output and digest behavior
+remain unchanged. The rest of the source sidecar is still unsealed.
+
 ## Run
 
 ```sh

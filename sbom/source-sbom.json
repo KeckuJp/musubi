@@ -2,8 +2,8 @@
   "schemaVersion": "musubi.sbom.source/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "inventoryDigest": "sha256:ded84b49324d6e640e94b88a28890bf050f5ac4333a7e9fd2053a3e1f815edc7",
-    "inventoryFileCount": 92,
+    "inventoryDigest": "sha256:ba10b21afa008276d89a04f1655f32674cab3cc5abb3d710cf1a53d643328d0a",
+    "inventoryFileCount": 93,
     "inventoryCoveragePolicy": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
     "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
     "excludedPaths": [
@@ -98,8 +98,8 @@
     },
     {
       "path": "crates/adapter-spi/README.md",
-      "sha256": "sha256:1315ec2de66ddb414572d6b8e1b3e3226bea087f0b1d88f41242e912aeed707c",
-      "bytes": 4420,
+      "sha256": "sha256:5372b0ffdc9915cf33297a039dd41906a7d49c99086c4b328845e661ae81c88b",
+      "bytes": 5505,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -116,8 +116,8 @@
     },
     {
       "path": "crates/adapter-spi/src/recorded_jsonl.rs",
-      "sha256": "sha256:5587e6cfe7a31b0e4e11cb0032133d5c92787c3919c01242068825fc6fd5a7af",
-      "bytes": 13494,
+      "sha256": "sha256:4813d8e95f33b185cb9bd227e8f3462fd9c285320d9c7fc6bbbb137214911d60",
+      "bytes": 15405,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -142,6 +142,12 @@
       "path": "crates/adapter-spi/src/template_tests.rs",
       "sha256": "sha256:89db03737df5bba221d67c9f512fd50889cd4f9e5d12164ec9dd6c3f1a775db0",
       "bytes": 14621,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-spi/tests/recorded_channels.rs",
+      "sha256": "sha256:de4e604c8f0abce4c90af0fbf3508783a394bc885237712562f40cf411a0de87",
+      "bytes": 10403,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -404,8 +410,8 @@
     },
     {
       "path": "docs/adapt-recorded-input.md",
-      "sha256": "sha256:5dcfb6e468ddbd89a5ae277b40d2db98c63f58fa7c63734f209347dc3849472d",
-      "bytes": 7447,
+      "sha256": "sha256:97931f6abca8d43136a80ff38bbb9ad69e772f3548ef039f42a492926afa77cb",
+      "bytes": 8435,
       "spdxLicenseId": "Apache-2.0"
     },
     {

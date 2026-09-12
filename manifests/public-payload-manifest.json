@@ -1,11 +1,11 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "23748e781a4a5b3493f2de9e5fcc9e06c614fca3",
-  "payloadGitTreeOid": "68797a08edc66c3d841875c9a232d7704c83b873",
-  "payloadTreeDigest": "sha256:8eb68e3b4e17bb60c4b5f949a68fce1fe7414b90462d8431723b4db154d30f2b",
+  "payloadCommit": "c85e507d081a6e21f847230ab160f2008b0b84b0",
+  "payloadGitTreeOid": "47556b6f649558d978739bf6e74c6476fb236828",
+  "payloadTreeDigest": "sha256:54a3298446bc4a0cd1e190c52e699bfc33c585fc141917394754f7e40477fb66",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
-  "fileCount": 94,
+  "fileCount": 95,
   "files": [
     {
       "path": ".github/workflows/ci.yml",
@@ -74,7 +74,7 @@
     },
     {
       "path": "crates/adapter-spi/README.md",
-      "contentDigest": "sha256:1315ec2de66ddb414572d6b8e1b3e3226bea087f0b1d88f41242e912aeed707c",
+      "contentDigest": "sha256:5372b0ffdc9915cf33297a039dd41906a7d49c99086c4b328845e661ae81c88b",
       "mode": "100644"
     },
     {
@@ -89,7 +89,7 @@
     },
     {
       "path": "crates/adapter-spi/src/recorded_jsonl.rs",
-      "contentDigest": "sha256:5587e6cfe7a31b0e4e11cb0032133d5c92787c3919c01242068825fc6fd5a7af",
+      "contentDigest": "sha256:4813d8e95f33b185cb9bd227e8f3462fd9c285320d9c7fc6bbbb137214911d60",
       "mode": "100644"
     },
     {
@@ -110,6 +110,11 @@
     {
       "path": "crates/adapter-spi/src/template_tests.rs",
       "contentDigest": "sha256:89db03737df5bba221d67c9f512fd50889cd4f9e5d12164ec9dd6c3f1a775db0",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/adapter-spi/tests/recorded_channels.rs",
+      "contentDigest": "sha256:de4e604c8f0abce4c90af0fbf3508783a394bc885237712562f40cf411a0de87",
       "mode": "100644"
     },
     {
@@ -329,7 +334,7 @@
     },
     {
       "path": "docs/adapt-recorded-input.md",
-      "contentDigest": "sha256:5dcfb6e468ddbd89a5ae277b40d2db98c63f58fa7c63734f209347dc3849472d",
+      "contentDigest": "sha256:97931f6abca8d43136a80ff38bbb9ad69e772f3548ef039f42a492926afa77cb",
       "mode": "100644"
     },
     {
@@ -379,7 +384,7 @@
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:885355ceebfeb6a099494565f195889d545731676ef1a058f7a686937eb48748",
+      "contentDigest": "sha256:55dd9da0261da88c0f95ab20a95599e24863cfefe053fd5e074f5ef1a20ba97b",
       "mode": "100644"
     },
     {

@@ -1,9 +1,9 @@
 {
   "schemaVersion": "musubi.publication.public-release-manifest.v1",
   "releaseClass": "PUBLIC_SOURCE_PREVIEW",
-  "payloadCommit": "23748e781a4a5b3493f2de9e5fcc9e06c614fca3",
-  "payloadManifestDigest": "sha256:04babf0dd3d0bdf578ddee65769804984ce5f0244b200c0ddd1cb6a6f52b2b00",
-  "payloadTreeDigest": "sha256:8eb68e3b4e17bb60c4b5f949a68fce1fe7414b90462d8431723b4db154d30f2b",
+  "payloadCommit": "c85e507d081a6e21f847230ab160f2008b0b84b0",
+  "payloadManifestDigest": "sha256:b9da8d5bf07f9ce69bfa04a57ce3706a2bf005d8d0d980b01b15d070ea4d125d",
+  "payloadTreeDigest": "sha256:54a3298446bc4a0cd1e190c52e699bfc33c585fc141917394754f7e40477fb66",
   "sourceUrl": "https://github.com/KeckuJp/musubi",
   "targetPackages": [
     "musubi-adapter-spi",
@@ -43,7 +43,7 @@
   },
   "sbom": {
     "sourceSbomPath": "sbom/source-sbom.json",
-    "sourceSbomDigest": "sha256:885355ceebfeb6a099494565f195889d545731676ef1a058f7a686937eb48748",
+    "sourceSbomDigest": "sha256:55dd9da0261da88c0f95ab20a95599e24863cfefe053fd5e074f5ef1a20ba97b",
     "dependencySbomPath": "sbom/dependency-sbom.json",
     "dependencySbomDigest": "sha256:af33afa85089d6b3be05b3e8eef7bdf07517eb50304dc7d40e6216d8d3b51ad6",
     "coveragePolicy": "SOURCE_PACKAGE_DEPENDENCY_INVENTORY_EXCLUDING_SBOM_AND_GENERATED_METADATA"
