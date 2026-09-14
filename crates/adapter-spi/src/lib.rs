@@ -36,6 +36,7 @@
 //! An in-process adapter. Component packaging, a multi-language SDK and a live network tap
 //! are not here, and this crate does not claim them.
 
+pub mod recorded_csv;
 pub mod recorded_jsonl;
 pub mod spi;
 pub mod template;

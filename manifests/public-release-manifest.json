@@ -1,9 +1,9 @@
 {
   "schemaVersion": "musubi.publication.public-release-manifest.v1",
   "releaseClass": "PUBLIC_SOURCE_PREVIEW",
-  "payloadCommit": "c85e507d081a6e21f847230ab160f2008b0b84b0",
-  "payloadManifestDigest": "sha256:b9da8d5bf07f9ce69bfa04a57ce3706a2bf005d8d0d980b01b15d070ea4d125d",
-  "payloadTreeDigest": "sha256:54a3298446bc4a0cd1e190c52e699bfc33c585fc141917394754f7e40477fb66",
+  "payloadCommit": "e681c2c99aba56923e27d7aa08f35692530b7dcd",
+  "payloadManifestDigest": "sha256:7a608dc36ade4028c3eb1e82333ef0781d7fb5f0f36c45baf570c793a25638c9",
+  "payloadTreeDigest": "sha256:ef88e4894f9268df7fd5fd2f11d6bb86a857f964f0560109a34312461f7035c4",
   "sourceUrl": "https://github.com/KeckuJp/musubi",
   "targetPackages": [
     "musubi-adapter-spi",
@@ -18,7 +18,7 @@
   "copyright": "Copyright 2026 Musubi contributors",
   "noticePath": "NOTICE",
   "version": "0.0.0",
-  "buildInstructions": "Use Rust 1.96.0 as pinned in rust-toolchain.toml; run cargo test --workspace --locked. Local macOS synthetic tests passed for this source update. No isolated-runtime, hardware or device compatibility claim.",
+  "buildInstructions": "Use Rust 1.96.0 as pinned in rust-toolchain.toml; run cargo test --workspace --locked. See docs/recorded-position-csv.md for direct offline CSV ingestion. No isolated-runtime, hardware or device compatibility claim.",
   "license": {
     "spdxIdentifier": "Apache-2.0",
     "version": "2.0",
@@ -39,13 +39,13 @@
   },
   "dependencyLock": {
     "path": "Cargo.lock",
-    "digest": "sha256:0d068bf844132146c6d4db423fcfe390e350648efd78dcd61477e365d6d1d8a3"
+    "digest": "sha256:5116cab2bb9d809aa82cb82a4fc7c48507e149dd924140ae79edc48ab2fdbee5"
   },
   "sbom": {
     "sourceSbomPath": "sbom/source-sbom.json",
-    "sourceSbomDigest": "sha256:55dd9da0261da88c0f95ab20a95599e24863cfefe053fd5e074f5ef1a20ba97b",
+    "sourceSbomDigest": "sha256:b30923738836ca3499c45f209eda63c3b8f9c4b2e0b70d6b97921c6d05949e17",
     "dependencySbomPath": "sbom/dependency-sbom.json",
-    "dependencySbomDigest": "sha256:af33afa85089d6b3be05b3e8eef7bdf07517eb50304dc7d40e6216d8d3b51ad6",
+    "dependencySbomDigest": "sha256:4cbe1b23fd4de56399f4f4d381f74f5adf06d074416dce3173908a28ed702447",
     "coveragePolicy": "SOURCE_PACKAGE_DEPENDENCY_INVENTORY_EXCLUDING_SBOM_AND_GENERATED_METADATA"
   },
   "policies": {

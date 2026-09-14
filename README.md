@@ -133,3 +133,9 @@ Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 [CONTRIBUTING.md](CONTRIBUTING.md), [SUPPORT.md](SUPPORT.md), [SECURITY.md](SECURITY.md) and
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+### Direct recorded CSV observations
+
+The [offline CSV example](docs/recorded-position-csv.md) maps declared boot-time
+CSV position columns to common observations in one command, retains unknown source
+fields, and reports rejected rows explicitly. It reuses the public reader and mapper.

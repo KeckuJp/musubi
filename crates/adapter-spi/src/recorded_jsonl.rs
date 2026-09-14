@@ -38,13 +38,13 @@ fn token(value: &str, source: &str) -> Result<(), NormalizeError> {
 /// Human-declared semantics, never inferred from a filename or local pose values.
 #[derive(Debug, Clone)]
 pub struct Mapping {
-    message_type: String,
-    latitude_field: String,
-    longitude_field: String,
-    altitude_field: String,
+    pub(crate) message_type: String,
+    pub(crate) latitude_field: String,
+    pub(crate) longitude_field: String,
+    pub(crate) altitude_field: String,
     domain: PlatformDomain,
     fix: Option<(String, u64)>,
-    source_channel_path: Option<Vec<String>>,
+    pub(crate) source_channel_path: Option<Vec<String>>,
 }
 impl Mapping {
     /// Parse a single JSON object. Unknown keys and unsupported units are errors.
@@ -181,7 +181,22 @@ impl Normalizer for RecordedJsonlNormalizer {
         if report.records.len() != 1 {
             return Err(failure(source, "expected-one-record"));
         }
-        let record = &report.records[0];
+        self.normalize_record(&report.records[0], source, raw.received_at)
+    }
+}
+impl RecordedJsonlNormalizer {
+    // Both offline readers share this exact semantic and envelope construction path.
+    // Parsing/quarantine belongs to their byte boundary; do not serialize and parse again.
+    pub(crate) fn normalize_record(
+        &self,
+        record: &Value,
+        source: &str,
+        received_at: i64,
+    ) -> Result<EvidenceEnvelope, NormalizeError> {
+        token(source, "invalid-source")?;
+        if received_at <= 0 {
+            return Err(failure(source, "invalid-received-at"));
+        }
         let m = &self.mapping;
         if record["meta"]["type"].as_str() != Some(&m.message_type) {
             return Err(failure(source, "unselected-record"));
@@ -236,14 +251,14 @@ impl Normalizer for RecordedJsonlNormalizer {
             notes.push(QualityNote::neutral("channel-identity:source-asserted"));
         }
         let mark = derive_mark(&ObservationQuality {
-            source_id: source.clone(),
+            source_id: source.to_owned(),
             adapter_slug: ADAPTER_SLUG.into(),
             time_confidence: 0.0,
             notes,
         });
         Ok(seal_digest(EvidenceEnvelope {
             observation: ComObject::PlatformState(PlatformState {
-                platform_id: source.clone(),
+                platform_id: source.to_owned(),
                 position: Some(Position {
                     lat_deg: lat,
                     lon_deg: lon,
@@ -252,7 +267,7 @@ impl Normalizer for RecordedJsonlNormalizer {
                 mode: None,
                 timestamps: Timestamps {
                     observed_at: None,
-                    received_at: raw.received_at,
+                    received_at: received_at,
                     time_confidence: 0.0,
                 },
                 platform_domain: m.domain,
@@ -330,12 +345,7 @@ pub fn ingest(
             report.unmapped_indices.push(index);
             continue;
         }
-        let raw = RawObservation {
-            source_id: source_id.into(),
-            payload: record.to_string().into_bytes(),
-            received_at,
-        };
-        match normalizer.normalize(&raw) {
+        match normalizer.normalize_record(record, source_id, received_at) {
             Ok(envelope) => report.mapped.push(MappedRecord {
                 record_index: index,
                 boot_us,
@@ -355,7 +365,18 @@ pub fn ingest(
 impl IngestReport {
     /// Diagnostic report, not a canonical envelope serializer or signed export.
     pub fn to_json(&self) -> Value {
-        let mapped: Vec<Value> = self.mapped.iter().map(|r| {
+        let (mapped, rejected) = diagnostic_records(&self.mapped, &self.rejected);
+        json!({"schema":"recorded-jsonl-report/v1","source_records_sealed":false,
+            "records":self.reader.records,"mapped":mapped,"rejected":rejected,
+            "untimed_indices":self.untimed_indices,"unmapped_indices":self.unmapped_indices})
+    }
+}
+
+pub(crate) fn diagnostic_records(
+    mapped_records: &[MappedRecord],
+    rejected_records: &[RejectedRecord],
+) -> (Vec<Value>, Vec<Value>) {
+    let mapped: Vec<Value> = mapped_records.iter().map(|r| {
             let ComObject::PlatformState(p) = &r.envelope.observation else { unreachable!() };
             let pos = p.position.as_ref().expect("normalizer always supplies position");
             let digest: String = r.envelope.content_digest.unwrap().iter().map(|b| format!("{b:02x}")).collect();
@@ -368,17 +389,13 @@ impl IngestReport {
                 "reason_code":r.envelope.claim.mark.reason_code,"provenance":r.envelope.claim.mark.provenance,
                 "content_digest":digest})
         }).collect();
-        let rejected: Vec<Value> = self
-            .rejected
-            .iter()
-            .map(|r| {
-                json!({"record_index":r.record_index,
+    let rejected: Vec<Value> = rejected_records
+        .iter()
+        .map(|r| {
+            json!({"record_index":r.record_index,
             "source_id":r.error.source_id,"mark":format!("{:?}",r.error.mark.status),
             "reason_code":r.error.mark.reason_code,"provenance":r.error.mark.provenance})
-            })
-            .collect();
-        json!({"schema":"recorded-jsonl-report/v1","source_records_sealed":false,
-            "records":self.reader.records,"mapped":mapped,"rejected":rejected,
-            "untimed_indices":self.untimed_indices,"unmapped_indices":self.unmapped_indices})
-    }
+        })
+        .collect();
+    (mapped, rejected)
 }
