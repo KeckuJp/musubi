@@ -29,6 +29,13 @@ log or source is bundled.
 
 Run `cargo test -p musubi-decoded-csv`.
 
+If an exporter uses `nan` or `inf` in uninterpreted columns, explicitly call
+`parse_with_options` with `ParseOptions { preserve_nonfinite_as_text: true,
+..ParseOptions::default() }`. These tokens remain trimmed text, not measurements
+or missing numeric zeros. The adapter must separately reject nonfinite fields it
+uses in calculations. Default parsing still rejects them; timestamp validation
+never accepts nonfinite values. This option composes with `allow_equal_time`.
+
 For explicitly non-decreasing recorded time, call `parse_non_decreasing` instead
 of `parse`. Equal timestamps and their rows stay in source order; decreases still
 fail. This is opt-in and does not infer causal order, synchronization, or a boot

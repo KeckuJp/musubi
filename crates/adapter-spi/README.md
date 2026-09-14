@@ -93,3 +93,6 @@ JSON nesting at 32 before parsing. Identifiers are bounded to 256 bytes and reje
 control/bidi characters and semicolon separators. The profile is parsed using the
 reader's duplicate-key rejection with an internal synthetic envelope; its sentinel time
 is never observation data. Ordinary tests use generated synthetic values only.
+
+The [direct CSV path](../../docs/recorded-position-csv.md) uses the same geodetic
+mapper after a single decoded CSV parse. It adds no common-model type or network dependency.

@@ -75,7 +75,7 @@ fn column(text: &str) -> Result<Column, ParseError> {
     })
 }
 
-fn value(text: &str, line: usize) -> Result<Value, ParseError> {
+fn value(text: &str, line: usize, preserve_nonfinite_as_text: bool) -> Result<Value, ParseError> {
     let text = text.trim();
     if text.is_empty() {
         Ok(Value::Blank)
@@ -83,6 +83,9 @@ fn value(text: &str, line: usize) -> Result<Value, ParseError> {
         Ok(Value::Integer(integer))
     } else if let Ok(number) = text.parse::<f64>() {
         if !number.is_finite() {
+            if preserve_nonfinite_as_text {
+                return Ok(Value::Text(text.to_owned()));
+            }
             return Err(error(line, "non-finite number"));
         }
         // Preserve integers outside i64 instead of rounding them through f64.
@@ -106,7 +109,7 @@ fn value(text: &str, line: usize) -> Result<Value, ParseError> {
 /// Rejects raw/binary input, quotes, ragged rows, ambiguous columns, missing data, unsupported
 /// time units and invalid or non-increasing timestamps.
 pub fn parse(bytes: &[u8], time_column: &str) -> Result<Table, ParseError> {
-    parse_ordered(bytes, time_column, false)
+    parse_with_options(bytes, time_column, ParseOptions::default())
 }
 
 /// Retain equal-time records in source order, without asserting an order between their events.
@@ -115,10 +118,35 @@ pub fn parse(bytes: &[u8], time_column: &str) -> Result<Table, ParseError> {
 /// # Errors
 /// Returns the same structural/value errors as [`parse`] and rejects decreasing timestamps.
 pub fn parse_non_decreasing(bytes: &[u8], time_column: &str) -> Result<Table, ParseError> {
-    parse_ordered(bytes, time_column, true)
+    parse_with_options(
+        bytes,
+        time_column,
+        ParseOptions {
+            allow_equal_time: true,
+            ..ParseOptions::default()
+        },
+    )
 }
 
-fn parse_ordered(bytes: &[u8], time_column: &str, allow_equal: bool) -> Result<Table, ParseError> {
+/// Explicit input policies. Defaults retain the strict historical parser behavior.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ParseOptions {
+    /// Keep equal timestamps in source order, not asserted event order.
+    pub allow_equal_time: bool,
+    /// Preserve nonfinite numeric tokens as text, never as measured numbers.
+    /// Adapters must still validate any fields they interpret as measurements.
+    pub preserve_nonfinite_as_text: bool,
+}
+
+/// Parse with explicitly selected loss-preservation policies.
+///
+/// # Errors
+/// Structural and timestamp errors remain rejected under every option combination.
+pub fn parse_with_options(
+    bytes: &[u8],
+    time_column: &str,
+    options: ParseOptions,
+) -> Result<Table, ParseError> {
     let text = std::str::from_utf8(bytes).map_err(|_| error(1, "not UTF-8"))?;
     if text.contains('"') || text.contains('\0') {
         return Err(error(1, "quoted or binary input is unsupported"));
@@ -164,13 +192,13 @@ fn parse_ordered(bytes: &[u8], time_column: &str, allow_equal: bool) -> Result<T
             .ok()
             .and_then(|v| u64::try_from(v).ok())
             .ok_or(error(line_number, "time must be a nonnegative integer"))?;
-        if previous.is_some_and(|p| boot_us < p || (!allow_equal && boot_us == p)) {
+        if previous.is_some_and(|p| boot_us < p || (!options.allow_equal_time && boot_us == p)) {
             return Err(error(line_number, "time must be strictly increasing"));
         }
         previous = Some(boot_us);
         let values = cells
             .iter()
-            .map(|cell| value(cell, line_number))
+            .map(|cell| value(cell, line_number, options.preserve_nonfinite_as_text))
             .collect::<Result<_, _>>()?;
         rows.push(Row {
             source_line: line_number,

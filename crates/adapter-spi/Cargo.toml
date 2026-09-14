@@ -15,4 +15,5 @@ workspace = true
 musubi-types = { path = "../types" }
 musubi-core = { path = "../core" }
 musubi-jsonl-log = { path = "../jsonl-log" }
+musubi-decoded-csv = { path = "../decoded-csv" }
 serde_json = { version = "1", features = ["float_roundtrip"] }
