@@ -1,0 +1,26 @@
+[package]
+name = "musubi-reference-readers"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Offline reference readers for saved observations and synthetic analysis."
+
+[lints]
+workspace = true
+
+[dependencies]
+musubi-decoded-csv = { path = "../decoded-csv" }
+musubi-jsonl-log = { path = "../jsonl-log" }
+musubi-miniseed2 = { path = "../miniseed2" }
+musubi-types = { path = "../types" }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+musubi-reference-types = { path = "../reference-types" }
+
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+sha2 = { version = "0.10", default-features = false }
+
+[dev-dependencies]
+musubi-reference-scenario = { path = "../reference-scenario" }
+musubi-reference-writers = { path = "../reference-writers" }

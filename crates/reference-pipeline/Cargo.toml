@@ -1,0 +1,20 @@
+[package]
+name = "musubi-reference-pipeline"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Offline reference pipeline for saved observations and synthetic analysis."
+
+[lints]
+workspace = true
+
+[dependencies]
+musubi-reference-types = { path = "../reference-types" }
+musubi-reference-scenario = { path = "../reference-scenario" }
+musubi-reference-readers = { path = "../reference-readers" }
+musubi-reference-writers = { path = "../reference-writers" }
+
+[[bin]]
+name = "musubi-reference-prereg-report"
+path = "src/bin/prereg_report.rs"

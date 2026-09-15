@@ -147,3 +147,8 @@ to meaning-labelled fields with explicit units, clock basis, local frame and inp
 identity. These reports are distinct from sealed COM envelopes. Native readers and
 shared converters are included; some converters need separately installed
 [optional Python dependencies](docs/recorded-dependencies.md).
+
+## Reference viewer
+
+Open the bundled synthetic report with `cargo run -p musubi-reference-viewer -- --report --in samples/viewer/observations.json`.
+See [the viewer guide](docs/reference-viewer.md) for saved-report inspection, multi-record analysis and detached records.

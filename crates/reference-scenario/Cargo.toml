@@ -1,0 +1,13 @@
+[package]
+name = "musubi-reference-scenario"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Offline reference scenario for saved observations and synthetic analysis."
+
+[lints]
+workspace = true
+
+[dependencies]
+musubi-reference-types = { path = "../reference-types" }

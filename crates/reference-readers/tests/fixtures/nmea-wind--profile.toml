@@ -1,0 +1,24 @@
+profile_id = "nmea_mwv_unlocated_wind_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+
+[fields]
+time = "unlocated_time_us"
+
+[units]
+water_temperature_k = "K_water_temperature_reported"
+depth_below_transducer_m = "m_below_transducer_not_geodetic_altitude"
+transducer_offset_m = "m_positive_waterline_negative_keel_not_applied"
+unlocated_time_us = "zero_placeholder_not_event_time"
+source_line = "one_based_file_order_not_time"
+talker = "reported_label_not_authenticated_identity"
+wind_reference = "relative_to_vessel_not_global_bearing"
+reported_valid = "sentence_status_not_calibrated_accuracy"
+wind_angle_rad = "rad_signed_relative_to_vessel"
+wind_speed_m_s = "m/s"
+source_sentence_hex = "reversible_ascii_hex_prefixed_hex_colon"

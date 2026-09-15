@@ -1,0 +1,13 @@
+[package]
+name = "musubi-reference-types"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Offline reference types for saved observations and synthetic analysis."
+
+[lints]
+workspace = true
+
+[dependencies]
+musubi-types = { path = "../types" }
