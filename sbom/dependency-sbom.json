@@ -2,7 +2,7 @@
   "schemaVersion": "musubi.sbom.dependency/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "lockfileSha256": "sha256:5116cab2bb9d809aa82cb82a4fc7c48507e149dd924140ae79edc48ab2fdbee5",
+    "lockfileSha256": "sha256:53200e4977ceefce41ed33598113e1045dacf4a71c756c3e4900f94e9213704d",
     "coveragePolicy": "ALL_LOCKFILE_PACKAGES_WITH_CHECKSUM_BOUND_LICENSE_EVIDENCE"
   },
   "generator": {
@@ -139,7 +139,8 @@
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
       "directDependencyOf": [
-        "musubi-adapter-spi"
+        "musubi-adapter-spi",
+        "musubi-recorded-readers"
       ]
     },
     {
@@ -150,7 +151,8 @@
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
       "directDependencyOf": [
-        "musubi-adapter-spi"
+        "musubi-adapter-spi",
+        "musubi-recorded-readers"
       ]
     },
     {
@@ -160,7 +162,20 @@
       "spdxLicenseId": "Apache-2.0",
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
-      "directDependencyOf": []
+      "directDependencyOf": [
+        "musubi-recorded-readers"
+      ]
+    },
+    {
+      "name": "musubi-recorded-readers",
+      "version": "0.0.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": [
+        "musubi-adapter-spi"
+      ]
     },
     {
       "name": "musubi-types",
@@ -173,7 +188,8 @@
         "musubi-adapter-spi",
         "musubi-civil-reference-pack",
         "musubi-conformance",
-        "musubi-core"
+        "musubi-core",
+        "musubi-recorded-readers"
       ]
     },
     {
@@ -232,7 +248,8 @@
       "checksum": "e8014e44b4736ed0538adeecded0fce2a272f22dc9578a7eb6b2d9993c74cfb9",
       "directDependencyOf": [
         "musubi-adapter-spi",
-        "musubi-jsonl-log"
+        "musubi-jsonl-log",
+        "musubi-recorded-readers"
       ]
     },
     {
@@ -243,7 +260,9 @@
       "licenseEvidenceDigest": "sha256:a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
       "checksum": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
       "directDependencyOf": [
-        "musubi-core"
+        "musubi-adapter-spi",
+        "musubi-core",
+        "musubi-recorded-readers"
       ]
     },
     {

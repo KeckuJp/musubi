@@ -1,0 +1,39 @@
+{
+  "profile_id": "recorded_mavlink_state_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "gcs",
+  "format": "mavlink_tlog",
+  "extensions": [
+    "tlog"
+  ],
+  "default_clock_basis": "host_received",
+  "channels": [
+    "tlog",
+    "heartbeat",
+    "link_stats",
+    "rc",
+    "gps_ekf",
+    "event"
+  ],
+  "fields": {
+    "time": "host_us"
+  },
+  "units": {
+    "HEARTBEAT.reported_armed": "reported_base_mode_bit_128_not_actuation",
+    "system_state_reported": "MAV_STATE_enum_report_not_physical_health",
+    "battery_voltage_v": "V_source_65535_is_unavailable",
+    "battery_current_a": "A_source_minus_one_is_unavailable_other_sign_retained",
+    "battery_remaining_fraction": "fraction_source_minus_one_is_unavailable",
+    "communication_drop_fraction": "reported_fraction_from_centipercent_not_locally_measured_loss",
+    "mission_current_sequence": "reported_current_mission_item_index_not_record_sequence",
+    "mission_state_reported": "reported_MISSION_STATE_zero_unknown_not_execution_proof",
+    "MAVLINK.system_id": "reported_system_id_not_authenticated",
+    "MAVLINK.component_id": "reported_component_id_not_authenticated",
+    "MAVLINK.packet_sequence": "uint8_sequence_per_sender_not_global_order",
+    "MAVLINK.host_received_us": "Unix_us_GCS_receipt_not_device_sampling_time",
+    "MAVLINK.crc_verified": "known_dialect_CRC_checked_not_authentication",
+    "MAVLINK.signature": "absent_or_present_unverified",
+    "MAVLINK.raw_frame_hex": "exact_frame_including_unknown_payload_and_signature"
+  }
+}

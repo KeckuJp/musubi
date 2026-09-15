@@ -1,0 +1,37 @@
+{
+  "profile_id": "isoxml_actual_rate_changes_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "local_calendar_microseconds_since_1980_not_UTC",
+    "actual_volume_rate_l_ha": "L/ha_reported_actual_volume_per_area_not_setpoint",
+    "source_raw_value": "signed_integer_with_resolution_selected_by_source_ddi",
+    "source_ddi": "decimal_reported_DDI_not_device_identity",
+    "actual_mass_rate_kg_m2": "kg_per_m2_reported_actual_not_setpoint",
+    "actual_count_per_m2": "count_per_m2_reported_actual_not_setpoint",
+    "device_element_hex": "UTF8_reported_device_element_reference",
+    "source_record_hex": "exact_binary_TIM_record",
+    "source_row": "one_based_record_ordinal",
+    "source_update": "zero_based_update_ordinal_not_global_sequence",
+    "reported_yield_mass_kg_m2": "kg_per_m2_reported_yield_not_moisture_corrected",
+    "reported_yield_mass_kg_s": "kg_per_s_reported_yield_not_moisture_corrected",
+    "reported_yield_total_mass_kg": "kg_reported_total_yield_not_moisture_corrected",
+    "reported_average_crop_moisture_ppm": "ppm_reported_task_average_not_instantaneous",
+    "reported_average_crop_moisture_fraction": "fraction_reported_task_average_not_instantaneous",
+    "reported_moisture_status": "reported_fraction_availability_not_sensor_health",
+    "reported_work_state": "reported_DDI141_enum_not_measured_material_flow",
+    "first_child_ordinal": "one_based_child_block_start_not_physical_geometry_or_resolved_child_ID"
+  }
+}

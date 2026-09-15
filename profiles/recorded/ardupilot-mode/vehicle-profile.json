@@ -1,0 +1,26 @@
+{
+  "profile_id": "ardupilot_declared_vehicle_mode_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "TimeUS"
+  },
+  "units": {
+    "TimeUS": "us_since_boot",
+    "Mode": "reported_number_with_explicit_vehicle_schema",
+    "ModeNum": "alias_of_Mode",
+    "Rsn": "reported_reason_code_not_verified_cause",
+    "reported_mode_name": "declared_vehicle_mode_not_health_or_armed",
+    "reported_mode_known": "known_schema_enum_not_enabled_build_feature",
+    "reported_mode_schema": "explicit_vehicle_and_finite_source_version"
+  }
+}

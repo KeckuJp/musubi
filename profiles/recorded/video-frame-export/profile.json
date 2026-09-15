@@ -1,0 +1,24 @@
+{
+  "profile_id": "decoded_video_frame_export_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "video"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "floor_PTS_times_timebase_in_microseconds_not_UTC",
+    "presentation_timestamp_ticks": "exact_selected_stream_timebase_ticks",
+    "width_px": "decoded_frame_pixels",
+    "height_px": "decoded_frame_pixels",
+    "source_frame_index": "export_frame_index_not_camera_sequence"
+  }
+}

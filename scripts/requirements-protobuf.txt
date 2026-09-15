@@ -1,0 +1,2 @@
+# Optional decoder for the fixed saved standalone MAVSDK Battery message. BSD-3-Clause.
+protobuf==6.33.5

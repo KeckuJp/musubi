@@ -1,0 +1,25 @@
+{
+  "profile_id": "ardupilot_parameter_report_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "TimeUS"
+  },
+  "units": {
+    "TimeUS": "us_since_boot",
+    "Name": "reported_parameter_identifier",
+    "Value": "reported_parameter_value_unit_not_inferred",
+    "Default": "reported_board_config_default_unit_not_inferred",
+    "reported_parameter_schema": "caller_selected_export_schema_not_firmware_attestation",
+    "reported_parameter_default_present": "default_field_present_not_default_validity"
+  }
+}

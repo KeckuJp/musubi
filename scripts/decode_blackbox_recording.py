@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Offline raw Blackbox -> native-unit CSV stage for the existing Musubi CSV reader.
 
-Single complete Betaflight log only. The decoder is an operator-selected, independently installed
+One complete Betaflight log, optionally selected explicitly from a saved dump. The decoder is an operator-selected, independently installed
 tool, not downloaded or executed from provider output. Default output is main/merged-slow frames.
 Explicit GPS mode exports separate G records; accompanying main/event/GPX files remain sidecars.
 Decoding alone is not common-model normalization.
@@ -53,24 +53,48 @@ def check_decoder_report(stderr, stream="main"):
     return counts
 
 
+def select_recording(data, index):
+    """Use the fixed decoder's header-marker indexing, without repairing bytes."""
+    if type(index) is not int or index < 1 or not data.startswith(MAGIC):
+        raise ValueError("one-based log index and a header-starting dump required")
+    offsets = [match.start() for match in re.finditer(re.escape(MAGIC), data)]
+    if index > len(offsets):
+        raise ValueError("selected log index exceeds dump entries")
+    boundaries = offsets + [len(data)]
+    entries = [{"index": i + 1, "start_byte": start, "end_byte_exclusive": end,
+                "sha256": hashlib.sha256(data[start:end]).hexdigest(),
+                "status": "SELECTED_PENDING_DECODE" if i + 1 == index else "UNSELECTED_NOT_VALIDATED"}
+               for i, (start, end) in enumerate(zip(boundaries, boundaries[1:]))]
+    selected = entries[index - 1]
+    return data[selected["start_byte"]:selected["end_byte_exclusive"]], {
+        "dump_log_candidates": len(entries), "selected_log_index": index,
+        "selected_input_sha256": selected["sha256"], "log_ranges": entries}
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("decoder", type=Path)
     p.add_argument("input", type=Path)
     p.add_argument("output", type=Path)
     p.add_argument("--stream", choices=("main", "gps"), default="main")
+    p.add_argument("--log-index", type=int, help="explicit one-based complete log in a saved multi-log dump")
     a = p.parse_args()
     raw = a.input.read_bytes()
-    revision = inspect_recording(raw, stream=a.stream)
+    selected, selection = select_recording(raw, a.log_index) if a.log_index is not None else (raw, {})
+    revision = inspect_recording(selected, stream=a.stream)
     a.output.mkdir(parents=True, exist_ok=False)
+    decoder_input = a.input
+    if selection:
+        decoder_input = a.output / "selected.bfl"
+        decoder_input.write_bytes(selected)
     argv = [str(a.decoder.resolve()), "--stdout", "--index", "1", "--unit-vbat", "raw",
-            "--unit-amperage", "raw", "--unit-flags", "raw", str(a.input.resolve())]
+            "--unit-amperage", "raw", "--unit-flags", "raw", str(decoder_input.resolve())]
     if a.stream == "gps":
         decoder_output = a.output / "decoder-output"
         decoder_output.mkdir()
         argv = [str(a.decoder.resolve()), "--index", "1", "--output-dir", str(decoder_output.resolve()),
                 "--prefix", "decoded", "--unit-frame-time", "us", "--unit-gps-speed", "mps",
-                "--unit-vbat", "raw", "--unit-amperage", "raw", "--unit-flags", "raw", str(a.input.resolve())]
+                "--unit-vbat", "raw", "--unit-amperage", "raw", "--unit-flags", "raw", str(decoder_input.resolve())]
     result = subprocess.run(argv, capture_output=True, timeout=60, env={"PATH":os.defpath, "LC_ALL":"C"})
     (a.output / "decoder.stderr.log").write_bytes(result.stderr)
     if result.returncode:
@@ -93,6 +117,9 @@ def main():
         metadata.update({"stream": "gps", "scope": "separate G records; main/event/GPX are unnormalized sidecars",
                          "source_units": {"time": "us", "GPS_coord[0]": "deg", "GPS_coord[1]": "deg",
                                           "GPS_altitude": "dm", "GPS_speed": "m/s"}})
+    if selection:
+        selection["log_ranges"][a.log_index - 1]["status"] = "DECODED_SELECTED_STREAM_ONLY"
+        metadata.update(selection)
     (a.output / "decode.json").write_text(json.dumps(metadata, indent=2) + "\n")
     print(json.dumps(metadata))
 

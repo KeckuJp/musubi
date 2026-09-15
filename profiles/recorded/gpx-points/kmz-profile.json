@@ -1,0 +1,23 @@
+{
+  "profile_id": "kmz_kml22_declared_points",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_caller_capture_not_device",
+    "latitude_deg": "deg_WGS84",
+    "longitude_deg": "deg_WGS84",
+    "declared_altitude_m": "m_per_explicit_altitude_basis"
+  }
+}

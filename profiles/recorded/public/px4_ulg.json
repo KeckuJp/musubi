@@ -1,0 +1,50 @@
+{
+  "profile_id": "px4_ulg",
+  "version": "2026-08-21.1",
+  "family": "fixed_wing",
+  "source_role": "fc",
+  "format": "px4_ulog",
+  "extensions": [
+    "ulg"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "onboard",
+    "rc",
+    "link_stats",
+    "gps_ekf",
+    "event"
+  ],
+  "fields": {
+    "time": "timestamp",
+    "status": [
+      "vehicle_status.nav_state",
+      "vehicle_status.failsafe",
+      "vehicle_status.gcs_connection_lost",
+      "failsafe_flags.manual_control_signal_lost",
+      "log.message"
+    ],
+    "link": [
+      "input_rc.link_quality",
+      "input_rc.rssi_dbm",
+      "input_rc.rc_lost",
+      "telemetry_status.rx_message_lost_rate"
+    ],
+    "battery": [
+      "battery_status.voltage_v",
+      "battery_status.warning"
+    ],
+    "gps": [
+      "sensor_gps.fix_type",
+      "sensor_gps.satellites_used",
+      "sensor_gps.hdop",
+      "sensor_gps.jamming_state",
+      "sensor_gps.jamming_indicator",
+      "estimator_status.pos_test_ratio"
+    ],
+    "health": [
+      "failsafe_flags.gnss_lost",
+      "failsafe_flags.gcs_connection_lost"
+    ]
+  }
+}

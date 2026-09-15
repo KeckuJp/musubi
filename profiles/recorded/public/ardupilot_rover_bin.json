@@ -1,0 +1,57 @@
+{
+  "profile_id": "ardupilot_rover_bin",
+  "version": "2026-08-21.1",
+  "family": "ugv",
+  "source_role": "fc",
+  "format": "ardupilot_dataflash_bin",
+  "extensions": [
+    "bin"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "onboard",
+    "rc",
+    "link_stats",
+    "gps_ekf",
+    "event"
+  ],
+  "fields": {
+    "time": "TimeUS",
+    "status": [
+      "MODE.Mode",
+      "MODE.Rsn",
+      "MSG.Message",
+      "ERR.Subsys",
+      "ERR.ECode",
+      "EV.Id"
+    ],
+    "link": [
+      "RAD.RSSI",
+      "RAD.RemRSSI",
+      "RAD.Noise",
+      "RAD.RxErrors",
+      "RSSI.RXRSSI",
+      "RSSI.RXLQ"
+    ],
+    "battery": [
+      "BAT.Volt",
+      "BAT.RemPct"
+    ],
+    "gps": [
+      "GPS.Status",
+      "GPS.NSats",
+      "GPS.HDop",
+      "GPA.HAcc",
+      "UBX1.jamInd",
+      "XKF4.SS",
+      "XKF4.SP",
+      "XKF4.TS",
+      "XKF4.OFN"
+    ],
+    "health": [
+      "POWR.Vcc",
+      "RCIN.C1",
+      "RCIN.C3"
+    ]
+  }
+}

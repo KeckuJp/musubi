@@ -1,0 +1,45 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "camera",
+    "frame": "first-keyframe-world",
+    "convention": "camera center twc; camera-to-world Rwc quaternion xyzw; metric depth scale declared"
+  },
+  "fields": {
+    "tx": {
+      "meaning": "camera_center_x",
+      "unit": "m",
+      "basis": "reported"
+    },
+    "ty": {
+      "meaning": "camera_center_y",
+      "unit": "m",
+      "basis": "reported"
+    },
+    "tz": {
+      "meaning": "camera_center_z",
+      "unit": "m",
+      "basis": "reported"
+    },
+    "qx": {
+      "meaning": "camera_to_world_quaternion_x",
+      "unit": "1",
+      "basis": "reported"
+    },
+    "qy": {
+      "meaning": "camera_to_world_quaternion_y",
+      "unit": "1",
+      "basis": "reported"
+    },
+    "qz": {
+      "meaning": "camera_to_world_quaternion_z",
+      "unit": "1",
+      "basis": "reported"
+    },
+    "qw": {
+      "meaning": "camera_to_world_quaternion_w",
+      "unit": "1",
+      "basis": "reported"
+    }
+  }
+}

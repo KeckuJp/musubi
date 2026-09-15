@@ -1,0 +1,39 @@
+{
+  "profile_id": "betaflight_blackbox_csv",
+  "version": "2026-08-21.1",
+  "family": "fpv",
+  "source_role": "fc",
+  "format": "blackbox_decoded_csv",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "onboard",
+    "rc",
+    "link_stats",
+    "gps_ekf",
+    "event"
+  ],
+  "fields": {
+    "time": "time",
+    "status": [
+      "failsafePhase",
+      "rxSignalReceived",
+      "rxFlightChannelsValid"
+    ],
+    "link": [
+      "rssi"
+    ],
+    "battery": [
+      "vbatLatest"
+    ],
+    "gps": [
+      "GPS_numSat",
+      "GPS_coord[0]",
+      "GPS_coord[1]",
+      "GPS_fixType",
+      "GPS_hdop"
+    ]
+  }
+}

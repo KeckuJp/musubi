@@ -1,0 +1,23 @@
+{
+  "profile_id": "agopen_declared_boundary_21be26aa",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_caller_capture_not_point_time",
+    "easting_m": "m_local_field_origin_unresolved",
+    "northing_m": "m_local_field_origin_unresolved",
+    "heading_rad": "rad_declared_not_device_heading"
+  }
+}

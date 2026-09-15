@@ -1,0 +1,48 @@
+{
+  "profile_id": "crsf_link_statistics_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard",
+    "link_stats"
+  ],
+  "fields": {
+    "time": "record_time_us",
+    "link": [
+      "uplink_rssi_1_dbm",
+      "uplink_rssi_2_dbm",
+      "uplink_lq_fraction",
+      "uplink_snr_db",
+      "downlink_rssi_dbm",
+      "downlink_lq_fraction",
+      "downlink_snr_db",
+      "active_antenna",
+      "rf_mode_code",
+      "tx_power_code"
+    ]
+  },
+  "units": {
+    "battery_voltage_v": "V_reported_not_calibrated",
+    "battery_current_a": "A_reported_source_sign_not_inferred",
+    "sport_physical_id_reported": "five_bit_receiver_physical_id_not_authenticated_identity",
+    "sport_application_id": "selected_SPort_application_ID",
+    "sport_value_basis": "raw_report_before_OpenTX_model_offset_ratio_positive_filter",
+    "record_time_us": "capture_microseconds_untrusted_clock",
+    "destination_address": "CRSF_address_not_authenticated_source_identity",
+    "uplink_rssi_1_dbm": "dBm_reported_possible_stale_if_no_link",
+    "uplink_rssi_2_dbm": "dBm_reported_possible_stale_if_no_link",
+    "uplink_lq_fraction": "reported_packet_success_fraction",
+    "uplink_snr_db": "dB",
+    "downlink_rssi_dbm": "dBm_reported_possible_stale_if_no_link",
+    "downlink_lq_fraction": "reported_packet_success_fraction",
+    "downlink_snr_db": "dB",
+    "rf_mode_code": "source_enum_not_mapped_to_rate",
+    "tx_power_code": "source_enum_not_mapped_to_watts"
+  }
+}

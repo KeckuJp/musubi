@@ -1,0 +1,50 @@
+{
+  "profile_id": "opcua_reported_datavalue_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "pan_tilt_x_normalized": "normalized_full_mechanical_range_not_radians",
+    "pan_tilt_y_normalized": "normalized_full_mechanical_range_not_radians",
+    "zoom_x_normalized": "normalized_wide_to_tele_not_magnification",
+    "status_time_us": "reported_status_generation_unix_us_not_verified_clock",
+    "profile_id_hex": "caller_declared_media_profile_not_authenticated",
+    "engine_operating_seconds_reported": "seconds_reported_lifetime_engine_running_time_not_work_or_session_duration",
+    "operating_hours_measurement_time_us": "reported_meter_reading_datetime_not_capture_or_clock_authentication",
+    "operating_hours_basis": "reported_cumulative_meter_not_continuity_or_physical_work",
+    "equipment_id_hex": "caller_declared_equipment_identifier_not_authenticated",
+    "har_source_sha256": "SHA256_exact_original_HAR_UTF8_not_authentication",
+    "har_entry_index": "zero_based_selected_response_index_not_all_entries",
+    "har_clock_basis": "reported_HTTP_request_start_not_measurement_or_response_end",
+    "record_time_us": "capture_microseconds_unknown_basis",
+    "source_time_us": "reported_unix_microseconds_floor_original_fraction_retained",
+    "server_time_us": "reported_unix_microseconds_floor_original_fraction_retained",
+    "source_10ps": "source_reported_10_picosecond_intervals_not_folded_into_capture",
+    "server_10ps": "server_reported_10_picosecond_intervals_not_folded_into_capture",
+    "voltage_v": "V",
+    "current_a": "A_source_sign_convention",
+    "temperature_k": "K",
+    "phenomenon_time_us": "reported_unix_us_not_verified_device_clock",
+    "phenomenon_start_us": "reported_period_start_unix_us_not_an_instant_sample",
+    "phenomenon_end_us": "reported_period_end_unix_us_not_capture_time",
+    "result_time_us": "reported_result_generation_unix_us_nullable",
+    "distance_m": "m_no_coordinate_inference",
+    "pressure_pa": "Pa_source_reference_convention",
+    "angular_speed_rad_s": "rad_per_second_no_axis_inference",
+    "speed_m_s": "metres_per_second_source_role_and_sign_not_inferred",
+    "angle_rad": "rad_no_axis_or_reference_inference",
+    "reported_ratio": "fraction_from_reported_percent_not_necessarily_SOC",
+    "energy_j": "J_stored_consumed_or_remaining_role_not_inferred"
+  }
+}

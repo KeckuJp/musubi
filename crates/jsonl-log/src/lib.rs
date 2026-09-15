@@ -89,6 +89,16 @@ impl<'de> Deserialize<'de> for UniqueValue {
     }
 }
 
+/// Parse a JSON document while rejecting duplicate object keys at every nesting level.
+///
+/// # Errors
+/// Rejects invalid JSON, duplicate keys, and trailing content.
+pub fn parse_unique_json(bytes: &[u8]) -> Result<Value, ParseError> {
+    serde_json::from_slice::<UniqueValue>(bytes)
+        .map(|value| value.0)
+        .map_err(|_| error(1, "invalid JSON or duplicate object key"))
+}
+
 /// Read one JSON object per line with `meta.type` and a `data` object.
 /// `TimeUS` and `TimeMS` in data are integer counters, not exporter wall time.
 ///

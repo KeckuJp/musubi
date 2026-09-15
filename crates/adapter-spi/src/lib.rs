@@ -49,3 +49,5 @@ mod spi_tests;
 
 #[cfg(test)]
 mod template_tests;
+
+pub mod recorded_observations;

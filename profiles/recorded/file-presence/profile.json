@@ -1,0 +1,24 @@
+{
+  "profile_id": "local_file_presence_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_local_capture_clock_not_file_content_time",
+    "capture_clock_unix_ns": "ns_local_system_reported",
+    "regular_file_size_bytes": "bytes_only_for_regular_file",
+    "filesystem_mtime_ns": "ns_OS_reported_modification_not_capture_time",
+    "filesystem_ctime_ns": "ns_OS_reported_metadata_change_not_creation_time"
+  }
+}

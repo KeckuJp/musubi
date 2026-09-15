@@ -1,0 +1,51 @@
+{
+  "profile_id": "dronecan_selected_recorded_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "capture_clock_us_at_transfer_completion_unknown_basis",
+    "first_frame_time_us": "capture_clock_us_not_source_sampling_time",
+    "source_node_id": "reported_node_id_not_authenticated_platform_identity",
+    "transfer_id": "protocol_sequence_modulo_32_not_global_order",
+    "source_frames_hex": "UTF8_JSON_frame_records_hex_including_all_source_bytes",
+    "battery_voltage_v": "V",
+    "battery_current_a": "A_reported_source_sign_convention",
+    "battery_consumed_ah": "Ah_unavailable_not_inferred_from_remaining_energy",
+    "battery_consumed_j": "J_unavailable_not_inferred_from_remaining_energy",
+    "battery_power_w": "W_voltage_times_reported_current_not_10sec_average",
+    "battery_remaining_fraction": "reported_fraction_127_source_sentinel_is_blank",
+    "battery_temperature_k": "K",
+    "battery_remaining_energy_j": "J_remaining_not_consumed",
+    "battery_health_fraction": "reported_SOH_fraction_not_physical_health_verdict",
+    "node_uptime_s": "s_reported_node_uptime_not_capture_clock",
+    "node_reported_health": "reported_health_enum",
+    "node_reported_mode": "reported_mode_enum_reserved_values_remain_unknown",
+    "air_static_pressure_pa": "Pa",
+    "air_differential_pressure_pa": "Pa_signed",
+    "air_temperature_k": "K",
+    "magnetic_body_x_t": "T_body_x",
+    "magnetic_body_y_t": "T_body_y",
+    "magnetic_body_z_t": "T_body_z",
+    "sensor_id": "reported_sensor_or_battery_instance",
+    "wind_speed_m_s": "m_per_second_reported_reference_separate",
+    "wind_angle_rad": "rad_reported_reference_separate_no_rotation_inference",
+    "actual_temperature_k": "K_reported_source_code_separate",
+    "reported_set_temperature_k": "K_reported_setpoint_not_measurement_or_command",
+    "heading_rad": "rad_reported_true_or_magnetic_reference_separate",
+    "heading_deviation_rad": "rad_reported_signed_no_correction_applied",
+    "heading_variation_rad": "rad_reported_signed_no_correction_applied",
+    "turn_rate_rad_s": "rad_per_second_signed_reported_no_frame_transform"
+  }
+}

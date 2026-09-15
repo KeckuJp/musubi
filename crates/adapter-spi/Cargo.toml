@@ -17,3 +17,5 @@ musubi-core = { path = "../core" }
 musubi-jsonl-log = { path = "../jsonl-log" }
 musubi-decoded-csv = { path = "../decoded-csv" }
 serde_json = { version = "1", features = ["float_roundtrip"] }
+musubi-recorded-readers = { path = "../recorded-readers" }
+sha2 = { version = "0.10", default-features = false }

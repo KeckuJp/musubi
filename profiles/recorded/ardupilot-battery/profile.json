@@ -1,0 +1,55 @@
+{
+  "profile_id": "ardupilot_bat_finite_current_v1",
+  "version": "1",
+  "family": "fixed_wing",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "TimeUS"
+  },
+  "units": {
+    "TimeUS": "us_since_boot",
+    "Instance": "recorded_battery_instance_not_authenticated_identity",
+    "Volt": "V",
+    "VoltR": "V_estimated_resting",
+    "Curr": "A",
+    "CurrTot": "mAh_consumed",
+    "EnrgTot": "Wh_consumed",
+    "Temp": "degC_or_unavailable_zero",
+    "Res": "ohm_estimated",
+    "RemPct": "percent_estimated_or_255_unavailable",
+    "battery_voltage_v": "V",
+    "battery_current_a": "A",
+    "battery_consumed_ah": "Ah",
+    "battery_consumed_j": "J",
+    "battery_power_w": "W_calculated_voltage_times_current",
+    "battery_remaining_fraction": "fraction_estimated_or_blank_unavailable",
+    "battery_resting_voltage_estimate_v": "V_estimated_resting",
+    "battery_resistance_estimate_ohm": "ohm_estimated",
+    "battery_temperature_k": "K_or_blank_ambiguous_zero",
+    "battery_temperature_state": "reported_or_zero_or_unavailable",
+    "battery_health_reported": "source_report_not_independent_diagnosis",
+    "battery_state_of_health_fraction": "reported_fraction_or_blank_unknown",
+    "battery_cell_1_v": "V",
+    "battery_cell_2_v": "V",
+    "battery_cell_3_v": "V",
+    "battery_cell_4_v": "V",
+    "battery_cell_5_v": "V",
+    "battery_cell_6_v": "V",
+    "battery_cell_7_v": "V",
+    "battery_cell_8_v": "V",
+    "battery_cell_9_v": "V",
+    "battery_cell_10_v": "V",
+    "battery_cell_11_v": "V",
+    "battery_cell_12_v": "V",
+    "battery_cell_13_v": "V",
+    "battery_cell_14_v": "V"
+  }
+}

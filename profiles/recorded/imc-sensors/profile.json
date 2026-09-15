@@ -1,0 +1,44 @@
+{
+  "profile_id": "imc_scalar_sensors_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "nmea_unlocated_time_us": "zero_placeholder_from_unlocated_sentence_not_event_clock",
+    "wind_angle_rad": "rad_signed_relative_to_vessel_not_true_north",
+    "wind_speed_m_s": "m/s_reported_wind_not_vehicle_speed",
+    "wind_reference": "apparent_or_theoretical_relative_to_vessel",
+    "reported_valid": "sentence_reported_A_or_V_not_independent_quality",
+    "source_sentence_hex": "exact_NMEA_sentence_excluding_line_terminator",
+    "source_line": "one_based_sentence_index_within_selected_packet",
+    "record_time_us": "reported_dispatcher_or_explicit_PCAP_capture_microseconds_not_trusted_UTC_anchor",
+    "imc_payload_time_us": "dispatcher_reported_microseconds_separate_from_PCAP_capture",
+    "pcap_clock_basis": "packet_capture_reported_not_authentication_or_message_clock",
+    "pcap_packet_index": "zero_based_original_capture_packet_index",
+    "pcap_source_sha256": "SHA256_original_capture_not_authentication",
+    "source_timestamp_s": "dispatcher_reported_epoch_seconds",
+    "source_id": "reported_IMC_system_not_authenticated",
+    "source_entity": "reported_IMC_entity",
+    "source_frame_hex": "exact_header_payload_crc",
+    "temperature_k": "K",
+    "external_pressure_pa": "Pa",
+    "depth_m": "m_source_depth_reference_not_geodetic_altitude",
+    "sound_speed_m_s": "m/s_negative_source_means_unavailable",
+    "water_density_kg_m3": "kg/m^3",
+    "salinity_psu": "PSU_not_mass_fraction",
+    "electrical_voltage_v": "V_reported_polarity",
+    "electrical_current_a": "A_source_sign_convention_unspecified",
+    "electrical_power_w": "W_source_sign_convention_unspecified"
+  }
+}

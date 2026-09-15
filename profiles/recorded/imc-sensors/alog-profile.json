@@ -1,0 +1,21 @@
+{
+  "profile_id": "moos_marked_scalar_b897ea86",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_caller_capture_not_logger_or_device_time",
+    "logger_relative_time_us": "us_reported_relative_to_logger_start"
+  }
+}
