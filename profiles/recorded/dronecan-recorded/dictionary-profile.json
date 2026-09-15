@@ -1,0 +1,21 @@
+{
+  "profile_id": "canopen_dictionary_declarations_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_caller_capture_not_device_time",
+    "declared_bit_width": "bits_type_storage_not_PDO_mapping_length"
+  }
+}

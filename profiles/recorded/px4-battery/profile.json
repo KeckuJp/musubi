@@ -1,0 +1,31 @@
+{
+  "profile_id": "px4_battery_finite_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "timestamp"
+  },
+  "units": {
+    "timestamp": "us_since_boot",
+    "id": "recorded_battery_id_not_authenticated_identity",
+    "voltage_v": "V_or_zero_unavailable",
+    "current_a": "A_or_minus_one_unavailable",
+    "discharged_mah": "mAh_or_minus_one_unavailable",
+    "remaining": "fraction_or_minus_one_unavailable",
+    "battery_voltage_v": "V",
+    "battery_current_a": "A",
+    "battery_consumed_ah": "Ah",
+    "battery_consumed_j": "J",
+    "battery_power_w": "W_calculated_voltage_times_current",
+    "battery_remaining_fraction": "fraction_estimated_or_blank_unavailable"
+  }
+}

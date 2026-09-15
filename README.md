@@ -139,3 +139,11 @@ Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 The [offline CSV example](docs/recorded-position-csv.md) maps declared boot-time
 CSV position columns to common observations in one command, retains unknown source
 fields, and reports rejected rows explicitly. It reuses the public reader and mapper.
+
+### Saved measurements, state and local poses
+
+[Common recorded observations](docs/recorded-observations.md) connect saved inputs
+to meaning-labelled fields with explicit units, clock basis, local frame and input
+identity. These reports are distinct from sealed COM envelopes. Native readers and
+shared converters are included; some converters need separately installed
+[optional Python dependencies](docs/recorded-dependencies.md).

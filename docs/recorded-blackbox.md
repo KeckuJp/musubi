@@ -111,3 +111,13 @@ cargo test -p musubi-decoded-csv
 
 Python tests use authored synthetic bytes and a mocked decoder; they do not
 exercise an installed third-party decoder or a real recording.
+
+## Selecting one complete log from a concatenated dump
+
+Pass `--log-index N` with a one-based complete-header index. The selected bytes are
+written unchanged to `selected.bfl` and processed by the same single-log decoder.
+`decode.json` records every candidate byte range and hash, the selected index and
+selected-input hash. Unselected logs are explicitly not validated. Without this
+option the single-log restriction remains. Selection does not stitch clocks, repair
+truncation, trim padding or broaden the supported firmware header versions.
+Synthetic selection tests are not evidence of a new real multi-flight recording.

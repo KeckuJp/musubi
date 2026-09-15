@@ -1,0 +1,35 @@
+{
+  "profile_id": "recorded_image_detections_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "video"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "caller_recorded_us_not_inference_or_image_exposure_UTC",
+    "stream_index_configured": "caller_label_not_camera_identity",
+    "model_score_reported": "rounded_model_score_not_calibrated_probability_or_evidence_confidence",
+    "class_id_reported": "model_local_class_index",
+    "track_id_reported": "model_local_track_id_not_verified_object_identity",
+    "box_x1_px": "image_pixel_x_min_not_world_position",
+    "box_y1_px": "image_pixel_y_min_not_world_position",
+    "box_x2_px": "image_pixel_x_max_not_world_position",
+    "box_y2_px": "image_pixel_y_max_not_world_position",
+    "width_px": "caller_supplied_width_in_explicit_box_coordinate_basis",
+    "height_px": "caller_supplied_height_in_explicit_box_coordinate_basis",
+    "box_coordinate_basis": "original_image_or_pipeline_last_component_pixels_not_world_coordinates",
+    "model_score_status": "reported_or_explicit_source_unavailable_sentinel_not_zero_confidence",
+    "track_id_text": "exact_u64_text_not_verified_object_identity",
+    "tracking_status": "reported_tracking_state_not_identity_verification",
+    "source_record_sha256": "SHA256_exact_UTF8_envelope_line_in_report_not_authentication"
+  }
+}

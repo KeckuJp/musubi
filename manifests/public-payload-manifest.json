@@ -1,15 +1,15 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "e681c2c99aba56923e27d7aa08f35692530b7dcd",
-  "payloadGitTreeOid": "17a2514c0ad953588c053e62652129548624d378",
-  "payloadTreeDigest": "sha256:ef88e4894f9268df7fd5fd2f11d6bb86a857f964f0560109a34312461f7035c4",
+  "payloadCommit": "b1751160102e313e3b69982bbdf2f75ce3a104eb",
+  "payloadGitTreeOid": "cdebb8cf10a7b415d42b34082ae68e7bbe6041e4",
+  "payloadTreeDigest": "sha256:9f983918f44704b3fb7efc924539c5bdf360f4ae48435cc1fab3fc1db2dc5ba9",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
-  "fileCount": 101,
+  "fileCount": 224,
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "contentDigest": "sha256:287f7a1cd90f1d7ad35ce45154194d95e22e9e9f8c2ae23e62488557df7d2f2d",
+      "contentDigest": "sha256:e9e7b99141c18390cb0919401939611917472b9758b869a55b0c533fe54ae6ba",
       "mode": "100644"
     },
     {
@@ -19,7 +19,7 @@
     },
     {
       "path": "CHANGELOG.md",
-      "contentDigest": "sha256:e06f9873197138833bf99ed318bed0dec28899fe046de75ea9f7e897f35f89d9",
+      "contentDigest": "sha256:0bbc883a6b4c86d74b419072439fdc75a89b05dcfd21002a6478ca31f61391ea",
       "mode": "100644"
     },
     {
@@ -34,12 +34,12 @@
     },
     {
       "path": "Cargo.lock",
-      "contentDigest": "sha256:5116cab2bb9d809aa82cb82a4fc7c48507e149dd924140ae79edc48ab2fdbee5",
+      "contentDigest": "sha256:53200e4977ceefce41ed33598113e1045dacf4a71c756c3e4900f94e9213704d",
       "mode": "100644"
     },
     {
       "path": "Cargo.toml",
-      "contentDigest": "sha256:7d80492e5ab7295c56b3d5353a787191c6d45e38909bd65b3163f945a97bff11",
+      "contentDigest": "sha256:d0cb41589c1fc58eb199919fac3515770d2b56ed1dbb1f59d0abc09bd743d6f4",
       "mode": "100644"
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "path": "README.md",
-      "contentDigest": "sha256:303b14b590ad91e7bfd8bff6663734bf0034c2365be816bc4e244a7c0be03978",
+      "contentDigest": "sha256:fa0543337b00d509df20f08ef37cab8d98de8f7068c94cbd3f4939261fbb85e0",
       "mode": "100644"
     },
     {
@@ -69,7 +69,7 @@
     },
     {
       "path": "crates/adapter-spi/Cargo.toml",
-      "contentDigest": "sha256:4aa683fdae6a7a589fecaa724ef39850c9d56a71c9f484a0070cc955a422ac63",
+      "contentDigest": "sha256:42882e82ffd492f64ce12f93a317435ea33405b024e872a5aab75c4a86f1085f",
       "mode": "100644"
     },
     {
@@ -88,8 +88,13 @@
       "mode": "100644"
     },
     {
+      "path": "crates/adapter-spi/examples/ingest_recorded_observations.rs",
+      "contentDigest": "sha256:055260f9859a6dc4d1cc89c58eb8850d17c6560a5219efad7aede556c3ac448d",
+      "mode": "100644"
+    },
+    {
       "path": "crates/adapter-spi/src/lib.rs",
-      "contentDigest": "sha256:205a1b59185164220ad0e5a43306140d26b3f8faee338c76860f9f060e8883a9",
+      "contentDigest": "sha256:aa28398f719548f282264b7543d8af88811f09377049a936b00bd10a44e900f9",
       "mode": "100644"
     },
     {
@@ -100,6 +105,11 @@
     {
       "path": "crates/adapter-spi/src/recorded_jsonl.rs",
       "contentDigest": "sha256:0aad011db59b95888510578b570f80be6136adbd84fa180612ec1e6021a3ddc2",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/adapter-spi/src/recorded_observations.rs",
+      "contentDigest": "sha256:14ebb6ebd8db33969138a223f5df7ccd333c0e66cd2c95fa66bb9a60f5a0b28d",
       "mode": "100644"
     },
     {
@@ -274,7 +284,7 @@
     },
     {
       "path": "crates/jsonl-log/src/lib.rs",
-      "contentDigest": "sha256:ad108133b3144a29806fbbc7106f10906787f0a367add408a4cf46e836d4afb1",
+      "contentDigest": "sha256:31d5fe4eabbed39af52af60bfcfbe637074aada841286e9025c2e09fbf843e39",
       "mode": "100644"
     },
     {
@@ -310,6 +320,71 @@
     {
       "path": "crates/miniseed2/tests/support/mod.rs",
       "contentDigest": "sha256:21f35fbbccd1ddb037d90f932e36db2c8aaa740490c5134db55ee9b0f9d35fe5",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/Cargo.toml",
+      "contentDigest": "sha256:affa032ee4db855705d19b7acb501070e3d6b7ea7e087aafe330ba2325d9c80f",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/bin.rs",
+      "contentDigest": "sha256:3512cfa64d52206cd00ecfb01d819f2d565e504f21c05031a75a4a6be8c49059",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/blackbox.rs",
+      "contentDigest": "sha256:98a67bb981b2a33683e24831e6891fd7ec09a5a1f41392126ade29802e081689",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/config.rs",
+      "contentDigest": "sha256:6c63566ba12c334cf8e2a49d3902489a7648ca01607cfd86f465836d65dfb424",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/edgetx.rs",
+      "contentDigest": "sha256:eb0d691584ea6b09c05fb45828766d208e1f9ef1c5efecc5eb3a5020f6d9e141",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/lib.rs",
+      "contentDigest": "sha256:52cc8c8a1a66a1e5d4988d9fd96a3e02cbc6f1697ddf4ceb6e0a96e92ba4d455",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/mavlink_header.rs",
+      "contentDigest": "sha256:042e17c53fe60a79bcfc1cab6f81a9299f00a3f726490e064569174d7dd123a7",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/mavlog_json.rs",
+      "contentDigest": "sha256:914946091d7139aa0c6ec77cfc46568bc8d4c98b7b685525a18ec5a434a4fd29",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/mseed_waveform.rs",
+      "contentDigest": "sha256:95f9d20dac682b475e7c4f7a621e7d863fbd4a968259938c9e97268942526d41",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/profile.rs",
+      "contentDigest": "sha256:528640ce8ec5b6b9c3760c4011b215e5a9b351fa33e3ad426a219ec86fa0d2f7",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/telemetry_csv.rs",
+      "contentDigest": "sha256:f8dd49bd09e191a0cdec29b41bc31b79599f288206f4259c99ec27495d763aaf",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/tlog.rs",
+      "contentDigest": "sha256:b06294f5cbf979c79c03d0f55db40e1a6bdd38060556bb4408cf4d835d0537c6",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/recorded-readers/src/ulog.rs",
+      "contentDigest": "sha256:ea6a0c516c050bb9d62a777f31b78981e67f055549cfe142689d929061cbefd3",
       "mode": "100644"
     },
     {
@@ -364,7 +439,17 @@
     },
     {
       "path": "docs/recorded-blackbox.md",
-      "contentDigest": "sha256:3b58a55e7e547b1b2d49fc6a97588b92532ff382b6b05ebae94a8ffa89de174f",
+      "contentDigest": "sha256:815073be13e2e9fbd8a4e16e57f6cf65601fb91a87af3c15207496923ee06a01",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/recorded-dependencies.md",
+      "contentDigest": "sha256:e0dd4174ece6a23ca6304bfb8d49748a709414046678cd3eff99e9b45441c74f",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/recorded-observations.md",
+      "contentDigest": "sha256:dbeefa8c88defdf921845633eaa87b33706a50d815653c7004383d2d97093f8e",
       "mode": "100644"
     },
     {
@@ -398,18 +483,253 @@
       "mode": "100644"
     },
     {
+      "path": "profiles/meanings/reported-quantities.json",
+      "contentDigest": "sha256:6f8b2bca3cde321600aa3eca039540b7d4707b6364827dea0500e4b8cf2146ed",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/saved-camera-pose.json",
+      "contentDigest": "sha256:b22f7a1063a45874f4f17a3b98bf08b35015ce2c3a033627a6c662dfe37da086",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-battery/profile.json",
+      "contentDigest": "sha256:6e23076346efee1f3f7324f6b167cef073d9ab43e7c2566af1a1f60e182b2222",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-mode/imu-profile.json",
+      "contentDigest": "sha256:01ea0d32af86ace29e3c67b2ae3ca3318f8fc3a2d96af70eb1300cddd57964ab",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-mode/imu-rover-profile.json",
+      "contentDigest": "sha256:428b82a72678ba8b8934953aefcf32ebc674f6aa201db806a0e9cba12d236d40",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-mode/imu-unclassified-profile.json",
+      "contentDigest": "sha256:09bc032ff56cd9d01d5df9eb2adaae74a732685d7af9eb4c6b3abb98b4cb70c8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-mode/parameter-profile.json",
+      "contentDigest": "sha256:7f7ac9fac412b2611e9d67bb89586c5c545224403d4260634a0af5b9cc1e5345",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-mode/parameter-snapshot.json",
+      "contentDigest": "sha256:0f384869dd71c28d25cb0fc76fd463e28fa519214dfddca3a67cbb30ebdf2704",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-mode/profile.json",
+      "contentDigest": "sha256:376636edc93ed46abcd41196e2650a30ccddd168fcc18101e9b130a585dda484",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-mode/vehicle-profile.json",
+      "contentDigest": "sha256:e3cbbbebb28ecbc088602bb68d96b56739a0b28cbcabc003b5f94cea11f42b8d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/arduplane-jsonl/profile.json",
+      "contentDigest": "sha256:e98e93e90c18c0e3d8df03e93f2d8616386297ead11fcb404f584b1a290f63cc",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/betaflight-raw-main/profile.json",
+      "contentDigest": "sha256:a54672143ca9bac930d921fd7c9bea95b56c09ef6887b76bce6b6b36ba81c588",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/boreas-enu/profile.json",
+      "contentDigest": "sha256:b2472013cf335ad69cf415910f560d5dd4d3d2ac5c2a2bcd1697ab8bde982e04",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/crsf-link/profile.json",
+      "contentDigest": "sha256:e77b30638fc39c2d917214236ec85dc84c23caa73be12e36019d57f5459bd8c8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/dbc-recorded/profile.json",
+      "contentDigest": "sha256:a9db61dfaef9529ed06d86fdeceae2dcc1f78632ee5e50e1d4139b3a5c33a71e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/dronecan-recorded/dictionary-profile.json",
+      "contentDigest": "sha256:00de4aa4c8cc736ff9ab673c635cd6f30a51a7ed9fe1851cdab4f4851d6667f7",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/dronecan-recorded/pdo-profile.json",
+      "contentDigest": "sha256:eccb8c08d85633d3cf777f67006eeeb0b9fb1515778620960a6b3ee15280820a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/dronecan-recorded/profile.json",
+      "contentDigest": "sha256:f7a6d1c6641362672bea3318ea6d4cacaccd57dfcfe6a7fa2b55055709e1869f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/electrical-schema-reuse/farmbot-profile.json",
+      "contentDigest": "sha256:1e12aeb0f800cd14d81dc72e180e2536d392513a89c5245928f7009a727a6f93",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/electrical-schema-reuse/json-profile.json",
+      "contentDigest": "sha256:45af63cd62d403d952e558b867dbb37b78c258a0dc0c22ea2de0175c63de6e79",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/file-presence/profile.json",
+      "contentDigest": "sha256:284666042d5f8657c386f4a58507e9546dc22235d56f5d7ecc74c6699643ae31",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/gpx-points/boundary-profile.json",
+      "contentDigest": "sha256:5c540c01360c9385363850dc918a8eda756b3712823653c3a97432c8fba84959",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/gpx-points/kmz-profile.json",
+      "contentDigest": "sha256:cc111ec8de62d8ca4f332ae44a641d7465023cb3af0a365f5b593baf9d2d43d0",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/gpx-points/profile.json",
+      "contentDigest": "sha256:ac7cbe32398411d3dc098551b8fa5c168edf8f8c8820b67f3a19a5f71a02231f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/gpx-points/wpl-profile.json",
+      "contentDigest": "sha256:f4733f5a35eec92cd529595e54382288e58b34cc552fd61a50d665eb47204f93",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/imc-sensors/alog-profile.json",
+      "contentDigest": "sha256:0e6ae0c2e9dc41224148f26dc897718a1f258729d8d7ca5ca218b9acdd5716e9",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/imc-sensors/profile.json",
+      "contentDigest": "sha256:2fd2307b3b1c052152bd5911a9059cb69be448f2aaac9bbb343859e069016f2e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/isoxml-rate/profile.json",
+      "contentDigest": "sha256:376377d9f0b0226d935600d196293d167078103da7ab459236b8f77c0158dd90",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/nmea-wind/profile.json",
+      "contentDigest": "sha256:985418a11a5b7dfded7ca3f836927cd69a87097b804b89c4834d4f31ada4a426",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/opcua-recorded/profile.json",
+      "contentDigest": "sha256:72f6805560f011ecc55f98aa3868fa2569635c3c082c499494e969b4dfe3337f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/pose-text/orbslam2-profile.json",
+      "contentDigest": "sha256:410969fe6eb735297a7e84c27b3957e676c90e12c28f0b7efe2a5bca049e73cc",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/pose-text/profile.json",
+      "contentDigest": "sha256:fb7b7bfdbd6469e8b14548af7ebb122a6ee2fca55a2940cb7b000cce0dec6311",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/public/ardupilot_plane_bin.json",
+      "contentDigest": "sha256:e87858a9743b1d88662d4c7f2790b2a9aa256e21c28dd38ffeda17d2ad6e1412",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/public/ardupilot_plane_tlog.json",
+      "contentDigest": "sha256:e2629e5e782f3ed118600c3c55ec56f3f291eb4c16cbdeb43103c129b69802c6",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/public/ardupilot_rover_bin.json",
+      "contentDigest": "sha256:6de478a09586ab52f98f9e281fa42a8769a62cd39c5f9111aea0bdba32fb18c0",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/public/ardupilot_rover_tlog.json",
+      "contentDigest": "sha256:a66676cdb2b3e45cdbb39a694d03ea97eaf319eca915b1a3aaaa9a800226bb9b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/public/betaflight_blackbox_csv.json",
+      "contentDigest": "sha256:a9b47056f1463e38853f09dd1a0b464cbfcdc049a681b9a5dea9f12aa0be8315",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/public/edgetx_handset_csv.json",
+      "contentDigest": "sha256:1104976cc6d3fd6d922747a799266fcac10ff6dcbb09fd02fa25a9417e959266",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/public/px4_ulg.json",
+      "contentDigest": "sha256:d0041a51992b5bdc965027bf8421ffbec6abb113b2598d19a8cb9ddee4204d39",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/px4-battery/profile.json",
+      "contentDigest": "sha256:ce9239ce1a378b8806c79eadd5557adbc1305359cb40e6a55b125e8012bce7eb",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/recorded-angles/profile.json",
+      "contentDigest": "sha256:765dc31f3cfb8351ffd2a6c50d3d1a17e08cef736f16899adf678176c74baf88",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/tlog-state/gcs-recorded-profile.json",
+      "contentDigest": "sha256:fac9f6ce63c3382670768552ad71461e8e8fd9493f7f15ea131b191e8b813acf",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/tlog-state/mavproxy-recorded-profile.json",
+      "contentDigest": "sha256:19b132c8f887094463b685e4bbef101faabd8527130ba4039387fe9de60c6a23",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/tlog-state/profile.json",
+      "contentDigest": "sha256:9e7552885102f46ae9766543a341f90798afeda1504cd70d7c4db196edf413f2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/turtlebot3-trajectory/profile.json",
+      "contentDigest": "sha256:41b6f0fa1aeaad749c765fc1f7ddcd5db80101f25b6ddeacd7e93a7809cf8784",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/video-frame-export/detection-profile.json",
+      "contentDigest": "sha256:4d11adab9c3c1d72f662ea58ddfbdacc6194680286e24babd2dd9a23f5222e57",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/video-frame-export/profile.json",
+      "contentDigest": "sha256:f62b9871d93c32cf83f8051cee30faec5aeb1ceed89036a663eb2b8a4d0d9ec7",
+      "mode": "100644"
+    },
+    {
       "path": "rust-toolchain.toml",
       "contentDigest": "sha256:089dfdee3211aaef5b3a8ae8c989790d63ab71f8da627d9974d5aa3ce706a0d6",
       "mode": "100644"
     },
     {
       "path": "sbom/dependency-sbom.json",
-      "contentDigest": "sha256:4cbe1b23fd4de56399f4f4d381f74f5adf06d074416dce3173908a28ed702447",
+      "contentDigest": "sha256:c2fbbc95e7b8f8d75b560c41a70b97ca8ae2df893c229edf2118358ac5506221",
       "mode": "100644"
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:b30923738836ca3499c45f209eda63c3b8f9c4b2e0b70d6b97921c6d05949e17",
+      "contentDigest": "sha256:6c9a47b1b54be4fa88a692a417199d3c87d38b51b07fe47adb6d27dab556911e",
       "mode": "100644"
     },
     {
@@ -433,6 +753,71 @@
       "mode": "100644"
     },
     {
+      "path": "scripts/convert_ardupilot_battery_csv.py",
+      "contentDigest": "sha256:5d39139eacb835a912684c8a163870ab38d9484c655cf40052363dbf3b381d46",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_ardupilot_mode_csv.py",
+      "contentDigest": "sha256:4fe6eba591ee4e700020855887eb42c1a02adc9cf81f5e4347bfdb6480d044c5",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_candump_recorded.py",
+      "contentDigest": "sha256:92b44eec430312936edf70cf9c14341c80d277552b2441461eceeedebe373667",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_crsf_link.py",
+      "contentDigest": "sha256:cd3f58fb5cbfa84313e62a2057aaa74c526a09b99015312bafd10184d1102bf2",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_dataflash_text.py",
+      "contentDigest": "sha256:b308e552445e55820b9cd5fc23dda660748a9a51519711c2a9aac6eb0b2bf802",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_dbc_recorded.py",
+      "contentDigest": "sha256:f4a50bfb00bc491b1f7ef10b9a9c8f950cfbe3498460ff18922ca2929b5de0ab",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_dronecan_capture.py",
+      "contentDigest": "sha256:2c25f12f5b9a0fa6c4374a3263dffb8687e5a6aa9f938b87c81c16e50e7364e1",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_gpx_recorded.py",
+      "contentDigest": "sha256:0d71505e45867f1feff5ac603801a24708e9158d15cd332c8d1414b62f43c046",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_imc_sensors.py",
+      "contentDigest": "sha256:4277bc81e8f14698047bd87123f89fb7d2df24411a904ee9ae06850f78e87dff",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_isoxml_rate.py",
+      "contentDigest": "sha256:476403fd9900b90449f1e30a237ccc5c21b8586c2f69da3aec8bd73c67ae8df5",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_mqtt_recorded.py",
+      "contentDigest": "sha256:53bff64142354c8849cebc950a2d7bff470da0fabbbf38ce06222f7a47b71a20",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_nmea_wind.py",
+      "contentDigest": "sha256:a84ccf5a26b8c50b41c2326a86118de8109d2e3753062732cd57d83a06764a64",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_opcua_recorded.py",
+      "contentDigest": "sha256:51356b3f728c2712da3bb745b0d91d49d1589c9af11353a25192cb70194811bc",
+      "mode": "100644"
+    },
+    {
       "path": "scripts/convert_pose_text.py",
       "contentDigest": "sha256:22d28df29b59532797d5ce79a16d2a0075efe84ee99939be04b01a2c3f31a174",
       "mode": "100644"
@@ -444,7 +829,22 @@
     },
     {
       "path": "scripts/convert_position_csv_batches.py",
-      "contentDigest": "sha256:a2ba24502409d987b631c3a8ed80f93e58a69258604a02633ef29705afbddfe0",
+      "contentDigest": "sha256:44bc71b3af9cf7f9ba736dc56617776a6a6fc85e5e0046a4e484ba869bc9c994",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_recorded_angles_csv.py",
+      "contentDigest": "sha256:ae38315b20f4388ed605f6757318494e295441f0bbc4c713e67d956127509dab",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_rosbag_observations.py",
+      "contentDigest": "sha256:82007badff36343bab6d5d27586e2395eaf619488db97c9c8dbc4468805071ac",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_signalk_recorded.py",
+      "contentDigest": "sha256:2ea364f8a7482cb26d3d559a9c6013e8a342b043c0ac48fa7bdb42abae13b3c4",
       "mode": "100644"
     },
     {
@@ -453,8 +853,33 @@
       "mode": "100644"
     },
     {
+      "path": "scripts/convert_video_frames.py",
+      "contentDigest": "sha256:bc84dd9e43f4ec639fdf7536824e87e6131d64095b6284590730011c399821b1",
+      "mode": "100644"
+    },
+    {
       "path": "scripts/decode_blackbox_recording.py",
-      "contentDigest": "sha256:637a893ad9444c559f29b86e532143311e4d2c2349014b68e101dc1636e108bf",
+      "contentDigest": "sha256:9828ede655bcf2d93a99eb0e56f362636b9a4536e5e1ddba61a0fde073be608d",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/normalize_ardupilot_report.py",
+      "contentDigest": "sha256:544ebdc41f5bc6681c36d3d16b9c7c28ec103a41d598890eb8ab74a9f4631148",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/normalize_pymavlink_jsonl.py",
+      "contentDigest": "sha256:5a35484e18c2d68f3bbaa5b5b668dec5c74e031525aaea2c87a09cc983592785",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/record_file_presence.py",
+      "contentDigest": "sha256:fff8dabe4447fcbf4f1441417f08a083fa333f08bee11f15d919cb382b1bd0df",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/recorded_units.py",
+      "contentDigest": "sha256:df0ef221678bc43af1f3ce4f6f4d62b5622d790fcac62925419bfa803a882c83",
       "mode": "100644"
     },
     {
@@ -463,8 +888,73 @@
       "mode": "100644"
     },
     {
+      "path": "scripts/requirements-ais.txt",
+      "contentDigest": "sha256:b114dd7b789fcf9d68c1d1b5109d74f89502a93a1d64e32589413f32efb7e1b1",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/requirements-dataflash-text.txt",
+      "contentDigest": "sha256:7c311f50785d7080de4f09a34fbf4812fe6d45c12f284ee1f6723d761e6e8958",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/requirements-dbc.txt",
+      "contentDigest": "sha256:86d26a5728e269644dbe65b30b6639431b4e014f9a18877facd3ed6b433f717d",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/requirements-pcap.txt",
+      "contentDigest": "sha256:d065e4f9b74ac829db425f1c8658050ca5d3179ac3f5137f81efdc4ea12ab3a4",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/requirements-protobuf.txt",
+      "contentDigest": "sha256:542b527e6d1ba1d462a89c2cb191be9c814c049098501cbea5d98bcce1c49dd1",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/requirements-recorded-tests.txt",
+      "contentDigest": "sha256:6ae9cefa2c291c96d84e83543c50c3d5d8bd9ce4f1baea9612cfaf81de20966c",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/requirements-rosbag.txt",
+      "contentDigest": "sha256:74936bdb93a9df5182ebe3bf0571015374c36c24ff28bdbe7a884f0b0318e6fd",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/requirements-shapefile.txt",
+      "contentDigest": "sha256:826012d85975a1a4c41a7200df678b2471f2fc0e0e5e1bdc6179a8f1b3b61817",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/__init__.py",
+      "contentDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_ais_recorded.py",
+      "contentDigest": "sha256:e9f93b5fa2f5a782560505563ed187acda7bd3b3614787c5c5c9ebaef1f67e38",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_amiga_filter_export.py",
+      "contentDigest": "sha256:b5a4a3006c49409cb9168bfe7a08cb4c29287bb9283712fd83731d9fc17847cc",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_ardupilot_battery_conversion.py",
+      "contentDigest": "sha256:93426b98209f20801fcc603d1abbbd03a2f1d7775acf17aecaaf831209c748f8",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_ardupilot_mode_conversion.py",
+      "contentDigest": "sha256:f4e9b4e85219b07e39a76369f00d743335db3e2050caaf129382792e4520f575",
+      "mode": "100644"
+    },
+    {
       "path": "tests/test_blackbox_gps_stream.py",
-      "contentDigest": "sha256:d492da74247acb36bfa38bcd23e0dedf7727974c61e3064a7db17f8369da9191",
+      "contentDigest": "sha256:216763d6c6e4f2a8da527c5da0858e7950ccf0989c1e5550e0b004663d34a955",
       "mode": "100644"
     },
     {
@@ -473,8 +963,98 @@
       "mode": "100644"
     },
     {
+      "path": "tests/test_candump_recorded.py",
+      "contentDigest": "sha256:d28284d6e4a610ef04f7da62259b584a5935e2bbc9a4cae8c0d607992442f39a",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_canopen_recorded.py",
+      "contentDigest": "sha256:7c64596c85aa3da4a3610ceba2732e406749900a133b35f64e408bffc9e23ece",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_crsf_link.py",
+      "contentDigest": "sha256:e14350c3343e9dee5c160042f9deab89d7156d9c1b46e7bafca18392e34b4f4a",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_dataflash_text.py",
+      "contentDigest": "sha256:2ef5fb241f49df97aef016e034a685cc419346945508b329c3dbbc73722c276b",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_dbc_recorded.py",
+      "contentDigest": "sha256:d0d98ff842d8635e8c14f8a096df11f83b08d6d26815bf3ef576865ffddf8cf4",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_dronecan_capture.py",
+      "contentDigest": "sha256:887ae87d758e134a665f0dc95487d5a7aa69c91ef2e4b070fc308d8f723e3edb",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_electrical_schema_reuse.py",
+      "contentDigest": "sha256:e36881b8cbee82f5ab829ee5649b5d643a9fd5f4a46303076101cd579c59cfa6",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_farmbot_state.py",
+      "contentDigest": "sha256:d51beeaaac9befdab63a2c8d7fb361ce6f2d88a840c50849ae6eb0b01a7d9540",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_file_presence.py",
+      "contentDigest": "sha256:0d1012a620d56a263933028c9a3848bc2ce3b76e95f5d60a8ec9112730148895",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_gpx_recorded.py",
+      "contentDigest": "sha256:97c5ad149304fe8869f0609bf3e712fdbcad5f8aff8eb2d2c14804315d3589cf",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_imc_sensors.py",
+      "contentDigest": "sha256:4fb209c80dad71789203d51c73f08884e034ae90b2cd4009030737690973e38d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_isoxml_rate.py",
+      "contentDigest": "sha256:c4193a6da2b472456e073b99e11af895f5f15c99e7e481beda31690a60c2d46c",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_j1939_recorded.py",
+      "contentDigest": "sha256:c4696bfd3453475c5cff11c8ae8b8574695f19c0d1ab07b8ae9cfaab0f03311b",
+      "mode": "100644"
+    },
+    {
       "path": "tests/test_jsonl_counter_remap.py",
       "contentDigest": "sha256:48c5d6e8f6a9cbb72699e41afc6be84693b15b36f872c5536ace4124f105598d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_mavsdk_battery.py",
+      "contentDigest": "sha256:819c3506887ddba021fbd1c4e422ad248a8a941ec447e481758d6b9e521187de",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_mqtt_recorded.py",
+      "contentDigest": "sha256:50410be0a39428784f003f3418675eed6d48d13f419ebf2e0f1c9aa8ef534b1b",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_nmea2000_weather.py",
+      "contentDigest": "sha256:f9ed719a8822fdb1786d16ff34fb4d652449296b129635db48cf18bfc075b287",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_nmea_wind_conversion.py",
+      "contentDigest": "sha256:81a0c7967b97a98a213edf9dc19f17cd22ccc8f5fbf712d13047557569c572ba",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_opcua_recorded.py",
+      "contentDigest": "sha256:09a4f8bac64dff890f37954fe6e1f84bed3816ad777261d6fbc204a89c35802a",
       "mode": "100644"
     },
     {
@@ -498,8 +1078,18 @@
       "mode": "100644"
     },
     {
+      "path": "tests/test_px4_battery_conversion.py",
+      "contentDigest": "sha256:4a7e38370ae35800727aad95537d1d78033df06c55def6e0f3855de50dcf535d",
+      "mode": "100644"
+    },
+    {
       "path": "tests/test_px4_position_profiles.py",
       "contentDigest": "sha256:454c7680af81d4386aa0cf7a9671f8c0ff63b11c9c55003eb95af8e729aaf04c",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_recorded_angles.py",
+      "contentDigest": "sha256:4dc761b217d2d74cc403b05ebc4182993a1494d288a800cf98cfc02c99d248fd",
       "mode": "100644"
     },
     {
@@ -508,8 +1098,33 @@
       "mode": "100644"
     },
     {
+      "path": "tests/test_recorded_observation_connection.py",
+      "contentDigest": "sha256:5ced4a7432c1a8903d73b223c3bec2ae5c1a4f2046c11430d78391b9cca8e810",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_ros_parameter_yaml.py",
+      "contentDigest": "sha256:030a960d81135596b3b88a27f47642c6c593d09b4fd3f8c145b80b04cb9e0808",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_rosbag_observations.py",
+      "contentDigest": "sha256:f49622e778568b9f1f2ca6a0d3d55a2e026343debb145964bde38868eb8a60ba",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_signalk_recorded.py",
+      "contentDigest": "sha256:d08a4e6e720185c8cb9a1cc537dcc1a974e79b27b9e0ad2f84361e674e87cc02",
+      "mode": "100644"
+    },
+    {
       "path": "tests/test_trajectory_conversion.py",
       "contentDigest": "sha256:589a22fe16c4b83a51145e9872307d05a1d86034702d9ab43582ffbbc6bb80f4",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_video_frames.py",
+      "contentDigest": "sha256:ff394f7d487b78e6e85457388aded3e3ae7dccd24ba4e4d593095a458f7582ba",
       "mode": "100644"
     }
   ]

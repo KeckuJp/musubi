@@ -1,0 +1,30 @@
+{
+  "profile_id": "dbc_reported_signals_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "capture_microseconds_unknown_basis",
+    "voltage_v": "V",
+    "current_a": "A_source_sign_convention",
+    "temperature_k": "K",
+    "distance_m": "m_no_coordinate_inference",
+    "angular_speed_rad_s": "rad_per_second_no_axis_inference",
+    "speed_m_s": "metres_per_second_source_role_and_sign_not_inferred",
+    "angle_rad": "rad_no_axis_or_reference_inference",
+    "pressure_pa": "Pa_absolute_or_differential_not_inferred",
+    "reported_ratio": "fraction_from_reported_percent_not_necessarily_SOC",
+    "energy_j": "J_stored_consumed_or_remaining_role_not_inferred"
+  }
+}

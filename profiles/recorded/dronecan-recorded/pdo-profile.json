@@ -1,0 +1,31 @@
+{
+  "profile_id": "canopen_saved_pdo_python_units_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_capture_not_device_clock",
+    "voltage_v": "V",
+    "current_a": "A",
+    "temperature_k": "K",
+    "distance_m": "m",
+    "speed_m_s": "m/s",
+    "angular_speed_rad_s": "rad/s",
+    "angle_rad": "rad",
+    "pressure_pa": "Pa",
+    "reported_ratio": "1_not_inferred_SOC",
+    "energy_j": "J",
+    "boolean_reported": "TRUE_FALSE_reported_not_physical_state"
+  }
+}

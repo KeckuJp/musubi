@@ -11,6 +11,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import csv
+import io
 from unittest.mock import patch
 
 
@@ -81,9 +83,9 @@ class BlackboxGpsStreamContract(unittest.TestCase):
             with self.subTest(suffix=suffix), self.assertRaises(ValueError):
                 self.module.check_decoder_report(REPORT + suffix, stream="gps")
 
-    def run_stub(self, root, *, gps=GPS, report=REPORT, returncode=0, missing=False, mode="gps"):
+    def run_stub(self, root, *, gps=GPS, report=REPORT, returncode=0, missing=False, mode="gps", recording=None, log_index=None):
         raw, decoder, output = root / "source.bfl", root / "decoder", root / "output"
-        raw.write_bytes(self.recording("4.3.0" if mode == "gps" else "4.2.0"))
+        raw.write_bytes(recording if recording is not None else self.recording("4.3.0" if mode == "gps" else "4.2.0"))
         decoder.write_bytes(b"authored decoder placeholder; never executed")
         calls = []
 
@@ -114,9 +116,49 @@ class BlackboxGpsStreamContract(unittest.TestCase):
         args = [str(SCRIPT), str(decoder), str(raw), str(output)]
         if mode == "gps":
             args += ["--stream", "gps"]
+        if log_index is not None:
+            args += ["--log-index", str(log_index)]
         with patch.object(sys, "argv", args), patch.object(self.module.subprocess, "run", side_effect=decode):
             self.module.main()
         return output, calls
+
+    def test_explicit_log_selection_preserves_bytes_and_default_refusal(self):
+        first = self.recording("4.2.0")
+        second = self.recording("4.2.11")
+        dump = first + second
+        with self.assertRaises(ValueError):
+            self.module.inspect_recording(dump)
+        for index, selected in ((1, first), (2, second)):
+            sliced, selection = self.module.select_recording(dump, index)
+            self.assertEqual(sliced, selected)
+            self.assertEqual(selection["dump_log_candidates"], 2)
+            self.assertEqual(selection["log_ranges"][1]["start_byte"], len(first))
+            with tempfile.TemporaryDirectory() as tmp:
+                output, calls = self.run_stub(Path(tmp), mode="main", recording=dump, log_index=index)
+                self.assertEqual(Path(calls[0][-1]).read_bytes(), selected)
+                self.assertEqual((output / "decoded.csv").read_bytes(), MAIN)
+                metadata = json.loads((output / "decode.json").read_text())
+                self.assertEqual(metadata["selected_log_index"], index)
+                self.assertEqual(metadata["input_sha256"], self.module.hashlib.sha256(dump).hexdigest())
+                self.assertEqual(metadata["selected_input_sha256"], self.module.hashlib.sha256(selected).hexdigest())
+                self.assertEqual(metadata["log_ranges"][index - 1]["status"], "DECODED_SELECTED_STREAM_ONLY")
+                self.assertEqual(metadata["log_ranges"][2 - index]["status"], "UNSELECTED_NOT_VALIDATED")
+                self.assertEqual(metadata["common_output"], "NOT_RUN")
+        for index in (0, -1, 3, True):
+            with self.assertRaises(ValueError):
+                self.module.select_recording(dump, index)
+        with self.assertRaises(ValueError):
+            self.module.select_recording(b"garbage" + dump, 1)
+        for malformed in (dump[:-1], dump + b"\xff", first + self.recording("4.4.0")):
+            with tempfile.TemporaryDirectory() as tmp, self.assertRaises(ValueError):
+                self.run_stub(Path(tmp), mode="main", recording=malformed, log_index=2)
+        # Selecting a complete first log does not certify the incomplete unselected second one.
+        self.assertEqual(self.module.select_recording(dump[:-1], 1)[0], first)
+        with tempfile.TemporaryDirectory() as tmp:
+            output, calls = self.run_stub(Path(tmp), recording=dump, log_index=2)
+            self.assertEqual(Path(calls[0][-1]).read_bytes(), second)
+            self.assertEqual((output / "decoded.csv").read_bytes(), GPS)
+
 
     def test_gps_mode_selects_separate_file_and_retains_sidecars(self):
         with tempfile.TemporaryDirectory() as tmp:

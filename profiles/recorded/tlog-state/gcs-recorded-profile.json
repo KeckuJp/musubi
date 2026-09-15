@@ -1,0 +1,20 @@
+{
+  "profile_id": "gcs_bidirectional_recorded_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "gcs",
+  "format": "mavlink_tlog",
+  "extensions": [
+    "tlog"
+  ],
+  "default_clock_basis": "unknown",
+  "fields": {
+    "time": "host_recorded_us"
+  },
+  "units": {
+    "MAVLINK.host_recorded_us": "reported_host_Unix_us_not_receipt_or_device_sample",
+    "MAVLINK.direction": "unknown_not_encoded_in_record",
+    "MAVLINK.system_id": "reported_sender_not_authenticated",
+    "MAVLINK.raw_frame_hex": "exact_frame_including_unknown_payload_and_signature"
+  }
+}

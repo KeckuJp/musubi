@@ -1,9 +1,9 @@
 {
   "schemaVersion": "musubi.publication.public-release-manifest.v1",
   "releaseClass": "PUBLIC_SOURCE_PREVIEW",
-  "payloadCommit": "e681c2c99aba56923e27d7aa08f35692530b7dcd",
-  "payloadManifestDigest": "sha256:7a608dc36ade4028c3eb1e82333ef0781d7fb5f0f36c45baf570c793a25638c9",
-  "payloadTreeDigest": "sha256:ef88e4894f9268df7fd5fd2f11d6bb86a857f964f0560109a34312461f7035c4",
+  "payloadCommit": "b1751160102e313e3b69982bbdf2f75ce3a104eb",
+  "payloadManifestDigest": "sha256:6c7633cad16a0de215316047e9bca2509910cdead507a335fcd7ed5d7cb5f449",
+  "payloadTreeDigest": "sha256:9f983918f44704b3fb7efc924539c5bdf360f4ae48435cc1fab3fc1db2dc5ba9",
   "sourceUrl": "https://github.com/KeckuJp/musubi",
   "targetPackages": [
     "musubi-adapter-spi",
@@ -13,12 +13,13 @@
     "musubi-types",
     "musubi-decoded-csv",
     "musubi-jsonl-log",
-    "musubi-miniseed2"
+    "musubi-miniseed2",
+    "musubi-recorded-readers"
   ],
   "copyright": "Copyright 2026 Musubi contributors",
   "noticePath": "NOTICE",
   "version": "0.0.0",
-  "buildInstructions": "Use Rust 1.96.0 as pinned in rust-toolchain.toml; run cargo test --workspace --locked. See docs/recorded-position-csv.md for direct offline CSV ingestion. No isolated-runtime, hardware or device compatibility claim.",
+  "buildInstructions": "Use Rust 1.96.0 as pinned in rust-toolchain.toml; run cargo test --workspace --locked. See docs/recorded-observations.md for offline battery and local camera input-to-observation examples. Optional Python 3.12 dependencies are documented separately. No hardware or device compatibility claim.",
   "license": {
     "spdxIdentifier": "Apache-2.0",
     "version": "2.0",
@@ -39,13 +40,13 @@
   },
   "dependencyLock": {
     "path": "Cargo.lock",
-    "digest": "sha256:5116cab2bb9d809aa82cb82a4fc7c48507e149dd924140ae79edc48ab2fdbee5"
+    "digest": "sha256:53200e4977ceefce41ed33598113e1045dacf4a71c756c3e4900f94e9213704d"
   },
   "sbom": {
     "sourceSbomPath": "sbom/source-sbom.json",
-    "sourceSbomDigest": "sha256:b30923738836ca3499c45f209eda63c3b8f9c4b2e0b70d6b97921c6d05949e17",
+    "sourceSbomDigest": "sha256:6c9a47b1b54be4fa88a692a417199d3c87d38b51b07fe47adb6d27dab556911e",
     "dependencySbomPath": "sbom/dependency-sbom.json",
-    "dependencySbomDigest": "sha256:4cbe1b23fd4de56399f4f4d381f74f5adf06d074416dce3173908a28ed702447",
+    "dependencySbomDigest": "sha256:c2fbbc95e7b8f8d75b560c41a70b97ca8ae2df893c229edf2118358ac5506221",
     "coveragePolicy": "SOURCE_PACKAGE_DEPENDENCY_INVENTORY_EXCLUDING_SBOM_AND_GENERATED_METADATA"
   },
   "policies": {

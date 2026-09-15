@@ -1,0 +1,34 @@
+{
+  "profile_id": "farmbot_reported_state_e711c03",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "recorder_capture_us_not_device_clock",
+    "runtime_uptime_s": "rounded_Erlang_runtime_uptime_seconds_not_system_boot_or_UTC",
+    "soc_temperature_k": "K_from_reported_integer_Celsius",
+    "busy_reported": "0_or_1_not_verified_movement",
+    "idle_reported": "0_or_1_reported_flag",
+    "locked_reported": "0_or_1_not_certified_physical_safe_state",
+    "farm_position_x_m": "m_reported_machine_axis_not_geodetic",
+    "farm_position_y_m": "m_reported_machine_axis_not_geodetic",
+    "farm_position_z_m": "m_reported_machine_axis_not_altitude",
+    "farm_scaled_encoder_x_m": "m_reported_scaled_encoder",
+    "farm_scaled_encoder_y_m": "m_reported_scaled_encoder",
+    "farm_scaled_encoder_z_m": "m_reported_scaled_encoder",
+    "farm_raw_encoder_x_edges": "reported_encoder_edges_not_length",
+    "farm_raw_encoder_y_edges": "reported_encoder_edges_not_length",
+    "farm_raw_encoder_z_edges": "reported_encoder_edges_not_length"
+  }
+}

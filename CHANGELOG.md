@@ -6,10 +6,21 @@ version against.
 
 ## [Unreleased]
 
-The first source preview. Nothing has been released yet, so everything below is an initial
-state rather than a change from one.
+Source-preview updates. These entries describe available source and authored
+regressions, without a device-compatibility or production-readiness promise.
 
 ### Added
+
+- A common recorded-observation API and CLI with explicit meaning, unit, source and
+  clock declarations. Native saved readers, converter reuse, local camera poses,
+  electrical quantities and record accounting share this connection. It does not
+  seal evidence envelopes or infer health, identity or coordinate frames.
+- Narrow JSON reader profiles, optional saved-input dependencies and synthetic
+  regressions. See `docs/recorded-observations.md` for complete battery and camera
+  examples, missing/unknown policy, and input/output bounds.
+- Explicit selection of one complete saved Blackbox log, preserving selected and
+  unselected byte ranges and hashes without validating unselected logs.
+
 
 - An opt-in bounded position-CSV batch wrapper. Complete records retain source
   order and fields, with part hashes and record offsets; existing single-file,

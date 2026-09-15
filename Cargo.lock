@@ -81,8 +81,10 @@ dependencies = [
  "musubi-core",
  "musubi-decoded-csv",
  "musubi-jsonl-log",
+ "musubi-recorded-readers",
  "musubi-types",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]
@@ -124,6 +126,18 @@ dependencies = [
 [[package]]
 name = "musubi-miniseed2"
 version = "0.1.0"
+
+[[package]]
+name = "musubi-recorded-readers"
+version = "0.0.0"
+dependencies = [
+ "musubi-decoded-csv",
+ "musubi-jsonl-log",
+ "musubi-miniseed2",
+ "musubi-types",
+ "serde_json",
+ "sha2",
+]
 
 [[package]]
 name = "musubi-types"

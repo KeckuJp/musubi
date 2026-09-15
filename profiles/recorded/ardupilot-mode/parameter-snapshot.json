@@ -1,0 +1,21 @@
+{
+  "profile_id": "reported_parameter_snapshot_249",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_caller_capture_not_device_time",
+    "reported_parameter_value": "native_parameter_unit_undeclared"
+  }
+}

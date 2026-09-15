@@ -1,0 +1,24 @@
+{
+  "profile_id": "recorded-copter455-sub457-imu",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "fc",
+  "format": "pymavlink_dataflash_jsonl",
+  "extensions": [
+    "jsonl"
+  ],
+  "default_clock_basis": "boot_relative",
+  "fields": {
+    "time": "TimeUS"
+  },
+  "units": {
+    "IMU.I": "instance",
+    "IMU.TimeUS": "us",
+    "IMU.GyrX": "rad/s",
+    "IMU.GyrY": "rad/s",
+    "IMU.GyrZ": "rad/s",
+    "IMU.AccX": "m/s2",
+    "IMU.AccY": "m/s2",
+    "IMU.AccZ": "m/s2"
+  }
+}

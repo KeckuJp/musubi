@@ -1,0 +1,33 @@
+{
+  "profile_id": "betaflight_4_2_native_csv_main",
+  "version": "1",
+  "family": "fpv",
+  "source_role": "fc",
+  "format": "blackbox_decoded_csv",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "onboard",
+    "rc",
+    "link_stats"
+  ],
+  "fields": {
+    "time": "time",
+    "status": [
+      "rxSignalReceived",
+      "rxFlightChannelsValid",
+      "failsafePhase"
+    ],
+    "link": [
+      "rssi"
+    ]
+  },
+  "units": {
+    "time": "us",
+    "vbatLatest": "cV",
+    "amperageLatest": "cA",
+    "BaroAlt": "cm"
+  }
+}

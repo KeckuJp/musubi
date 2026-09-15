@@ -1,0 +1,150 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "no position or vehicle inference"
+  },
+  "fields": {
+    "battery_voltage_v": {
+      "meaning": "battery_voltage_v",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_current_a": {
+      "meaning": "battery_current_a",
+      "unit": "A",
+      "basis": "reported"
+    },
+    "battery_power_w": {
+      "meaning": "battery_power_w",
+      "unit": "W",
+      "basis": "calculated"
+    },
+    "battery_consumed_ah": {
+      "meaning": "battery_consumed_ah",
+      "unit": "Ah",
+      "basis": "reported"
+    },
+    "battery_consumed_j": {
+      "meaning": "battery_consumed_j",
+      "unit": "J",
+      "basis": "reported"
+    },
+    "battery_temperature_k": {
+      "meaning": "battery_temperature_k",
+      "unit": "K",
+      "basis": "reported"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "1",
+      "basis": "reported"
+    },
+    "battery_cell_voltage_v": {
+      "meaning": "battery_cell_voltage_v",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_stored_charge_ah": {
+      "meaning": "battery_stored_charge_ah",
+      "unit": "Ah",
+      "basis": "reported"
+    },
+    "temperature_k": {
+      "meaning": "temperature_k",
+      "unit": "K",
+      "basis": "reported"
+    },
+    "pressure_pa": {
+      "meaning": "pressure_pa",
+      "unit": "Pa",
+      "basis": "reported"
+    },
+    "sonar_reported_distance_m": {
+      "meaning": "sonar_reported_distance_m",
+      "unit": "m",
+      "basis": "reported"
+    },
+    "wind_speed_m_s": {
+      "meaning": "wind_speed_m_s",
+      "unit": "m/s",
+      "basis": "reported"
+    },
+    "wind_angle_rad": {
+      "meaning": "wind_angle_rad",
+      "unit": "rad",
+      "basis": "reported"
+    },
+    "battery_cell_1_v": {
+      "meaning": "cell_1_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_2_v": {
+      "meaning": "cell_2_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_3_v": {
+      "meaning": "cell_3_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_4_v": {
+      "meaning": "cell_4_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_5_v": {
+      "meaning": "cell_5_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_6_v": {
+      "meaning": "cell_6_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_7_v": {
+      "meaning": "cell_7_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_8_v": {
+      "meaning": "cell_8_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_9_v": {
+      "meaning": "cell_9_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_10_v": {
+      "meaning": "cell_10_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_11_v": {
+      "meaning": "cell_11_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_12_v": {
+      "meaning": "cell_12_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_13_v": {
+      "meaning": "cell_13_voltage",
+      "unit": "V",
+      "basis": "reported"
+    },
+    "battery_cell_14_v": {
+      "meaning": "cell_14_voltage",
+      "unit": "V",
+      "basis": "reported"
+    }
+  }
+}

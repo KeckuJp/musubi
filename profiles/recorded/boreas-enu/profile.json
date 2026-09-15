@@ -1,0 +1,32 @@
+{
+  "profile_id": "boreas_lidar_enu_recorded_v1",
+  "version": "1",
+  "family": "ugv",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "GPSTime"
+  },
+  "units": {
+    "GPSTime": "us",
+    "easting": "m_local_enu_ref_east",
+    "northing": "m_local_enu_ref_north",
+    "altitude": "m_local_enu_ref_up",
+    "vel_east": "m_s_local_enu_ref_east",
+    "vel_north": "m_s_local_enu_ref_north",
+    "vel_up": "m_s_local_enu_ref_up",
+    "roll": "rad_publisher_rpy_convention",
+    "pitch": "rad_publisher_rpy_convention",
+    "heading": "rad_publisher_rpy_convention",
+    "angvel_z": "rad_s_sensor_z",
+    "angvel_y": "rad_s_sensor_y",
+    "angvel_x": "rad_s_sensor_x"
+  }
+}
