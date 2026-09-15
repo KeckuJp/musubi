@@ -2,28 +2,17 @@ Musubi
 Copyright 2026 Musubi contributors
 
 This product includes software developed by the Musubi contributors.
+Musubi source is licensed under Apache-2.0; see LICENSE.
 
-Licensed under the Apache License, Version 2.0. See the LICENSE file in the root
-of this distribution for the full text.
+This source distribution contains no vendored third-party implementation or font binaries.
+Dependency license notices and their original copyright statements remain in the upstream
+packages and source repositories linked from the license index. Their terms remain applicable.
 
-Third-party components
-----------------------
+External Cargo packages are fetched from the registry when building. The native reference
+viewer adds egui/eframe, winit and clap; the analysis profiles also use TOML. Default fonts
+from epaint_default_fonts carry additional OFL-1.1 and Ubuntu-font-1.0 terms. Retain their
+notices in any built distribution. This preview distributes source, not a binary package.
 
-This source distribution contains no vendored third-party source. Its direct
-external dependencies are resolved from the crate registry at build time:
-
-  sha2 (RustCrypto)   Apache-2.0 OR MIT
-                      Used by musubi-core for the content digest over the
-                      canonical bytes of an Evidence envelope. Pure computation:
-                      it performs no input or output of any kind, which is why a
-                      crate that must have no network in its closure can depend
-                      on it.
-
-  serde              Apache-2.0 OR MIT
-  serde_json         Apache-2.0 OR MIT
-                      Used by musubi-jsonl-log for offline decoded JSON records.
-                      No external binary-log decoder is included or invoked.
-
-The remaining entries in the lockfile are these crates' transitive
-dependencies. Their licences and their exact versions are recorded in Cargo.lock
-and are checked by the cargo-deny policy in deny.toml on every CI run.
+See docs/dependency-license-notices.md for exact package versions, manifest declarations
+and links to license text sources. Cargo.lock fixes versions and checksums; it does not state licenses.
+The scoped cargo-deny check verifies core dependency bans, not all licensing obligations.

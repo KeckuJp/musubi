@@ -1,0 +1,90 @@
+version = "2026-08-21.1"
+
+[[signature]]
+id = "telemetry_link_loss"
+kind = "telemetry_link_loss"
+families = ["ugv", "fixed_wing"]
+required = ["heartbeat:heartbeat_stop", "link_stats:link_stats_stop"]
+optional = ["link_stats:prelude_link_stats", "event:gcs_failsafe_event", "onboard:onboard_continue", "rc:rc_stop"]
+contradicting = ["link_stats:radio_remote_alive", "onboard:onboard_truncated"]
+discriminators = ["D1", "D7"]
+consistent_with = "consistent with telemetry link degradation/loss (GCS-side silence; onboard continues)"
+
+[[signature]]
+id = "fc_failure"
+kind = "fc_failure"
+families = ["ugv", "fixed_wing"]
+required = ["heartbeat:heartbeat_stop", "onboard:onboard_truncated"]
+optional = ["link_stats:radio_remote_alive", "event:reboot_marker", "link_stats:link_stats_stop"]
+contradicting = ["link_stats:prelude_link_stats", "onboard:onboard_continue"]
+discriminators = ["D1", "D6"]
+consistent_with = "consistent with flight-controller stop/power loss (all streams stop at once; onboard log truncated)"
+
+[[signature]]
+id = "fc_failure_fpv"
+kind = "fc_failure"
+families = ["fpv"]
+required = ["onboard:onboard_truncated"]
+optional = ["link_stats:handset_link_dead"]
+contradicting = ["event:rc_failsafe_event", "link_stats:prelude_link_stats"]
+discriminators = ["D10", "D11"]
+consistent_with = "consistent with flight-controller stop (blackbox ends abruptly; last S-frame normal)"
+
+[[signature]]
+id = "rc_link_loss"
+kind = "rc_link_loss"
+families = ["ugv", "fixed_wing"]
+required = ["rc:rc_stop", "event:rc_failsafe_event"]
+optional = ["link_stats:prelude_link_stats"]
+contradicting = ["heartbeat:heartbeat_stop"]
+discriminators = ["D2", "D8"]
+consistent_with = "consistent with RC link loss (RC input frozen, failsafe message; telemetry continues)"
+
+[[signature]]
+id = "rf_link_loss"
+kind = "rc_link_loss"
+families = ["fpv"]
+required = ["link_stats:prelude_link_stats", "rc:rc_stop"]
+optional = ["event:rc_failsafe_event", "link_stats:handset_link_dead", "link_stats:link_stats_stop"]
+contradicting = ["onboard:onboard_truncated"]
+discriminators = ["D9", "D10"]
+consistent_with = "consistent with RF control-link degradation/loss (link-stats prelude then RC stop)"
+
+[[signature]]
+id = "fiber_break"
+kind = "fiber_break"
+families = ["fpv"]
+required = ["rc:rc_stop", "video:video_stop"]
+optional = ["onboard:onboard_truncated", "link_stats:handset_link_alive", "event:rc_failsafe_event"]
+contradicting = ["link_stats:prelude_link_stats", "rc:rc_continue"]
+discriminators = ["D9", "D13"]
+consistent_with = "consistent with fiber break (control and video lost together, no link-stats prelude)"
+
+[[signature]]
+id = "camera_stop"
+kind = "camera_stop"
+families = ["fpv"]
+required = ["video:video_stop", "link_stats:handset_link_alive"]
+optional = ["rc:rc_continue", "onboard:onboard_continue"]
+contradicting = ["rc:rc_stop"]
+discriminators = ["D12", "D13"]
+consistent_with = "consistent with camera/video stop (video absent while control link alive)"
+
+[[signature]]
+id = "gnss_degradation"
+kind = "gnss_degradation"
+required = ["gps_ekf:gps_sats_drop", "gps_ekf:gps_fix_drop"]
+optional = ["gps_ekf:gps_hdop_rise", "gps_ekf:ekf_variance_rise", "gps_ekf:jam_indicator_rise", "event:gps_glitch_event", "event:ekf_failsafe_event"]
+contradicting = ["gps_ekf:gps_fix_good"]
+discriminators = ["D3", "D4", "D5"]
+consistent_with = "consistent with GNSS degradation (satellites down, fix lost; interference vs. shading not distinguished)"
+
+[[signature]]
+id = "gnss_inconsistency"
+kind = "gnss_inconsistency"
+families = ["ugv", "fixed_wing"]
+required = ["gps_ekf:gps_fix_good", "gps_ekf:position_jump"]
+optional = ["gps_ekf:ekf_variance_rise", "gps_ekf:ekf_position_reset", "event:gps_glitch_event"]
+contradicting = ["gps_ekf:gps_sats_drop"]
+discriminators = ["D5", "D3"]
+consistent_with = "consistent with GNSS inconsistency (fix good but position jumps against inertial estimate)"

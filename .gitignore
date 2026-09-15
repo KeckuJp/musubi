@@ -1,0 +1,8 @@
+/target/
+__pycache__/
+*.pyc
+/profiles/partner/
+/viewer-demo/
+/viewer-export/
+/battery-normalized.csv
+/battery-observations.json

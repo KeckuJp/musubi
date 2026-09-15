@@ -1,25 +1,32 @@
 {
   "schemaVersion": "musubi.publication.public-release-manifest.v1",
   "releaseClass": "PUBLIC_SOURCE_PREVIEW",
-  "payloadCommit": "b1751160102e313e3b69982bbdf2f75ce3a104eb",
-  "payloadManifestDigest": "sha256:6c7633cad16a0de215316047e9bca2509910cdead507a335fcd7ed5d7cb5f449",
-  "payloadTreeDigest": "sha256:9f983918f44704b3fb7efc924539c5bdf360f4ae48435cc1fab3fc1db2dc5ba9",
+  "payloadCommit": "f5c01269a9bea0694338ae96400ea194b975a508",
+  "payloadManifestDigest": "sha256:6d3fbd68be984282c217476821620dc61a8ac2b139b79d2d8904639e882bee27",
+  "payloadTreeDigest": "sha256:1ce2a8a4688a6d9988fda9f6c6824e11fdb91be9194a9dd013574542cb34e640",
   "sourceUrl": "https://github.com/KeckuJp/musubi",
   "targetPackages": [
     "musubi-adapter-spi",
     "musubi-civil-reference-pack",
     "musubi-conformance",
     "musubi-core",
-    "musubi-types",
     "musubi-decoded-csv",
+    "musubi-field-contracts",
     "musubi-jsonl-log",
     "musubi-miniseed2",
-    "musubi-recorded-readers"
+    "musubi-recorded-readers",
+    "musubi-reference-pipeline",
+    "musubi-reference-readers",
+    "musubi-reference-scenario",
+    "musubi-reference-types",
+    "musubi-reference-viewer",
+    "musubi-reference-writers",
+    "musubi-types"
   ],
   "copyright": "Copyright 2026 Musubi contributors",
   "noticePath": "NOTICE",
   "version": "0.0.0",
-  "buildInstructions": "Use Rust 1.96.0 as pinned in rust-toolchain.toml; run cargo test --workspace --locked. See docs/recorded-observations.md for offline battery and local camera input-to-observation examples. Optional Python 3.12 dependencies are documented separately. No hardware or device compatibility claim.",
+  "buildInstructions": "Use Rust 1.96.0 as pinned in rust-toolchain.toml; run cargo test --workspace --locked. See docs/reference-viewer.md for the native reference viewer and synthetic examples, and docs/recorded-observations.md for recorded input conversion. Optional Python 3.12 dependencies are documented separately. No hardware or device compatibility claim.",
   "license": {
     "spdxIdentifier": "Apache-2.0",
     "version": "2.0",
@@ -40,13 +47,13 @@
   },
   "dependencyLock": {
     "path": "Cargo.lock",
-    "digest": "sha256:53200e4977ceefce41ed33598113e1045dacf4a71c756c3e4900f94e9213704d"
+    "digest": "sha256:4be1a2b850f0e2dcdceae955992a7628ef7ccc38709494e0d7e530fbc1e49cae"
   },
   "sbom": {
     "sourceSbomPath": "sbom/source-sbom.json",
-    "sourceSbomDigest": "sha256:6c9a47b1b54be4fa88a692a417199d3c87d38b51b07fe47adb6d27dab556911e",
+    "sourceSbomDigest": "sha256:3d60ad8ead9cb69d16a04f0fcb9cfe70ef447db6ac165df4686a9e1e1fe31f9b",
     "dependencySbomPath": "sbom/dependency-sbom.json",
-    "dependencySbomDigest": "sha256:c2fbbc95e7b8f8d75b560c41a70b97ca8ae2df893c229edf2118358ac5506221",
+    "dependencySbomDigest": "sha256:82dc0b9c079cf27148c1edde6a7f1ac2572fbfa0bef630a319a20bc8a30a8f20",
     "coveragePolicy": "SOURCE_PACKAGE_DEPENDENCY_INVENTORY_EXCLUDING_SBOM_AND_GENERATED_METADATA"
   },
   "policies": {

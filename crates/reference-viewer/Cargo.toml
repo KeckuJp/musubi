@@ -1,0 +1,32 @@
+[package]
+name = "musubi-reference-viewer"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Offline reference viewer for saved observations and synthetic analysis."
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "musubi-reference-viewer"
+path = "src/main.rs"
+
+[dependencies]
+
+musubi-reference-types = { path = "../reference-types" }
+musubi-reference-readers = { path = "../reference-readers" }
+musubi-reference-pipeline = { path = "../reference-pipeline" }
+musubi-field-contracts = { path = "../field-contracts" }
+clap = { version = "4", features = ["derive"] }
+eframe = { version = "0.36.1", default-features = false, features = ["glow", "default_fonts", "x11", "wayland"] }
+egui = { version = "0.36.1", default-features = false }
+winit = { version = "0.30.13", default-features = false, features = ["wayland-dlopen", "wayland-csd-adwaita"] }
+
+musubi-jsonl-log = { path = "../jsonl-log" }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+sha2 = { version = "0.10", default-features = false }
+
+[dev-dependencies]
+musubi-reference-scenario = { path = "../reference-scenario" }
