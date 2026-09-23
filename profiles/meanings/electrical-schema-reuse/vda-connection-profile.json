@@ -1,0 +1,80 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_reported_payload_iso8601_utc_stamp_for_the_json_path_or_the_saved_capture_clock_in_the_envelope_path_never_a_failure_detection_time",
+      "basis": "declared"
+    },
+    "payload_record_time_us": {
+      "meaning": "payload_record_time_us",
+      "unit": "us_from_the_payloads_own_reported_stamp_kept_separate_from_the_capture_clock",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact_utf8_source_record_including_identity_unknown_fields_and_the_original_clock_text",
+      "basis": "declared"
+    },
+    "vda_connection_basis": {
+      "meaning": "vda_connection_basis",
+      "unit": "who_reported_this_state_and_what_it_is_not_never_physical_rf_connectivity_liveness_now_authentication_freshness_or_delivery",
+      "basis": "declared"
+    },
+    "vda_connection_state_reported": {
+      "meaning": "vda_connection_state_reported",
+      "unit": "connection_state_string_exactly_as_the_payload_reported_it_online_offline_connectionbroken_2_1_0_or_online_offline_hibernating_connection_broken_3_0_0",
+      "basis": "declared"
+    },
+    "vda_connection_state_status": {
+      "meaning": "vda_connection_state_status",
+      "unit": "whether_that_string_is_in_the_pinned_enum_of_the_declared_version_or_an_unsupported_value_retained_as_is",
+      "basis": "declared"
+    },
+    "vda_connection_version_reported": {
+      "meaning": "vda_connection_version_reported",
+      "unit": "the_vda5050_version_the_payload_declared_which_must_match_the_declared_selector",
+      "basis": "declared"
+    },
+    "vda_connection_header_id": {
+      "meaning": "vda_connection_header_id",
+      "unit": "uint32_per_topic_counter_incremented_per_sent_message_so_gaps_are_legitimate_and_a_last_will_carries_the_connect_time_value",
+      "basis": "declared"
+    },
+    "vda_connection_manufacturer_hex": {
+      "meaning": "vda_connection_manufacturer_hex",
+      "unit": "reported_manufacturer_utf8_hex_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "vda_connection_serial_hex": {
+      "meaning": "vda_connection_serial_hex",
+      "unit": "reported_serial_number_utf8_hex_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "mqtt_topic_hex": {
+      "meaning": "mqtt_topic_hex",
+      "unit": "exact_declared_capture_topic_utf8_hex_not_a_wildcard_subscription_or_a_live_client",
+      "basis": "declared"
+    },
+    "mqtt_qos": {
+      "meaning": "mqtt_qos",
+      "unit": "reported_qos_of_the_saved_envelope_the_spec_asks_for_1_on_this_topic",
+      "basis": "declared"
+    },
+    "mqtt_retain": {
+      "meaning": "mqtt_retain",
+      "unit": "reported_retain_flag_of_the_saved_envelope_the_spec_asks_for_a_retained_connection_message",
+      "basis": "declared"
+    },
+    "mqtt_clock_basis": {
+      "meaning": "mqtt_clock_basis",
+      "unit": "the_record_time_of_an_envelope_row_is_the_saved_capture_clock_not_the_payload_clock",
+      "basis": "declared"
+    }
+  }
+}

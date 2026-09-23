@@ -1,0 +1,43 @@
+{
+  "profile_id": "lanelet_declared_map_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "caller_supplied_capture_microseconds_not_map_creation_or_load_time",
+    "source_document_sha256": "exact_input_document_digest_not_authenticity",
+    "map_record_kind": "NODE_WAY_WAY_REF_RELATION_MEMBER_or_TAG_declaration_row",
+    "map_element_index": "zero_based_document_element_order_join_key",
+    "map_element_id": "declared_signed64_element_id_not_an_authenticated_identity",
+    "map_owner_id": "declared_id_of_the_element_this_row_belongs_to",
+    "map_member_ordinal": "zero_based_declared_position_nd_order_is_point_order",
+    "map_reference_id": "declared_id_of_the_referenced_element_resolved_in_this_document_only",
+    "map_reference_kind": "node_way_or_relation_as_declared",
+    "map_latitude_deg": "deg_declared_latitude_datum_not_in_file_never_projected",
+    "map_longitude_deg": "deg_declared_longitude_datum_not_in_file_never_projected",
+    "map_elevation_m": "m_declared_ele_tag_over_WGS84_ellipsoid_empty_when_not_declared",
+    "map_elevation_status": "declared_or_ELEVATION_NOT_DECLARED_never_defaulted_to_zero",
+    "map_coordinate_basis": "declared_degrees_projection_and_frame_supplied_by_the_caller",
+    "map_relation_type": "LANELET_REGULATORY_ELEMENT_MULTIPOLYGON_or_OTHER_UNQUALIFIED",
+    "map_relation_subtype_hex": "declared_subtype_UTF8_hex_meaning_decided_by_a_rule_library",
+    "map_member_role_hex": "exact_declared_role_UTF8_hex",
+    "map_member_role_meaning": "established_role_meaning_or_UNQUALIFIED_ROLE",
+    "map_way_kind": "POLYGON_DECLARED_AREA_TAG_or_LINESTRING_DEFAULT",
+    "map_reference_count": "declared_child_reference_or_member_count",
+    "map_tag_key_hex": "declared_tag_key_UTF8_hex",
+    "map_tag_value_hex": "declared_tag_value_UTF8_hex_not_an_interpreted_value",
+    "map_load_disposition": "DECLARED_or_DELETED_ACTION_NOT_LOADED",
+    "map_declaration_basis": "declared_map_not_projected_routed_or_certified"
+  }
+}

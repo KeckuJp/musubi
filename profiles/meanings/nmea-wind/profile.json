@@ -1,0 +1,270 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "sentence_kind": {
+      "meaning": "sentence_kind",
+      "unit": "which_selected_water_sentence_produced_this_row_MTW_for_a_reported_water_temperature_or_DPT_for_a_reported_depth_below_transducer_the_two_are_never_merged_into_one_measurement",
+      "basis": "declared"
+    },
+    "water_temperature_k": {
+      "meaning": "water_temperature_k",
+      "unit": "K_water_temperature_reported",
+      "basis": "declared"
+    },
+    "depth_below_transducer_m": {
+      "meaning": "depth_below_transducer_m",
+      "unit": "m_below_transducer_not_geodetic_altitude",
+      "basis": "declared"
+    },
+    "transducer_offset_m": {
+      "meaning": "transducer_offset_m",
+      "unit": "m_positive_waterline_negative_keel_not_applied",
+      "basis": "declared"
+    },
+    "unlocated_time_us": {
+      "meaning": "unlocated_time_us",
+      "unit": "zero_placeholder_not_event_time",
+      "basis": "declared"
+    },
+    "source_line": {
+      "meaning": "source_line",
+      "unit": "one_based_file_order_not_time",
+      "basis": "declared"
+    },
+    "talker": {
+      "meaning": "talker",
+      "unit": "reported_label_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "wind_reference": {
+      "meaning": "wind_reference",
+      "unit": "relative_to_vessel_not_global_bearing",
+      "basis": "declared"
+    },
+    "reported_valid": {
+      "meaning": "reported_valid",
+      "unit": "sentence_status_not_calibrated_accuracy",
+      "basis": "declared"
+    },
+    "wind_angle_rad": {
+      "meaning": "wind_angle_rad",
+      "unit": "rad_signed_relative_to_vessel",
+      "basis": "declared"
+    },
+    "wind_speed_m_s": {
+      "meaning": "wind_speed_m_s",
+      "unit": "m/s",
+      "basis": "declared"
+    },
+    "source_sentence_hex": {
+      "meaning": "source_sentence_hex",
+      "unit": "reversible_ascii_hex_prefixed_hex_colon",
+      "basis": "declared"
+    },
+    "ais_sentence_role": {
+      "meaning": "ais_sentence_role",
+      "unit": "OWN_VESSEL_REPORTED_for_an_AIVDO_sentence_or_RECEIVED_REPORT_for_AIVDM_a_reported_sentence_origin_label_not_an_authenticated_source",
+      "basis": "declared"
+    },
+    "ais_message_type": {
+      "meaning": "ais_message_type",
+      "unit": "reported_AIS_message_identifier_1_2_or_3_for_the_selected_position_reports_and_5_for_the_selected_static_and_voyage_report_no_other_type_is_converted",
+      "basis": "declared"
+    },
+    "ais_mmsi_reported": {
+      "meaning": "ais_mmsi_reported",
+      "unit": "reported_9_digit_MMSI_user_identity_a_declaration_never_authenticated_identity_or_a_registry_lookup",
+      "basis": "declared"
+    },
+    "ais_nav_status_code": {
+      "meaning": "ais_nav_status_code",
+      "unit": "reported_navigational_status_code_as_transmitted_the_code_to_meaning_table_is_not_qualified_by_this_case_so_only_the_number_is_carried_and_it_is_a_self_report_not_an_observed_manoeuvre",
+      "basis": "declared"
+    },
+    "ais_longitude_deg": {
+      "meaning": "ais_longitude_deg",
+      "unit": "deg_reported_longitude_blank_when_the_source_carried_the_181_not_available_code_never_zero_for_absent",
+      "basis": "declared"
+    },
+    "ais_latitude_deg": {
+      "meaning": "ais_latitude_deg",
+      "unit": "deg_reported_latitude_blank_when_the_source_carried_the_91_not_available_code_never_zero_for_absent",
+      "basis": "declared"
+    },
+    "ais_position_disposition": {
+      "meaning": "ais_position_disposition",
+      "unit": "REPORTED_NOT_AUTHENTICATED_or_INCOMPLETE_REPORTED_POSITION_when_a_not_available_code_was_present_or_STATIC_REPORT_CARRIES_NO_POSITION_for_a_type_5_row_a_reported_position_is_not_a_verified_location",
+      "basis": "declared"
+    },
+    "ais_speed_m_s": {
+      "meaning": "ais_speed_m_s",
+      "unit": "m/s_converted_from_the_reported_speed_over_ground_in_tenths_of_a_knot_blank_for_the_102_3_not_available_code_and_for_the_102_2_at_least_code",
+      "basis": "declared"
+    },
+    "ais_speed_lower_bound_m_s": {
+      "meaning": "ais_speed_lower_bound_m_s",
+      "unit": "m/s_lower_bound_only_the_102_2_knot_code_means_at_least_that_speed_so_no_exact_speed_is_reported_for_it",
+      "basis": "declared"
+    },
+    "ais_speed_disposition": {
+      "meaning": "ais_speed_disposition",
+      "unit": "REPORTED_or_AT_LEAST_for_the_102_2_knot_code_or_UNAVAILABLE_for_102_3_or_NOT_IN_THIS_MESSAGE_for_a_type_5_row",
+      "basis": "declared"
+    },
+    "ais_course_rad": {
+      "meaning": "ais_course_rad",
+      "unit": "rad_converted_from_the_reported_course_over_ground_blank_when_the_source_carried_the_360_not_available_code_a_reported_course_not_a_heading_or_a_track_fit",
+      "basis": "declared"
+    },
+    "ais_true_heading_rad": {
+      "meaning": "ais_true_heading_rad",
+      "unit": "rad_converted_from_the_reported_true_heading_blank_when_the_source_carried_the_511_not_available_code",
+      "basis": "declared"
+    },
+    "ais_second_code": {
+      "meaning": "ais_second_code",
+      "unit": "reported_second_of_the_UTC_minute_code_as_transmitted_codes_60_to_63_are_not_seconds_of_a_time_and_this_is_never_used_as_the_row_time",
+      "basis": "declared"
+    },
+    "ais_imo_reported": {
+      "meaning": "ais_imo_reported",
+      "unit": "reported_30_bit_number_zero_not_available_1_to_999999_range_the_reference_does_not_use_1000000_to_9999999_a_valid_IMO_number_above_that_an_official_flag_state_number_a_declaration_never_authenticated_identity",
+      "basis": "declared"
+    },
+    "ais_imo_disposition": {
+      "meaning": "ais_imo_disposition",
+      "unit": "which_of_those_reference_ranges_the_reported_number_falls_in_not_a_verification_that_the_vessel_is_that_vessel",
+      "basis": "declared"
+    },
+    "ais_ship_name_reported": {
+      "meaning": "ais_ship_name_reported",
+      "unit": "reported_maximum_20_character_name_with_the_all_at_sign_not_available_padding_removed_by_the_pinned_decoder_a_report_not_a_registry_lookup",
+      "basis": "declared"
+    },
+    "ais_ship_name_disposition": {
+      "meaning": "ais_ship_name_disposition",
+      "unit": "REPORTED_or_NOT_AVAILABLE_OR_BLANK_when_the_source_carried_the_not_available_encoding",
+      "basis": "declared"
+    },
+    "ais_call_sign_reported": {
+      "meaning": "ais_call_sign_reported",
+      "unit": "reported_7_character_call_sign_all_at_sign_means_not_available_a_report_not_an_authenticated_licence",
+      "basis": "declared"
+    },
+    "ais_call_sign_disposition": {
+      "meaning": "ais_call_sign_disposition",
+      "unit": "REPORTED_or_NOT_AVAILABLE_OR_BLANK_when_the_source_carried_the_not_available_encoding",
+      "basis": "declared"
+    },
+    "ais_ship_type_code": {
+      "meaning": "ais_ship_type_code",
+      "unit": "reported_type_of_ship_and_cargo_code_read_as_the_raw_8_bit_field_so_every_code_including_a_reserved_one_is_preserved_never_a_vessel_capability_or_cargo_verification",
+      "basis": "declared"
+    },
+    "ais_epfd_code": {
+      "meaning": "ais_epfd_code",
+      "unit": "reported_electronic_position_fixing_device_code_read_as_the_raw_4_bit_field_so_every_code_is_preserved_a_declared_device_kind_not_a_measured_accuracy",
+      "basis": "declared"
+    },
+    "ais_epfd_disposition": {
+      "meaning": "ais_epfd_disposition",
+      "unit": "UNDEFINED_DEFAULT_for_zero_or_REPORTED_DEFINED_CODE_for_1_to_8_and_15_which_the_pinned_table_names_individually_or_NOT_USED_BY_THE_REFERENCE_for_9_to_14",
+      "basis": "declared"
+    },
+    "ais_dimension_bow_m": {
+      "meaning": "ais_dimension_bow_m",
+      "unit": "m_reported_distance_from_the_reference_point_to_the_bow_reference_for_reported_position_not_a_measured_hull_survey",
+      "basis": "declared"
+    },
+    "ais_dimension_stern_m": {
+      "meaning": "ais_dimension_stern_m",
+      "unit": "m_reported_distance_from_the_reference_point_to_the_stern",
+      "basis": "declared"
+    },
+    "ais_dimension_port_m": {
+      "meaning": "ais_dimension_port_m",
+      "unit": "m_reported_distance_from_the_reference_point_to_port",
+      "basis": "declared"
+    },
+    "ais_dimension_starboard_m": {
+      "meaning": "ais_dimension_starboard_m",
+      "unit": "m_reported_distance_from_the_reference_point_to_starboard",
+      "basis": "declared"
+    },
+    "ais_dimension_disposition": {
+      "meaning": "ais_dimension_disposition",
+      "unit": "REPORTED_REFERENCE_POINT_DIMENSIONS_or_DEFAULT_ALL_ZERO_NOT_AVAILABLE_field_maxima_are_not_interpreted_as_lower_bounds_here",
+      "basis": "declared"
+    },
+    "ais_draught_m": {
+      "meaning": "ais_draught_m",
+      "unit": "m_reported_maximum_present_static_draught_source_unit_is_one_tenth_metre_blank_when_the_source_said_not_available_never_zero_for_absent",
+      "basis": "declared"
+    },
+    "ais_draught_lower_bound_m": {
+      "meaning": "ais_draught_lower_bound_m",
+      "unit": "m_lower_bound_only_the_25_5_code_means_25_5_m_or_greater_so_no_exact_draught_is_reported_for_it",
+      "basis": "declared"
+    },
+    "ais_draught_disposition": {
+      "meaning": "ais_draught_disposition",
+      "unit": "REPORTED_or_AT_LEAST_for_the_25_5_m_or_greater_code_or_UNAVAILABLE_for_the_zero_code",
+      "basis": "declared"
+    },
+    "ais_eta_month_code": {
+      "meaning": "ais_eta_month_code",
+      "unit": "reported_estimated_time_of_arrival_month_code_1_to_12_and_0_means_not_available_no_year_exists_in_the_message",
+      "basis": "declared"
+    },
+    "ais_eta_day_code": {
+      "meaning": "ais_eta_day_code",
+      "unit": "reported_eta_day_code_1_to_31_and_0_means_not_available",
+      "basis": "declared"
+    },
+    "ais_eta_hour_code": {
+      "meaning": "ais_eta_hour_code",
+      "unit": "reported_eta_hour_code_0_to_23_and_24_means_not_available",
+      "basis": "declared"
+    },
+    "ais_eta_minute_code": {
+      "meaning": "ais_eta_minute_code",
+      "unit": "reported_eta_minute_code_0_to_59_and_60_means_not_available",
+      "basis": "declared"
+    },
+    "ais_eta_disposition": {
+      "meaning": "ais_eta_disposition",
+      "unit": "REPORTED_COMPLETE_FIELDS_or_PARTIALLY_UNAVAILABLE_or_UNAVAILABLE_an_estimate_the_source_declares_in_UTC_with_no_year_never_converted_to_an_instant_never_an_actual_arrival_and_never_the_observation_time",
+      "basis": "declared"
+    },
+    "ais_destination_reported": {
+      "meaning": "ais_destination_reported",
+      "unit": "reported_maximum_20_character_destination_text_all_at_sign_means_not_available_a_free_text_declaration_not_a_verified_port_call",
+      "basis": "declared"
+    },
+    "ais_destination_disposition": {
+      "meaning": "ais_destination_disposition",
+      "unit": "REPORTED_or_NOT_AVAILABLE_OR_BLANK_when_the_source_carried_the_not_available_encoding",
+      "basis": "declared"
+    },
+    "ais_dte_reported": {
+      "meaning": "ais_dte_reported",
+      "unit": "AVAILABLE_when_the_source_bit_is_zero_and_NOT_AVAILABLE_when_it_is_one_a_reported_terminal_readiness_flag_not_a_link_test",
+      "basis": "declared"
+    },
+    "ais_version_code": {
+      "meaning": "ais_version_code",
+      "unit": "reported_AIS_version_indicator_0_M_1371_1_station_1_M_1371_3_or_later_2_M_1371_5_or_later_3_future_edition_a_self_declaration",
+      "basis": "declared"
+    },
+    "ais_fragment_binding": {
+      "meaning": "ais_fragment_binding",
+      "unit": "which_two_saved_lines_sequential_id_and_channel_this_static_report_was_assembled_from_a_caller_declared_adjacent_pair_in_one_capture_not_a_globally_unique_message_identifier",
+      "basis": "declared"
+    }
+  }
+}

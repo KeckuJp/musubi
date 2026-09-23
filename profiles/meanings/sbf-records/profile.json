@@ -1,0 +1,160 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_declared_capture_microseconds_separate_from_every_receiver_counter_in_this_row",
+      "basis": "declared"
+    },
+    "capture_clock_basis": {
+      "meaning": "capture_clock_basis",
+      "unit": "the_common_capture_clock_is_a_caller_declaration_not_the_receiver_clock",
+      "basis": "declared"
+    },
+    "sbf_block_offset": {
+      "meaning": "sbf_block_offset",
+      "unit": "byte_offset_of_this_block_in_the_saved_file_so_a_row_is_locatable_in_the_original_bytes",
+      "basis": "declared"
+    },
+    "sbf_block_length": {
+      "meaning": "sbf_block_length",
+      "unit": "declared_block_length_in_bytes_as_the_pinned_validator_uses_it_total_block_including_sync_and_crc",
+      "basis": "declared"
+    },
+    "sbf_block_id": {
+      "meaning": "sbf_block_id",
+      "unit": "declared_block_number_from_the_low_13_bits_of_the_id_field_only_4007_PVTGeodetic_is_decoded",
+      "basis": "declared"
+    },
+    "sbf_block_revision": {
+      "meaning": "sbf_block_revision",
+      "unit": "declared_block_revision_from_the_high_3_bits_of_the_id_field_a_higher_revision_appends_fields_and_their_meaning_beyond_that_is_not_established_by_the_pinned_source",
+      "basis": "declared"
+    },
+    "sbf_block_sha256": {
+      "meaning": "sbf_block_sha256",
+      "unit": "sha256_of_this_blocks_exact_bytes_computed_once_per_block_it_binds_the_row_to_the_saved_bytes_and_is_not_authentication",
+      "basis": "declared"
+    },
+    "sbf_block_extra_bytes": {
+      "meaning": "sbf_block_extra_bytes",
+      "unit": "how_many_bytes_followed_the_base_field_set_revision_appended_bytes_are_counted_and_never_decoded_here",
+      "basis": "declared"
+    },
+    "sbf_tow_reported": {
+      "meaning": "sbf_tow_reported",
+      "unit": "receiver_reported_time_of_week_counter_exactly_as_read_blank_when_the_source_carried_the_do_not_use_value_the_counter_unit_is_not_stated_by_the_pinned_source",
+      "basis": "declared"
+    },
+    "sbf_wnc_reported": {
+      "meaning": "sbf_wnc_reported",
+      "unit": "receiver_reported_week_number_counter_exactly_as_read_blank_when_the_source_carried_the_do_not_use_value_no_week_rollover_arithmetic_is_applied",
+      "basis": "declared"
+    },
+    "sbf_time_basis": {
+      "meaning": "sbf_time_basis",
+      "unit": "RECEIVER_REPORTED_COUNTERS_EXACTLY_AS_READ_NO_UTC_AND_NO_LEAP_SECOND_APPLIED_AND_THE_COUNTER_UNITS_ARE_NOT_STATED_BY_THE_PINNED_SOURCE",
+      "basis": "declared"
+    },
+    "sbf_latitude_deg": {
+      "meaning": "sbf_latitude_deg",
+      "unit": "deg_converted_from_the_sources_stated_radians_a_reported_position_in_the_receivers_reported_frame_never_a_verified_datum_or_a_survey",
+      "basis": "declared"
+    },
+    "sbf_longitude_deg": {
+      "meaning": "sbf_longitude_deg",
+      "unit": "deg_converted_from_the_sources_stated_radians_under_the_same_reported_frame",
+      "basis": "declared"
+    },
+    "sbf_position_disposition": {
+      "meaning": "sbf_position_disposition",
+      "unit": "REPORTED_NOT_VERIFIED_or_NOT_AVAILABLE_SENTINEL_when_the_source_carried_its_do_not_use_value_never_zero_for_absent",
+      "basis": "declared"
+    },
+    "sbf_position_basis": {
+      "meaning": "sbf_position_basis",
+      "unit": "REPORTED_GEODETIC_DEGREES_CONVERTED_FROM_THE_SOURCES_STATED_RADIANS_IN_THE_RECEIVERS_REPORTED_FRAME_NOT_A_VERIFIED_DATUM",
+      "basis": "declared"
+    },
+    "sbf_height_ellipsoidal_m": {
+      "meaning": "sbf_height_ellipsoidal_m",
+      "unit": "m_ellipsoidal_height_exactly_as_the_pinned_message_states_it_never_mean_sea_level_never_orthometric_and_never_combined_with_the_undulation_here",
+      "basis": "declared"
+    },
+    "sbf_height_disposition": {
+      "meaning": "sbf_height_disposition",
+      "unit": "REPORTED_ELLIPSOIDAL_NOT_MEAN_SEA_LEVEL_or_NOT_AVAILABLE_SENTINEL_no_datum_conversion_is_applied",
+      "basis": "declared"
+    },
+    "sbf_undulation_m": {
+      "meaning": "sbf_undulation_m",
+      "unit": "m_reported_undulation_kept_as_its_own_column_it_is_not_added_to_or_subtracted_from_the_height_by_this_converter",
+      "basis": "declared"
+    },
+    "sbf_velocity_north_m_s": {
+      "meaning": "sbf_velocity_north_m_s",
+      "unit": "m_s_exactly_as_the_pinned_message_declares_for_the_field_it_names_vn_a_reported_velocity_component_whose_reference_frame_datum_and_orientation_convention_that_source_does_not_state_so_none_is_named_or_applied_and_nothing_is_rotated",
+      "basis": "declared"
+    },
+    "sbf_velocity_east_m_s": {
+      "meaning": "sbf_velocity_east_m_s",
+      "unit": "m_s_for_the_field_the_pinned_message_names_ve_under_the_same_declaration_and_the_same_absence_of_a_stated_frame",
+      "basis": "declared"
+    },
+    "sbf_velocity_up_m_s": {
+      "meaning": "sbf_velocity_up_m_s",
+      "unit": "m_s_for_the_field_the_pinned_message_names_vu_under_the_same_declaration_and_the_same_absence_of_a_stated_frame",
+      "basis": "declared"
+    },
+    "sbf_course_over_ground_deg": {
+      "meaning": "sbf_course_over_ground_deg",
+      "unit": "deg_exactly_as_the_pinned_message_declares_for_the_field_it_names_cog_a_reported_course_whose_reference_the_pinned_source_does_not_state_so_it_is_not_declared_true_or_magnetic_and_it_is_not_a_heading_or_an_attitude",
+      "basis": "declared"
+    },
+    "sbf_course_disposition": {
+      "meaning": "sbf_course_disposition",
+      "unit": "the_same_two_values_for_the_course_alone_dispositioned_independently_of_the_components_because_the_pinned_source_states_no_rule_tying_them_together",
+      "basis": "declared"
+    },
+    "sbf_mode_code": {
+      "meaning": "sbf_mode_code",
+      "unit": "reported_PVT_mode_code_as_transmitted_the_value_table_is_not_established_by_the_pinned_source_so_no_fix_kind_or_quality_is_named_here",
+      "basis": "declared"
+    },
+    "sbf_error_code": {
+      "meaning": "sbf_error_code",
+      "unit": "reported_PVT_error_code_as_transmitted_its_value_table_is_likewise_not_established_and_a_nonzero_code_is_not_interpreted",
+      "basis": "declared"
+    },
+    "sbf_nr_sv_reported": {
+      "meaning": "sbf_nr_sv_reported",
+      "unit": "count_of_satellites_the_receiver_reported_blank_when_the_source_carried_its_do_not_use_value_a_reported_count_not_a_verified_constellation",
+      "basis": "declared"
+    },
+    "sbf_alert_flag_code": {
+      "meaning": "sbf_alert_flag_code",
+      "unit": "reported_alert_flag_code_as_transmitted_not_an_interpreted_integrity_state",
+      "basis": "declared"
+    },
+    "sbf_time_system_code": {
+      "meaning": "sbf_time_system_code",
+      "unit": "reported_time_system_code_as_transmitted_its_code_table_is_not_established_by_the_pinned_source",
+      "basis": "declared"
+    },
+    "sbf_datum_code": {
+      "meaning": "sbf_datum_code",
+      "unit": "reported_datum_code_as_transmitted_its_code_table_is_not_established_by_the_pinned_source_so_no_datum_is_named_or_applied",
+      "basis": "declared"
+    },
+    "sbf_code_basis": {
+      "meaning": "sbf_code_basis",
+      "unit": "REPORTED_CODE_VALUE_TABLE_NOT_ESTABLISHED_BY_THE_PINNED_SOURCE_every_code_column_in_this_row_is_a_publisher_report_not_an_interpreted_state",
+      "basis": "declared"
+    }
+  }
+}

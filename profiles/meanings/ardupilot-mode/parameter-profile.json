@@ -1,0 +1,40 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "TimeUS": {
+      "meaning": "TimeUS",
+      "unit": "us_since_boot",
+      "basis": "declared"
+    },
+    "Name": {
+      "meaning": "Name",
+      "unit": "reported_parameter_identifier",
+      "basis": "declared"
+    },
+    "Value": {
+      "meaning": "Value",
+      "unit": "reported_parameter_value_unit_not_inferred",
+      "basis": "declared"
+    },
+    "Default": {
+      "meaning": "Default",
+      "unit": "reported_board_config_default_unit_not_inferred",
+      "basis": "declared"
+    },
+    "reported_parameter_schema": {
+      "meaning": "reported_parameter_schema",
+      "unit": "caller_selected_export_schema_not_firmware_attestation",
+      "basis": "declared"
+    },
+    "reported_parameter_default_present": {
+      "meaning": "reported_parameter_default_present",
+      "unit": "default_field_present_not_default_validity",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_read_clock_not_image_capture_time_not_utc",
+      "basis": "declared"
+    },
+    "source_image_index": {
+      "meaning": "source_image_index",
+      "unit": "one_based_export_order_not_capture_sequence",
+      "basis": "declared"
+    },
+    "export_sha256": {
+      "meaning": "export_sha256",
+      "unit": "sha256_of_supplied_decoder_export_not_of_any_image",
+      "basis": "declared"
+    },
+    "source_record_sha256": {
+      "meaning": "source_record_sha256",
+      "unit": "sha256_of_one_export_image_object",
+      "basis": "declared"
+    },
+    "stored_width_px": {
+      "meaning": "stored_width_px",
+      "unit": "stored_image_pixels_as_declared_by_tag_in_stored_size_tag",
+      "basis": "declared"
+    },
+    "stored_height_px": {
+      "meaning": "stored_height_px",
+      "unit": "stored_image_pixels_as_declared_by_tag_in_stored_size_tag",
+      "basis": "declared"
+    },
+    "tiff_image_width_px": {
+      "meaning": "tiff_image_width_px",
+      "unit": "tiff_tag_pixels_out_of_spec_inside_jpeg",
+      "basis": "declared"
+    },
+    "tiff_image_height_px": {
+      "meaning": "tiff_image_height_px",
+      "unit": "tiff_tag_pixels_out_of_spec_inside_jpeg",
+      "basis": "declared"
+    },
+    "orientation_code": {
+      "meaning": "orientation_code",
+      "unit": "exif_orientation_1_to_8_not_a_measured_attitude",
+      "basis": "declared"
+    },
+    "orientation_swaps_display_axes": {
+      "meaning": "orientation_swaps_display_axes",
+      "unit": "1_when_display_width_height_swap_5_to_8",
+      "basis": "declared"
+    },
+    "gps_latitude_deg": {
+      "meaning": "gps_latitude_deg",
+      "unit": "deg_signed_by_explicit_ref_not_stored_signed",
+      "basis": "declared"
+    },
+    "gps_longitude_deg": {
+      "meaning": "gps_longitude_deg",
+      "unit": "deg_signed_by_explicit_ref_not_stored_signed",
+      "basis": "declared"
+    },
+    "gps_altitude_m": {
+      "meaning": "gps_altitude_m",
+      "unit": "m_relative_to_reference_in_gps_altitude_reference_no_datum_defined",
+      "basis": "declared"
+    },
+    "gps_altitude_ref_code": {
+      "meaning": "gps_altitude_ref_code",
+      "unit": "exif_gps_altitude_ref_byte_0_above_1_below",
+      "basis": "declared"
+    },
+    "gps_date_stamp_utc": {
+      "meaning": "gps_date_stamp_utc",
+      "unit": "YYYY_MM_DD_utc_by_specification",
+      "basis": "declared"
+    },
+    "gps_time_of_day_utc": {
+      "meaning": "gps_time_of_day_utc",
+      "unit": "HH_MM_SS_fff_utc_by_specification_no_date_of_its_own",
+      "basis": "declared"
+    },
+    "datetime_original_text": {
+      "meaning": "datetime_original_text",
+      "unit": "local_wall_text_zone_unknown_never_converted_to_utc",
+      "basis": "declared"
+    },
+    "datetime_original_zone_offset_text": {
+      "meaning": "datetime_original_zone_offset_text",
+      "unit": "declared_offset_text_retained_not_applied",
+      "basis": "declared"
+    },
+    "camera_make_hex": {
+      "meaning": "camera_make_hex",
+      "unit": "declared_camera_string_not_a_platform_identity",
+      "basis": "declared"
+    },
+    "camera_model_hex": {
+      "meaning": "camera_model_hex",
+      "unit": "declared_camera_string_not_a_platform_identity",
+      "basis": "declared"
+    },
+    "unknown_tag_count": {
+      "meaning": "unknown_tag_count",
+      "unit": "tags_named_and_digested_in_report_values_not_emitted",
+      "basis": "declared"
+    }
+  }
+}

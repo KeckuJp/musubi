@@ -16,6 +16,17 @@
   },
   "units": {
     "record_time_us": "us_caller_capture_not_device_time",
-    "declared_bit_width": "bits_type_storage_not_PDO_mapping_length"
+    "declared_bit_width": "bits_type_storage_not_PDO_mapping_length",
+    "object_index": "declared_object_dictionary_index_from_the_saved_file_not_a_device_readback",
+    "object_subindex": "declared_subindex_blank_on_the_parent_object_row_derived_rows_come_from_the_DS306_compact_template",
+    "object_name_hex": "hex_transported_declared_ParameterName_exactly_as_written_never_a_device_supplied_name",
+    "object_kind": "declared_ObjectType_name_VARIABLE_ARRAY_RECORD_or_DOMAIN_a_file_declaration_not_an_implemented_feature",
+    "object_type_code": "raw_declared_ObjectType_number_missing_ObjectType_follows_the_reference_VAR_default",
+    "data_type_code": "raw_declared_DataType_number_blank_when_the_file_declares_none",
+    "data_type_reported": "declared_type_name_UNKNOWN_for_an_unmapped_code_and_NOT_DECLARED_when_absent_never_inferred_from_a_value",
+    "access_reported": "declared_AccessType_lowercased_a_file_statement_not_a_permission_that_was_exercised",
+    "pdo_mappable_declared": "declared_PDOMapping_flag_1_or_0_it_says_the_file_allows_mapping_not_that_any_PDO_maps_it",
+    "declaration_status": "DECLARED_NOT_DEVICE_VERIFIED_or_COMPACT_TEMPLATE_EXPANDED_on_a_compact_parent_or_COMPACT_EXPANDED_NOT_DEVICE_VERIFIED_on_a_row_this_converter_derived_from_the_DS306_4_6_3_4_2_template_or_COMPACT_NOT_EXPANDED_when_the_compact_form_was_left_alone_none_of_these_is_device_verification",
+    "source_section_hex": "hex_transported_JSON_of_the_whole_declared_section_including_Unit_Factor_limits_and_unknown_keys_for_a_derived_row_it_is_the_resolved_template_while_accounting_keeps_the_exact_original_document"
   }
 }

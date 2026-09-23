@@ -1,0 +1,170 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "source_report_record_index": {
+      "meaning": "source_report_record_index",
+      "unit": "zero_based_position_of_this_record_in_the_saved_reader_reports_source_records_array_source_order_only_and_never_evidence_of_completeness_because_a_log_may_start_or_stop_at_any_moment",
+      "basis": "declared"
+    },
+    "err_subsystem_code": {
+      "meaning": "err_subsystem_code",
+      "unit": "the_raw_reported_Subsys_byte_of_an_ERR_record_retained_as_written_so_a_subsystem_the_pin_does_not_define_is_still_visible_as_its_own_number",
+      "basis": "declared"
+    },
+    "err_subsystem_name": {
+      "meaning": "err_subsystem_name",
+      "unit": "the_name_the_pinned_LogErrorSubsystem_enum_gives_that_subsystem_number_blank_when_the_pin_defines_none_which_is_a_statement_about_this_pin_and_not_a_claim_that_no_definition_exists_elsewhere",
+      "basis": "declared"
+    },
+    "err_reported_code": {
+      "meaning": "err_reported_code",
+      "unit": "the_raw_reported_ECode_byte_the_pinned_log_structure_calls_a_subsystem_specific_error_code_always_retained_because_it_is_the_producers_own_reason_value",
+      "basis": "declared"
+    },
+    "wdg_scheduler_task_reported": {
+      "meaning": "wdg_scheduler_task_reported",
+      "unit": "the_reported_scheduler_task_number_from_the_producers_own_watchdog_persistent_data_as_the_pinned_statustext_format_string_emits_it_a_reported_task_index_and_never_a_cause",
+      "basis": "declared"
+    },
+    "wdg_semaphore_line_reported": {
+      "meaning": "wdg_semaphore_line_reported",
+      "unit": "the_reported_semaphore_line_number_from_that_same_persistent_data_a_producer_side_source_location",
+      "basis": "declared"
+    },
+    "wdg_fault_line_reported": {
+      "meaning": "wdg_fault_line_reported",
+      "unit": "the_reported_fault_line_number_from_that_same_persistent_data_a_producer_side_source_location_and_not_a_diagnosis",
+      "basis": "declared"
+    },
+    "wdg_fault_type_reported": {
+      "meaning": "wdg_fault_type_reported",
+      "unit": "the_reported_fault_type_code_from_that_same_persistent_data_carried_as_the_producers_own_number_because_the_pinned_statustext_names_no_enumeration_for_it",
+      "basis": "declared"
+    },
+    "wdg_fault_address_reported": {
+      "meaning": "wdg_fault_address_reported",
+      "unit": "the_reported_fault_address_which_the_pinned_format_string_prints_in_hexadecimal_carried_here_as_that_same_value_in_decimal_and_never_resolved_to_a_symbol",
+      "basis": "declared"
+    },
+    "wdg_fault_thread_priority_reported": {
+      "meaning": "wdg_fault_thread_priority_reported",
+      "unit": "the_reported_thread_priority_of_the_faulting_thread_from_that_same_persistent_data",
+      "basis": "declared"
+    },
+    "wdg_fault_link_register_reported": {
+      "meaning": "wdg_fault_link_register_reported",
+      "unit": "the_reported_link_register_value_which_the_pinned_format_string_prints_in_hexadecimal_carried_as_that_same_value_in_decimal",
+      "basis": "declared"
+    },
+    "wdg_fault_icsr_reported": {
+      "meaning": "wdg_fault_icsr_reported",
+      "unit": "the_reported_interrupt_control_and_state_register_value_from_that_same_persistent_data_a_processor_register_report_and_not_an_interpretation",
+      "basis": "declared"
+    },
+    "wdg_last_mavlink_message_id_reported": {
+      "meaning": "wdg_last_mavlink_message_id_reported",
+      "unit": "the_reported_identifier_of_the_last_mavlink_message_the_producer_recorded_before_the_reset_a_reported_identifier_and_never_a_blamed_message",
+      "basis": "declared"
+    },
+    "wdg_last_mavlink_command_reported": {
+      "meaning": "wdg_last_mavlink_command_reported",
+      "unit": "the_reported_last_mavlink_command_the_producer_recorded_before_the_reset_under_the_same_rule",
+      "basis": "declared"
+    },
+    "wdg_internal_error_bits_named": {
+      "meaning": "wdg_internal_error_bits_named",
+      "unit": "the_set_bits_of_that_carried_mask_named_from_the_pinned_AP_InternalError_error_t_list_and_joined_by_a_vertical_bar_each_a_reported_detected_condition_and_never_a_root_cause",
+      "basis": "declared"
+    },
+    "wdg_internal_error_count_reported": {
+      "meaning": "wdg_internal_error_count_reported",
+      "unit": "the_internal_error_count_the_producer_carried_across_the_reset_a_cumulative_count_and_never_a_severity",
+      "basis": "declared"
+    },
+    "wdg_thread_name_hex": {
+      "meaning": "wdg_thread_name_hex",
+      "unit": "utf8_hex_of_the_up_to_four_character_thread_name_the_producer_printed_retained_as_bytes_because_the_pinned_format_string_states_no_encoding_and_never_resolved_to_a_task_identity",
+      "basis": "declared"
+    },
+    "msg_chunk_id_reported": {
+      "meaning": "msg_chunk_id_reported",
+      "unit": "the_reported_MSG_ID_which_the_pinned_log_structure_calls_the_identifier_for_chunks_making_up_a_message_carried_as_written_the_pinned_logger_notes_that_this_identifier_can_be_reused_by_another_thread_so_it_is_never_treated_as_a_unique_message_key",
+      "basis": "declared"
+    },
+    "pm_internal_error_mask_field": {
+      "meaning": "pm_internal_error_mask_field",
+      "unit": "which_field_name_the_PM_record_actually_used_for_its_internal_error_mask_stated_rather_than_assumed_a_record_carrying_both_accepted_names_at_once_matches_neither_pinned_schema_and_is_refused_instead_of_resolved_by_picking_one",
+      "basis": "declared"
+    },
+    "pm_internal_error_count_field_source": {
+      "meaning": "pm_internal_error_count_field_source",
+      "unit": "names_which_pinned_schema_qualifies_the_count_field_name_under_the_same_finite_alias_rule_ErC_from_the_current_pins_LOG_FORMAT_or_ErrC_from_the_adopted_pm_4_3_schemas",
+      "basis": "declared"
+    },
+    "pm_internal_error_mask_reported": {
+      "meaning": "pm_internal_error_mask_reported",
+      "unit": "the_raw_reported_internal_error_mask_which_the_pinned_log_structure_documents_as_which_internal_errors_have_been_detected_retained_whole_because_it_is_the_producers_own_accumulated_accounting_and_not_a_moment_of_occurrence",
+      "basis": "declared"
+    },
+    "pm_internal_error_bits_named": {
+      "meaning": "pm_internal_error_bits_named",
+      "unit": "the_set_bits_of_that_mask_named_from_the_pinned_AP_InternalError_error_t_list_and_joined_by_a_vertical_bar_in_ascending_bit_order_each_name_is_a_reported_detected_condition_and_never_a_root_cause",
+      "basis": "declared"
+    },
+    "pm_internal_error_unnamed_bit_positions": {
+      "meaning": "pm_internal_error_unnamed_bit_positions",
+      "unit": "the_positions_of_any_set_bits_the_pinned_error_t_list_does_not_name_joined_by_a_vertical_bar_so_an_unknown_bit_stays_visible_and_counted_instead_of_being_dropped_or_guessed",
+      "basis": "declared"
+    },
+    "pm_watchdog_reset_reported": {
+      "meaning": "pm_watchdog_reset_reported",
+      "unit": "one_only_when_bit_11_of_that_same_reported_mask_is_set_which_the_pinned_AP_InternalError_header_names_watchdog_reset_a_zero_mask_means_the_producer_reported_no_internal_error_in_that_record_and_is_never_read_as_a_watchdog_a_crash_or_a_reboot",
+      "basis": "declared"
+    },
+    "pm_internal_error_line_reported": {
+      "meaning": "pm_internal_error_line_reported",
+      "unit": "the_reported_internal_error_line_number_which_the_pinned_log_structure_calls_the_last_line_number_on_which_an_internal_error_was_detected_a_producer_side_source_location_and_not_a_measurement",
+      "basis": "declared"
+    },
+    "pm_internal_error_count_reported": {
+      "meaning": "pm_internal_error_count_reported",
+      "unit": "the_reported_internal_error_count_which_the_pinned_log_structure_calls_how_many_internal_errors_have_been_detected_a_cumulative_count_and_never_a_severity_or_a_cause",
+      "basis": "declared"
+    },
+    "controller_clock_basis": {
+      "meaning": "controller_clock_basis",
+      "unit": "states_that_the_row_clock_is_the_producers_reported_microseconds_since_system_startup_that_it_is_boot_relative_rather_than_UTC_and_that_it_is_never_used_to_infer_a_reboot",
+      "basis": "declared"
+    },
+    "controller_actor_basis": {
+      "meaning": "controller_actor_basis",
+      "unit": "states_that_the_actor_is_what_the_producer_itself_named_and_that_no_component_identity_serial_or_companion_computer_is_resolved_and_none_is_inferred_from_absence",
+      "basis": "declared"
+    },
+    "controller_reason_basis": {
+      "meaning": "controller_reason_basis",
+      "unit": "states_that_the_reported_reason_is_the_producers_own_code_that_the_raw_value_is_always_retained_and_that_a_name_is_added_only_where_the_pinned_source_groups_that_code_under_that_subsystem",
+      "basis": "declared"
+    },
+    "controller_watchdog_basis": {
+      "meaning": "controller_watchdog_basis",
+      "unit": "states_that_a_watchdog_reset_is_reported_only_from_the_producers_own_bit_11_that_a_zero_mask_is_never_read_as_a_watchdog_or_a_crash_and_that_the_mask_is_accumulated_so_it_says_the_condition_has_been_detected_not_when_it_occurred",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "utf8_hex_of_the_canonical_JSON_of_this_whole_saved_record_including_its_meta_so_every_field_the_producer_wrote_including_the_ones_this_path_gives_no_column_stays_recoverable_beside_the_interpreted_columns",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "sha256_of_the_exact_saved_reader_report_this_row_came_from_binding_rows_to_their_source_and_never_authentication",
+      "basis": "declared"
+    }
+  }
+}

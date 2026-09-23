@@ -1,0 +1,175 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_from_the_selected_messages_dialect_time_boot_ms_field_not_utc_and_not_the_exporter_stamp",
+      "basis": "declared"
+    },
+    "record_time_basis": {
+      "meaning": "record_time_basis",
+      "unit": "BOOT_MS_FROM_THE_SELECTED_MESSAGE_NOT_UTC",
+      "basis": "declared"
+    },
+    "source_local_time_text": {
+      "meaning": "source_local_time_text",
+      "unit": "exporter_lastlogread_text_local_time_millisecond_resolution_zone_not_recorded_never_converted_to_utc",
+      "basis": "declared"
+    },
+    "source_msgid": {
+      "meaning": "source_msgid",
+      "unit": "dialect_message_id_parsed_from_the_writers_hexadecimal_header_field",
+      "basis": "declared"
+    },
+    "source_sysid": {
+      "meaning": "source_sysid",
+      "unit": "reported_system_id_from_the_writers_hexadecimal_header_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "source_compid": {
+      "meaning": "source_compid",
+      "unit": "reported_component_id_from_the_writers_hexadecimal_header_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "source_row_hex": {
+      "meaning": "source_row_hex",
+      "unit": "hex_encoded_exact_bytes_of_this_one_exported_row_including_the_writers_header_and_tail_but_excluding_the_crlf_separator_not_whole_file_retention",
+      "basis": "declared"
+    },
+    "selected_message": {
+      "meaning": "selected_message",
+      "unit": "declared_mavlink_struct_name_the_exporter_wrote_for_this_row",
+      "basis": "declared"
+    },
+    "exporter_pin": {
+      "meaning": "exporter_pin",
+      "unit": "declared_missionplanner_release_that_wrote_this_export_1_3_81_2f3e02b2_or_1_3_82_ca3731f5_same_tlog_csv_handler_functions_at_both_pins",
+      "basis": "declared"
+    },
+    "dialect_pin": {
+      "meaning": "dialect_pin",
+      "unit": "c_library_v2_04fffaab_field_units_read_for_message_285_not_the_a3661c0a_pin_of_the_other_selections",
+      "basis": "declared"
+    },
+    "measurement_status": {
+      "meaning": "measurement_status",
+      "unit": "REPORTED_or_UNKNOWN_NOT_PROVIDED_BY_THE_SOURCE_for_a_dialect_nan_invalid_marker_never_a_health_verdict",
+      "basis": "declared"
+    },
+    "gimbal_failure_flags_raw": {
+      "meaning": "gimbal_failure_flags_raw",
+      "unit": "uint32_bitmask_exactly_as_the_gimbal_device_reported_it_zero_means_the_device_reported_no_failure_not_a_verified_healthy_gimbal",
+      "basis": "declared"
+    },
+    "gimbal_failure_flags_unknown_bits": {
+      "meaning": "gimbal_failure_flags_unknown_bits",
+      "unit": "bits_outside_the_ten_pinned_enum_entries_retained_unread_never_discarded_and_never_interpreted",
+      "basis": "declared"
+    },
+    "gimbal_reported_fault_count": {
+      "meaning": "gimbal_reported_fault_count",
+      "unit": "how_many_of_the_five_entries_the_dialect_words_as_there_is_an_error_with_are_set_travel_limits_calibration_and_no_manager_are_excluded_because_they_are_not_errors",
+      "basis": "declared"
+    },
+    "gimbal_failure_flags_basis": {
+      "meaning": "gimbal_failure_flags_basis",
+      "unit": "THE_GIMBAL_DEVICES_OWN_REPORTED_BITMASK_NO_PHYSICAL_CAUSE_IS_ASSIGNED_HERE",
+      "basis": "declared"
+    },
+    "gimbal_encoder_error_basis": {
+      "meaning": "gimbal_encoder_error_basis",
+      "unit": "A_REPORTED_ERROR_WITH_THE_GIMBALS_OWN_POSITION_ENCODERS_A_MECHANICAL_SENSE_NEVER_A_VIDEO_OR_MEDIA_ENCODER",
+      "basis": "declared"
+    },
+    "gimbal_at_roll_limit_reported": {
+      "meaning": "gimbal_at_roll_limit_reported",
+      "unit": "reported_hardware_roll_travel_limit_a_normal_condition_not_a_fault_and_not_damage",
+      "basis": "declared"
+    },
+    "gimbal_at_pitch_limit_reported": {
+      "meaning": "gimbal_at_pitch_limit_reported",
+      "unit": "reported_hardware_pitch_travel_limit_a_normal_condition_not_a_fault_and_not_damage",
+      "basis": "declared"
+    },
+    "gimbal_at_yaw_limit_reported": {
+      "meaning": "gimbal_at_yaw_limit_reported",
+      "unit": "reported_hardware_yaw_travel_limit_a_normal_condition_not_a_fault_and_not_damage",
+      "basis": "declared"
+    },
+    "gimbal_encoder_error_reported": {
+      "meaning": "gimbal_encoder_error_reported",
+      "unit": "reported_error_with_the_gimbal_position_encoders_a_mechanical_encoder_never_a_video_encoder_with_no_axis_attribution_and_no_physical_cause",
+      "basis": "declared"
+    },
+    "gimbal_power_error_reported": {
+      "meaning": "gimbal_power_error_reported",
+      "unit": "reported_error_with_the_gimbal_power_source_as_stated_by_the_device_not_a_measured_supply_fault",
+      "basis": "declared"
+    },
+    "gimbal_motor_error_reported": {
+      "meaning": "gimbal_motor_error_reported",
+      "unit": "reported_error_with_the_gimbal_motors_as_stated_by_the_device_not_a_mechanical_diagnosis",
+      "basis": "declared"
+    },
+    "gimbal_software_error_reported": {
+      "meaning": "gimbal_software_error_reported",
+      "unit": "reported_error_with_the_gimbal_software_as_stated_by_the_device",
+      "basis": "declared"
+    },
+    "gimbal_comms_error_reported": {
+      "meaning": "gimbal_comms_error_reported",
+      "unit": "reported_error_with_the_gimbal_communication_as_stated_by_the_device_never_derived_from_crc_loss_or_frame_absence_here",
+      "basis": "declared"
+    },
+    "gimbal_calibration_running_reported": {
+      "meaning": "gimbal_calibration_running_reported",
+      "unit": "reported_calibration_in_progress_an_activity_not_a_fault",
+      "basis": "declared"
+    },
+    "gimbal_no_manager_reported": {
+      "meaning": "gimbal_no_manager_reported",
+      "unit": "reported_absence_of_an_assigned_gimbal_manager_a_configuration_state_not_a_fault",
+      "basis": "declared"
+    },
+    "gimbal_flags_raw": {
+      "meaning": "gimbal_flags_raw",
+      "unit": "raw_gimbal_device_flags_word_operating_mode_and_lock_state_retained_uninterpreted_in_this_pass_and_never_a_health_verdict",
+      "basis": "declared"
+    },
+    "gimbal_flags_basis": {
+      "meaning": "gimbal_flags_basis",
+      "unit": "RAW_STATE_WORD_UNINTERPRETED",
+      "basis": "declared"
+    },
+    "gimbal_device_id_raw": {
+      "meaning": "gimbal_device_id_raw",
+      "unit": "reported_gimbal_device_id_1_to_6_or_unqualified_zero_blank_when_the_mavlink2_extension_is_absent_never_authenticated_identity",
+      "basis": "declared"
+    },
+    "gimbal_device_id_basis": {
+      "meaning": "gimbal_device_id_basis",
+      "unit": "which_of_declared_unqualified_zero_absent_extension_or_undocumented_code_this_row_carries",
+      "basis": "declared"
+    },
+    "gimbal_angular_velocity_x_rad_s": {
+      "meaning": "gimbal_angular_velocity_x_rad_s",
+      "unit": "rad_s_dialect_gimbal_angular_velocity_x_blank_when_the_source_wrote_its_nan_unknown_marker",
+      "basis": "declared"
+    },
+    "gimbal_angular_velocity_y_rad_s": {
+      "meaning": "gimbal_angular_velocity_y_rad_s",
+      "unit": "rad_s_dialect_gimbal_angular_velocity_y_blank_when_the_source_wrote_its_nan_unknown_marker",
+      "basis": "declared"
+    },
+    "gimbal_angular_velocity_z_rad_s": {
+      "meaning": "gimbal_angular_velocity_z_rad_s",
+      "unit": "rad_s_dialect_gimbal_angular_velocity_z_blank_when_the_source_wrote_its_nan_unknown_marker",
+      "basis": "declared"
+    }
+  }
+}

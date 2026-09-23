@@ -1,0 +1,55 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time": {
+      "meaning": "record_time",
+      "unit": "us_source_no_clock_authentication",
+      "basis": "declared"
+    },
+    "timestamp_unix_s": {
+      "meaning": "timestamp_unix_s",
+      "unit": "s_unix_declared_input_not_verified",
+      "basis": "declared"
+    },
+    "tx": {
+      "meaning": "tx",
+      "unit": "m_reported_camera_center_in_first_keyframe_world",
+      "basis": "declared"
+    },
+    "ty": {
+      "meaning": "ty",
+      "unit": "m_reported_camera_center_in_first_keyframe_world",
+      "basis": "declared"
+    },
+    "tz": {
+      "meaning": "tz",
+      "unit": "m_reported_camera_center_in_first_keyframe_world",
+      "basis": "declared"
+    },
+    "qx": {
+      "meaning": "qx",
+      "unit": "1_reported_Rwc_quaternion_x",
+      "basis": "declared"
+    },
+    "qy": {
+      "meaning": "qy",
+      "unit": "1_reported_Rwc_quaternion_y",
+      "basis": "declared"
+    },
+    "qz": {
+      "meaning": "qz",
+      "unit": "1_reported_Rwc_quaternion_z",
+      "basis": "declared"
+    },
+    "qw": {
+      "meaning": "qw",
+      "unit": "1_reported_Rwc_quaternion_w",
+      "basis": "declared"
+    }
+  }
+}

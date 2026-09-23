@@ -1,0 +1,16 @@
+profile_id = "edgetx_handset_boot_counter_v1"
+version = "1"
+family = "unknown"
+source_role = "handset"
+format = "edgetx_csv"
+extensions = ["csv"]
+default_clock_basis = "boot_relative"
+channels = ["link_stats"]
+
+[fields]
+time = "tmr10ms"
+link = ["RQly(%)"]
+
+[units]
+tmr10ms = "handset_power_on_relative_tick_counter_of_10_ms_units_NOT_seconds_the_reader_multiplies_it_by_10_exactly_once_to_get_milliseconds_and_this_declaration_applies_no_further_scale_the_origin_is_the_handsets_own_power_on_and_is_never_an_anchor_to_wall_time"
+"RQly(%)" = "reported_receiver_link_quality_percent_as_the_handset_logged_it_never_a_calibrated_radio_measurement"

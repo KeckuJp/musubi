@@ -1,0 +1,22 @@
+profile_id = "orbslam2_rgbd_tum_saved_pose_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+
+[fields]
+time = "record_time"
+
+[units]
+record_time = "us_source_no_clock_authentication"
+timestamp_unix_s = "s_unix_declared_input_not_verified"
+tx = "m_reported_camera_center_in_first_keyframe_world"
+ty = "m_reported_camera_center_in_first_keyframe_world"
+tz = "m_reported_camera_center_in_first_keyframe_world"
+qx = "1_reported_Rwc_quaternion_x"
+qy = "1_reported_Rwc_quaternion_y"
+qz = "1_reported_Rwc_quaternion_z"
+qw = "1_reported_Rwc_quaternion_w"

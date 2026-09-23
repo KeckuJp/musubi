@@ -1,0 +1,80 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_declared_capture_microseconds_because_this_dialect_message_carries_no_time_field",
+      "basis": "declared"
+    },
+    "record_time_basis": {
+      "meaning": "record_time_basis",
+      "unit": "CALLER_DECLARED_CAPTURE_MICROSECONDS_NOT_UTC",
+      "basis": "declared"
+    },
+    "source_local_time_text": {
+      "meaning": "source_local_time_text",
+      "unit": "exporter_lastlogread_text_local_time_millisecond_resolution_zone_not_recorded_never_converted_to_utc",
+      "basis": "declared"
+    },
+    "source_msgid": {
+      "meaning": "source_msgid",
+      "unit": "dialect_message_id_parsed_from_the_writers_hexadecimal_header_field",
+      "basis": "declared"
+    },
+    "source_sysid": {
+      "meaning": "source_sysid",
+      "unit": "reported_system_id_from_the_writers_hexadecimal_header_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "source_compid": {
+      "meaning": "source_compid",
+      "unit": "reported_component_id_from_the_writers_hexadecimal_header_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "source_row_hex": {
+      "meaning": "source_row_hex",
+      "unit": "hex_encoded_exact_bytes_of_this_one_exported_row_including_the_writers_header_and_tail_but_excluding_the_crlf_separator_not_whole_file_retention",
+      "basis": "declared"
+    },
+    "selected_message": {
+      "meaning": "selected_message",
+      "unit": "declared_mavlink_struct_name_the_exporter_wrote_for_this_row",
+      "basis": "declared"
+    },
+    "exporter_pin": {
+      "meaning": "exporter_pin",
+      "unit": "declared_missionplanner_release_that_wrote_this_export_1_3_81_2f3e02b2_or_1_3_82_ca3731f5_same_tlog_csv_handler_functions_at_both_pins",
+      "basis": "declared"
+    },
+    "dialect_pin": {
+      "meaning": "dialect_pin",
+      "unit": "c_library_v2_a3661c0a_field_units",
+      "basis": "declared"
+    },
+    "measurement_status": {
+      "meaning": "measurement_status",
+      "unit": "REPORTED_or_UNAVAILABLE_NOT_SENT_BY_AUTOPILOT_for_the_dialects_documented_uint16max_and_minus_one_sentinels",
+      "basis": "declared"
+    },
+    "electrical_voltage_v": {
+      "meaning": "electrical_voltage_v",
+      "unit": "V_converted_from_the_dialects_mV_battery_voltage_uint16max_means_not_sent_and_is_withheld",
+      "basis": "declared"
+    },
+    "electrical_current_a": {
+      "meaning": "electrical_current_a",
+      "unit": "A_converted_from_the_dialects_cA_battery_current_minus_one_means_not_sent_and_is_withheld",
+      "basis": "declared"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "fraction_converted_from_the_dialects_percent_remaining_minus_one_means_not_sent_and_is_withheld",
+      "basis": "declared"
+    }
+  }
+}

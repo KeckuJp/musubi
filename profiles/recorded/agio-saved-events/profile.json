@@ -1,0 +1,29 @@
+{
+  "profile_id": "agio_saved_events_unlocated_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "unlocated_time_us"
+  },
+  "units": {
+    "unlocated_time_us": "zero_placeholder_not_event_time",
+    "source_line": "one_based_record_order_not_time",
+    "agio_event_class": "literal_match_candidate_or_UNCLASSIFIED_RETAINED_not_device_state",
+    "agio_event_class_basis": "saved_line_category_under_delimiter_assumption_not_certified_boundary_or_observed_status",
+    "agio_reported_clock_hhmmss": "local_wall_clock_text_no_date_zone_or_rollover",
+    "agio_reported_clock_basis": "reported_representation_not_a_locatable_instant",
+    "agio_session_date_reported": "program_start_or_exit_local_date_text_to_the_minute_only",
+    "agio_event_detail_hex": "reversible_utf8_hex_remainder_not_parsed_identity_or_address",
+    "agio_continuation_lines": "count_of_untimestamped_lines_joined_into_this_record",
+    "agio_record_hex": "reversible_utf8_hex_of_the_whole_reconstructed_record"
+  }
+}

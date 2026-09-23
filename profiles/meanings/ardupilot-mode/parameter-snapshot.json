@@ -1,0 +1,50 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_caller_capture_not_device_time",
+      "basis": "declared"
+    },
+    "reported_parameter_value": {
+      "meaning": "reported_parameter_value",
+      "unit": "native_parameter_unit_undeclared",
+      "basis": "declared"
+    },
+    "parameter_name": {
+      "meaning": "parameter_name",
+      "unit": "the_saved_parameter_identifier_exactly_as_written_an_opaque_producer_name_this_path_does_NOT_qualify_it_as_a_calibration_bias_or_scale_quantity_and_a_name_that_looks_like_one_is_still_only_a_name",
+      "basis": "declared"
+    },
+    "parameter_unit_basis": {
+      "meaning": "parameter_unit_basis",
+      "unit": "fixed_sentence_recording_that_the_NATIVE_PARAMETER_UNIT_IS_UNDECLARED_the_saved_set_states_no_unit_and_none_is_inferred_here_so_the_value_carries_no_engineering_unit_and_is_never_comparable_across_parameters_or_convertible",
+      "basis": "declared"
+    },
+    "parameter_time_basis": {
+      "meaning": "parameter_time_basis",
+      "unit": "fixed_sentence_recording_that_the_row_time_is_the_CALLER_CAPTURE_time_and_NOT_a_device_clock_or_a_file_timestamp_the_saved_set_carries_no_time_of_its_own_so_the_ordering_is_the_callers_not_the_devices",
+      "basis": "declared"
+    },
+    "source_line": {
+      "meaning": "source_line",
+      "unit": "one_based_line_of_this_parameter_in_the_saved_set_source_order_only_never_a_sequence_of_writes_or_a_time",
+      "basis": "declared"
+    },
+    "source_value_hex": {
+      "meaning": "source_value_hex",
+      "unit": "utf8_hex_of_the_exact_value_text_as_written_so_the_producers_own_digits_survive_beside_the_parsed_number",
+      "basis": "declared"
+    },
+    "source_document_hex": {
+      "meaning": "source_document_hex",
+      "unit": "utf8_hex_of_the_whole_saved_parameter_set_present_on_the_FIRST_row_only_and_blank_on_the_rest_binding_every_row_to_the_one_document_it_was_read_from_and_authenticating_nothing",
+      "basis": "declared"
+    }
+  }
+}

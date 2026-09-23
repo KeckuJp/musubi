@@ -1,0 +1,110 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_reported_out_time_of_the_output_media_not_wall_clock_not_UTC",
+      "basis": "declared"
+    },
+    "progress_block_index": {
+      "meaning": "progress_block_index",
+      "unit": "zero_based_order_of_the_block_in_the_saved_progress_file",
+      "basis": "declared"
+    },
+    "output_frames_reported": {
+      "meaning": "output_frames_reported",
+      "unit": "count_of_packets_written_for_the_first_video_output_stream_cumulative",
+      "basis": "declared"
+    },
+    "dup_frames_reported": {
+      "meaning": "dup_frames_reported",
+      "unit": "count_of_frames_duplicated_by_the_output_filter_graph_cumulative",
+      "basis": "declared"
+    },
+    "drop_frames_reported": {
+      "meaning": "drop_frames_reported",
+      "unit": "count_of_frames_dropped_by_the_output_filter_graph_cumulative",
+      "basis": "declared"
+    },
+    "out_time_us_reported": {
+      "meaning": "out_time_us_reported",
+      "unit": "us_same_value_the_writer_also_prints_as_out_time_ms_despite_that_name",
+      "basis": "declared"
+    },
+    "out_time_text_reported": {
+      "meaning": "out_time_text_reported",
+      "unit": "exact_reported_HH_MM_SS_text_never_reparsed_into_another_clock",
+      "basis": "declared"
+    },
+    "total_size_bytes_reported": {
+      "meaning": "total_size_bytes_reported",
+      "unit": "bytes_of_output_written_so_far_as_reported",
+      "basis": "declared"
+    },
+    "fps_text_reported": {
+      "meaning": "fps_text_reported",
+      "unit": "exact_reported_fps_text_a_processing_rate_not_a_media_frame_rate",
+      "basis": "declared"
+    },
+    "bitrate_text_reported": {
+      "meaning": "bitrate_text_reported",
+      "unit": "exact_reported_bitrate_text_with_its_own_unit_suffix",
+      "basis": "declared"
+    },
+    "speed_text_reported": {
+      "meaning": "speed_text_reported",
+      "unit": "exact_reported_speed_text_relative_to_realtime_processing",
+      "basis": "declared"
+    },
+    "progress_state": {
+      "meaning": "progress_state",
+      "unit": "continue_or_end_only_a_terminated_block_becomes_a_row",
+      "basis": "declared"
+    },
+    "unterminated_final_block_bytes": {
+      "meaning": "unterminated_final_block_bytes",
+      "unit": "byte_length_of_a_trailing_block_the_writer_never_terminated_zero_when_there_is_none_the_block_itself_gets_no_row_because_no_counter_or_time_may_be_invented_for_it_see_incomplete_final_block_in_the_report_for_its_raw_bytes",
+      "basis": "declared"
+    },
+    "frame_counter_basis": {
+      "meaning": "frame_counter_basis",
+      "unit": "processing_frame_rate_conversion_never_camera_capture_or_transport_loss",
+      "basis": "declared"
+    },
+    "counter_scope": {
+      "meaning": "counter_scope",
+      "unit": "first_video_output_stream_only_not_aggregated_over_streams_or_files",
+      "basis": "declared"
+    },
+    "time_basis": {
+      "meaning": "time_basis",
+      "unit": "scheduler_transcode_timestamp_not_the_counted_streams_own_frame_time",
+      "basis": "declared"
+    },
+    "source_block_offset": {
+      "meaning": "source_block_offset",
+      "unit": "byte_offset_of_this_block_in_the_original_progress_file",
+      "basis": "declared"
+    },
+    "source_block_length": {
+      "meaning": "source_block_length",
+      "unit": "byte_length_of_this_block_in_the_original_progress_file",
+      "basis": "declared"
+    },
+    "source_block_hex": {
+      "meaning": "source_block_hex",
+      "unit": "exact_original_bytes_of_this_block_including_its_own_line_endings",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "exact_input_progress_file_digest_not_authenticity",
+      "basis": "declared"
+    }
+  }
+}

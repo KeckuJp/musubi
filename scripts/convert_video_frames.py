@@ -152,6 +152,168 @@ def deepstream_detections(record):
                 normalized=False, detections=detections)
 
 
+# `-progress` block keys ffmpeg 8.1 writes for a video output (fftools/ffmpeg.c print_report).
+# `out_time_ms` prints the same pts as `out_time_us`, so it is microseconds despite its name.
+PROGRESS_COUNTERS = ("frame", "dup_frames", "drop_frames", "total_size")
+PROGRESS_TEXT = ("fps", "bitrate", "speed", "out_time", "out_time_ms")
+PROGRESS_FIELDS = ["record_time_us", "progress_block_index", "output_frames_reported",
+                   "dup_frames_reported", "drop_frames_reported", "out_time_us_reported",
+                   "out_time_text_reported", "total_size_bytes_reported", "fps_text_reported",
+                   "bitrate_text_reported", "speed_text_reported", "progress_state",
+                   "frame_counter_basis", "counter_scope", "time_basis", "recording_stop_disposition",
+                   "unterminated_final_block_bytes", "source_block_offset",
+                   "source_block_length", "source_block_hex", "source_sha256"]
+# What the saved file records about the end of the writer's own run. A property of the file, so it
+# is the same on every row of one run. None of these says a camera stopped capturing or that a
+# recording succeeded: an absent `end` block is not a failure, and a truncated final block says the
+# saved file stops mid-block, nothing about the device.
+STOP_END_LAST = "REPORTED_END_BLOCK_AS_THE_LAST_SAVED_BLOCK"
+STOP_END_EARLIER = "REPORTED_END_BLOCK_WITH_LATER_SAVED_BLOCKS"
+STOP_TRUNCATED = "NO_END_BLOCK_FINAL_SAVED_BLOCK_TRUNCATED"
+STOP_NO_TERMINAL = "NO_END_BLOCK_LAST_SAVED_BLOCK_WAS_CONTINUE"
+# The counters come from one output stream's filter graph, never from a camera or a link.
+COUNTER_BASIS = "PROCESSING_FRAME_RATE_CONVERSION_NOT_CAPTURE_OR_TRANSPORT_LOSS"
+COUNTER_SCOPE = "FIRST_VIDEO_OUTPUT_STREAM_NOT_AGGREGATED"
+# print_report receives the scheduler's transcode timestamp, while the counters above come from
+# the first video output stream, so the time is not that stream's own frame timestamp.
+TIME_BASIS = "SCHEDULER_TRANSCODE_TIMESTAMP_NOT_THE_COUNTED_STREAMS_FRAME_TIME"
+
+
+def progress_blocks(text):
+    """Blocks with the exact byte span each one occupies in the input.
+
+    A block ends at its `progress=` line. A trailing block without one is an interrupted run,
+    returned as incomplete rather than dropped or completed.
+    """
+    total = len(text.encode())
+    blocks, block, start, offset = [], {}, 0, 0
+    for line in text.split("\n"):
+        width = len(line.encode()) + 1  # the separator the writer put after this line
+        # A trailing carriage return is separator, not value; the retained span still keeps it.
+        line = line[:-1] if line.endswith("\r") else line
+        if not line.strip():
+            offset += width
+            if not block:
+                start = min(offset, total)  # blank space before a block is not part of it
+            continue
+        key, separator, value = line.partition("=")
+        if not separator or not key:
+            raise ValueError("invalid progress line")
+        if key in block:
+            raise ValueError("duplicate key in one progress block")
+        block[key] = value
+        offset += width
+        if key == "progress":
+            blocks.append((block, start, min(offset, total), True))
+            block, start = {}, min(offset, total)
+    if block:
+        blocks.append((block, start, min(offset, total), False))
+    if not blocks:
+        raise ValueError("no progress block")
+    return blocks
+
+
+def convert_progress(text):
+    """Saved ffmpeg8.1 `-progress` blocks -> reported processing counters. No media is opened."""
+    if not text or len(text.encode()) > LIMIT:
+        raise ValueError("empty or oversized progress input")
+    raw = text.encode()
+    digest = "sha256:" + hashlib.sha256(raw).hexdigest()
+    output = io.StringIO(newline="")
+    writer = csv.DictWriter(output, fieldnames=PROGRESS_FIELDS, lineterminator="\n")
+    writer.writeheader()
+    report = {"blocks": 0, "complete_blocks": 0, "timed_blocks": 0, "untimed_blocks": 0,
+              "retained_untimed_blocks": [], "incomplete_final_block": None, "unknown_keys": [],
+              "terminal_state": "INCOMPLETE_NO_TERMINAL_BLOCK", "source_sha256": digest,
+              "clock": "Unknown", "counter_basis": COUNTER_BASIS, "counter_scope": COUNTER_SCOPE,
+              "time_basis": TIME_BASIS}
+    previous = {name: None for name in ("frame", "dup_frames", "drop_frames")}
+    blocks = progress_blocks(text)
+    # The verdict about the end of the run is known only from the whole block list, so it is derived
+    # here and then carried by every row. Two states the report used to share are now distinct: a
+    # file whose last saved block is complete but is not an `end` block reports no terminal record,
+    # which is not the same evidence as a file that stops mid-block.
+    ends = [index for index, (block, _, _, terminated) in enumerate(blocks)
+            if terminated and block.get("progress") == "end"]
+    if ends:
+        disposition = STOP_END_LAST if ends[-1] == len(blocks) - 1 else STOP_END_EARLIER
+    elif not blocks[-1][3]:
+        disposition = STOP_TRUNCATED
+    else:
+        disposition = STOP_NO_TERMINAL
+        report["terminal_state"] = "NO_TERMINAL_BLOCK_LAST_BLOCK_WAS_CONTINUE"
+    trailing_bytes = 0 if blocks[-1][3] else blocks[-1][2] - blocks[-1][1]
+    report["recording_stop_disposition"] = disposition
+    for index, (block, begin, stop, terminated) in enumerate(blocks):
+        report["blocks"] += 1
+        span = raw[begin:stop]
+        retained_block = "hex:" + span.hex()
+        for key in block:
+            if key not in PROGRESS_COUNTERS + PROGRESS_TEXT + ("out_time_us", "progress") \
+                    and key not in report["unknown_keys"]:
+                # Named here, and their values stay recoverable from the retained raw span.
+                report["unknown_keys"].append(key)
+        if not terminated:
+            if index != len(blocks) - 1:
+                raise ValueError("unterminated block before the end of the input")
+            # An interrupted run stops mid-block. It is retained exactly as written, with no
+            # counter or time invented for it, and it is not a row.
+            report["incomplete_final_block"] = {
+                "index": index, "reason": "NO_TERMINAL_LINE_INCOMPLETE_FINAL_BLOCK",
+                "source_block_offset": begin, "source_block_length": stop - begin,
+                "source_block_hex": retained_block, "keys_present": sorted(block)}
+            continue
+        state = block["progress"]
+        if state not in ("continue", "end"):
+            # Only the writer's own terminators are known; anything else is not this format.
+            raise ValueError("unsupported progress terminator")
+        report["complete_blocks"] += 1
+        if state == "end":
+            report["terminal_state"] = "END" if index == len(blocks) - 1 else "END_BEFORE_LAST_BLOCK"
+        values = {}
+        for name in PROGRESS_COUNTERS:
+            if name not in block:
+                raise ValueError("progress block is missing a declared counter")
+            values[name] = unsigned(block[name]) if block[name] != "N/A" else None
+            if name in previous and values[name] is not None:
+                # The writer never resets these; a decrease is not a reset to absorb.
+                if previous[name] is not None and values[name] < previous[name]:
+                    raise ValueError("progress counter decreased; no reset assumed")
+                previous[name] = values[name]
+        micro, milli = block.get("out_time_us", "N/A"), block.get("out_time_ms", "N/A")
+        if micro != "N/A" and milli != "N/A" and unsigned(micro) != unsigned(milli):
+            # The pinned writer prints the same pts under both names; a disagreement is not
+            # a unit difference to reconcile.
+            raise ValueError("out_time_us and out_time_ms disagree")
+        if micro == "N/A":
+            report["untimed_blocks"] += 1
+            report["retained_untimed_blocks"].append({
+                "index": index, "reason": "NO_OUT_TIME", "source_block_offset": begin,
+                "source_block_length": stop - begin, "source_block_hex": retained_block})
+            continue
+        time_us = unsigned(micro)
+        writer.writerow({"record_time_us": time_us, "progress_block_index": index,
+            "output_frames_reported": values["frame"], "dup_frames_reported": values["dup_frames"],
+            "drop_frames_reported": values["drop_frames"], "out_time_us_reported": time_us,
+            "out_time_text_reported": block.get("out_time", ""),
+            "total_size_bytes_reported": values["total_size"],
+            "fps_text_reported": block.get("fps", ""), "bitrate_text_reported": block.get("bitrate", ""),
+            "speed_text_reported": block.get("speed", ""), "progress_state": state,
+            "frame_counter_basis": COUNTER_BASIS, "counter_scope": COUNTER_SCOPE,
+            "time_basis": TIME_BASIS, "recording_stop_disposition": disposition,
+            "unterminated_final_block_bytes": trailing_bytes, "source_block_offset": begin,
+            "source_block_length": stop - begin, "source_block_hex": retained_block,
+            "source_sha256": digest})
+        report["timed_blocks"] += 1
+        if output.tell() > LIMIT:
+            raise ValueError("converted output exceeds bound")
+    if not report["timed_blocks"]:
+        # An input with nothing usable is a refusal, never an empty success.
+        raise ValueError("no timed complete progress block")
+    report["unknown_keys"].sort()
+    return output.getvalue(), report
+
+
 def convert_detections(text, selected_stream, *, deepstream=False):
     """Saved qualified Ultralytics8.3.0 axis-aligned detections, no inference."""
     if len(text.encode()) > LIMIT or type(selected_stream) is not int or selected_stream < 0 or type(deepstream) is not bool:
@@ -247,14 +409,21 @@ def main():
     parser.add_argument("--compact", action="store_true", help="retain selected stream once in report.json and bind rows by SHA256")
     parser.add_argument("--detections-830", action="store_true", help="qualified saved detection envelopes; stream index is caller configured")
     parser.add_argument("--deepstream-900", action="store_true", help="caller-saved NvDs object metadata in pipeline pixel coordinates")
+    parser.add_argument("--progress-81", action="store_true", help="saved ffmpeg8.1 -progress blocks; reported processing counters, never capture or transport loss")
     args = parser.parse_args()
     try:
         if args.input.stat().st_size > (2 * LIMIT if args.compact else LIMIT):
             raise ValueError("input exceeds bound")
         if (args.detections_830 and args.deepstream_900) or ((args.detections_830 or args.deepstream_900) and args.compact):
             raise ValueError("separate detection/ffprobe selections")
-        text = args.input.read_text(encoding="utf-8")
-        output, report = (convert_detections(text, args.stream_index, deepstream=args.deepstream_900)
+        if args.progress_81 and (args.compact or args.detections_830 or args.deepstream_900):
+            raise ValueError("separate progress/ffprobe selections")
+        # The progress digest and block spans must bind the exact input, so that mode reads bytes
+        # and decodes strictly. The older modes keep their own read, and their digests with it.
+        text = (args.input.read_bytes().decode("utf-8") if args.progress_81
+                else args.input.read_text(encoding="utf-8"))
+        output, report = (convert_progress(text) if args.progress_81 else
+                          convert_detections(text, args.stream_index, deepstream=args.deepstream_900)
                           if args.detections_830 or args.deepstream_900 else convert(text, args.stream_index, compact=args.compact))
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")

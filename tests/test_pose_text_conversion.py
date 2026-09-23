@@ -2,7 +2,11 @@
 import csv
 import importlib.util
 import io
+import json
+import os
 from pathlib import Path
+import subprocess
+import tempfile
 import unittest
 
 SPEC = importlib.util.spec_from_file_location(
@@ -13,6 +17,26 @@ SPEC.loader.exec_module(MODULE)
 
 
 class PoseTextConversionContract(unittest.TestCase):
+    def test_orbslam_saved_profile_reuses_pose_without_ground_or_world_inference(self):
+        reader = os.environ.get("MUSUBI_TELEMETRY_READER")
+        if not reader:
+            self.skipTest("common reader path not supplied")
+        root = Path(__file__).resolve().parents[1]
+        cases = ["1305031102.175304 -1.250000000 2.000000000 3.000000000 0.000000000 0.000000000 0.000000000 1.000000000\n",
+                 "1305031103.000001 4.000000000 -5.000000000 6.000000000 0.000000000 0.000000000 1.000000000 0.000000000\n"]
+        for text in cases:
+            converted, report = MODULE.convert(text + text, allow_equal_time=True)
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "pose.csv"; path.write_text(converted)
+                common = json.loads(subprocess.run([reader,
+                    str(root / "profiles/declared/pose-text/orbslam2-profile.toml"),
+                    str(path), "--allow-equal-time"], check=True, capture_output=True).stdout)
+            self.assertEqual(common["platform_domain"], "Unknown")
+            self.assertEqual(common["main_rows"], 2)
+            self.assertEqual(report["equal_time_pairs"], 1)
+            for key, cell in zip(("tx", "ty", "tz", "qx", "qy", "qz", "qw"), text.split()[1:]):
+                self.assertEqual(common["observations"][0]["fields"][key], float(cell))
+
     def test_exact_source_values_comment_accounting_and_no_normalization(self):
         text = "# source comment\n\n  # units are source assertions\n1509241629.863412 -1.25 +2 3e-2 -0.5 0 0 2\n \t\n1509241629.863413 4 5 6 0 0 0 1\n"
         result, report = MODULE.convert(text)

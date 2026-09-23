@@ -1,5 +1,6 @@
 use musubi_reference_types::{
-    ClockBasis, OffsetEstimate, OffsetSource, OrderRelation, TimeAlignment, order_with_bounds,
+    ClockBasis, ClockRateClass, ClockRateConfig, ClockRateGap, ClockRateOutcome, ClockRateReport,
+    OffsetEstimate, OffsetSource, OrderRelation, TimeAlignment, order_with_bounds,
 };
 
 use crate::{Observation, default_time_confidence};
@@ -84,6 +85,87 @@ pub fn estimate_alignment(obs: &[Observation], default_basis: ClockBasis) -> Tim
 }
 
 #[must_use]
+pub fn estimate_relative_rate(
+    obs: &[Observation],
+    al: &TimeAlignment,
+    cfg: &ClockRateConfig,
+) -> ClockRateReport {
+    let gap = |g: ClockRateGap| ClockRateReport {
+        outcome: ClockRateOutcome::InsufficientBasis(g),
+        anchors: 0,
+        span_us: 0,
+        config: *cfg,
+    };
+    if matches!(al.basis, ClockBasis::HostReceived | ClockBasis::Unknown) {
+        return gap(ClockRateGap::ClockBasisNotDeviceClock);
+    }
+    match al.offset {
+        None => return gap(ClockRateGap::FewerThanTwoAnchors),
+        Some(o) if o.source != OffsetSource::InLogAnchor => {
+            return gap(ClockRateGap::OffsetSourceNotInLogAnchor);
+        }
+        Some(o) if o.discontinuity => return gap(ClockRateGap::OffsetDiscontinuity),
+        Some(_) => {}
+    }
+    let mut sorted: Vec<(u64, i64)> = obs
+        .iter()
+        .filter_map(|o| Some((o.t_boot_us?, o.anchor_unix_us?)))
+        .collect();
+    if sorted.windows(2).any(|w| w[1].0 < w[0].0) {
+        return gap(ClockRateGap::DeviceClockNotMonotonic);
+    }
+    sorted.sort_unstable();
+    sorted.dedup();
+    let (Some(&(b0, a0)), Some(&(bn, an))) = (sorted.first(), sorted.last()) else {
+        return gap(ClockRateGap::FewerThanTwoAnchors);
+    };
+    if sorted.len() < 2 || bn == b0 {
+        return gap(ClockRateGap::FewerThanTwoAnchors);
+    }
+    let span = i128::from(bn) - i128::from(b0);
+    if span < i128::from(cfg.min_span_us) {
+        return gap(ClockRateGap::SpanShorterThanDeclaredMinimum);
+    }
+    let two_u = 2 * i128::from(cfg.anchor_uncertainty_us);
+    if span - two_u <= 0 {
+        return gap(ClockRateGap::UncertaintyNotSmallerThanSpan);
+    }
+    let d_offset = (i128::from(an) - i128::from(bn)) - (i128::from(a0) - i128::from(b0));
+    let mut low = i128::MAX;
+    let mut high = i128::MIN;
+    for n in [d_offset - two_u, d_offset + two_u] {
+        for d in [span - two_u, span + two_u] {
+            let scaled = n * 1_000_000;
+            low = low.min(scaled.div_euclid(d));
+            high = high.max(-((-scaled).div_euclid(d)));
+        }
+    }
+    let t = i128::from(cfg.max_abs_rate_ppm);
+    let class = if low >= -t && high <= t {
+        ClockRateClass::WithinDeclaredLimit
+    } else if low > t || high < -t {
+        ClockRateClass::OutsideDeclaredLimit
+    } else {
+        ClockRateClass::Indeterminate
+    };
+    let (Ok(span_us), Ok(low_ppm), Ok(high_ppm)) =
+        (i64::try_from(span), i64::try_from(low), i64::try_from(high))
+    else {
+        return gap(ClockRateGap::OutOfRepresentableRange);
+    };
+    ClockRateReport {
+        outcome: ClockRateOutcome::Observed {
+            low_ppm,
+            high_ppm,
+            class,
+        },
+        anchors: sorted.len() as u32,
+        span_us,
+        config: *cfg,
+    }
+}
+
+#[must_use]
 pub fn align_by_start(
     obs: &[Observation],
     reference_start_wall_ms: i64,
@@ -153,6 +235,232 @@ mod tests {
             anchor_unix_us: anchor,
             wall_ms: None,
         }
+    }
+
+    fn paired(n: u64, step_us: u64, b0: u64, a0: i64, ppm: i64) -> Vec<Observation> {
+        (0..n)
+            .map(|i| {
+                let elapsed = (i * step_us) as i64;
+                ob(
+                    b0 + i * step_us,
+                    Some(a0 + elapsed + elapsed * ppm / 1_000_000),
+                    ClockBasis::BootRelative,
+                )
+            })
+            .collect()
+    }
+
+    fn cfg(uncertainty_us: i64, min_span_us: i64, max_abs_rate_ppm: i64) -> ClockRateConfig {
+        ClockRateConfig {
+            anchor_uncertainty_us: uncertainty_us,
+            min_span_us,
+            max_abs_rate_ppm,
+        }
+    }
+
+    fn rate_of(obs: &[Observation], c: &ClockRateConfig) -> ClockRateReport {
+        let al = estimate_alignment(obs, ClockBasis::BootRelative);
+        estimate_relative_rate(obs, &al, c)
+    }
+
+    fn observed(obs: &[Observation], c: &ClockRateConfig) -> (i64, i64, ClockRateClass) {
+        match rate_of(obs, c).outcome {
+            ClockRateOutcome::Observed {
+                low_ppm,
+                high_ppm,
+                class,
+            } => (low_ppm, high_ppm, class),
+            other => panic!("expected an observed interval, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn observed_relative_rate_is_a_signed_outward_rounded_interval_classified_against_the_declared_limit()
+     {
+        let faster_reference = paired(101, 1_000_000, 37_000_000, 1_000_000_000_000_000, 50);
+        let (low, high, _) = observed(&faster_reference, &cfg(100, 60_000_000, 1_000));
+        assert_eq!((low, high), (47, 53));
+        let slower_reference = paired(101, 1_000_000, 37_000_000, 1_000_000_000_000_000, -50);
+        assert_eq!(
+            observed(&slower_reference, &cfg(100, 60_000_000, 1_000)).0
+                ..=observed(&slower_reference, &cfg(100, 60_000_000, 1_000)).1,
+            -53..=-47
+        );
+
+        let class = |obs: &[Observation], t: i64| observed(obs, &cfg(100, 60_000_000, t)).2;
+        assert_eq!(
+            class(&faster_reference, 53),
+            ClockRateClass::WithinDeclaredLimit
+        );
+        assert_eq!(class(&faster_reference, 52), ClockRateClass::Indeterminate);
+        assert_eq!(
+            class(&slower_reference, 53),
+            ClockRateClass::WithinDeclaredLimit
+        );
+        assert_eq!(class(&slower_reference, 52), ClockRateClass::Indeterminate);
+        assert_eq!(class(&faster_reference, 47), ClockRateClass::Indeterminate);
+        assert_eq!(
+            class(&faster_reference, 46),
+            ClockRateClass::OutsideDeclaredLimit
+        );
+        assert_eq!(
+            class(&slower_reference, 46),
+            ClockRateClass::OutsideDeclaredLimit
+        );
+        let r = rate_of(&faster_reference, &cfg(100, 60_000_000, 53));
+        assert_eq!(r.anchors, 101);
+        assert_eq!(r.span_us, 100_000_000);
+        assert_eq!(r.config.max_abs_rate_ppm, 53);
+    }
+
+    #[test]
+    fn large_epoch_and_ten_thousand_pairs_give_the_same_interval_as_a_small_epoch() {
+        let c = cfg(100, 60_000_000, 1_000);
+        let near_zero = observed(&paired(101, 1_000_000, 0, 1_000_000, 50), &c);
+        let year_2026 = observed(
+            &paired(101, 1_000_000, 37_000_000, 1_788_166_800_000_000, 50),
+            &c,
+        );
+        assert_eq!(near_zero, year_2026);
+
+        let many = paired(10_000, 10_000, 37_000_000, 1_788_166_800_000_000, 50);
+        let r = rate_of(&many, &c);
+        assert_eq!(r.anchors, 10_000);
+        assert_eq!(r.span_us, 99_990_000);
+        assert_eq!(
+            r.outcome,
+            ClockRateOutcome::Observed {
+                low_ppm: 47,
+                high_ppm: 52,
+                class: ClockRateClass::WithinDeclaredLimit,
+            }
+        );
+    }
+
+    #[test]
+    fn insufficient_basis_is_named_and_never_substituted_by_a_rate() {
+        let gap = |obs: &[Observation], c: &ClockRateConfig| match rate_of(obs, c).outcome {
+            ClockRateOutcome::InsufficientBasis(g) => g,
+            other => panic!("expected a named gap, got {other:?}"),
+        };
+        let c = cfg(100, 60_000_000, 50);
+
+        let none: Vec<Observation> = (0..10)
+            .map(|i| ob(i * 1_000_000, None, ClockBasis::BootRelative))
+            .collect();
+        assert_eq!(gap(&none, &c), ClockRateGap::FewerThanTwoAnchors);
+        assert_eq!(
+            gap(&paired(1, 1_000_000, 0, 1_000_000_000_000_000, 50), &c),
+            ClockRateGap::FewerThanTwoAnchors
+        );
+        assert_eq!(
+            gap(&paired(3, 1_000_000, 0, 1_000_000_000_000_000, 50), &c),
+            ClockRateGap::SpanShorterThanDeclaredMinimum
+        );
+        assert_eq!(
+            gap(
+                &paired(2, 1_000, 0, 1_000_000_000_000_000, 0),
+                &cfg(500, 1_000, 50)
+            ),
+            ClockRateGap::UncertaintyNotSmallerThanSpan
+        );
+        let clean = TimeAlignment {
+            basis: ClockBasis::BootRelative,
+            offset: Some(OffsetEstimate {
+                offset_us: 0,
+                bound_us: 1,
+                source: OffsetSource::InLogAnchor,
+                anchors: 2,
+                discontinuity: false,
+            }),
+        };
+        let direct = |obs: &[Observation], c: &ClockRateConfig| {
+            estimate_relative_rate(obs, &clean, c).outcome
+        };
+        let huge_span = [
+            ob(0, Some(0), ClockBasis::BootRelative),
+            ob(u64::MAX, Some(0), ClockBasis::BootRelative),
+        ];
+        assert_eq!(
+            direct(&huge_span, &cfg(1_000, 1, 50)),
+            ClockRateOutcome::InsufficientBasis(ClockRateGap::OutOfRepresentableRange)
+        );
+        let huge_endpoint = [
+            ob(0, Some(0), ClockBasis::BootRelative),
+            ob(3, Some(30_000_000_000_003), ClockBasis::BootRelative),
+        ];
+        assert_eq!(
+            direct(&huge_endpoint, &cfg(1, 1, 50)),
+            ClockRateOutcome::InsufficientBasis(ClockRateGap::OutOfRepresentableRange)
+        );
+        let representable = [
+            ob(0, Some(0), ClockBasis::BootRelative),
+            ob(3, Some(3_000_000_003), ClockBasis::BootRelative),
+        ];
+        assert!(matches!(
+            direct(&representable, &cfg(1, 1, 50)),
+            ClockRateOutcome::Observed { .. }
+        ));
+        let full_span = paired(101, 1_000_000, 0, 1_000_000_000_000_000, 50);
+        assert_eq!(
+            gap(&full_span, &cfg(i64::MAX, 1, 50)),
+            ClockRateGap::UncertaintyNotSmallerThanSpan
+        );
+        assert_eq!(
+            gap(&full_span, &cfg(100, i64::MAX, 50)),
+            ClockRateGap::SpanShorterThanDeclaredMinimum
+        );
+        assert_eq!(
+            observed(&full_span, &cfg(100, 60_000_000, i64::MAX)),
+            (47, 53, ClockRateClass::WithinDeclaredLimit)
+        );
+        let mut jump = paired(11, 1_000_000, 0, 1_000_000_000_000_000, 0);
+        jump.extend((11..22).map(|i| {
+            ob(
+                i * 1_000_000,
+                Some(1_000_000_000_000_000 + i as i64 * 1_000_000 + 7_000_000),
+                ClockBasis::BootRelative,
+            )
+        }));
+        assert_eq!(gap(&jump, &c), ClockRateGap::OffsetDiscontinuity);
+        let mut reset = paired(101, 1_000_000, 0, 1_000_000_000_000_000, 0);
+        reset.push(ob(
+            50_500_000,
+            Some(1_000_000_000_000_000 + 50_500_000),
+            ClockBasis::BootRelative,
+        ));
+        let al = estimate_alignment(&reset, ClockBasis::BootRelative);
+        assert!(
+            !al.offset.expect("offset").discontinuity,
+            "the existing flag does not see this reset"
+        );
+        assert_eq!(
+            estimate_relative_rate(&reset, &al, &c).outcome,
+            ClockRateOutcome::InsufficientBasis(ClockRateGap::DeviceClockNotMonotonic)
+        );
+        let cross = align_by_start(&none, 1_788_166_800_000, 10_000_000).expect("aligned");
+        assert_eq!(
+            estimate_relative_rate(&none, &cross, &c).outcome,
+            ClockRateOutcome::InsufficientBasis(ClockRateGap::OffsetSourceNotInLogAnchor)
+        );
+        let host = paired(101, 1_000_000, 0, 1_000_000_000_000_000, 50);
+        let host_al = estimate_alignment(&host, ClockBasis::HostReceived);
+        assert_eq!(
+            estimate_relative_rate(&host, &host_al, &c).outcome,
+            ClockRateOutcome::InsufficientBasis(ClockRateGap::ClockBasisNotDeviceClock)
+        );
+    }
+
+    #[test]
+    fn the_assumed_drift_bound_keeps_its_meaning_and_the_observed_interval_does_not_touch_it() {
+        assert!((DRIFT_PPM_BOUND - 100.0).abs() < f64::EPSILON);
+        let obs = paired(101, 1_000_000, 0, 1_000_000_000_000_000, 50);
+        let before = estimate_alignment(&obs, ClockBasis::BootRelative);
+        let _ = estimate_relative_rate(&obs, &before, &cfg(100, 60_000_000, 1_000));
+        let after = estimate_alignment(&obs, ClockBasis::BootRelative);
+        assert_eq!(before, after);
+        assert_eq!(after.basis, ClockBasis::GpsLocked);
+        assert_eq!(after.offset.expect("offset").bound_us, 2_500);
     }
 
     #[test]

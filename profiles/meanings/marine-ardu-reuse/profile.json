@@ -1,0 +1,130 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "TimeUS": {
+      "meaning": "TimeUS",
+      "unit": "us_since_boot",
+      "basis": "declared"
+    },
+    "Mode": {
+      "meaning": "Mode",
+      "unit": "reported_number_with_explicit_vehicle_schema",
+      "basis": "declared"
+    },
+    "ModeNum": {
+      "meaning": "ModeNum",
+      "unit": "alias_of_Mode",
+      "basis": "declared"
+    },
+    "Rsn": {
+      "meaning": "Rsn",
+      "unit": "reported_reason_code_not_verified_cause",
+      "basis": "declared"
+    },
+    "reported_mode_name": {
+      "meaning": "reported_mode_name",
+      "unit": "declared_vehicle_mode_not_command_cause_or_motion",
+      "basis": "declared"
+    },
+    "reported_mode_known": {
+      "meaning": "reported_mode_known",
+      "unit": "known_schema_enum_not_enabled_build_feature",
+      "basis": "declared"
+    },
+    "reported_mode_schema": {
+      "meaning": "reported_mode_schema",
+      "unit": "explicit_vehicle_and_finite_source_version",
+      "basis": "declared"
+    },
+    "Maj": {
+      "meaning": "Maj",
+      "unit": "reported_firmware_major",
+      "basis": "declared"
+    },
+    "Min": {
+      "meaning": "Min",
+      "unit": "reported_firmware_minor",
+      "basis": "declared"
+    },
+    "Pat": {
+      "meaning": "Pat",
+      "unit": "reported_firmware_patch",
+      "basis": "declared"
+    },
+    "FWS": {
+      "meaning": "FWS",
+      "unit": "reported_firmware_string_from_fw_string_custom_or_THISFIRMWARE",
+      "basis": "declared"
+    },
+    "BU": {
+      "meaning": "BU",
+      "unit": "build_directory_code_preserved_not_decoded_not_MAV_TYPE_or_product",
+      "basis": "declared"
+    },
+    "reported_firmware_family": {
+      "meaning": "reported_firmware_family",
+      "unit": "ArduRover_or_ArduSub_family_not_product_or_vendor",
+      "basis": "declared"
+    },
+    "reported_firmware_version": {
+      "meaning": "reported_firmware_version",
+      "unit": "reported_firmware_version_not_installed_device_proof",
+      "basis": "declared"
+    },
+    "reported_firmware_suffix": {
+      "meaning": "reported_firmware_suffix",
+      "unit": "prerelease_suffix_preserved_means_not_the_pinned_stable_release",
+      "basis": "declared"
+    },
+    "reported_firmware_build_annotation": {
+      "meaning": "reported_firmware_build_annotation",
+      "unit": "git_version_appended_by_the_build_commit_not_resolved_here",
+      "basis": "declared"
+    },
+    "reported_vehicle_identity_basis": {
+      "meaning": "reported_vehicle_identity_basis",
+      "unit": "firmware_family_only_a_log_cannot_name_BlueBoat_or_BlueROV2",
+      "basis": "declared"
+    },
+    "declared_vehicle_agreement": {
+      "meaning": "declared_vehicle_agreement",
+      "unit": "caller_declaration_checked_against_the_logged_family_not_trusted_alone",
+      "basis": "declared"
+    },
+    "FWT": {
+      "meaning": "FWT",
+      "unit": "reported_firmware_version_type_byte_exactly_as_the_writer_stored_fw_type",
+      "basis": "declared"
+    },
+    "APJ": {
+      "meaning": "APJ",
+      "unit": "reported_APJ_BOARD_ID_exactly_as_stored_including_a_raw_zero_whose_cause_the_record_does_not_carry",
+      "basis": "declared"
+    },
+    "GH": {
+      "meaning": "GH",
+      "unit": "truncated_uint32_git_hash_of_the_source_commit_this_is_neither_a_build_number_nor_a_full_image_hash_and_is_not_resolved_here",
+      "basis": "declared"
+    },
+    "BT": {
+      "meaning": "BT",
+      "unit": "compile_time_board_type_code_a_board_class_not_a_hardware_revision_and_not_decoded_here",
+      "basis": "declared"
+    },
+    "BST": {
+      "meaning": "BST",
+      "unit": "compile_time_board_subtype_code_a_board_class_not_a_hardware_revision_and_not_decoded_here",
+      "basis": "declared"
+    },
+    "reported_release_channel_code": {
+      "meaning": "reported_release_channel_code",
+      "unit": "the_original_FWT_byte_kept_beside_the_channel_name_so_an_unbanded_value_stays_readable_blank_when_the_writer_layout_declared_no_such_column",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_supplied_capture_microseconds_not_map_creation_or_load_time",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "exact_input_document_digest_not_authenticity",
+      "basis": "declared"
+    },
+    "map_record_kind": {
+      "meaning": "map_record_kind",
+      "unit": "NODE_WAY_WAY_REF_RELATION_MEMBER_or_TAG_declaration_row",
+      "basis": "declared"
+    },
+    "map_element_index": {
+      "meaning": "map_element_index",
+      "unit": "zero_based_document_element_order_join_key",
+      "basis": "declared"
+    },
+    "map_element_id": {
+      "meaning": "map_element_id",
+      "unit": "declared_signed64_element_id_not_an_authenticated_identity",
+      "basis": "declared"
+    },
+    "map_owner_id": {
+      "meaning": "map_owner_id",
+      "unit": "declared_id_of_the_element_this_row_belongs_to",
+      "basis": "declared"
+    },
+    "map_member_ordinal": {
+      "meaning": "map_member_ordinal",
+      "unit": "zero_based_declared_position_nd_order_is_point_order",
+      "basis": "declared"
+    },
+    "map_reference_id": {
+      "meaning": "map_reference_id",
+      "unit": "declared_id_of_the_referenced_element_resolved_in_this_document_only",
+      "basis": "declared"
+    },
+    "map_reference_kind": {
+      "meaning": "map_reference_kind",
+      "unit": "node_way_or_relation_as_declared",
+      "basis": "declared"
+    },
+    "map_latitude_deg": {
+      "meaning": "map_latitude_deg",
+      "unit": "deg_declared_latitude_datum_not_in_file_never_projected",
+      "basis": "declared"
+    },
+    "map_longitude_deg": {
+      "meaning": "map_longitude_deg",
+      "unit": "deg_declared_longitude_datum_not_in_file_never_projected",
+      "basis": "declared"
+    },
+    "map_elevation_m": {
+      "meaning": "map_elevation_m",
+      "unit": "m_declared_ele_tag_over_WGS84_ellipsoid_empty_when_not_declared",
+      "basis": "declared"
+    },
+    "map_elevation_status": {
+      "meaning": "map_elevation_status",
+      "unit": "declared_or_ELEVATION_NOT_DECLARED_never_defaulted_to_zero",
+      "basis": "declared"
+    },
+    "map_coordinate_basis": {
+      "meaning": "map_coordinate_basis",
+      "unit": "declared_degrees_projection_and_frame_supplied_by_the_caller",
+      "basis": "declared"
+    },
+    "map_relation_type": {
+      "meaning": "map_relation_type",
+      "unit": "LANELET_REGULATORY_ELEMENT_MULTIPOLYGON_or_OTHER_UNQUALIFIED",
+      "basis": "declared"
+    },
+    "map_relation_subtype_hex": {
+      "meaning": "map_relation_subtype_hex",
+      "unit": "declared_subtype_UTF8_hex_meaning_decided_by_a_rule_library",
+      "basis": "declared"
+    },
+    "map_member_role_hex": {
+      "meaning": "map_member_role_hex",
+      "unit": "exact_declared_role_UTF8_hex",
+      "basis": "declared"
+    },
+    "map_member_role_meaning": {
+      "meaning": "map_member_role_meaning",
+      "unit": "established_role_meaning_or_UNQUALIFIED_ROLE",
+      "basis": "declared"
+    },
+    "map_way_kind": {
+      "meaning": "map_way_kind",
+      "unit": "POLYGON_DECLARED_AREA_TAG_or_LINESTRING_DEFAULT",
+      "basis": "declared"
+    },
+    "map_reference_count": {
+      "meaning": "map_reference_count",
+      "unit": "declared_child_reference_or_member_count",
+      "basis": "declared"
+    },
+    "map_tag_key_hex": {
+      "meaning": "map_tag_key_hex",
+      "unit": "declared_tag_key_UTF8_hex",
+      "basis": "declared"
+    },
+    "map_tag_value_hex": {
+      "meaning": "map_tag_value_hex",
+      "unit": "declared_tag_value_UTF8_hex_not_an_interpreted_value",
+      "basis": "declared"
+    },
+    "map_load_disposition": {
+      "meaning": "map_load_disposition",
+      "unit": "DECLARED_or_DELETED_ACTION_NOT_LOADED",
+      "basis": "declared"
+    },
+    "map_declaration_basis": {
+      "meaning": "map_declaration_basis",
+      "unit": "declared_map_not_projected_routed_or_certified",
+      "basis": "declared"
+    }
+  }
+}

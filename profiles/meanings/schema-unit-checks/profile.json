@@ -1,0 +1,115 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_of_the_callers_declared_capture_clock_a_comparison_has_no_clock_of_its_own_and_this_is_never_a_source_time",
+      "basis": "declared"
+    },
+    "record_time_basis": {
+      "meaning": "record_time_basis",
+      "unit": "states_that_the_time_is_the_callers_declared_capture_microseconds",
+      "basis": "declared"
+    },
+    "check_kind": {
+      "meaning": "check_kind",
+      "unit": "PROFILE_IDENTITY_or_SCHEMA_COLUMN_or_COLUMN_UNIT_naming_which_declaration_this_row_compared",
+      "basis": "declared"
+    },
+    "check_subject_hex": {
+      "meaning": "check_subject_hex",
+      "unit": "utf8_hex_of_the_column_name_or_identity_key_this_row_compared_retained_rather_than_interpreted",
+      "basis": "declared"
+    },
+    "expected_declared_hex": {
+      "meaning": "expected_declared_hex",
+      "unit": "utf8_hex_of_the_string_the_caller_declared_for_that_subject_blank_when_the_caller_declared_none",
+      "basis": "declared"
+    },
+    "actual_declared_hex": {
+      "meaning": "actual_declared_hex",
+      "unit": "utf8_hex_of_the_string_the_saved_read_report_declares_for_that_subject_blank_when_the_artefact_declares_none",
+      "basis": "declared"
+    },
+    "evidence_state": {
+      "meaning": "evidence_state",
+      "unit": "BOTH_SIDES_DECLARED_or_MISSING_DECLARED_BASIS_so_a_disagreement_is_never_confused_with_absent_evidence",
+      "basis": "declared"
+    },
+    "expected_quantity_kind": {
+      "meaning": "expected_quantity_kind",
+      "unit": "the_common_quantity_the_finite_source_qualified_unit_table_gives_for_the_expected_symbol_blank_when_that_string_is_not_a_symbol_in_it",
+      "basis": "declared"
+    },
+    "actual_quantity_kind": {
+      "meaning": "actual_quantity_kind",
+      "unit": "the_same_for_the_artefacts_declared_symbol_blank_when_that_string_is_not_a_symbol_in_the_finite_table",
+      "basis": "declared"
+    },
+    "expected_scale": {
+      "meaning": "expected_scale",
+      "unit": "the_scale_that_table_gives_for_the_expected_symbol_blank_when_not_interpreted",
+      "basis": "declared"
+    },
+    "actual_scale": {
+      "meaning": "actual_scale",
+      "unit": "the_scale_that_table_gives_for_the_artefacts_symbol_blank_when_not_interpreted",
+      "basis": "declared"
+    },
+    "expected_offset": {
+      "meaning": "expected_offset",
+      "unit": "the_offset_that_table_gives_for_the_expected_symbol_blank_when_not_interpreted_an_offset_is_why_degc_and_k_differ_without_a_scale_difference",
+      "basis": "declared"
+    },
+    "actual_offset": {
+      "meaning": "actual_offset",
+      "unit": "the_offset_that_table_gives_for_the_artefacts_symbol_blank_when_not_interpreted",
+      "basis": "declared"
+    },
+    "unit_interpretation_basis": {
+      "meaning": "unit_interpretation_basis",
+      "unit": "states_whether_both_declared_symbols_were_in_the_finite_table_and_so_interpreted_or_whether_the_two_declarations_were_compared_only_as_text_or_whether_one_side_declared_nothing",
+      "basis": "declared"
+    },
+    "comparison_basis": {
+      "meaning": "comparison_basis",
+      "unit": "states_that_a_row_is_a_disagreement_between_two_declarations_not_a_statement_that_either_side_is_wrong_not_an_integration_cause_not_a_physical_finding_and_never_a_unit_inferred_from_a_column_name_or_a_value",
+      "basis": "declared"
+    },
+    "expected_source": {
+      "meaning": "expected_source",
+      "unit": "names_the_callers_declared_expectation_document_as_the_source_of_the_expected_side",
+      "basis": "declared"
+    },
+    "actual_source": {
+      "meaning": "actual_source",
+      "unit": "names_which_field_of_the_saved_read_report_the_actual_side_came_from",
+      "basis": "declared"
+    },
+    "expectation_sha256": {
+      "meaning": "expectation_sha256",
+      "unit": "sha256_of_the_exact_expectation_document_compared",
+      "basis": "declared"
+    },
+    "read_report_sha256": {
+      "meaning": "read_report_sha256",
+      "unit": "sha256_of_the_exact_saved_read_report_compared",
+      "basis": "declared"
+    },
+    "artefact_input_sha256": {
+      "meaning": "artefact_input_sha256",
+      "unit": "the_input_digest_the_saved_read_report_itself_carries_for_the_artefact_it_read",
+      "basis": "declared"
+    },
+    "profile_source_sha256": {
+      "meaning": "profile_source_sha256",
+      "unit": "the_profile_digest_the_saved_read_report_itself_carries_blank_when_it_carries_none",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_supplied_capture_microseconds_the_State_message_carries_no_stamp",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "zero_based_line_order_in_the_saved_log",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact_saved_record_bytes_excluding_the_LF_or_CRLF_separator_whole_file_bytes_are_in_source_sha256",
+      "basis": "declared"
+    },
+    "schema_commit": {
+      "meaning": "schema_commit",
+      "unit": "qualified_robotnik_msgs_commit_engineer_declared_not_authenticated_firmware_identity",
+      "basis": "declared"
+    },
+    "rcomponent_topic_hex": {
+      "meaning": "rcomponent_topic_hex",
+      "unit": "declared_private_state_topic_UTF8_hex_not_an_authenticated_identity",
+      "basis": "declared"
+    },
+    "reported_state_code": {
+      "meaning": "reported_state_code",
+      "unit": "int32_component_state_constant_as_published",
+      "basis": "declared"
+    },
+    "reported_state_name": {
+      "meaning": "reported_state_name",
+      "unit": "INIT_STANDBY_READY_EMERGENCY_FAILURE_SHUTDOWN_UNKOWN_STATE_700_or_UNKNOWN_RETAINED",
+      "basis": "declared"
+    },
+    "reported_state_description_hex": {
+      "meaning": "reported_state_description_hex",
+      "unit": "exact_producer_text_UTF8_hex_never_repaired",
+      "basis": "declared"
+    },
+    "state_description_convention": {
+      "meaning": "state_description_convention",
+      "unit": "SHORT_CPP_LONG_PYTHON_or_UNRECOGNISED_TEXT_decided_by_the_two_producer_tables",
+      "basis": "declared"
+    },
+    "state_description_matches_code": {
+      "meaning": "state_description_matches_code",
+      "unit": "MATCHES_CODE_DISAGREES_WITH_CODE_or_NOT_A_PRODUCER_NAME_retained_never_corrected",
+      "basis": "declared"
+    },
+    "dashboard_highlight": {
+      "meaning": "dashboard_highlight",
+      "unit": "what_the_pinned_dashboard_colours_this_text_not_a_severity_or_health_verdict",
+      "basis": "declared"
+    },
+    "desired_loop_frequency_hz": {
+      "meaning": "desired_loop_frequency_hz",
+      "unit": "Hz_declared_control_loop_target_not_a_measurement",
+      "basis": "declared"
+    },
+    "real_loop_frequency_hz": {
+      "meaning": "real_loop_frequency_hz",
+      "unit": "Hz_component_self_measured_loop_rate_not_a_physical_or_health_diagnosis",
+      "basis": "declared"
+    },
+    "real_loop_frequency_status": {
+      "meaning": "real_loop_frequency_status",
+      "unit": "REPORTED_or_NONPOSITIVE_RETAINED_never_sanitised",
+      "basis": "declared"
+    },
+    "loop_frequency_basis": {
+      "meaning": "loop_frequency_basis",
+      "unit": "component_reported_loop_rate_not_the_dashboard_measured_message_arrival_rate",
+      "basis": "declared"
+    },
+    "state_time_basis": {
+      "meaning": "state_time_basis",
+      "unit": "caller_capture_clock_only_no_message_stamp_no_frame_no_UTC",
+      "basis": "declared"
+    }
+  }
+}

@@ -24,7 +24,6 @@ def profile(field="T", unit="ms"):
 
 class CounterRemapTests(unittest.TestCase):
     def test_copter_gps_schema_migration_requires_updated_clock_profile(self):
-        # Generated values: only field shapes follow the recorded schema distinction.
         position = {"Lat": 21.125, "Lng": -42.75, "Alt": 18.5, "Status": 3}
         unknown = {"future": [False, {"tag": "synthetic-only"}]}
         old = {"meta": {"type": "GPS"}, "data": {
@@ -168,7 +167,6 @@ class CounterRemapTests(unittest.TestCase):
         self.assertLess(len(encode([row])), 65536)
         with self.assertRaises(ValueError):
             MODULE.remap(encode([row]), profile())
-        # Each row fits individually; retained originals make the whole output too large.
         smaller = {**row, "pad": "x" * 16000}
         raw = encode([smaller] * 525)
         self.assertLess(len(raw), 16 * 1024 * 1024)

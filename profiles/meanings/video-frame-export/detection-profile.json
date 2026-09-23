@@ -1,0 +1,90 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_recorded_us_not_inference_or_image_exposure_UTC",
+      "basis": "declared"
+    },
+    "stream_index_configured": {
+      "meaning": "stream_index_configured",
+      "unit": "caller_label_not_camera_identity",
+      "basis": "declared"
+    },
+    "model_score_reported": {
+      "meaning": "model_score_reported",
+      "unit": "rounded_model_score_not_calibrated_probability_or_evidence_confidence",
+      "basis": "declared"
+    },
+    "class_id_reported": {
+      "meaning": "class_id_reported",
+      "unit": "model_local_class_index",
+      "basis": "declared"
+    },
+    "track_id_reported": {
+      "meaning": "track_id_reported",
+      "unit": "model_local_track_id_not_verified_object_identity",
+      "basis": "declared"
+    },
+    "box_x1_px": {
+      "meaning": "box_x1_px",
+      "unit": "image_pixel_x_min_not_world_position",
+      "basis": "declared"
+    },
+    "box_y1_px": {
+      "meaning": "box_y1_px",
+      "unit": "image_pixel_y_min_not_world_position",
+      "basis": "declared"
+    },
+    "box_x2_px": {
+      "meaning": "box_x2_px",
+      "unit": "image_pixel_x_max_not_world_position",
+      "basis": "declared"
+    },
+    "box_y2_px": {
+      "meaning": "box_y2_px",
+      "unit": "image_pixel_y_max_not_world_position",
+      "basis": "declared"
+    },
+    "width_px": {
+      "meaning": "width_px",
+      "unit": "caller_supplied_width_in_explicit_box_coordinate_basis",
+      "basis": "declared"
+    },
+    "height_px": {
+      "meaning": "height_px",
+      "unit": "caller_supplied_height_in_explicit_box_coordinate_basis",
+      "basis": "declared"
+    },
+    "box_coordinate_basis": {
+      "meaning": "box_coordinate_basis",
+      "unit": "original_image_or_pipeline_last_component_pixels_not_world_coordinates",
+      "basis": "declared"
+    },
+    "model_score_status": {
+      "meaning": "model_score_status",
+      "unit": "reported_or_explicit_source_unavailable_sentinel_not_zero_confidence",
+      "basis": "declared"
+    },
+    "track_id_text": {
+      "meaning": "track_id_text",
+      "unit": "exact_u64_text_not_verified_object_identity",
+      "basis": "declared"
+    },
+    "tracking_status": {
+      "meaning": "tracking_status",
+      "unit": "reported_tracking_state_not_identity_verification",
+      "basis": "declared"
+    },
+    "source_record_sha256": {
+      "meaning": "source_record_sha256",
+      "unit": "SHA256_exact_UTF8_envelope_line_in_report_not_authentication",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "profile_id": "moos_declarations_f56c",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "caller_declared_capture_microseconds_no_time_exists_in_the_saved_declaration_file",
+    "source_document_sha256": "exact_input_document_digest_not_authenticity",
+    "declaration_kind": "mission_global_or_process_setting_process_block_behavior_block_setting_initialize_mode_set_or_mode_condition_row",
+    "scope_kind": "global_process_behavior_or_mode_set_as_the_file_structures_it_not_a_runtime_scope",
+    "scope_name": "authored_process_behavior_or_mode_variable_name_exact_case",
+    "scope_occurrence": "one_based_occurrence_of_that_named_block_in_file_order",
+    "setting_name": "authored_parameter_name_exact_case",
+    "setting_name_folded": "lowercased_lookup_form_as_the_pinned_reader_folds_it",
+    "setting_value_hex": "hex_encoded_authored_value_byte_exact_reversible_never_reformatted_or_projected",
+    "setting_value_stripped_hex": "hex_encoded_same_value_with_spaces_and_tabs_removed_as_the_default_reader_yields",
+    "value_kind": "integer_decimal_boolean_or_string_only_for_an_unambiguous_literal",
+    "value_number": "parsed_number_only_when_value_kind_is_numeric_or_boolean_else_empty",
+    "assignment_order": "one_based_position_within_its_scope_in_file_order_also_the_declared_order_of_a_mode_set_condition",
+    "setting_occurrence": "one_based_repeat_index_of_this_name_within_its_scope",
+    "accumulates_upstream": "accumulates_overwrites_or_per_key_only_for_names_the_pinned_base_class_handles_else_unqualified_empty_where_the_row_is_not_a_parameter_and_never_applied_here",
+    "expression_basis": "condition_parameters_and_mode_set_conditions_retained_unevaluated_never_executed_here",
+    "source_line": "one_based_first_line_number_in_the_saved_declaration_file",
+    "source_line_end": "one_based_last_line_number_of_the_same_declaration_equal_to_source_line_unless_a_continuation_spans_several",
+    "source_text_hex": "hex_encoded_exact_authored_line_or_newline_joined_lines_retained_for_reference",
+    "lexical_text_hex": "hex_encoded_unit_this_importer_parsed_equal_to_source_text_unless_a_continuation_was_joined_or_a_brace_split_off",
+    "source_text_basis": "whether_source_text_is_the_exact_authored_line_or_the_lexical_text_is_a_reconstruction",
+    "interpretation_basis": "declared_configuration_not_observed_behavior_status_or_command"
+  }
+}

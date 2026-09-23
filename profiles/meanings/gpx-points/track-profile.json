@@ -1,0 +1,90 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_caller_capture_not_track_or_device_time_the_saved_file_carries_no_timestamp_of_any_kind",
+      "basis": "declared"
+    },
+    "point_index": {
+      "meaning": "point_index",
+      "unit": "zero_based_position_of_this_declared_point_in_the_whole_saved_file_in_writer_order",
+      "basis": "declared"
+    },
+    "track_index": {
+      "meaning": "track_index",
+      "unit": "zero_based_position_of_the_track_block_in_the_saved_file_which_is_the_identity_the_producer_uses_and_not_an_authenticated_or_stable_name",
+      "basis": "declared"
+    },
+    "point_in_track": {
+      "meaning": "point_in_track",
+      "unit": "zero_based_position_within_its_track_reference_point_A_then_B_then_the_curve_points_in_saved_order",
+      "basis": "declared"
+    },
+    "point_role": {
+      "meaning": "point_role",
+      "unit": "REFERENCE_A_DECLARED_or_REFERENCE_B_DECLARED_for_the_two_point_reference_line_every_track_stores_or_CURVE_POINT_DECLARED_for_a_point_of_the_saved_curve_list_read_track_geometry_basis_to_know_which_of_the_two_the_declared_mode_designates",
+      "basis": "declared"
+    },
+    "track_name_hex": {
+      "meaning": "track_name_hex",
+      "unit": "utf8_hex_of_the_operator_chosen_track_name_exactly_as_saved_an_untrusted_label_never_a_field_identity_and_never_a_source_of_any_other_field",
+      "basis": "declared"
+    },
+    "track_mode_code": {
+      "meaning": "track_mode_code",
+      "unit": "the_raw_integer_the_producer_wrote_for_the_track_mode_kept_beside_the_name_including_a_value_the_pinned_enumeration_does_not_define",
+      "basis": "declared"
+    },
+    "track_mode_reported": {
+      "meaning": "track_mode_reported",
+      "unit": "the_pinned_enumeration_member_for_that_code_None_AB_Curve_bndTrackOuter_bndTrackInner_bndCurve_or_waterPivot_and_UNKNOWN_n_for_any_other_number_which_is_retained_and_never_renamed_into_a_known_mode",
+      "basis": "declared"
+    },
+    "track_nudge_distance_m": {
+      "meaning": "track_nudge_distance_m",
+      "unit": "m_the_saved_lateral_offset_the_operator_had_applied_to_this_track_a_declared_adjustment_of_the_plan_and_never_an_executed_movement_or_a_measured_error",
+      "basis": "declared"
+    },
+    "track_visible_reported": {
+      "meaning": "track_visible_reported",
+      "unit": "1_or_0_for_the_saved_visibility_flag_which_is_a_display_choice_in_the_producer_and_says_nothing_about_whether_the_track_was_used_worked_or_driven",
+      "basis": "declared"
+    },
+    "track_curve_point_count": {
+      "meaning": "track_curve_point_count",
+      "unit": "how_many_curve_points_the_producer_declared_for_this_track_zero_is_a_valid_saved_track_that_stores_only_its_two_reference_points",
+      "basis": "declared"
+    },
+    "easting_m": {
+      "meaning": "easting_m",
+      "unit": "m_local_field_origin_unresolved",
+      "basis": "declared"
+    },
+    "northing_m": {
+      "meaning": "northing_m",
+      "unit": "m_local_field_origin_unresolved",
+      "basis": "declared"
+    },
+    "heading_rad": {
+      "meaning": "heading_rad",
+      "unit": "rad_declared_not_device_heading",
+      "basis": "declared"
+    },
+    "coordinate_basis": {
+      "meaning": "coordinate_basis",
+      "unit": "LOCAL_FIELD_ORIGIN_UNRESOLVED_NOT_WGS84_the_saved_track_file_stores_no_origin_the_producer_keeps_a_declared_StartFix_origin_in_a_separate_field_file_that_is_not_read_here_so_no_geodetic_or_projected_coordinate_is_produced_and_none_is_inferred",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "sha256_of_the_exact_saved_track_file_this_row_came_from_binding_the_row_to_its_original_bytes_and_never_an_authenticity_or_approval_claim",
+      "basis": "declared"
+    }
+  }
+}

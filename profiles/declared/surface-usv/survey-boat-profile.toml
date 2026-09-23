@@ -1,0 +1,19 @@
+profile_id = "survey_boat_surface_declared_v1"
+version = "1"
+family = "unknown"
+platform_domain = "surface"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "boot_relative"
+channels = ["onboard"]
+
+[fields]
+time = "t_us_since_power_on"
+
+[units]
+t_us_since_power_on = "us_since_power_on_not_wall_clock"
+depth_below_transducer_m = "m_below_transducer_not_geodetic_altitude"
+bus_voltage_v = "V_reported_not_calibrated"
+port_thruster_pwm_us = "us_command_echo_not_measured_thrust"
+starboard_thruster_pwm_us = "us_command_echo_not_measured_thrust"

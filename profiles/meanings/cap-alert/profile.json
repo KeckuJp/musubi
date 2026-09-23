@@ -1,0 +1,150 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "alert_identifier": {
+      "meaning": "alert_identifier",
+      "unit": "the_identifier_the_sender_assigned_this_message_which_the_pinned_schema_says_must_not_include_spaces_commas_or_the_restricted_characters_it_is_unique_only_as_far_as_that_sender_guarantees_and_is_never_authenticated_or_checked_against_any_registry",
+      "basis": "declared"
+    },
+    "alert_sent_text": {
+      "meaning": "alert_sent_text",
+      "unit": "the_exact_dateTime_text_the_sender_wrote_for_sent_preserved_unchanged_beside_the_microsecond_column_so_the_producers_own_spelling_including_its_offset_is_never_lost_to_normalisation",
+      "basis": "declared"
+    },
+    "alert_sent_offset": {
+      "meaning": "alert_sent_offset",
+      "unit": "the_numeric_offset_the_sender_wrote_on_sent_carried_separately_because_the_pinned_schema_makes_it_mandatory_states_that_an_alphabetic_designator_such_as_Z_must_not_be_used_and_requires_UTC_to_be_written_as_minus_zero_zero_colon_zero_zero",
+      "basis": "declared"
+    },
+    "alert_msg_type": {
+      "meaning": "alert_msg_type",
+      "unit": "the_senders_declared_message_nature_from_the_pinned_schemas_own_enumeration_Alert_Update_Cancel_Ack_or_Error_it_says_what_the_sender_intended_this_message_to_do_to_earlier_ones_and_this_tool_neither_acts_on_it_nor_acknowledges_anything",
+      "basis": "declared"
+    },
+    "alert_scope": {
+      "meaning": "alert_scope",
+      "unit": "the_senders_declared_intended_distribution_from_the_pinned_schemas_own_enumeration_Public_Restricted_or_Private_it_records_what_the_sender_intended_and_is_NEVER_a_permission_granted_by_this_tool_nor_an_instruction_to_distribute_anything_anywhere",
+      "basis": "declared"
+    },
+    "alert_source_hex": {
+      "meaning": "alert_source_hex",
+      "unit": "utf8_hex_of_the_senders_optional_free_text_source_which_the_pinned_schema_describes_as_the_particular_source_of_the_alert_it_is_the_producers_own_words_and_supplies_no_verified_provenance",
+      "basis": "declared"
+    },
+    "alert_reference_count": {
+      "meaning": "alert_reference_count",
+      "unit": "how_many_whitespace_separated_earlier_message_identifiers_the_references_group_listed_zero_when_the_producer_declared_none_it_counts_declarations_in_this_file_and_never_messages_this_tool_has_seen",
+      "basis": "declared"
+    },
+    "info_index": {
+      "meaning": "info_index",
+      "unit": "zero_based_position_of_this_info_block_in_the_alert_source_order_only_blank_on_an_ALERT_WITHOUT_INFO_row_the_pinned_schema_permits_several_info_blocks_in_one_alert_and_none_of_them_is_treated_as_the_authoritative_one",
+      "basis": "declared"
+    },
+    "info_count": {
+      "meaning": "info_count",
+      "unit": "how_many_info_blocks_the_alert_declared_so_a_reader_of_any_single_row_can_tell_that_other_classifications_of_the_same_alert_exist_beside_it",
+      "basis": "declared"
+    },
+    "info_language_hex": {
+      "meaning": "info_language_hex",
+      "unit": "utf8_hex_of_the_optional_language_the_pinned_schema_attaches_to_this_info_block_carried_because_multiple_info_blocks_in_one_alert_are_commonly_language_variants_and_this_is_what_tells_them_apart_blank_when_the_producer_declared_none",
+      "basis": "declared"
+    },
+    "info_category_count": {
+      "meaning": "info_category_count",
+      "unit": "how_many_categories_the_producer_declared_on_this_info_block_at_least_one_because_the_pinned_schema_requires_it_it_makes_the_multiplicity_visible_rather_than_hidden_inside_the_joined_column",
+      "basis": "declared"
+    },
+    "info_event_hex": {
+      "meaning": "info_event_hex",
+      "unit": "utf8_hex_of_the_required_free_text_event_which_the_pinned_schema_describes_as_the_text_denoting_the_type_of_the_subject_event_it_is_the_producers_own_wording_declares_no_enumeration_and_supplies_no_agency_taxonomy_or_hazard_semantics",
+      "basis": "declared"
+    },
+    "info_urgency": {
+      "meaning": "info_urgency",
+      "unit": "the_senders_declared_urgency_from_the_pinned_enumeration_Immediate_Expected_Future_Past_or_Unknown_it_is_the_senders_classification_of_the_time_available_and_is_never_independently_assessed_here",
+      "basis": "declared"
+    },
+    "info_severity": {
+      "meaning": "info_severity",
+      "unit": "the_senders_declared_severity_from_the_pinned_enumeration_Extreme_Severe_Moderate_Minor_or_Unknown_it_is_the_senders_classification_of_the_intensity_of_the_threat_they_report_and_is_NEVER_a_measured_quantity_a_verified_impact_or_this_tools_own_judgement",
+      "basis": "declared"
+    },
+    "info_certainty": {
+      "meaning": "info_certainty",
+      "unit": "the_senders_declared_certainty_from_the_pinned_enumeration_Observed_Likely_Possible_Unlikely_or_Unknown_a_value_of_Observed_is_the_SENDERS_statement_that_they_observed_it_and_is_never_this_tools_confirmation_that_anything_was_observed_by_anyone",
+      "basis": "declared"
+    },
+    "info_onset_text": {
+      "meaning": "info_onset_text",
+      "unit": "the_optional_onset_dateTime_exactly_as_the_producer_wrote_it_which_the_pinned_schema_describes_as_the_expected_time_of_the_beginning_of_the_subject_event_it_is_the_senders_expectation_and_never_an_observed_start_blank_when_they_declared_none",
+      "basis": "declared"
+    },
+    "info_expires_text": {
+      "meaning": "info_expires_text",
+      "unit": "the_optional_expires_dateTime_exactly_as_the_producer_wrote_it_blank_when_the_producer_declared_none_a_blank_means_they_stated_no_expiry_and_is_NEVER_read_as_the_information_being_valid_indefinitely_or_as_having_expired",
+      "basis": "declared"
+    },
+    "area_index": {
+      "meaning": "area_index",
+      "unit": "zero_based_position_of_this_area_block_within_its_info_block_source_order_only_blank_on_a_row_that_carries_no_area_the_pinned_schema_permits_several_area_blocks_and_none_is_treated_as_the_principal_one",
+      "basis": "declared"
+    },
+    "area_count": {
+      "meaning": "area_count",
+      "unit": "how_many_area_blocks_the_info_block_declared_so_a_reader_of_any_single_row_can_tell_that_other_declared_areas_of_the_same_classification_exist_beside_it",
+      "basis": "declared"
+    },
+    "area_desc_hex": {
+      "meaning": "area_desc_hex",
+      "unit": "utf8_hex_of_the_required_free_text_areaDesc_which_the_pinned_schema_defines_as_a_text_description_of_the_affected_area_it_is_the_producers_own_wording_and_no_coordinates_place_names_or_boundaries_are_derived_from_it_here",
+      "basis": "declared"
+    },
+    "area_circle_count": {
+      "meaning": "area_circle_count",
+      "unit": "how_many_circle_elements_the_area_declared_the_pinned_schema_permits_several_within_one_area_block_and_this_count_is_what_makes_the_split_out_centre_columns_safe_to_read",
+      "basis": "declared"
+    },
+    "area_polygon_count": {
+      "meaning": "area_polygon_count",
+      "unit": "how_many_polygon_elements_the_area_declared_the_pinned_schema_permits_multiple_instances_within_one_area_block",
+      "basis": "declared"
+    },
+    "area_polygon_point_count": {
+      "meaning": "area_polygon_point_count",
+      "unit": "total_number_of_coordinate_pairs_across_every_declared_polygon_in_this_area_the_pinned_schema_requires_at_least_four_pairs_per_polygon_and_that_the_first_and_last_be_the_same_both_of_which_are_checked_rather_than_assumed",
+      "basis": "declared"
+    },
+    "area_polygon_list_hex": {
+      "meaning": "area_polygon_list_hex",
+      "unit": "hex_of_a_JSON_LIST_of_EVERY_declared_polygon_exactly_as_written_one_list_element_per_polygon_so_the_boundary_between_two_polygons_survives_which_a_flattened_join_would_destroy_no_bounding_box_centroid_or_simplification_is_computed_from_it_here",
+      "basis": "declared"
+    },
+    "area_geocode_count": {
+      "meaning": "area_geocode_count",
+      "unit": "how_many_geocode_elements_the_area_declared_each_of_which_the_pinned_schema_defines_as_a_valueName_and_a_value",
+      "basis": "declared"
+    },
+    "area_altitude_ft": {
+      "meaning": "area_altitude_ft",
+      "unit": "the_declared_altitude_in_FEET_above_mean_sea_level_per_the_WGS84_datum_because_the_pinned_schema_states_that_unit_and_that_datum_carried_as_the_producers_own_text_blank_when_none_was_declared_and_a_blank_is_never_read_as_ground_level_or_zero",
+      "basis": "declared"
+    },
+    "area_ceiling_ft": {
+      "meaning": "area_ceiling_ft",
+      "unit": "the_declared_ceiling_in_FEET_above_mean_sea_level_per_the_WGS84_datum_which_the_pinned_schema_says_MUST_NOT_be_used_except_in_combination_with_altitude_a_ceiling_without_an_altitude_is_refused_outright_rather_than_carried_blank_when_none_was_declared",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "SHA256_of_the_exact_saved_CAP_file_these_values_were_read_from_binding_every_row_to_the_one_file_that_declared_it_and_authenticating_nothing_about_the_sender_or_the_content",
+      "basis": "declared"
+    }
+  }
+}

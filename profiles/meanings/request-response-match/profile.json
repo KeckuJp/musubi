@@ -1,0 +1,95 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "the_saved_requests_own_time_in_microseconds_on_whatever_clock_the_bound_file_carries_it_orders_the_comparison_rows_and_is_never_a_synchronised_or_authenticated_clock_and_never_a_time_at_which_anything_physically_happened",
+      "basis": "declared"
+    },
+    "request_row_index": {
+      "meaning": "request_row_index",
+      "unit": "zero_based_position_of_the_selected_request_in_the_saved_file_source_order_only_so_the_engineer_can_go_back_to_the_exact_row_and_never_a_message_sequence_number_because_the_pinned_messages_carry_none",
+      "basis": "declared"
+    },
+    "request_key_hex": {
+      "meaning": "request_key_hex",
+      "unit": "utf8_hex_of_the_value_in_the_callers_declared_correlation_column_on_that_request_row_it_is_the_ONLY_linkage_the_pinned_messages_offer_and_it_is_never_unique_to_one_exchange",
+      "basis": "declared"
+    },
+    "request_session_hex": {
+      "meaning": "request_session_hex",
+      "unit": "utf8_hex_of_the_callers_declared_session_column_on_the_request_row_blank_when_no_session_was_declared_a_session_is_the_callers_grouping_of_a_saved_file_and_never_a_protocol_session_because_the_pinned_messages_define_none",
+      "basis": "declared"
+    },
+    "candidate_count": {
+      "meaning": "candidate_count",
+      "unit": "how_many_saved_rows_passed_every_declared_filter_for_this_request_a_count_within_this_file_only_more_than_one_is_ambiguity_and_never_a_reason_to_pick_the_nearest_the_first_or_the_last",
+      "basis": "declared"
+    },
+    "response_row_index": {
+      "meaning": "response_row_index",
+      "unit": "zero_based_position_of_the_single_candidate_in_the_saved_file_blank_unless_exactly_one_candidate_passed_and_the_row_was_not_ambiguous_so_a_reader_can_open_the_exact_row_that_was_compared",
+      "basis": "declared"
+    },
+    "response_record_time_us": {
+      "meaning": "response_record_time_us",
+      "unit": "the_candidates_own_saved_time_in_microseconds_on_the_same_bound_file_clock_blank_when_no_single_candidate_was_compared",
+      "basis": "declared"
+    },
+    "response_elapsed_us": {
+      "meaning": "response_elapsed_us",
+      "unit": "candidate_time_minus_request_time_in_microseconds_a_difference_between_two_saved_numbers_on_one_declared_clock_it_is_never_a_measured_latency_a_round_trip_time_or_a_device_response_time",
+      "basis": "declared"
+    },
+    "expectation_pairs_hex": {
+      "meaning": "expectation_pairs_hex",
+      "unit": "utf8_hex_of_a_JSON_array_of_the_request_column_and_response_column_pairs_the_caller_asked_to_compare_carried_on_every_row_so_the_comparison_that_was_actually_requested_is_visible_even_when_nothing_was_compared",
+      "basis": "declared"
+    },
+    "differing_expectation_hex": {
+      "meaning": "differing_expectation_hex",
+      "unit": "utf8_hex_of_a_JSON_array_of_exactly_those_declared_pairs_whose_saved_texts_differed_blank_unless_the_outcome_is_MISMATCHED_a_difference_between_two_saved_texts_is_never_a_fault_a_rejection_or_a_device_verdict",
+      "basis": "declared"
+    },
+    "unknown_expectation_hex": {
+      "meaning": "unknown_expectation_hex",
+      "unit": "utf8_hex_of_a_JSON_array_of_declared_pairs_whose_response_column_was_empty_on_the_candidate_blank_unless_the_outcome_is_UNKNOWN_an_empty_field_is_never_read_as_a_match_and_never_as_a_mismatch",
+      "basis": "declared"
+    },
+    "declared_window_us": {
+      "meaning": "declared_window_us",
+      "unit": "the_window_in_microseconds_the_caller_declared_applied_half_open_after_the_request_up_to_and_including_request_time_plus_window_it_is_the_callers_choice_and_never_a_protocol_timeout_because_the_pinned_documentation_states_none",
+      "basis": "declared"
+    },
+    "declared_clock_qualification": {
+      "meaning": "declared_clock_qualification",
+      "unit": "whether_the_caller_declared_the_clock_basis_qualified_for_this_window_when_not_declared_every_row_is_ambiguous_on_the_clock_because_a_window_over_an_unqualified_clock_bounds_nothing",
+      "basis": "declared"
+    },
+    "equal_time_policy": {
+      "meaning": "equal_time_policy",
+      "unit": "fixed_sentence_saying_that_rows_sharing_one_saved_time_keep_the_order_the_file_gives_them_that_this_order_is_never_read_as_causality_and_that_a_response_at_the_requests_own_instant_is_not_after_it_and_is_never_a_candidate",
+      "basis": "declared"
+    },
+    "request_join_hex": {
+      "meaning": "request_join_hex",
+      "unit": "utf8_hex_of_a_JSON_array_of_column_and_value_which_together_with_source_sha256_and_request_row_index_selects_the_original_request_row_the_comparison_was_read_from",
+      "basis": "declared"
+    },
+    "response_join_hex": {
+      "meaning": "response_join_hex",
+      "unit": "utf8_hex_of_the_same_join_shape_for_the_single_compared_candidate_blank_when_none_was_compared_so_a_reader_can_reproduce_both_sides_from_the_original_file",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "SHA256_of_the_exact_saved_observations_file_both_sides_were_read_from_binding_the_bytes_and_authenticating_nothing",
+      "basis": "declared"
+    }
+  }
+}

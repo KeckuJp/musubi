@@ -1,0 +1,110 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "solution_time_system": {
+      "meaning": "solution_time_system",
+      "unit": "GPST_or_UTC_or_JST_exactly_as_the_pinned_writer_names_it_in_the_header_from_its_own_options_table_these_differ_by_leap_seconds_and_by_nine_hours_so_the_token_is_load_bearing_and_is_NEVER_inferred_from_a_column_name_or_assumed_from_a_default",
+      "basis": "declared"
+    },
+    "latitude_deg": {
+      "meaning": "latitude_deg",
+      "unit": "degrees_of_latitude_as_the_producer_wrote_them_the_pinned_writer_emits_the_geodetic_latitude_from_its_own_ECEF_to_geodetic_conversion_in_decimal_degrees_carried_as_the_producers_exact_text_and_never_reprojected_or_recomputed_here",
+      "basis": "declared"
+    },
+    "longitude_deg": {
+      "meaning": "longitude_deg",
+      "unit": "degrees_of_longitude_as_the_producer_wrote_them_in_decimal_degrees_carried_as_the_producers_exact_text_the_degree_minute_second_spelling_of_the_same_writer_is_a_DIFFERENT_layout_and_is_refused_rather_than_parsed_by_resemblance",
+      "basis": "declared"
+    },
+    "horizontal_datum": {
+      "meaning": "horizontal_datum",
+      "unit": "WGS84_or_Tokyo_exactly_as_the_pinned_writer_names_it_in_the_same_optional_header_line_the_two_are_different_horizontal_datums_and_no_datum_transformation_is_performed_or_implied_by_this_path",
+      "basis": "declared"
+    },
+    "datum_basis": {
+      "meaning": "datum_basis",
+      "unit": "whether_the_datum_came_from_the_producers_own_saved_header_or_was_caller_declared_because_the_header_omitted_it_with_the_same_non_provenance_and_contradiction_rules_as_the_height_reference",
+      "basis": "declared"
+    },
+    "solution_quality_code": {
+      "meaning": "solution_quality_code",
+      "unit": "the_producers_own_reported_solution_status_number_from_its_pinned_enumeration_the_writer_SUPPRESSES_a_row_whose_status_is_zero_so_zero_never_appears_and_a_number_outside_the_enumeration_is_refused_rather_than_carried",
+      "basis": "declared"
+    },
+    "solution_quality_name": {
+      "meaning": "solution_quality_name",
+      "unit": "the_pinned_enumerations_own_name_for_that_number_FIX_FLOAT_SBAS_DGPS_SINGLE_PPP_or_DEAD_RECKONING_it_is_the_SOLVERS_LABEL_FOR_ITS_OWN_RESULT_and_is_never_a_measured_error_a_confidence_or_evidence_that_the_position_is_correct",
+      "basis": "declared"
+    },
+    "satellites_used_reported": {
+      "meaning": "satellites_used_reported",
+      "unit": "the_count_of_satellites_the_producer_reported_using_for_this_epoch_a_reported_count_and_never_a_verified_observation_of_which_satellites_were_visible_or_healthy",
+      "basis": "declared"
+    },
+    "sdn_m": {
+      "meaning": "sdn_m",
+      "unit": "metres_the_producers_reported_north_spread_which_the_pinned_writer_takes_as_the_square_root_of_the_ENU_covariance_element_the_writer_reads_at_index_FOUR_for_north_it_is_the_producers_own_report_and_never_an_independently_verified_accuracy",
+      "basis": "declared"
+    },
+    "sde_m": {
+      "meaning": "sde_m",
+      "unit": "metres_the_producers_reported_east_spread_which_the_pinned_writer_takes_from_the_element_it_reads_at_index_ZERO_so_north_and_east_are_NOT_in_the_naive_index_order_and_the_two_columns_must_not_be_swapped_by_a_reader_assuming_otherwise",
+      "basis": "declared"
+    },
+    "sdu_m": {
+      "meaning": "sdu_m",
+      "unit": "metres_the_producers_reported_up_spread_from_the_third_diagonal_element_of_the_same_rotated_covariance",
+      "basis": "declared"
+    },
+    "sdeu_signed_m": {
+      "meaning": "sdeu_signed_m",
+      "unit": "the_same_signed_square_root_for_the_east_up_cross_term_with_the_same_non_deviation_meaning",
+      "basis": "declared"
+    },
+    "sdun_signed_m": {
+      "meaning": "sdun_signed_m",
+      "unit": "the_same_signed_square_root_for_the_up_north_cross_term_with_the_same_non_deviation_meaning",
+      "basis": "declared"
+    },
+    "age_of_differential_s": {
+      "meaning": "age_of_differential_s",
+      "unit": "seconds_of_age_the_producer_reported_for_the_differential_correction_it_used_a_reported_age_and_never_a_verified_latency_measurement",
+      "basis": "declared"
+    },
+    "ambiguity_ratio_reported": {
+      "meaning": "ambiguity_ratio_reported",
+      "unit": "the_producers_reported_ambiguity_resolution_ratio_which_is_UNITLESS_and_is_the_solvers_own_internal_test_statistic_it_is_NOT_a_probability_NOT_a_confidence_and_NOT_a_measure_of_positional_accuracy",
+      "basis": "declared"
+    },
+    "source_line": {
+      "meaning": "source_line",
+      "unit": "one_based_line_of_this_solution_epoch_in_the_saved_file_source_order_only_never_a_sequence_of_anything_physical",
+      "basis": "declared"
+    },
+    "uncarried_column_count": {
+      "meaning": "uncarried_column_count",
+      "unit": "how_many_columns_the_producers_own_header_declared_that_this_path_gives_no_column_to_for_example_the_nine_velocity_columns_the_writer_appends_when_its_velocity_option_is_set_a_nonzero_count_means_the_file_carries_more_than_this_output_does",
+      "basis": "declared"
+    },
+    "uncarried_column_names_hex": {
+      "meaning": "uncarried_column_names_hex",
+      "unit": "hex_of_a_JSON_LIST_of_those_uncarried_column_names_exactly_as_the_producer_labelled_them_THEIR_VALUES_ARE_NOT_CARRIED_ANYWHERE_and_recovering_them_requires_the_original_file_identified_by_source_sha256_which_the_caller_must_retain",
+      "basis": "declared"
+    },
+    "header_line_count": {
+      "meaning": "header_line_count",
+      "unit": "how_many_comment_lines_the_saved_file_began_with_counted_so_a_reader_can_tell_that_producer_stated_context_exists_beyond_the_few_lines_carried_below",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "SHA256_of_the_exact_saved_solution_file_these_rows_were_read_from_binding_every_row_to_the_one_file_that_declared_it_and_authenticating_nothing_about_the_producer_or_the_position",
+      "basis": "declared"
+    }
+  }
+}

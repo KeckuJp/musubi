@@ -1,0 +1,71 @@
+{
+  "profile_id": "upstream_px4_ulog_selected_for_suite_candidate_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "fc",
+  "format": "px4_ulog",
+  "extensions": [
+    "ulg"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "onboard",
+    "gps_ekf",
+    "event"
+  ],
+  "fields": {
+    "time": "timestamp",
+    "status": [
+      "vehicle_status.nav_state",
+      "vehicle_status.failsafe",
+      "vehicle_status.arming_state"
+    ],
+    "gps": [
+      "sensor_gps.fix_type",
+      "sensor_gps.satellites_used",
+      "sensor_gps.eph"
+    ]
+  },
+  "units": {
+    "vehicle_local_position.timestamp": "us_time_since_system_start_declared_by_the_source_not_UTC_and_not_a_named_clock_domain",
+    "vehicle_local_position.timestamp_sample": "us_the_timestamp_of_the_raw_data_declared_by_the_source_kept_beside_the_record_timestamp_and_never_merged_with_it",
+    "vehicle_local_position.x": "m_north_position_in_the_NED_earth_fixed_frame_whose_origin_the_source_states_is_the_vehicle_position_when_the_EKF2_module_was_started_so_it_is_an_offset_from_that_origin_and_never_geodetic",
+    "vehicle_local_position.y": "m_east_position_in_the_same_NED_earth_fixed_frame_under_the_same_EKF_start_origin",
+    "vehicle_local_position.z": "m_down_position_which_the_source_calls_negative_altitude_in_the_same_NED_earth_fixed_frame_under_the_same_EKF_start_origin_and_never_an_absolute_altitude",
+    "vehicle_local_position.xy_valid": "declared_flag_the_source_states_is_true_if_x_and_y_are_valid_a_reported_validity_statement_and_never_a_measurement_a_record_carrying_false_is_still_decoded_and_still_counted",
+    "vehicle_local_position.z_valid": "declared_flag_the_source_states_is_true_if_z_is_valid_under_the_same_rule",
+    "vehicle_local_position.v_xy_valid": "declared_flag_the_source_states_is_true_if_vx_and_vy_are_valid_under_the_same_rule",
+    "vehicle_local_position.v_z_valid": "declared_flag_the_source_states_is_true_if_vz_is_valid_under_the_same_rule",
+    "vehicle_local_position.vx": "m_per_s_north_velocity_in_the_NED_earth_fixed_frame_exactly_as_the_source_declares_it",
+    "vehicle_local_position.vy": "m_per_s_east_velocity_in_the_same_declared_frame",
+    "vehicle_local_position.vz": "m_per_s_down_velocity_in_the_same_declared_frame_positive_down_as_the_frame_name_states_and_nothing_is_negated_here",
+    "vehicle_local_position.heading": "rad_euler_yaw_angle_which_the_source_states_transforms_the_tangent_plane_relative_to_the_NED_earth_fixed_frame_in_the_range_minus_pi_to_plus_pi_and_is_not_a_magnetic_or_true_north_heading_claim",
+    "vehicle_local_position.xy_global": "declared_flag_the_source_states_is_true_if_position_x_y_has_a_valid_global_reference_in_ref_lat_and_ref_lon_so_without_it_the_local_origin_is_unresolved",
+    "vehicle_local_position.z_global": "declared_flag_the_source_states_is_true_if_z_has_a_valid_global_reference_in_ref_alt",
+    "vehicle_local_position.ref_lat": "deg_latitude_of_the_local_NED_frame_origin_which_the_source_places_in_the_global_GPS_WGS84_frame_it_is_the_origin_of_the_offsets_above_and_not_the_vehicle_position",
+    "vehicle_local_position.ref_lon": "deg_longitude_of_that_same_local_frame_origin_under_the_same_declared_global_frame",
+    "vehicle_local_position.ref_alt": "m_reference_altitude_AMSL_of_that_same_origin_as_the_source_declares_it",
+    "vehicle_local_position.eph": "m_standard_deviation_of_horizontal_position_error_as_the_source_declares_it_an_estimator_report_and_never_a_certified_bound",
+    "vehicle_local_position.epv": "m_standard_deviation_of_vertical_position_error_under_the_same_rule",
+    "vehicle_local_position.evh": "m_per_s_standard_deviation_of_horizontal_velocity_error_under_the_same_rule",
+    "vehicle_local_position.evv": "m_per_s_standard_deviation_of_vertical_velocity_error_under_the_same_rule",
+    "vehicle_local_position.dead_reckoning": "declared_flag_the_source_states_is_true_if_this_position_is_estimated_through_dead_reckoning_a_reported_estimator_condition_and_never_a_measurement",
+    "sensor_gps.timestamp": "us_time_since_system_start_which_the_source_states_is_the_stamp_for_the_position_and_velocity_not_UTC",
+    "sensor_gps.latitude_deg": "deg_latitude_in_the_WGS84_coordinates_the_source_header_names_declared_to_allow_centimetre_level_RTK_precision_and_reported_not_surveyed",
+    "sensor_gps.longitude_deg": "deg_longitude_in_the_same_declared_WGS84_coordinates",
+    "sensor_gps.altitude_msl_m": "m_altitude_above_MSL_exactly_as_the_source_declares_it_kept_apart_from_the_ellipsoidal_column_beside_it",
+    "sensor_gps.altitude_ellipsoid_m": "m_altitude_above_the_ellipsoid_as_the_source_declares_it_a_different_reference_from_the_MSL_column_and_never_merged_with_it",
+    "sensor_gps.fix_type": "declared_enum_reported_by_the_receiver_1_NONE_with_0_also_valid_for_no_fix_2_2D_3_3D_4_RTCM_CODE_DIFFERENTIAL_5_RTK_FLOAT_6_RTK_FIXED_8_EXTRAPOLATED_a_reported_code_and_never_an_integrity_guarantee",
+    "sensor_gps.eph": "m_GPS_horizontal_position_accuracy_as_the_source_declares_it_a_receiver_estimate",
+    "sensor_gps.epv": "m_GPS_vertical_position_accuracy_under_the_same_rule",
+    "sensor_gps.satellites_used": "count_of_satellites_used_a_plain_reported_count_with_no_unit_and_never_a_fix_quality_claim",
+    "sensor_gps.time_utc_usec": "us_UTC_which_the_source_states_comes_from_the_gps_module_and_may_be_unavailable_right_after_cold_start_indicated_by_the_value_0_the_adopted_reader_accepts_it_as_an_anchor_only_above_the_year_2000_so_a_0_leaves_the_observation_boot_relative",
+    "vehicle_status.timestamp": "us_time_since_system_start_under_the_same_boot_relative_declaration",
+    "vehicle_status.arming_state": "declared_enum_1_ARMING_STATE_DISARMED_2_ARMING_STATE_ARMED_a_reported_state_and_never_an_arming_instruction",
+    "vehicle_status.nav_state": "declared_enum_of_the_currently_active_mode_0_NAVIGATION_STATE_MANUAL_and_3_NAVIGATION_STATE_AUTO_MISSION_among_the_sources_own_values_a_reported_mode_observed_after_the_fact_and_never_a_command_or_a_mode_request",
+    "vehicle_status.nav_state_user_intention": "declared_enum_of_the_mode_the_user_selected_which_the_source_says_might_differ_from_nav_state_in_a_failsafe_situation_a_reported_selection_and_never_a_command_carried_by_this_path",
+    "vehicle_status.failsafe": "declared_flag_the_source_states_is_true_if_the_system_is_in_a_failsafe_state_for_example_RTL_hover_or_terminate_a_reported_condition",
+    "vehicle_status.failsafe_and_user_took_over": "declared_flag_the_source_states_is_true_if_the_system_is_in_failsafe_but_the_user_took_over_control_a_reported_condition",
+    "vehicle_status.pre_flight_checks_pass": "declared_flag_the_source_states_is_true_if_all_checks_necessary_to_arm_pass_a_reported_check_result_and_never_an_authorisation_produced_here"
+  }
+}

@@ -5,9 +5,10 @@ use musubi_reference_readers::{
 use musubi_reference_types::Family;
 use musubi_types::PlatformDomain;
 
-const USV: &str = include_str!("fixtures/surface-usv--profile.toml");
-const SURVEY: &str = include_str!("fixtures/surface-usv--survey-boat-profile.toml");
-const ROV: &str = include_str!("fixtures/surface-usv--rov-profile.toml");
+const USV: &str = include_str!("fixtures/unknown-adapter--surface-usv--profile.toml");
+const SURVEY: &str =
+    include_str!("fixtures/unknown-adapter--surface-usv--survey-boat-profile.toml");
+const ROV: &str = include_str!("fixtures/unknown-adapter--surface-usv--rov-profile.toml");
 
 fn options() -> ParseOptions {
     ParseOptions {
@@ -142,19 +143,22 @@ fn underwater_stays_unknown_and_is_never_approximated_as_surface() {
 #[test]
 fn established_families_and_their_domains_are_unchanged() {
     let ugv = parse_profile(
-        include_str!("fixtures/turtlebot3-trajectory--profile.toml"),
+        include_str!("fixtures/unknown-adapter--turtlebot3-trajectory--profile.toml"),
         "public",
     )
     .expect("existing UGV profile");
-    let unknown = parse_profile(include_str!("fixtures/nmea-wind--profile.toml"), "public")
-        .expect("existing unknown-family profile");
+    let unknown = parse_profile(
+        include_str!("fixtures/unknown-adapter--nmea-wind--profile.toml"),
+        "public",
+    )
+    .expect("existing unknown-family profile");
     let fixed_wing = parse_profile(
-        include_str!("fixtures/ardupilot-mode--profile.toml"),
+        include_str!("fixtures/unknown-adapter--ardupilot-mode--profile.toml"),
         "public",
     )
     .expect("existing fixed-wing profile");
     let fpv = parse_profile(
-        include_str!("fixtures/betaflight-raw-main--profile.toml"),
+        include_str!("fixtures/unknown-adapter--betaflight-raw-main--profile.toml"),
         "public",
     )
     .expect("existing FPV profile");
@@ -171,11 +175,11 @@ fn established_families_and_their_domains_are_unchanged() {
 
     for (source, label) in [
         (
-            include_str!("fixtures/turtlebot3-trajectory--profile.toml"),
+            include_str!("fixtures/unknown-adapter--turtlebot3-trajectory--profile.toml"),
             "surface",
         ),
         (
-            include_str!("fixtures/ardupilot-mode--profile.toml"),
+            include_str!("fixtures/unknown-adapter--ardupilot-mode--profile.toml"),
             "ground",
         ),
     ] {

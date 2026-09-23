@@ -94,8 +94,6 @@ class PositionCsvBatchContract(unittest.TestCase):
                 self.batch.convert_batches(SIMPLE, PROFILE, part_limit)
 
     def test_real_scale_expansion_is_batched_without_relaxing_old_converter(self):
-        # Authored repeated cells, not a recorded input. JSON escaping makes output
-        # larger than 16 MiB while the original CSV stays below its 16 MiB limit.
         row = b"1,2,3,4," + ("未知" * 100).encode() + b"\n"
         count = 13000
         raw = HEADER + row * count
@@ -124,7 +122,6 @@ class PositionCsvBatchCliContract(unittest.TestCase):
         self.profile = self.root / "sensitive-profile.json"
         self.output = self.root / "new-output"
         self.source.write_bytes(SIMPLE)
-        # Exact-byte hashes must reflect whitespace, not a reserialized object.
         self.profile.write_bytes((json.dumps(PROFILE, indent=2) + "\n").encode())
 
     def invoke(self):

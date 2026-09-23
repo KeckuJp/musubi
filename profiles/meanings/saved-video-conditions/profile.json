@@ -1,0 +1,40 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_supplied_capture_microseconds_the_moment_the_saved_analysis_output_was_taken_in_and_never_the_time_at_which_anything_was_filmed_and_never_a_device_or_UTC_clock",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "exact_input_document_digest_of_the_saved_analysis_output_not_authenticity_and_not_a_signature_and_not_a_digest_of_any_video",
+      "basis": "declared"
+    },
+    "video_interval_index": {
+      "meaning": "video_interval_index",
+      "unit": "zero_based_position_of_this_interval_among_the_reported_intervals_of_its_own_kind_in_document_order_a_join_key_and_never_a_severity_an_ordering_of_importance_or_a_count_of_faults",
+      "basis": "declared"
+    },
+    "video_start_s": {
+      "meaning": "video_start_s",
+      "unit": "seconds_at_which_the_decoder_reported_the_interval_beginning_read_video_time_basis_for_what_that_origin_is_blank_when_the_decoder_printed_its_own_NOPTS_meaning_it_could_not_express_the_timestamp_which_is_carried_as_unknown_and_never_as_zero",
+      "basis": "declared"
+    },
+    "video_start_attachment_pts_time_s": {
+      "meaning": "video_start_attachment_pts_time_s",
+      "unit": "seconds_of_that_attachment_frames_own_presentation_time_carried_only_so_the_gap_between_attachment_and_value_is_visible_blank_when_the_decoder_printed_NOPTS",
+      "basis": "declared"
+    },
+    "video_unselected_key_count": {
+      "meaning": "video_unselected_key_count",
+      "unit": "how_many_metadata_keys_in_the_saved_output_this_finite_selection_did_not_read_counted_rather_than_dropped_the_whole_saved_output_is_retained_in_the_report_so_nothing_is_lost",
+      "basis": "declared"
+    }
+  }
+}

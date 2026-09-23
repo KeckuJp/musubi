@@ -1,0 +1,75 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_boot_relative_from_the_decoded_main_frame_time_column_no_absolute_clock_is_established_by_this_path",
+      "basis": "declared"
+    },
+    "reported_motor_output_demand_1": {
+      "meaning": "reported_motor_output_demand_1",
+      "unit": "the_same_commanded_mixer_output_meaning_as_index_0_for_the_writers_motor_index_1",
+      "basis": "declared"
+    },
+    "reported_motor_output_demand_2": {
+      "meaning": "reported_motor_output_demand_2",
+      "unit": "the_same_commanded_mixer_output_meaning_as_index_0_for_the_writers_motor_index_2",
+      "basis": "declared"
+    },
+    "reported_motor_output_demand_3": {
+      "meaning": "reported_motor_output_demand_3",
+      "unit": "the_same_commanded_mixer_output_meaning_as_index_0_for_the_writers_motor_index_3",
+      "basis": "declared"
+    },
+    "reported_motor_output_demand_4": {
+      "meaning": "reported_motor_output_demand_4",
+      "unit": "the_same_commanded_mixer_output_meaning_as_index_0_for_the_writers_motor_index_4",
+      "basis": "declared"
+    },
+    "reported_motor_output_demand_5": {
+      "meaning": "reported_motor_output_demand_5",
+      "unit": "the_same_commanded_mixer_output_meaning_as_index_0_for_the_writers_motor_index_5",
+      "basis": "declared"
+    },
+    "reported_motor_output_demand_6": {
+      "meaning": "reported_motor_output_demand_6",
+      "unit": "the_same_commanded_mixer_output_meaning_as_index_0_for_the_writers_motor_index_6",
+      "basis": "declared"
+    },
+    "reported_motor_output_demand_7": {
+      "meaning": "reported_motor_output_demand_7",
+      "unit": "the_same_commanded_mixer_output_meaning_as_index_0_for_the_writers_motor_index_7",
+      "basis": "declared"
+    },
+    "motor_count": {
+      "meaning": "motor_count",
+      "unit": "how_many_contiguous_motor_columns_the_recording_actually_carried_one_to_eight_a_file_declares_only_its_own_count_and_the_eight_demand_keys_above_are_this_schemas_full_vocabulary_not_a_claim_that_eight_motors_were_logged",
+      "basis": "declared"
+    },
+    "motor_output_declared_high": {
+      "meaning": "motor_output_declared_high",
+      "unit": "the_high_end_of_the_same_writer_declared_output_scale_carried_beside_the_value_rather_than_folded_into_a_zero_to_one_fraction_because_values_outside_the_span_are_legitimate_and_a_normalised_fraction_would_be_wrong_for_them",
+      "basis": "declared"
+    },
+    "motor_output_schema": {
+      "meaning": "motor_output_schema",
+      "unit": "which_fixed_source_schema_produced_this_row_qualified_for_Betaflight_4_2_0_through_the_pinned_official_blackbox_decode_only_another_firmware_or_decoder_version_needs_its_own_schema_row_and_is_not_covered_by_a_matching_header_shape",
+      "basis": "declared"
+    },
+    "source_header_hex": {
+      "meaning": "source_header_hex",
+      "unit": "hex_of_the_decoded_CSV_header_line_verbatim_so_columns_this_schema_does_not_name_are_preserved_rather_than_dropped",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "hex_of_the_whole_decoded_CSV_row_verbatim_for_the_same_reason_the_retained_bytes_are_the_decoders_output_not_the_original_raw_Blackbox_frame",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,485 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "HEARTBEAT.reported_armed": {
+      "meaning": "HEARTBEAT.reported_armed",
+      "unit": "reported_base_mode_bit_128_not_actuation",
+      "basis": "declared"
+    },
+    "system_state_reported": {
+      "meaning": "system_state_reported",
+      "unit": "MAV_STATE_enum_report_not_physical_health",
+      "basis": "declared"
+    },
+    "HEARTBEAT.system_status": {
+      "meaning": "HEARTBEAT.system_status",
+      "unit": "raw_reported_MAV_STATE_code_kept_beside_the_name_a_POWEROFF_word_here_is_what_the_sender_published_about_itself_not_an_observed_power_state",
+      "basis": "declared"
+    },
+    "HEARTBEAT.type": {
+      "meaning": "HEARTBEAT.type",
+      "unit": "raw_reported_MAV_TYPE_code_a_self_declared_vehicle_kind_never_an_identified_or_verified_platform",
+      "basis": "declared"
+    },
+    "HEARTBEAT.autopilot": {
+      "meaning": "HEARTBEAT.autopilot",
+      "unit": "raw_reported_MAV_AUTOPILOT_code_a_self_declared_stack_never_an_attested_firmware",
+      "basis": "declared"
+    },
+    "HEARTBEAT.base_mode": {
+      "meaning": "HEARTBEAT.base_mode",
+      "unit": "raw_reported_MAV_MODE_FLAG_bitmask_a_mode_report_and_never_command_authority_read_reported_armed_for_the_armed_bit",
+      "basis": "declared"
+    },
+    "HEARTBEAT.custom_mode": {
+      "meaning": "HEARTBEAT.custom_mode",
+      "unit": "raw_reported_autopilot_specific_mode_number_meaningless_without_the_type_and_autopilot_pair_and_never_decoded_here",
+      "basis": "declared"
+    },
+    "HEARTBEAT.mavlink_version": {
+      "meaning": "HEARTBEAT.mavlink_version",
+      "unit": "raw_reported_protocol_version_of_the_sender_not_the_wire_framing_this_record_was_read_with",
+      "basis": "declared"
+    },
+    "SYS_STATUS.onboard_control_sensors_present": {
+      "meaning": "SYS_STATUS.onboard_control_sensors_present",
+      "unit": "raw_reported_present_mask_bit_n_is_the_sensor_the_sender_says_it_has_the_per_sensor_present_reported_columns_are_views_of_exactly_this_word",
+      "basis": "declared"
+    },
+    "SYS_STATUS.onboard_control_sensors_enabled": {
+      "meaning": "SYS_STATUS.onboard_control_sensors_enabled",
+      "unit": "raw_reported_enabled_mask_a_separate_report_from_present_and_from_health_never_combined_or_repaired_here",
+      "basis": "declared"
+    },
+    "SYS_STATUS.onboard_control_sensors_health": {
+      "meaning": "SYS_STATUS.onboard_control_sensors_health",
+      "unit": "raw_reported_health_mask_a_zero_bit_means_the_sender_did_not_report_that_sensor_healthy_which_with_a_zero_present_bit_means_not_reported_at_all_and_is_never_read_as_all_healthy_or_as_a_physical_verdict",
+      "basis": "declared"
+    },
+    "SYS_STATUS.extended_declared_reported": {
+      "meaning": "SYS_STATUS.extended_declared_reported",
+      "unit": "one_when_bit_31_of_the_present_mask_declares_the_mavlink2_extension_fields_zero_otherwise_a_declaration_not_a_capability",
+      "basis": "declared"
+    },
+    "SYS_STATUS.extended_interpretation": {
+      "meaning": "SYS_STATUS.extended_interpretation",
+      "unit": "DECLARED_MAVLINK2_when_the_extension_was_declared_and_this_record_was_read_as_mavlink2_otherwise_NOT_DECLARED_OR_MAVLINK1_which_is_why_the_extended_columns_are_blank_and_blank_is_never_zero",
+      "basis": "declared"
+    },
+    "SYS_STATUS.present_extended_raw": {
+      "meaning": "SYS_STATUS.present_extended_raw",
+      "unit": "raw_reported_extended_present_word_blank_on_mavlink1_where_the_field_does_not_exist_blank_is_never_a_reported_zero",
+      "basis": "declared"
+    },
+    "SYS_STATUS.enabled_extended_raw": {
+      "meaning": "SYS_STATUS.enabled_extended_raw",
+      "unit": "raw_reported_extended_enabled_word_blank_on_mavlink1_where_the_field_does_not_exist",
+      "basis": "declared"
+    },
+    "SYS_STATUS.healthy_extended_raw": {
+      "meaning": "SYS_STATUS.healthy_extended_raw",
+      "unit": "raw_reported_extended_health_word_blank_on_mavlink1_where_the_field_does_not_exist",
+      "basis": "declared"
+    },
+    "SYS_STATUS.present_extended_unknown_bits": {
+      "meaning": "SYS_STATUS.present_extended_unknown_bits",
+      "unit": "extended_present_bits_above_the_eight_this_pinned_dialect_names_retained_unnamed_and_never_dropped",
+      "basis": "declared"
+    },
+    "SYS_STATUS.enabled_extended_unknown_bits": {
+      "meaning": "SYS_STATUS.enabled_extended_unknown_bits",
+      "unit": "extended_enabled_bits_above_the_eight_this_pinned_dialect_names_retained_unnamed_and_never_dropped",
+      "basis": "declared"
+    },
+    "SYS_STATUS.healthy_extended_unknown_bits": {
+      "meaning": "SYS_STATUS.healthy_extended_unknown_bits",
+      "unit": "extended_health_bits_above_the_eight_this_pinned_dialect_names_retained_unnamed_and_never_dropped",
+      "basis": "declared"
+    },
+    "SYS_STATUS.mainloop_load_fraction_reported": {
+      "meaning": "SYS_STATUS.mainloop_load_fraction_reported",
+      "unit": "reported_mainloop_load_fraction_from_permille_a_sender_self_report_not_a_measured_processor_utilisation",
+      "basis": "declared"
+    },
+    "MAVLINK.recorded_sequence_relation": {
+      "meaning": "MAVLINK.recorded_sequence_relation",
+      "unit": "how_this_frames_packet_sequence_sits_next_to_the_previous_frame_of_the_same_sender_in_this_recording_FIRST_SAME_COUNTER_NEXT_MOD256_DISCONTINUITY_AMBIGUOUS_or_UNQUALIFIED_HEADER_and_never_a_liveness_cadence_or_heartbeat_timeout_finding",
+      "basis": "declared"
+    },
+    "MAVLINK.previous_packet_sequence": {
+      "meaning": "MAVLINK.previous_packet_sequence",
+      "unit": "the_previous_recorded_packet_sequence_of_this_sender_a_property_of_the_recording_not_of_the_link",
+      "basis": "declared"
+    },
+    "MAVLINK.recorded_sequence_step_mod256": {
+      "meaning": "MAVLINK.recorded_sequence_step_mod256",
+      "unit": "modular_difference_to_that_previous_sequence_which_is_not_a_packet_loss_count_because_a_wrap_and_a_gap_are_the_same_arithmetic",
+      "basis": "declared"
+    },
+    "MAVLINK.previous_record_offset_bytes": {
+      "meaning": "MAVLINK.previous_record_offset_bytes",
+      "unit": "byte_offset_of_that_previous_record_in_this_file_for_looking_it_up_not_a_time_or_an_interval",
+      "basis": "declared"
+    },
+    "battery_voltage_v": {
+      "meaning": "battery_voltage_v",
+      "unit": "V_source_65535_is_unavailable",
+      "basis": "declared"
+    },
+    "battery_current_a": {
+      "meaning": "battery_current_a",
+      "unit": "A_source_minus_one_is_unavailable_other_sign_retained",
+      "basis": "declared"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "fraction_source_minus_one_is_unavailable",
+      "basis": "declared"
+    },
+    "RADIO_STATUS.rxerrors": {
+      "meaning": "RADIO_STATUS.rxerrors",
+      "unit": "the_reported_count_of_radio_packet_receive_errors_since_boot_exactly_as_the_pinned_dialect_defines_it_a_cumulative_counter_with_no_interval_window_or_rate_derived_from_it_and_never_a_measured_link_loss",
+      "basis": "declared"
+    },
+    "RADIO_STATUS.remrssi": {
+      "meaning": "RADIO_STATUS.remrssi",
+      "unit": "the_remote_message_receiver_signal_strength_indication_under_exactly_the_same_device_dependent_scale_range_and_UINT8_MAX_invalid_or_unknown_convention_and_the_same_refusal_to_convert_to_dBm_or_percent",
+      "basis": "declared"
+    },
+    "RADIO_STATUS.txbuf": {
+      "meaning": "RADIO_STATUS.txbuf",
+      "unit": "percent_of_REMAINING_FREE_transmitter_buffer_space_as_the_pinned_dialect_declares_the_unit_a_reported_buffer_occupancy_figure_and_never_a_throughput_a_bandwidth_a_congestion_measure_or_a_link_health_verdict",
+      "basis": "declared"
+    },
+    "RADIO_STATUS.remnoise": {
+      "meaning": "RADIO_STATUS.remnoise",
+      "unit": "the_remote_background_noise_level_under_exactly_the_same_device_dependent_RSSI_scale_the_same_SiK_only_hedge_which_is_not_applied_and_the_same_UINT8_MAX_invalid_or_unknown_convention_retained_raw",
+      "basis": "declared"
+    },
+    "mission_current_sequence": {
+      "meaning": "mission_current_sequence",
+      "unit": "reported_current_mission_item_index_not_record_sequence",
+      "basis": "declared"
+    },
+    "mission_state_reported": {
+      "meaning": "mission_state_reported",
+      "unit": "reported_MISSION_STATE_zero_unknown_not_execution_proof",
+      "basis": "declared"
+    },
+    "mission_item_reached_sequence_reported": {
+      "meaning": "mission_item_reached_sequence_reported",
+      "unit": "reported_reached_item_index_from_MISSION_ITEM_REACHED_46_a_separate_report_that_never_advances_the_current_item_and_is_not_physical_arrival",
+      "basis": "declared"
+    },
+    "mission_reach_disposition": {
+      "meaning": "mission_reach_disposition",
+      "unit": "fixed_statement_that_a_reached_report_is_the_senders_report_and_not_physical_verification_or_task_success",
+      "basis": "declared"
+    },
+    "mission_total_items": {
+      "meaning": "mission_total_items",
+      "unit": "reported_item_total_excluding_stored_home_per_producer_contract_blank_for_the_unsupported_zero_and_the_no_mission_65535_sentinels_never_a_completion_percent_denominator",
+      "basis": "declared"
+    },
+    "mission_total_disposition": {
+      "meaning": "mission_total_disposition",
+      "unit": "which_of_not_supported_no_mission_reported_or_reported_excluding_home_the_total_field_meant_read_this_before_any_numeric_total",
+      "basis": "declared"
+    },
+    "mission_mode_reported": {
+      "meaning": "mission_mode_reported",
+      "unit": "reported_MISSION_MODE_zero_unknown_one_mission_mode_two_suspended_other_numbers_retained_as_unknown_n_not_a_flight_mode_or_an_execution_claim",
+      "basis": "declared"
+    },
+    "mission_plan_id_reported": {
+      "meaning": "mission_plan_id_reported",
+      "unit": "opaque_reported_uint32_mission_plan_identifier_blank_when_zero_meaning_unsupported_or_no_plan_not_an_authenticated_task_identity",
+      "basis": "declared"
+    },
+    "fence_plan_id_reported": {
+      "meaning": "fence_plan_id_reported",
+      "unit": "opaque_reported_uint32_fence_plan_identifier_blank_when_zero_not_an_authenticated_task_identity",
+      "basis": "declared"
+    },
+    "rally_plan_id_reported": {
+      "meaning": "rally_plan_id_reported",
+      "unit": "opaque_reported_uint32_rally_points_plan_identifier_blank_when_zero_not_an_authenticated_task_identity",
+      "basis": "declared"
+    },
+    "MISSION_CURRENT.seq": {
+      "meaning": "MISSION_CURRENT.seq",
+      "unit": "raw_reported_uint16_current_item_index_zero_is_a_reported_index_not_an_absence_or_a_progress_figure",
+      "basis": "declared"
+    },
+    "MISSION_CURRENT.total": {
+      "meaning": "MISSION_CURRENT.total",
+      "unit": "raw_reported_uint16_total_field_a_zero_here_can_also_be_an_omitted_mav2_extension_because_trailing_zeros_are_truncated_read_mission_total_disposition_instead",
+      "basis": "declared"
+    },
+    "MISSION_CURRENT.mission_state": {
+      "meaning": "MISSION_CURRENT.mission_state",
+      "unit": "raw_reported_uint8_state_code_a_zero_here_can_also_be_an_omitted_mav2_extension_read_mission_state_reported_instead",
+      "basis": "declared"
+    },
+    "MISSION_CURRENT.mission_mode": {
+      "meaning": "MISSION_CURRENT.mission_mode",
+      "unit": "raw_reported_uint8_mode_code_a_zero_here_can_also_be_an_omitted_mav2_extension_read_mission_mode_reported_instead",
+      "basis": "declared"
+    },
+    "MISSION_ITEM_REACHED.seq": {
+      "meaning": "MISSION_ITEM_REACHED.seq",
+      "unit": "raw_reported_uint16_reached_item_index_never_a_current_item_a_coordinate_or_a_completion_proof",
+      "basis": "declared"
+    },
+    "GPS_RAW_INT.time_usec": {
+      "meaning": "GPS_RAW_INT.time_usec",
+      "unit": "raw_reported_uint64_timestamp_the_pin_says_it_is_unix_epoch_time_or_time_since_system_boot_and_that_the_receiver_infers_which_from_the_magnitude_so_this_reader_never_resolves_it_into_a_utc_claim",
+      "basis": "declared"
+    },
+    "GPS_RAW_INT.lat": {
+      "meaning": "GPS_RAW_INT.lat",
+      "unit": "raw_reported_int32_latitude_in_degE7_wgs84_egm96_ellipsoid_exactly_as_sent_the_pin_declares_no_invalid_sentinel_for_this_field",
+      "basis": "declared"
+    },
+    "GPS_RAW_INT.lon": {
+      "meaning": "GPS_RAW_INT.lon",
+      "unit": "raw_reported_int32_longitude_in_degE7_wgs84_egm96_ellipsoid_exactly_as_sent_the_pin_declares_no_invalid_sentinel_for_this_field",
+      "basis": "declared"
+    },
+    "GPS_RAW_INT.vel": {
+      "meaning": "GPS_RAW_INT.vel",
+      "unit": "raw_reported_uint16_ground_speed_in_cm_per_s_where_65535_is_the_pinned_unknown_read_the_derived_m_s_column_instead_of_scaling_this_yourself",
+      "basis": "declared"
+    },
+    "GPS_RAW_INT.eph": {
+      "meaning": "GPS_RAW_INT.eph",
+      "unit": "raw_reported_uint16_hdop_hundredths_where_65535_is_the_pinned_unknown_a_dilution_figure_the_sender_states_and_never_a_measured_position_accuracy",
+      "basis": "declared"
+    },
+    "GPS_RAW_INT.fix_type": {
+      "meaning": "GPS_RAW_INT.fix_type",
+      "unit": "raw_reported_uint8_gps_fix_type_code_kept_beside_the_name_read_gps_fix_type_reported_for_the_pinned_word",
+      "basis": "declared"
+    },
+    "GPS_RAW_INT.satellites_visible": {
+      "meaning": "GPS_RAW_INT.satellites_visible",
+      "unit": "raw_reported_uint8_number_of_satellites_visible_where_255_is_the_pinned_unknown_visible_is_not_the_number_used_in_any_solution",
+      "basis": "declared"
+    },
+    "gps_ground_speed_m_s_reported": {
+      "meaning": "gps_ground_speed_m_s_reported",
+      "unit": "m_per_s_from_the_pinned_cm_per_s_ground_speed_blank_when_the_sender_sent_the_65535_unknown_a_horizontal_ground_speed_the_receiver_reports_and_never_a_3d_air_commanded_or_measured_over_ground_velocity",
+      "basis": "declared"
+    },
+    "gps_fix_type_reported": {
+      "meaning": "gps_fix_type_reported",
+      "unit": "pinned_GPS_FIX_TYPE_0_NO_GPS_1_NO_FIX_2_2D_FIX_3_3D_FIX_4_DGPS_5_RTK_FLOAT_6_RTK_FIXED_7_STATIC_8_PPP_any_other_number_stays_UNKNOWN_RETAINED_this_is_the_senders_own_word_about_its_fix_and_never_a_verified_position",
+      "basis": "declared"
+    },
+    "gps_satellites_visible_reported": {
+      "meaning": "gps_satellites_visible_reported",
+      "unit": "count_of_satellites_the_receiver_reports_as_visible_blank_when_the_pinned_255_unknown_was_sent_visible_is_not_satellites_used_in_the_solution_and_a_large_count_is_not_accuracy_or_health",
+      "basis": "declared"
+    },
+    "gps_hdop_reported": {
+      "meaning": "gps_hdop_reported",
+      "unit": "reported_horizontal_dilution_of_precision_from_eph_hundredths_blank_at_the_pinned_65535_unknown_a_geometry_figure_the_sender_states_not_a_measured_error_bound",
+      "basis": "declared"
+    },
+    "gps_channel_basis": {
+      "meaning": "gps_channel_basis",
+      "unit": "the_gps_ekf_channel_name_is_the_shared_channel_this_message_is_filed_under_and_does_not_make_these_values_a_fused_estimate_an_EKF_output_or_a_corrected_solution",
+      "basis": "declared"
+    },
+    "camera_image_status_raw": {
+      "meaning": "camera_image_status_raw",
+      "unit": "raw_reported_uint8_image_status_code_kept_beside_the_name_it_sits_below_min_len_18_so_a_zero_here_was_really_sent_and_is_not_an_omitted_extension",
+      "basis": "declared"
+    },
+    "camera_image_status_reported": {
+      "meaning": "camera_image_status_reported",
+      "unit": "pinned_0_idle_1_capture_in_progress_2_interval_set_but_idle_3_interval_set_and_capture_in_progress_any_other_number_stays_UNKNOWN_and_none_of_these_is_evidence_that_an_image_reached_storage",
+      "basis": "declared"
+    },
+    "camera_video_status_raw": {
+      "meaning": "camera_video_status_raw",
+      "unit": "raw_reported_uint8_video_status_code_kept_beside_the_name_also_below_min_len_18",
+      "basis": "declared"
+    },
+    "camera_video_status_reported": {
+      "meaning": "camera_video_status_reported",
+      "unit": "pinned_0_idle_1_capture_in_progress_any_other_number_stays_UNKNOWN_a_sender_self_report_and_never_proof_that_video_was_recorded_or_retained",
+      "basis": "declared"
+    },
+    "camera_recording_time_status": {
+      "meaning": "camera_recording_time_status",
+      "unit": "NOT_PROVIDED_for_the_pinned_zero_which_the_dialect_defines_as_not_supported_or_unavailable_otherwise_REPORTED_read_this_before_any_duration",
+      "basis": "declared"
+    },
+    "camera_recording_time_s_reported": {
+      "meaning": "camera_recording_time_s_reported",
+      "unit": "s_elapsed_since_recording_started_as_the_sender_counts_it_a_duration_and_never_a_timestamp_a_boot_clock_or_a_receive_clock_absent_when_the_zero_sentinel_was_sent",
+      "basis": "declared"
+    },
+    "camera_available_capacity_mib_raw": {
+      "meaning": "camera_available_capacity_mib_raw",
+      "unit": "MiB_reported_available_storage_capacity_exactly_as_the_pinned_field_carries_it_no_sentinel_is_defined_so_zero_is_a_reported_zero",
+      "basis": "declared"
+    },
+    "camera_available_capacity_bytes_reported": {
+      "meaning": "camera_available_capacity_bytes_reported",
+      "unit": "bytes_from_the_reported_MiB_times_1048576_absent_when_the_reported_value_is_negative_a_stated_capacity_and_never_measured_free_space_or_writable_media",
+      "basis": "declared"
+    },
+    "camera_capacity_status": {
+      "meaning": "camera_capacity_status",
+      "unit": "REPORTED_or_UNQUALIFIED_NEGATIVE_for_a_negative_capacity_the_dialect_does_not_define_which_is_kept_raw_instead_of_being_clamped_to_zero",
+      "basis": "declared"
+    },
+    "camera_image_count_raw": {
+      "meaning": "camera_image_count_raw",
+      "unit": "raw_reported_int32_total_images_captured_forever_or_until_a_storage_format_reset_per_the_pinned_text",
+      "basis": "declared"
+    },
+    "camera_image_count_reported": {
+      "meaning": "camera_image_count_reported",
+      "unit": "the_same_count_emitted_only_when_positive_never_a_capture_success_a_file_count_or_a_media_inventory",
+      "basis": "declared"
+    },
+    "camera_image_count_status": {
+      "meaning": "camera_image_count_status",
+      "unit": "REPORTED_above_zero_ZERO_OR_EXTENSION_UNAVAILABLE_at_zero_because_this_field_sits_at_offset_18_which_is_exactly_min_len_so_a_truncated_mav2_frame_and_a_sent_zero_are_the_same_bytes_UNQUALIFIED_NEGATIVE_below_zero",
+      "basis": "declared"
+    },
+    "camera_image_interval_s_reported": {
+      "meaning": "camera_image_interval_s_reported",
+      "unit": "s_reported_image_capture_interval_a_configured_cadence_the_sender_states_not_a_measured_rate_of_images_actually_taken",
+      "basis": "declared"
+    },
+    "camera_device_id_raw": {
+      "meaning": "camera_device_id_raw",
+      "unit": "raw_reported_camera_device_id_byte_read_camera_id_basis_before_using_it",
+      "basis": "declared"
+    },
+    "video_stream_id_raw": {
+      "meaning": "video_stream_id_raw",
+      "unit": "raw_reported_video_stream_id_pinned_as_1_for_the_first_stream_2_for_the_second_read_the_id_basis_beside_it",
+      "basis": "declared"
+    },
+    "video_stream_id_basis": {
+      "meaning": "video_stream_id_basis",
+      "unit": "how_to_read_the_reported_stream_id_including_the_zero_the_pinned_numbering_does_not_assign_a_document_local_reference_never_an_authenticated_or_reachable_stream",
+      "basis": "declared"
+    },
+    "video_stream_camera_id_raw": {
+      "meaning": "video_stream_camera_id_raw",
+      "unit": "raw_reported_camera_device_id_of_the_stream_same_pinned_1_to_6_or_zero_meaning_as_on_262",
+      "basis": "declared"
+    },
+    "video_stream_camera_id_basis": {
+      "meaning": "video_stream_camera_id_basis",
+      "unit": "how_to_read_that_camera_id_including_zero_and_the_extension_absence_a_reported_scope_not_an_authenticated_device",
+      "basis": "declared"
+    },
+    "video_stream_flags_raw": {
+      "meaning": "video_stream_flags_raw",
+      "unit": "raw_reported_uint16_stream_status_bitmap_every_bit_retained_exactly_as_sent",
+      "basis": "declared"
+    },
+    "video_stream_unknown_flag_bits": {
+      "meaning": "video_stream_unknown_flag_bits",
+      "unit": "the_bits_above_the_three_this_pinned_dialect_names_kept_unnamed_and_never_dropped_or_treated_as_zero",
+      "basis": "declared"
+    },
+    "video_stream_running_reported": {
+      "meaning": "video_stream_running_reported",
+      "unit": "pinned_VIDEO_STREAM_STATUS_FLAGS_RUNNING_1_stream_is_active_running_as_the_sender_declares_it_not_a_delivered_reachable_or_decodable_stream_and_not_an_online_connection",
+      "basis": "declared"
+    },
+    "video_stream_thermal_reported": {
+      "meaning": "video_stream_thermal_reported",
+      "unit": "pinned_VIDEO_STREAM_STATUS_FLAGS_THERMAL_2_stream_is_thermal_imaging_a_declared_stream_kind_not_a_calibrated_thermal_measurement",
+      "basis": "declared"
+    },
+    "video_stream_thermal_range_capable_reported": {
+      "meaning": "video_stream_thermal_range_capable_reported",
+      "unit": "pinned_bit_4_whose_enumerator_is_VIDEO_STREAM_STATUS_FLAGS_THERMAL_RANGE_ENABLED_while_its_own_pinned_description_reads_stream_can_report_absolute_thermal_range_this_column_keeps_the_capability_wording_and_the_ambiguity_is_the_dialects_not_resolved_here",
+      "basis": "declared"
+    },
+    "video_stream_framerate_hz_reported": {
+      "meaning": "video_stream_framerate_hz_reported",
+      "unit": "Hz_frame_rate_the_sender_reports_for_the_stream_never_a_measured_cadence_a_delivered_rate_or_evidence_about_dropped_frames",
+      "basis": "declared"
+    },
+    "video_stream_bitrate_bits_s_reported": {
+      "meaning": "video_stream_bitrate_bits_s_reported",
+      "unit": "bits_per_second_reported_stream_bit_rate_a_configured_or_declared_figure_not_measured_throughput",
+      "basis": "declared"
+    },
+    "video_stream_width_pixels_reported": {
+      "meaning": "video_stream_width_pixels_reported",
+      "unit": "pix_reported_horizontal_resolution_of_the_stream_as_declared_not_a_decoded_frame_dimension",
+      "basis": "declared"
+    },
+    "video_stream_height_pixels_reported": {
+      "meaning": "video_stream_height_pixels_reported",
+      "unit": "pix_reported_vertical_resolution_of_the_stream_as_declared_not_a_decoded_frame_dimension",
+      "basis": "declared"
+    },
+    "video_stream_rotation_clockwise_deg_reported": {
+      "meaning": "video_stream_rotation_clockwise_deg_reported",
+      "unit": "deg_reported_video_image_rotation_clockwise_a_declared_orientation_not_a_measured_or_applied_transform",
+      "basis": "declared"
+    },
+    "video_stream_hfov_deg_reported": {
+      "meaning": "video_stream_hfov_deg_reported",
+      "unit": "deg_reported_horizontal_field_of_view_a_declared_optical_figure_not_a_calibration",
+      "basis": "declared"
+    },
+    "MAVLINK.system_id": {
+      "meaning": "MAVLINK.system_id",
+      "unit": "reported_system_id_not_authenticated",
+      "basis": "declared"
+    },
+    "MAVLINK.component_id": {
+      "meaning": "MAVLINK.component_id",
+      "unit": "reported_component_id_not_authenticated",
+      "basis": "declared"
+    },
+    "MAVLINK.packet_sequence": {
+      "meaning": "MAVLINK.packet_sequence",
+      "unit": "uint8_sequence_per_sender_not_global_order",
+      "basis": "declared"
+    },
+    "MAVLINK.host_received_us": {
+      "meaning": "MAVLINK.host_received_us",
+      "unit": "Unix_us_GCS_receipt_not_device_sampling_time",
+      "basis": "declared"
+    },
+    "MAVLINK.crc_verified": {
+      "meaning": "MAVLINK.crc_verified",
+      "unit": "known_dialect_CRC_checked_not_authentication_and_the_CRC_says_only_that_the_layout_matched_it_never_names_which_dialect_defined_that_layout_read_the_defining_dialect_keys_below_for_that",
+      "basis": "declared"
+    },
+    "MAVLINK.defining_dialect_pin": {
+      "meaning": "MAVLINK.defining_dialect_pin",
+      "unit": "the_single_upstream_commit_whose_message_definitions_are_the_only_source_of_the_defining_dialect_table_it_identifies_the_definitions_read_and_is_not_a_claim_about_what_the_sender_was_built_from_and_an_unsupported_msgid_carries_no_pin",
+      "basis": "declared"
+    },
+    "MAVLINK.signature": {
+      "meaning": "MAVLINK.signature",
+      "unit": "absent_or_present_unverified",
+      "basis": "declared"
+    },
+    "MAVLINK.raw_frame_hex": {
+      "meaning": "MAVLINK.raw_frame_hex",
+      "unit": "exact_frame_including_unknown_payload_and_signature",
+      "basis": "declared"
+    }
+  }
+}

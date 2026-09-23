@@ -1,0 +1,30 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_caller_capture_not_point_time",
+      "basis": "declared"
+    },
+    "easting_m": {
+      "meaning": "easting_m",
+      "unit": "m_local_field_origin_unresolved",
+      "basis": "declared"
+    },
+    "northing_m": {
+      "meaning": "northing_m",
+      "unit": "m_local_field_origin_unresolved",
+      "basis": "declared"
+    },
+    "heading_rad": {
+      "meaning": "heading_rad",
+      "unit": "rad_declared_not_device_heading",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_declared_capture_microseconds_separate_from_the_GNSS_epoch",
+      "basis": "declared"
+    },
+    "capture_clock_basis": {
+      "meaning": "capture_clock_basis",
+      "unit": "the_common_capture_clock_is_a_caller_declaration_not_the_receiver_clock",
+      "basis": "declared"
+    },
+    "source_line_index": {
+      "meaning": "source_line_index",
+      "unit": "zero_based_line_index_within_the_saved_file",
+      "basis": "declared"
+    },
+    "source_line_hex": {
+      "meaning": "source_line_hex",
+      "unit": "exact_source_line_retained_for_recovery",
+      "basis": "declared"
+    },
+    "rinex_version": {
+      "meaning": "rinex_version",
+      "unit": "declared_format_version_3_04_only",
+      "basis": "declared"
+    },
+    "rinex_file_type": {
+      "meaning": "rinex_file_type",
+      "unit": "O_observation_declared_by_the_header",
+      "basis": "declared"
+    },
+    "rinex_satellite_system_declared": {
+      "meaning": "rinex_satellite_system_declared",
+      "unit": "G_or_M_as_the_header_declares_not_a_detected_constellation",
+      "basis": "declared"
+    },
+    "rinex_epoch_time_system": {
+      "meaning": "rinex_epoch_time_system",
+      "unit": "GPS_or_the_declared_system_never_converted_to_UTC",
+      "basis": "declared"
+    },
+    "rinex_epoch_time_basis": {
+      "meaning": "rinex_epoch_time_basis",
+      "unit": "exact_declared_GNSS_time_system_no_leap_seconds_applied",
+      "basis": "declared"
+    },
+    "rinex_epoch_year": {
+      "meaning": "rinex_epoch_year",
+      "unit": "epoch_year_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_epoch_month": {
+      "meaning": "rinex_epoch_month",
+      "unit": "epoch_month_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_epoch_day": {
+      "meaning": "rinex_epoch_day",
+      "unit": "epoch_day_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_epoch_hour": {
+      "meaning": "rinex_epoch_hour",
+      "unit": "epoch_hour_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_epoch_minute": {
+      "meaning": "rinex_epoch_minute",
+      "unit": "epoch_minute_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_epoch_second_text": {
+      "meaning": "rinex_epoch_second_text",
+      "unit": "epoch_seconds_preserved_as_source_text_not_rounded",
+      "basis": "declared"
+    },
+    "rinex_epoch_flag_code": {
+      "meaning": "rinex_epoch_flag_code",
+      "unit": "0_OK_1_power_failure_2_to_6_event_per_the_specification",
+      "basis": "declared"
+    },
+    "rinex_epoch_flag_reported": {
+      "meaning": "rinex_epoch_flag_reported",
+      "unit": "flag_meaning_as_the_specification_names_it_not_a_device_state",
+      "basis": "declared"
+    },
+    "rinex_receiver_clock_offset_s": {
+      "meaning": "rinex_receiver_clock_offset_s",
+      "unit": "s_optional_reported_receiver_clock_offset_not_applied_here",
+      "basis": "declared"
+    },
+    "rinex_satellite_id": {
+      "meaning": "rinex_satellite_id",
+      "unit": "declared_satellite_identifier_not_an_authenticated_identity",
+      "basis": "declared"
+    },
+    "rinex_satellite_identity_basis": {
+      "meaning": "rinex_satellite_identity_basis",
+      "unit": "declared_identity_not_authenticity",
+      "basis": "declared"
+    },
+    "rinex_observation_code": {
+      "meaning": "rinex_observation_code",
+      "unit": "three_character_type_band_attribute_code_as_declared_in_the_header",
+      "basis": "declared"
+    },
+    "rinex_observation_band": {
+      "meaning": "rinex_observation_band",
+      "unit": "band_character_of_the_declared_code",
+      "basis": "declared"
+    },
+    "rinex_observation_attribute": {
+      "meaning": "rinex_observation_attribute",
+      "unit": "tracking_mode_or_channel_attribute_character",
+      "basis": "declared"
+    },
+    "rinex_pseudorange_m": {
+      "meaning": "rinex_pseudorange_m",
+      "unit": "m_pseudorange_as_the_specification_states_not_a_computed_range",
+      "basis": "declared"
+    },
+    "rinex_carrier_phase_cycles": {
+      "meaning": "rinex_carrier_phase_cycles",
+      "unit": "full_cycles_carrier_phase_never_converted_to_metres",
+      "basis": "declared"
+    },
+    "rinex_doppler_hz": {
+      "meaning": "rinex_doppler_hz",
+      "unit": "Hz_doppler_as_the_specification_states",
+      "basis": "declared"
+    },
+    "rinex_signal_strength_value": {
+      "meaning": "rinex_signal_strength_value",
+      "unit": "receiver_dependent_unless_the_file_declares_DBHZ",
+      "basis": "declared"
+    },
+    "rinex_signal_strength_unit_basis": {
+      "meaning": "rinex_signal_strength_unit_basis",
+      "unit": "DBHZ_only_when_the_SIGNAL_STRENGTH_UNIT_header_says_so",
+      "basis": "declared"
+    },
+    "rinex_observation_status": {
+      "meaning": "rinex_observation_status",
+      "unit": "REPORTED_or_NOT_OBSERVED_or_UNQUALIFIED_OBSERVATION_TYPE_NO_VALUE_TYPED",
+      "basis": "declared"
+    },
+    "rinex_lli_code": {
+      "meaning": "rinex_lli_code",
+      "unit": "loss_of_lock_indicator_as_transmitted_blank_stays_blank",
+      "basis": "declared"
+    },
+    "rinex_lli_bits_reported": {
+      "meaning": "rinex_lli_bits_reported",
+      "unit": "bit_meanings_named_by_the_specification_phase_only_for_bit_0",
+      "basis": "declared"
+    },
+    "rinex_ssi_code": {
+      "meaning": "rinex_ssi_code",
+      "unit": "signal_strength_indicator_1_to_9_or_0_blank_not_known",
+      "basis": "declared"
+    },
+    "rinex_ssi_meaning": {
+      "meaning": "rinex_ssi_meaning",
+      "unit": "projected_interval_meaning_not_an_independent_quality_measure",
+      "basis": "declared"
+    }
+  }
+}

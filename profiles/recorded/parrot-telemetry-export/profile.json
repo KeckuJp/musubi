@@ -1,0 +1,37 @@
+{
+  "profile_id": "parrot_telemetry_export_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_caller_declared_capture_clock_that_orders_this_output_not_a_drone_clock_and_not_UTC",
+    "parrot_export_time_us": "us_the_decoder_time_us_column_carried_verbatim_beside_the_capture_clock_and_never_merged_with_it_the_decoder_builds_it_as_seconds_times_one_million_plus_nanoseconds_floor_divided_by_one_thousand_so_it_is_truncated_not_rounded",
+    "parrot_time_basis": "which_decoder_timestamp_mode_the_caller_declares_relative_means_the_decoder_subtracted_the_first_sample_of_the_section_so_the_first_row_is_zero_raw_means_the_decoder_raw_option_emitted_the_source_value_whose_epoch_the_source_does_not_state",
+    "parrot_name_basis": "whether_the_column_names_this_row_was_read_from_are_the_documented_variable_names_checked_exactly_by_the_converter_scalar_section_or_a_caller_declared_unqualified_mapping_array_section_because_a_registered_descriptor_name_is_a_free_producer_string_that_no_public_parrot_source_binds_to_the_published_variable_list",
+    "parrot_section_hex": "utf8_hex_of_the_selected_telemetry_section_name_a_reported_section_label_not_an_authenticated_device_identity",
+    "source_row": "zero_based_ordinal_of_the_decoded_row_this_observation_came_from_file_order_is_not_time",
+    "imu_sample_index": "zero_based_position_within_the_ten_readings_the_source_states_are_provided_at_every_sample_because_the_sensor_is_updated_at_2000Hz_while_processing_runs_at_200Hz_blank_for_a_non_array_section",
+    "barometer_pressure_pa": "Pa_reported_pressure_value_of_the_barometer_sensor_as_the_pinned_variable_list_states_never_converted_to_an_altitude",
+    "barometer_temperature_k": "K_reported_temperature_value_of_the_barometer_sensor_not_an_ambient_or_calibrated_environment_temperature",
+    "imu_gyro_x_rad_s": "rad_per_s_reported_gyroscope_data_in_the_declared_Body_basis_X_axis",
+    "imu_gyro_y_rad_s": "rad_per_s_reported_gyroscope_data_in_the_declared_Body_basis_Y_axis",
+    "imu_gyro_z_rad_s": "rad_per_s_reported_gyroscope_data_in_the_declared_Body_basis_Z_axis",
+    "imu_acc_x_m_s2": "m_per_s2_reported_accelerometer_data_in_the_declared_Body_frame_X_axis",
+    "imu_acc_y_m_s2": "m_per_s2_reported_accelerometer_data_in_the_declared_Body_frame_Y_axis",
+    "imu_acc_z_m_s2": "m_per_s2_reported_accelerometer_data_in_the_declared_Body_frame_Z_axis",
+    "imu_temperature_k": "K_reported_temperature_value_of_the_IMU_sensor_not_an_ambient_temperature",
+    "imu_sample_time_s": "s_the_seconds_half_of_the_per_reading_sensor_timestamp_the_source_states_as_s_ns_a_reported_value_kept_beside_the_row_clocks_and_never_merged_into_one_and_never_UTC",
+    "imu_sample_time_ns": "ns_the_nanoseconds_half_of_that_same_per_reading_sensor_timestamp_reported_only_and_not_combined_here_because_the_source_states_no_epoch_for_it"
+  }
+}

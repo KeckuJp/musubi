@@ -1,0 +1,35 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "floor_PTS_times_timebase_in_microseconds_not_UTC",
+      "basis": "declared"
+    },
+    "presentation_timestamp_ticks": {
+      "meaning": "presentation_timestamp_ticks",
+      "unit": "exact_selected_stream_timebase_ticks",
+      "basis": "declared"
+    },
+    "width_px": {
+      "meaning": "width_px",
+      "unit": "decoded_frame_pixels",
+      "basis": "declared"
+    },
+    "height_px": {
+      "meaning": "height_px",
+      "unit": "decoded_frame_pixels",
+      "basis": "declared"
+    },
+    "source_frame_index": {
+      "meaning": "source_frame_index",
+      "unit": "export_frame_index_not_camera_sequence",
+      "basis": "declared"
+    }
+  }
+}

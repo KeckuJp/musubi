@@ -1,15 +1,15 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "f5c01269a9bea0694338ae96400ea194b975a508",
-  "payloadGitTreeOid": "8e652ff90f43cb03e08f2f34a8d323e2daa89956",
-  "payloadTreeDigest": "sha256:1ce2a8a4688a6d9988fda9f6c6824e11fdb91be9194a9dd013574542cb34e640",
+  "payloadCommit": "b1fb11a23af01520ab6837da522a497b84228af9",
+  "payloadGitTreeOid": "92ebf4393736de834d4e84dfb06d424b9ce6c320",
+  "payloadTreeDigest": "sha256:776f9382fc0352a34c8eeb1e3275ad3a2a35238a544a4350c1ac460eabe6e570",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
-  "fileCount": 342,
+  "fileCount": 826,
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "contentDigest": "sha256:e9e7b99141c18390cb0919401939611917472b9758b869a55b0c533fe54ae6ba",
+      "contentDigest": "sha256:3fc13e7b70098f5cf683fd621cdd72132da59491d3f73002e3dbd87a2b3afdea",
       "mode": "100644"
     },
     {
@@ -404,7 +404,7 @@
     },
     {
       "path": "crates/recorded-readers/src/config.rs",
-      "contentDigest": "sha256:6c63566ba12c334cf8e2a49d3902489a7648ca01607cfd86f465836d65dfb424",
+      "contentDigest": "sha256:869ca71473e98c0ee5eb1f61ae359787e758cf1dc6e48491f0266c63d15056eb",
       "mode": "100644"
     },
     {
@@ -434,7 +434,7 @@
     },
     {
       "path": "crates/recorded-readers/src/profile.rs",
-      "contentDigest": "sha256:528640ce8ec5b6b9c3760c4011b215e5a9b351fa33e3ad426a219ec86fa0d2f7",
+      "contentDigest": "sha256:51b8418bc234f15fdb092667ac6413320a69d316211f431848a27600ce12795a",
       "mode": "100644"
     },
     {
@@ -444,7 +444,7 @@
     },
     {
       "path": "crates/recorded-readers/src/tlog.rs",
-      "contentDigest": "sha256:b06294f5cbf979c79c03d0f55db40e1a6bdd38060556bb4408cf4d835d0537c6",
+      "contentDigest": "sha256:7c5180134c11c72ddc93ee80ab1317db405f668ff1cbacd6808cab112c163c10",
       "mode": "100644"
     },
     {
@@ -464,12 +464,12 @@
     },
     {
       "path": "crates/reference-pipeline/src/export.rs",
-      "contentDigest": "sha256:7bf40016126393477dd3ba86309bf9c653c6829c0329d3786763cd78727baa62",
+      "contentDigest": "sha256:b615f8c9e2d262c75635ec1ddf73484b6f2cd92a4464fd89a0ca080312a59cf6",
       "mode": "100644"
     },
     {
       "path": "crates/reference-pipeline/src/lib.rs",
-      "contentDigest": "sha256:916a9bf8c1961b4e8bd012d9bd8bc4691ea05d68af689da2a744a3f13b548352",
+      "contentDigest": "sha256:188637976dc122ca064da0f0867f4c27bb44d59cba5fef9fcaf48e99ea9380e1",
       "mode": "100644"
     },
     {
@@ -493,8 +493,18 @@
       "mode": "100644"
     },
     {
+      "path": "crates/reference-pipeline/tests/clock_rate.rs",
+      "contentDigest": "sha256:93221d553cfb5fc2f701b1647e72efcbac18ccb95f89e42fa5496c00b9305ea2",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-pipeline/tests/declared_window.rs",
+      "contentDigest": "sha256:25cf8daa883f76b4e0d92c8eea04eeeab28057e11762bd446d7506bdd2bd2ed9",
+      "mode": "100644"
+    },
+    {
       "path": "crates/reference-pipeline/tests/export.rs",
-      "contentDigest": "sha256:ead69ddcb399a3e21be07b172d4369085521f20aa0cbbff03372ce5b4b4b00c0",
+      "contentDigest": "sha256:71af6d47b8e532ca854cafb7e6b3b8c0135a642e12c633f9ff4c7c4f58ef3682",
       "mode": "100644"
     },
     {
@@ -508,13 +518,28 @@
       "mode": "100644"
     },
     {
+      "path": "crates/reference-pipeline/tests/fixtures/unknown-adapter--ardupilot-battery--profile.toml",
+      "contentDigest": "sha256:d91c3057d0cded8b304a88fef4f599a37e9ef53a072464e84b1446de1488e9d4",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-pipeline/tests/fixtures/unknown-adapter--surface-usv--profile.toml",
+      "contentDigest": "sha256:3345a6ec251f6db4745027af85891c29a844bc495ddeb6093a434ce258bebeaa",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-pipeline/tests/fixtures/unknown-adapter--surface-usv--rov-profile.toml",
+      "contentDigest": "sha256:249b6ef695fd9bfda849ae812816fac47d6ef352710a82ea24ba3c705ffa8247",
+      "mode": "100644"
+    },
+    {
       "path": "crates/reference-pipeline/tests/prereg_metrics.rs",
       "contentDigest": "sha256:f24edd408383c99fe19a3f188aaa2aa479852cf4ae25b8af3f80fe5fd0fff0e7",
       "mode": "100644"
     },
     {
       "path": "crates/reference-pipeline/tests/profile_binding.rs",
-      "contentDigest": "sha256:b421349150ee5810502d9e58a94a6a5e46a77367a3fb3e376295bf6a94a5ccc0",
+      "contentDigest": "sha256:4f3aeab766b652ed95ee5ddcef70616b4ec170c9ae10996464df2996f328780e",
       "mode": "100644"
     },
     {
@@ -544,7 +569,7 @@
     },
     {
       "path": "crates/reference-readers/src/absence.rs",
-      "contentDigest": "sha256:6369fafeec19b321dd7ec31abba9fdd63a29e6d1d03e4338ea428469cd73650d",
+      "contentDigest": "sha256:e203ce797d29c71ce4651006dd2ee926cf3c74176859c88fa1dc293dbc1d0833",
       "mode": "100644"
     },
     {
@@ -564,7 +589,7 @@
     },
     {
       "path": "crates/reference-readers/src/cause.rs",
-      "contentDigest": "sha256:b2f1f49cde7f0e69b76f5645ff5ea84a58131ca458e2a95f72fdf6269febc988",
+      "contentDigest": "sha256:c90cabb7cb4fe46bbe627013a4019beba10f03dfb14f721682a8dad6f98f76e0",
       "mode": "100644"
     },
     {
@@ -585,6 +610,21 @@
     {
       "path": "crates/reference-readers/src/fixtures/tlog-state.toml",
       "contentDigest": "sha256:c80d4b05cf2102dc08e63bc0bc8001df2f2c83cd7e24c3812b93c1d5f9ac8052",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/src/fixtures/unknown-adapter--pose-text--profile.toml",
+      "contentDigest": "sha256:c152c9490088ee495e7efae9e8d6af02a7def32569608b4565df7ac2e0b29275",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/src/fixtures/unknown-adapter--tlog-state--mavproxy-recorded-profile.toml",
+      "contentDigest": "sha256:c80d4b05cf2102dc08e63bc0bc8001df2f2c83cd7e24c3812b93c1d5f9ac8052",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/src/fixtures/unknown-adapter--tlog-state--profile.toml",
+      "contentDigest": "sha256:3a1d19e52e0bbe4ef051a79c223856bfa48a6b9689ef40cf86871bb54f6a480e",
       "mode": "100644"
     },
     {
@@ -609,7 +649,7 @@
     },
     {
       "path": "crates/reference-readers/src/profile.rs",
-      "contentDigest": "sha256:a5dbf479a4d8eaa3e76c8a36cce75c302719e71ab8a7f6d3d0aa342b4295b145",
+      "contentDigest": "sha256:7542291a666cd8a0e367546ead1d57251be3b4f9497ed8569b128f201bcb6b75",
       "mode": "100644"
     },
     {
@@ -619,12 +659,12 @@
     },
     {
       "path": "crates/reference-readers/src/time_align.rs",
-      "contentDigest": "sha256:c9373e332e9793fd40a038f101519066c33034c0ed3e235176f5764caa45148e",
+      "contentDigest": "sha256:21e37bb6df553fbb73a242ad68c5f454a41c1b9b4eb198cff6d76a3d5bdc75ef",
       "mode": "100644"
     },
     {
       "path": "crates/reference-readers/src/tlog.rs",
-      "contentDigest": "sha256:2e03f8aab0fc084442049017dacd87a64741bd272e88ff8c9ae967546bd161cb",
+      "contentDigest": "sha256:e42b2a5feb6cfcef9117043047e125e35b2c73603d3ccdb72b7b19f7f2a3e02d",
       "mode": "100644"
     },
     {
@@ -638,18 +678,23 @@
       "mode": "100644"
     },
     {
+      "path": "crates/reference-readers/tests/auterion_suite_ulog_contract.rs",
+      "contentDigest": "sha256:702beff382e9f83bf00bc66803d23472819552dbbd9bd563cd41ef7b65d37052",
+      "mode": "100644"
+    },
+    {
       "path": "crates/reference-readers/tests/blackbox_gps_profile.rs",
       "contentDigest": "sha256:9730e791dfcce7bf926180406387b859c4b2358a7ea0fbd84a5f88efeb796f72",
       "mode": "100644"
     },
     {
       "path": "crates/reference-readers/tests/declared_platform_domain.rs",
-      "contentDigest": "sha256:6e0980ab20ed24c24570210ca74cca134e771d11c82e3d7bc7642025a846fa54",
+      "contentDigest": "sha256:22bdcfd323a2eaa6c204146091e84af5b32272c2c949f9aa8bf29d863224bbe4",
       "mode": "100644"
     },
     {
       "path": "crates/reference-readers/tests/electrical_schema_reuse.rs",
-      "contentDigest": "sha256:acf4e8adc0e59912e743c142f184b8f7f494576699ce95665b86968e87b231b6",
+      "contentDigest": "sha256:0bcb0436b7002df7add1efbe1d8b20477cab28caed189b2346c93b83a47d021f",
       "mode": "100644"
     },
     {
@@ -678,6 +723,21 @@
       "mode": "100644"
     },
     {
+      "path": "crates/reference-readers/tests/fixtures/authored-ambiguous-refused.csv",
+      "contentDigest": "sha256:f4964eeaec575628e0bbe4504b604de1f9d31d1c2c5e7a7f0a1ac91a4fee854b",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/authored-boot-counter.csv",
+      "contentDigest": "sha256:d6cd46e2f2a12f84d6bb3c9e250a27a795326c54c5c7de10cdddcaf1daee184f",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/authored-rtc.csv",
+      "contentDigest": "sha256:f339830ea1fe3a747acee50c30cd5810d4e00a38f2b21f1e43fcdf8fedddad0b",
+      "mode": "100644"
+    },
+    {
       "path": "crates/reference-readers/tests/fixtures/betaflight-raw-main--profile.toml",
       "contentDigest": "sha256:d1d1c6ca51b851387d06ab720344c6134c0a1fd468d2e20e6ee7c5569f69a5b0",
       "mode": "100644"
@@ -685,6 +745,21 @@
     {
       "path": "crates/reference-readers/tests/fixtures/boreas-enu--profile.toml",
       "contentDigest": "sha256:1ef7b75a4b07ab00add750fc48d6053c07ecc5e627b8122aa33e9fd1620745dc",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/edgetx-handset-clock--boot-counter.profile.toml",
+      "contentDigest": "sha256:1c81b81a0e397463840ede571709b100b459fe25227d229c070b8978459ff7f4",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/edgetx-handset-clock--rtc-date-time.profile.toml",
+      "contentDigest": "sha256:67de83ceb9fcb98acdbb992390f672ce320774c8781e0d996e5be8a0203ea189",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/edgetx-handset-clock--time-alternatives.profile.toml",
+      "contentDigest": "sha256:b770ded6ad654fa6ab22a7d6623f6c86dfc5e2e7c96f424a9ba61fe6b22db456",
       "mode": "100644"
     },
     {
@@ -698,8 +773,18 @@
       "mode": "100644"
     },
     {
+      "path": "crates/reference-readers/tests/fixtures/profile-synth-v1--candidate--profile.toml",
+      "contentDigest": "sha256:019cb552fd8f1fb89dd918f9e48f26af6cf852e02ff5c96bd138b3c0cd6c3622",
+      "mode": "100644"
+    },
+    {
       "path": "crates/reference-readers/tests/fixtures/px4-battery--profile.toml",
       "contentDigest": "sha256:983250df8e4df9401026e8fd3c58e4d537b2b7fb044c4779e329a3d5db505690",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/sample.csv",
+      "contentDigest": "sha256:8227a9371621874feacf709f255ca35a3813586e8b12b800f29ac047c392135d",
       "mode": "100644"
     },
     {
@@ -723,13 +808,113 @@
       "mode": "100644"
     },
     {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--ardupilot-battery--profile.toml",
+      "contentDigest": "sha256:d91c3057d0cded8b304a88fef4f599a37e9ef53a072464e84b1446de1488e9d4",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--ardupilot-mode--imu-profile.toml",
+      "contentDigest": "sha256:345c9c2cf4a2241443af62200e3337963290bd32dc320833dfac18df5a8fbc9f",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--ardupilot-mode--imu-rover-profile.toml",
+      "contentDigest": "sha256:f780b2771667510add68d5e520f0000e7e51a7a75efdb46765513e9399d6f792",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--ardupilot-mode--imu-unclassified-profile.toml",
+      "contentDigest": "sha256:469fe6f4b868de3879aad7d876677d0d66a1b6031775957ec75018f7bdfc2f71",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--ardupilot-mode--profile.toml",
+      "contentDigest": "sha256:71a1f23de430b5de34425fd5f2a6bf9ab3643694abaed39e0ab3ded1eb791795",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--auterion-suite-export--profile.toml",
+      "contentDigest": "sha256:612cb04aa0f6f2767339584aa1abec73dc8c546a9bb685bd3dee609e4e5dd824",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--betaflight-raw-main--profile.toml",
+      "contentDigest": "sha256:d1d1c6ca51b851387d06ab720344c6134c0a1fd468d2e20e6ee7c5569f69a5b0",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--boreas-enu--profile.toml",
+      "contentDigest": "sha256:1ef7b75a4b07ab00add750fc48d6053c07ecc5e627b8122aa33e9fd1620745dc",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--electrical-schema-reuse--json-profile.toml",
+      "contentDigest": "sha256:cce40de88fb2ca4982b4a2b895eb631e8acd84061063a56184f6eccd7cb20c19",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--link-cue-fields--profile-boot-relative.toml",
+      "contentDigest": "sha256:ba81ce55754c0f950ce057c3cf87c28d585549a51f967fe497d77816b49f15c0",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--link-cue-fields--profile.toml",
+      "contentDigest": "sha256:bba54d135fefb52c828b904a5873e991d39bd6186e0b361cd039d54f2a47ccee",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--nmea-wind--profile.toml",
+      "contentDigest": "sha256:4008474c7ba14f05e74a11f23e294bf837f2156932ed13b7d14b80bdcd4ba136",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--px4-battery--profile.toml",
+      "contentDigest": "sha256:983250df8e4df9401026e8fd3c58e4d537b2b7fb044c4779e329a3d5db505690",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--surface-usv--profile.toml",
+      "contentDigest": "sha256:3345a6ec251f6db4745027af85891c29a844bc495ddeb6093a434ce258bebeaa",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--surface-usv--rov-profile.toml",
+      "contentDigest": "sha256:249b6ef695fd9bfda849ae812816fac47d6ef352710a82ea24ba3c705ffa8247",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--surface-usv--survey-boat-profile.toml",
+      "contentDigest": "sha256:2b5abc945e96a5664ded2569824b36fa0bf2050c49911af64d1bf8388688bc03",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--turtlebot3-trajectory--profile.toml",
+      "contentDigest": "sha256:6029b55119ecc56e0d8fc770ce5fbac347b08302b906cc1fba23602e5c8cfc0b",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--voxl-px4-ulog--profile.toml",
+      "contentDigest": "sha256:168a21a6003d379ceabf388bc29c1a4f5f4dcbeddf421cc6a507a479b9f8d662",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/handset_clock_profiles.rs",
+      "contentDigest": "sha256:ba33ac32fb2887882a440d325bf3199a2dee13eaec65be549b77798f555ca94e",
+      "mode": "100644"
+    },
+    {
       "path": "crates/reference-readers/tests/handset_preservation.rs",
       "contentDigest": "sha256:c4f384f53362b41a7a7b3e5e7e5ffc105811e9bfa224d73f1c13c14a1d5ef894",
       "mode": "100644"
     },
     {
+      "path": "crates/reference-readers/tests/link_cue_join.rs",
+      "contentDigest": "sha256:4c22d6470522f639eeac5d6db61cec57f5abf626e978c49a560391cd29945347",
+      "mode": "100644"
+    },
+    {
       "path": "crates/reference-readers/tests/mavlog_json_contract.rs",
-      "contentDigest": "sha256:85b226e52c3c90af162c78781a3bc2b14c47d7ecb6e8d44a0bf3ce7138623dd9",
+      "contentDigest": "sha256:cda3a43fcdf2e8283971608dd3fd17e94481ec7b748f5268ad11757f047f6444",
       "mode": "100644"
     },
     {
@@ -739,7 +924,12 @@
     },
     {
       "path": "crates/reference-readers/tests/recorded_enu_profile.rs",
-      "contentDigest": "sha256:a8ffd3ff145cee3d1e9049266208f0e86d81139ec77f74d18a8f4370bd6f91ec",
+      "contentDigest": "sha256:ae93b6f120353cb76afb8a10dcc50cf932396eb20e096c71d57d85424885bd44",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/required_field_absence.rs",
+      "contentDigest": "sha256:da8ef95596865fca8f86c3219da350168022853cf73d2ab750b7eaec1e285723",
       "mode": "100644"
     },
     {
@@ -754,17 +944,17 @@
     },
     {
       "path": "crates/reference-readers/tests/telemetry_csv_contract.rs",
-      "contentDigest": "sha256:1231428c546c18d4c24bcfc33a13bea60e4c58f7806f66016323f3212cc30bde",
+      "contentDigest": "sha256:1d86edd1e506150136f2602547a2899c47fc655ac624e716106db543e1924195",
       "mode": "100644"
     },
     {
       "path": "crates/reference-readers/tests/telemetry_equal_time.rs",
-      "contentDigest": "sha256:0de0b5c23bee773b70aab52fdbe7cae5eb0c1dcc9b6278b504ab58c3f50fcda2",
+      "contentDigest": "sha256:622a92ac02e29c736e291e44994f240f51e1f513d99dc8ed309ef1de47954001",
       "mode": "100644"
     },
     {
       "path": "crates/reference-readers/tests/telemetry_nonfinite.rs",
-      "contentDigest": "sha256:f31089f3f219d74054a35b763cab743a5f5ca9977dcb0632162e6fcfd8c2f785",
+      "contentDigest": "sha256:c7a9742af27267770964c2ccc6e9a49a13055a3d16b2ec2966f7f1eb298ea1d5",
       "mode": "100644"
     },
     {
@@ -775,6 +965,11 @@
     {
       "path": "crates/reference-readers/tests/unknown_recorded_family.rs",
       "contentDigest": "sha256:7d17b9d0dcfa871efad384b97dd425f435f5aef46c355cce15ab7bc67e03edc6",
+      "mode": "100644"
+    },
+    {
+      "path": "crates/reference-readers/tests/voxl_px4_ulog_contract.rs",
+      "contentDigest": "sha256:1a4cf9763522776e0a35b60c9b188569893b9d74871373d938a4393e060f150b",
       "mode": "100644"
     },
     {
@@ -794,7 +989,7 @@
     },
     {
       "path": "crates/reference-types/src/lib.rs",
-      "contentDigest": "sha256:5a375b545184ea3406c87fe98391bd42bbc20d504f584679c12d4710b460cb8f",
+      "contentDigest": "sha256:96c6fe0d591fa6b84eef2e46d2dd9d90564072bb6ba86f9ed79511a2356cf56b",
       "mode": "100644"
     },
     {
@@ -1003,6 +1198,11 @@
       "mode": "100644"
     },
     {
+      "path": "docs/saved-inputs.md",
+      "contentDigest": "sha256:6b5c75bf81eb74e52348455a803a5d28ecd9b326802ee0a35f6bc1986d0b392c",
+      "mode": "100644"
+    },
+    {
       "path": "examples/px4-position-csv/legacy.json",
       "contentDigest": "sha256:72ccf447c5804f90755f77e94a104e7ac93e95a4b95d1ed6beb9e774c3759dbe",
       "mode": "100644"
@@ -1018,13 +1218,1243 @@
       "mode": "100644"
     },
     {
+      "path": "examples/saved-inputs/authored-gcs.csv",
+      "contentDigest": "sha256:6b965b520acf2331063d6252a330d2eacad57baf651fa4f1004f71819ed03a54",
+      "mode": "100644"
+    },
+    {
+      "path": "examples/saved-inputs/authored-rtklib.pos",
+      "contentDigest": "sha256:8973619ca1c4cbf6cdba5a9f18010901a23bd163bfe3650ed3b7d89c3b86516c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/agio-saved-events/profile.toml",
+      "contentDigest": "sha256:f1c9c89a3c0257052b66479e32b12425bc4d0059287a53e88186d9483a00d0eb",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/agopen-sections/profile.toml",
+      "contentDigest": "sha256:4244ee45348fd046927444fd0319ef90d3084eb740d89782c341aefbedbba72f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/agopen-steering-reuse/profile.toml",
+      "contentDigest": "sha256:a9e39c6e06c64751d6a3820a61a14ce425efcd46cdaa422078d1e655ee2a9c89",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ardupilot-battery/profile.toml",
+      "contentDigest": "sha256:d91c3057d0cded8b304a88fef4f599a37e9ef53a072464e84b1446de1488e9d4",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ardupilot-battery/rover-profile.toml",
+      "contentDigest": "sha256:92bbb7490d036a8488c03d8b68b0c75aa5c723fbd4235e515e20d2d7b80544c2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ardupilot-battery/unknown-profile.toml",
+      "contentDigest": "sha256:8cd9927b4ae1135c6dae59330913aeaeec026185cc4ad01478ee870fb6568591",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ardupilot-mode/imu-profile.toml",
+      "contentDigest": "sha256:345c9c2cf4a2241443af62200e3337963290bd32dc320833dfac18df5a8fbc9f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ardupilot-mode/imu-rover-profile.toml",
+      "contentDigest": "sha256:f780b2771667510add68d5e520f0000e7e51a7a75efdb46765513e9399d6f792",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ardupilot-mode/imu-unclassified-profile.toml",
+      "contentDigest": "sha256:469fe6f4b868de3879aad7d876677d0d66a1b6031775957ec75018f7bdfc2f71",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ardupilot-mode/parameter-profile.toml",
+      "contentDigest": "sha256:dff70f713b2e07ea33c744f7d122d0bedae59deeed3fdec704617f0920db3ee4",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ardupilot-mode/parameter-snapshot.toml",
+      "contentDigest": "sha256:70aad228c4282de06e011533fddab2cbdf644df5cf3048bfd06f9c414c9bcdf3",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ardupilot-mode/profile.toml",
+      "contentDigest": "sha256:71a1f23de430b5de34425fd5f2a6bf9ab3643694abaed39e0ab3ded1eb791795",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ardupilot-mode/vehicle-profile.toml",
+      "contentDigest": "sha256:29094af3568f5e2ba39985da13c1c7d60ae766d8f76d67032fc9691ef0901c1e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/arduplane-jsonl/profile.toml",
+      "contentDigest": "sha256:811e9c8592699adcb8b557960e1992889cb59fb5b18dcf85d2823cc631a05c3b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/auterion-suite-export/profile.toml",
+      "contentDigest": "sha256:612cb04aa0f6f2767339584aa1abec73dc8c546a9bb685bd3dee609e4e5dd824",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/betaflight-motor-main/profile.toml",
+      "contentDigest": "sha256:9001b9e8c49f03713644b27bbd7ad7b998506fee94e438e88c57d3b6beb09b7d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/betaflight-raw-main/profile.toml",
+      "contentDigest": "sha256:d1d1c6ca51b851387d06ab720344c6134c0a1fd468d2e20e6ee7c5569f69a5b0",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/boreas-enu/profile.toml",
+      "contentDigest": "sha256:1ef7b75a4b07ab00add750fc48d6053c07ecc5e627b8122aa33e9fd1620745dc",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/bt-declarations/profile.toml",
+      "contentDigest": "sha256:a1e35c0c94b232eac48858f3d3d5ec856124b69768af62c8908bacb87f1c0f1e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/cable-test-export/profile.toml",
+      "contentDigest": "sha256:cb9786edd0b9dbe93dfee9bd0ccea32f43c0805e3b2c6c0ddafe481dd7569aa4",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/cap-alert/profile.toml",
+      "contentDigest": "sha256:442fc57ca01535d06c0538a2a8e7714af43966843dea5e9ca0d46097358e1f3a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/cockpit-clog/profile.toml",
+      "contentDigest": "sha256:99d10ddd5abb54394ddc0272169da6f88383f36e04bc5f3a8512c6ad58ea84ec",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/controller-reported-failure/profile.toml",
+      "contentDigest": "sha256:8830f3e1aa3efee25e00268f51fd75a9f97ea10d18b77e876510cf7b5e072dc4",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/crsf-link/profile.toml",
+      "contentDigest": "sha256:67b3ef97cbe6a4b0dea93f3572b59fdabdd0cf60b06cfa507686cd4bd49bc393",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/crsf-reported-parameters/profile.toml",
+      "contentDigest": "sha256:4f0d40d16a69955a136de78f62e2913f9c79b60e65796cb265699baa7923ddfe",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/dbc-recorded/profile.toml",
+      "contentDigest": "sha256:61a71ab92a5eadc7ca487ccdec2cd65250c95b152a9144766b3b13dfb1f6be0e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/declared-expectation-checks/profile.toml",
+      "contentDigest": "sha256:4f097983700d9fa59167bbc0748ddcd136b55d382b1cc17a28952cda8284d501",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/dji-dock-osd/profile.toml",
+      "contentDigest": "sha256:c916123e8cbe39b5785427a407a56773e94a35a748fc0425f7855a3ec177d399",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/dronecan-recorded/dictionary-profile.toml",
+      "contentDigest": "sha256:f14d5cc862024d9ed87375d790bac2c2226d2407b04ead0cc65efde21680af47",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/dronecan-recorded/pdo-profile.toml",
+      "contentDigest": "sha256:cd38a4f84cb310cffdcf4a83d8af55fb5e20c8943a05857fd3b8cf35e4b34008",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/dronecan-recorded/profile.toml",
+      "contentDigest": "sha256:a00e82b4667bc6493a1e57fa133e95c91689206292a7059b40eb43f14f127204",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/edgetx-handset-clock/boot-counter.profile.toml",
+      "contentDigest": "sha256:1c81b81a0e397463840ede571709b100b459fe25227d229c070b8978459ff7f4",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/edgetx-handset-clock/rtc-date-time.profile.toml",
+      "contentDigest": "sha256:67de83ceb9fcb98acdbb992390f672ce320774c8781e0d996e5be8a0203ea189",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/edgetx-handset-clock/time-alternatives.profile.toml",
+      "contentDigest": "sha256:b770ded6ad654fa6ab22a7d6623f6c86dfc5e2e7c96f424a9ba61fe6b22db456",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/electrical-events/profile.toml",
+      "contentDigest": "sha256:99c02d03b1721c99b876fd55e9f0d98e8967805ec0ce178aa1a00a8b35e1960d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/electrical-schema-reuse/farmbot-profile.toml",
+      "contentDigest": "sha256:f54fbaf8d3155f4bddd80103af99caf3d4443a387e26b611a803700dedbbf6ae",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/electrical-schema-reuse/json-profile.toml",
+      "contentDigest": "sha256:cce40de88fb2ca4982b4a2b895eb631e8acd84061063a56184f6eccd7cb20c19",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/electrical-schema-reuse/vda-connection-profile.toml",
+      "contentDigest": "sha256:7956f16317957eb3666fa1a6ab669decbda590ac93242e688d1e7e8f2e92e3e1",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/elrs-settings/profile.toml",
+      "contentDigest": "sha256:4d6ced46e1090c26384d70a56cab78db74fce27c9e67a20b8523c063a580302f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/file-presence/profile.toml",
+      "contentDigest": "sha256:c71a673444825462c9e622a6bde5b82d7f4fb3b04e3b441656646b84a3c926b6",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/gateway-link-state/profile.toml",
+      "contentDigest": "sha256:30672a7c57d940b1d4d17a7a677e5502574822a62de3a87ed860e8f2ae9a3c94",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/gcs-csv-reuse/attitude-profile.toml",
+      "contentDigest": "sha256:fed7dfead9adf5b553ce1a88e1c1c00d8039759ec08b25cb1318cec9d8e0f509",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/gcs-csv-reuse/gimbal-device-status-profile.toml",
+      "contentDigest": "sha256:d61f2c4a0c275198263fad00e97648530d8993847b3f92fb90072df43c46c203",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/gcs-csv-reuse/status-profile.toml",
+      "contentDigest": "sha256:a3f1843b52f4e8fb11308fa60dd4db817469abe6c671dc0aafba880d55d86913",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/gcs-csv-reuse/storage-information-profile.toml",
+      "contentDigest": "sha256:3731b378f56539ba57f674e76ae1e2bcc13c095cc76d449342f2caa66d1ef9c6",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/gpx-points/boundary-profile.toml",
+      "contentDigest": "sha256:9e948a2c3449f523ff07203dab3a2b84eca800b1558f59e2699c48a4b9e36158",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/gpx-points/kmz-profile.toml",
+      "contentDigest": "sha256:b9042717a240518e29009faa53ecf0c67afcd46165019a651679b6d152ab3e8a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/gpx-points/profile.toml",
+      "contentDigest": "sha256:a3a68a2630f95bf553cf16435b14a0ba46ea06071d8a73e35cfba73437b6a8ce",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/gpx-points/track-profile.toml",
+      "contentDigest": "sha256:84271fcba8ff80cc3227e9a8a33d462448dcd12680cf16cba61a12376a443409",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/gpx-points/wpl-profile.toml",
+      "contentDigest": "sha256:f34db1b2107a68f6713ca4596475cd84a150ad16566fdca13609b526adec89fb",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/ground-message-closure/profile.toml",
+      "contentDigest": "sha256:ea8e261da0496c788d4b27eafb4763ea6d86abe3d01f41d165a040679337e47c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/image-metadata/profile.toml",
+      "contentDigest": "sha256:b9e637fdfdb794ab83447df181a395eae2be26c1918deb460a7525e066bb7f47",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/imc-schema-application/profile.toml",
+      "contentDigest": "sha256:358efc02ae03c365524a38f39571ab443f4c6f5262e7bd78ddc8b1f9652f060f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/imc-sensors/alog-profile.toml",
+      "contentDigest": "sha256:07d897151a74715f698fbf6338c25966b20d5acf220d24cd1de49496fb0ba85d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/imc-sensors/moos-declarations-profile.toml",
+      "contentDigest": "sha256:318cfff57b7ccb2ac8cd339dc31de4328f408db0cae87e14e8a16241032bb787",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/imc-sensors/profile.toml",
+      "contentDigest": "sha256:441a8f2eee935868edce94958ee7f8da3b6f9eb8282a1e2b4efe8f505478adc9",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/isobus-ut-tc-passive/profile.toml",
+      "contentDigest": "sha256:12b1a5be345898ed1c953b4a8bc61f36481f43a0bc22e01057edbb08245157a5",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/isoxml-prescription-reuse/profile.toml",
+      "contentDigest": "sha256:365377f14a63acbc431ceb631dcc3ee3f2e047c6121c47d275bd881ca5f1b1e9",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/isoxml-rate/profile.toml",
+      "contentDigest": "sha256:4d8cb31423ad7b2a42c1a610e7ffa9a57af5719cecacee18415023b630c687b8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/lanelet-declarations/profile.toml",
+      "contentDigest": "sha256:3f3f08eb94b877084533187bd3c12dfc37aff2d044f8e5513cb9149be3625b70",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/link-cue-fields/profile-boot-relative.toml",
+      "contentDigest": "sha256:ba81ce55754c0f950ce057c3cf87c28d585549a51f967fe497d77816b49f15c0",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/link-cue-fields/profile.toml",
+      "contentDigest": "sha256:bba54d135fefb52c828b904a5873e991d39bd6186e0b361cd039d54f2a47ccee",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/link-level-events/profile.toml",
+      "contentDigest": "sha256:5a3d0984dd82789a070ceb9d4a35828f7473cc632a25d05e3e21bed7fc69e50f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/m3m-capture/profile.toml",
+      "contentDigest": "sha256:8f8520575366198f7d36339807621e4e7033e0eaad5e1da0790ec86da430c6ab",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/marine-ardu-reuse/profile.toml",
+      "contentDigest": "sha256:3eb7a17b058b61b385b850a1c2d8d833332e014c9d06651f9f6ae1408358fc63",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/moos-node-report/profile.toml",
+      "contentDigest": "sha256:9eb6efef6607b9ced75450b463224398251de00cc05b69320b2ea7551220006d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/nav2-map-content/profile.toml",
+      "contentDigest": "sha256:d2ec0a5f6cc1c5eab64eaf4df902a891eb41d7a7884cacecbe30209a6e0dbd60",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/nav2-passive-progress/profile.toml",
+      "contentDigest": "sha256:f786995fe617ac47e7104565b324f3f1421b59c6cbc9f4c838a9a6376ef91a83",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/nmea-wind/profile.toml",
+      "contentDigest": "sha256:4008474c7ba14f05e74a11f23e294bf837f2156932ed13b7d14b80bdcd4ba136",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/oauth-reported-rejection/profile.toml",
+      "contentDigest": "sha256:7a876315232fd1b0d2619b7717f4a28a8bbab7486b6731011237998268c6f354",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/opcua-recorded/profile.toml",
+      "contentDigest": "sha256:f1bee84f9cbcbe68ce27c14d296d95dd6483914c7ad1efbfc80dc46d5c7a2da2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/parrot-telemetry-export/profile.toml",
+      "contentDigest": "sha256:b35c5268d01470b708bc9c7e38757182e36edf063dcce59bbc936f9bb447b1ad",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/pose-text/orbslam2-profile.toml",
+      "contentDigest": "sha256:989480a394510ec91211a62ead8b001c5c0b72d5d761146a17f4aa1d91d45200",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/pose-text/profile.toml",
+      "contentDigest": "sha256:c152c9490088ee495e7efae9e8d6af02a7def32569608b4565df7ac2e0b29275",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/power-thermal-reports/reception-profile.toml",
+      "contentDigest": "sha256:31bd2b3d41c9a1581642969a36477c9d1c1d7f57949e86c3f2c0cd2928584a52",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/public/ardupilot_plane_bin.toml",
+      "contentDigest": "sha256:64ea4012786ff555bf9b0d6be3b977b393fb6e6d020b49a910e3827cf523d40a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/public/ardupilot_plane_tlog.toml",
+      "contentDigest": "sha256:7572c67d5adee6415b2a75456d268f74a0eaaf446d1865889ec01a7e8ff7818b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/public/ardupilot_rover_bin.toml",
+      "contentDigest": "sha256:4bf69c705db7923a35a311c7f648ab2dc376e742d7da5050d1a7eb9e65160262",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/public/ardupilot_rover_tlog.toml",
+      "contentDigest": "sha256:33976956e2208a58353b1c0b4826d69ca9d2f96c58d3fab93b7de0c91e909d29",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/public/betaflight_blackbox_csv.toml",
+      "contentDigest": "sha256:5281ca658814d29ecf0bb18810442fb02ee477926598a87a0db0d59d9834ed91",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/public/edgetx_handset_csv.toml",
+      "contentDigest": "sha256:f4bf2d8a8658cacce0f94bf424553bac3d0c6127433d13240d28a25177cbccac",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/public/px4_ulg.toml",
+      "contentDigest": "sha256:ee321074c08713c5d354bc870cda52ab19a5ea41d0a04d09895af3ccbcaa2894",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/public/video_presence.toml",
+      "contentDigest": "sha256:e833314c6f5c927149d84e11cf2222149d06cdcee5311c2b44944dc7bf5115f4",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/px4-battery/profile.toml",
+      "contentDigest": "sha256:983250df8e4df9401026e8fd3c58e4d537b2b7fb044c4779e329a3d5db505690",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/recorded-angles/profile.toml",
+      "contentDigest": "sha256:537330e601dfe276904f885bbc021c637de63541117abcc871b909d7ac26f482",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/request-response-match/profile.toml",
+      "contentDigest": "sha256:7a86c868a486da7de294954ca2d98cd8dee425a987e561accacb4d12d48871a1",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/rinex-records/nav-profile.toml",
+      "contentDigest": "sha256:7f9c58970260e46ddb98d3fdc5faf2ee6c13fca67f0e83f439142852faad7194",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/rinex-records/obs-profile.toml",
+      "contentDigest": "sha256:47265bb34f8aa4721d44c43a0f8f08f28f881bc492667f1cb66547ecb505c434",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/robotnik-dashboard-reuse/profile.toml",
+      "contentDigest": "sha256:67b2fbd8e2c5b083c8348094e146119618d52d2ad84b98d7762ed40f8a3c0cd9",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/rtcp-sender-reports/profile.toml",
+      "contentDigest": "sha256:01b6c6f7f82cf7bafc75b08b0bdfa0910610e1684a3b9260ea4d0ab4c6269b40",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/rtklib-solution/profile.toml",
+      "contentDigest": "sha256:90f0854aacae5a4d47ab4fda1cfb0fc57cb2ae9407166d4231c240161a55331e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/rtp-recorded/profile.toml",
+      "contentDigest": "sha256:7aa97f79713cb8fca450d84be128b9cd97a778fd8d6fcbb3efd08f796ecc6029",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/rtsp-description-reuse/profile.toml",
+      "contentDigest": "sha256:09d055dd49bb6452ef37146c0f2daccae4747cda9e7f192b9d1033b846b59ca3",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/rviz-config/rviz-config-profile.toml",
+      "contentDigest": "sha256:b4c97e963c719c686630a7db9305d523ad2cbc9555a8afe44314c4cc2252f5dc",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/safety-reports/profile.toml",
+      "contentDigest": "sha256:a6a9ac15083fa478f89f3deb5d987bef0e8fb2b1aea1897a043afc59f2cc9671",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/saved-audit-events/profile.toml",
+      "contentDigest": "sha256:61bfea45f416ce1c04477fd213f8475a2597e23cf7c8986c75d4cb13e6fa4a9a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/saved-inspection-features/profile.toml",
+      "contentDigest": "sha256:010c52f654530a2bcbe618d560d576ae0981caebc61d0bd077230c3c3d4b13d5",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/saved-mission-plan/profile.toml",
+      "contentDigest": "sha256:64bfcc2e019c010d498c6f8a32f3993ce70ee4c88bbb213929e72a4e1227d159",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/saved-point-cloud/profile.toml",
+      "contentDigest": "sha256:a90faf15cfd05b53025430a09181081e8f196811b19f1595e5dbccb3b28eda85",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/saved-state-transitions/profile.toml",
+      "contentDigest": "sha256:ce6ab92d98862a23b668d3c02c9b8c7dd7a0345178e3dc8c38c7b9500e35558c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/saved-video-conditions/profile.toml",
+      "contentDigest": "sha256:b5179703503d624e49295718af1083df429ec83f367057beaad5041657ec6710",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/sbf-records/profile.toml",
+      "contentDigest": "sha256:8b27f37aae9bd184f762ab64e2ba7519e09a69a1fcee3025610910fd7e33bd80",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/schema-unit-checks/profile.toml",
+      "contentDigest": "sha256:f0cedf652f88193915339b23f2a3c674c7af29d0b24f15a48c1ea0a8c5b4300e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/sdf-airframe/profile.toml",
+      "contentDigest": "sha256:b9bcb01889e30cd4093e89b0b84b0d8a496ee43d86d562cf088285814d12a93b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/skydio-flight-telemetry/profile.toml",
+      "contentDigest": "sha256:0345d9088f88fcdb3cecb07c8c1b04d2d766a52d7d5bfeacb3c8cc9c878aacbd",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/software-identity-binding/profile.toml",
+      "contentDigest": "sha256:15cb78aed989692e0e9e68ac1cebb0f54a4679a600d9f1fe3093ac6b299424ff",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/storage-reported-errors/reception-profile.toml",
+      "contentDigest": "sha256:78ed1911b7d5d1bb817c10bab6ca32fa3bb38bab87ec5d1a96c49701ea92f780",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/storage-reported-errors/source-time-profile.toml",
+      "contentDigest": "sha256:66ef34112eb26ea316b6f850a9dc76e907a88b3b0dbaf2025fd232242a0cb538",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/surface-usv/profile.toml",
+      "contentDigest": "sha256:3345a6ec251f6db4745027af85891c29a844bc495ddeb6093a434ce258bebeaa",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/surface-usv/rov-profile.toml",
+      "contentDigest": "sha256:249b6ef695fd9bfda849ae812816fac47d6ef352710a82ea24ba3c705ffa8247",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/surface-usv/survey-boat-profile.toml",
+      "contentDigest": "sha256:2b5abc945e96a5664ded2569824b36fa0bf2050c49911af64d1bf8388688bc03",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/tlog-state/gcs-recorded-profile.toml",
+      "contentDigest": "sha256:bbef862a43490f42480dcd6496a7ad5ee4a581b86ebc275df2b16cd025bc4b41",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/tlog-state/mavproxy-recorded-profile.toml",
+      "contentDigest": "sha256:c80d4b05cf2102dc08e63bc0bc8001df2f2c83cd7e24c3812b93c1d5f9ac8052",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/tlog-state/profile.toml",
+      "contentDigest": "sha256:3a1d19e52e0bbe4ef051a79c223856bfa48a6b9689ef40cf86871bb54f6a480e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/tlog-state/selected-sender-profile.toml",
+      "contentDigest": "sha256:0eea3a46440c53a8262d7d8fc28b5f9e22601b4289eceb500cee1ac706f925f5",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/turtlebot3-trajectory/profile.toml",
+      "contentDigest": "sha256:6029b55119ecc56e0d8fc770ce5fbac347b08302b906cc1fba23602e5c8cfc0b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/vda-load-report/profile.toml",
+      "contentDigest": "sha256:1688daffd689e2d858ae37c67abca9941cf6718e1e5dc36d00b6c8b95e95d771",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/video-frame-export/detection-profile.toml",
+      "contentDigest": "sha256:616eae26bd70f4f1198a576ba010e51ce22503b1401341401f49ef977f18dee6",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/video-frame-export/profile.toml",
+      "contentDigest": "sha256:f96ec1689a39d533258c7a6e632167b9d075d2109ec68fcf93402276e8614956",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/video-frame-export/progress-profile.toml",
+      "contentDigest": "sha256:22689ac540ebea76c9d6d3ec8b355315f369192072e258bbbe1de3106a183f23",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/vlm-response/profile.toml",
+      "contentDigest": "sha256:fb5262fed3f0b4d0dfbaf5e5115801a90854f5b05d3510f714624a41fe43dc92",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/voxl-px4-ulog/profile.toml",
+      "contentDigest": "sha256:168a21a6003d379ceabf388bc29c1a4f5f4dcbeddf421cc6a507a479b9f8d662",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/declared/vtx-tramp-replies/profile.toml",
+      "contentDigest": "sha256:78c753c037d696ef2accf72be17c887e950690100a227bae0122cae9017eda78",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/agio-saved-events/profile.json",
+      "contentDigest": "sha256:5cb42f5632746128fb70d1173f2a4fc349f1879b8801c98f336651f87df4f3f1",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/agopen-sections/profile.json",
+      "contentDigest": "sha256:b8b36fc895b7a7939e83ed8abbf521ee36079fb6ed2a91e7b5634e4571b36d1d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/agopen-steering-reuse/profile.json",
+      "contentDigest": "sha256:654d6ac254c1fc73615d427bb4af11da1a52cbd47639bfb7c5f22105734a1aad",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-battery/profile.json",
+      "contentDigest": "sha256:6a01cd26e4d60597f189c5c9c458c4d82ab0a8a2cbb7a884107eddf609f68791",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-battery/rover-profile.json",
+      "contentDigest": "sha256:6a01cd26e4d60597f189c5c9c458c4d82ab0a8a2cbb7a884107eddf609f68791",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-battery/unknown-profile.json",
+      "contentDigest": "sha256:6a01cd26e4d60597f189c5c9c458c4d82ab0a8a2cbb7a884107eddf609f68791",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-mode/imu-profile.json",
+      "contentDigest": "sha256:a2056b023de6fe7efbceb3d9ae26574e0dadb9ddc463747384cd0d7c81eac387",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-mode/imu-rover-profile.json",
+      "contentDigest": "sha256:28c4cf5f3386bd6ec88327cfe754175784eba38d7c51050db3128df4188d992a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-mode/imu-unclassified-profile.json",
+      "contentDigest": "sha256:28c4cf5f3386bd6ec88327cfe754175784eba38d7c51050db3128df4188d992a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-mode/parameter-profile.json",
+      "contentDigest": "sha256:d352887aedad3c045e2c4126393c5aea4412032ad914d3cb1c19473e474c3564",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-mode/parameter-snapshot.json",
+      "contentDigest": "sha256:bb6aff2316cfad491e627da0bed4358a2b881579718db9e19281582461db33a8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-mode/profile.json",
+      "contentDigest": "sha256:ae27bf31489f1f941f9f9bf85399cfbe634f58d1f3f132f3398a836f00a74a34",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-mode/vehicle-profile.json",
+      "contentDigest": "sha256:a209f23f9d122b24a10f5ac268e601fde238a871d778d0013087f57af0e21c59",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/arduplane-jsonl/profile.json",
+      "contentDigest": "sha256:de68e526d7e9ac49487f7977f7a80eaf7a79ee6af57ce448793243aaf9f4620d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/auterion-suite-export/profile.json",
+      "contentDigest": "sha256:8a235859591f1c862e7b303f786206ce4fd9305fba55ef88d3ef1221313ead8c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/betaflight-motor-main/profile.json",
+      "contentDigest": "sha256:c796bf4d1bce809a32455e2faf8a79aca227ea6e58e7a6b632c7b79c7dc33a30",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/betaflight-raw-main/profile.json",
+      "contentDigest": "sha256:7e33fb88d4eb06e734214ba9b89ed92c40a7acc774e336d6da83812ed010843f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/boreas-enu/profile.json",
+      "contentDigest": "sha256:d7c8256f6bef86876b94334b730c8d7274a3d1a0dbadcf1cf5efd5acdc9853ab",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/bt-declarations/profile.json",
+      "contentDigest": "sha256:68d4f53b9a07bc25962cd25e2e44aff0e934c5498d63c4c36def17953d75238d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/cable-test-export/profile.json",
+      "contentDigest": "sha256:57dd05676471b355fbe4c982463cca146ed2b172c45e5e63acc29c6ffb0bf457",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/cap-alert/profile.json",
+      "contentDigest": "sha256:d84f126d0408701baa1acd29b3d11f90471b3cf9d199fa0120a897abb9b4d28d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/cockpit-clog/profile.json",
+      "contentDigest": "sha256:b161db456df13e7d2ecfa92aa4f565db522c63ec1d34f3e7e262e9834b8afad8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/controller-reported-failure/profile.json",
+      "contentDigest": "sha256:cffc0cedcdffaed70543c7e211978b7c4b7684a6090eda4f2ac773a96691bfc4",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/crsf-link/profile.json",
+      "contentDigest": "sha256:9de44dec49f338a8be5e2f32eb9005ec4b3e03feed6185213b27ddd6165a38a2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/crsf-reported-parameters/profile.json",
+      "contentDigest": "sha256:c33ccb89ccc4194f8d5d9cec968748a4465d70157bc77a1a255cf39082e79a5c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/dbc-recorded/profile.json",
+      "contentDigest": "sha256:70905f28f2012008b22caae5ac617287098b27d5f3db36661a558b16794e0ad8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/declared-expectation-checks/profile.json",
+      "contentDigest": "sha256:e39a45a152dfccd1db7f950e94c6a2cdd6fc2569886a11bae9f3cffa4a1ebcd9",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/dji-dock-osd/profile.json",
+      "contentDigest": "sha256:7acefffdf5b3abaea8930733bed18ac526aeba745837041424ab88d3579dcdcd",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/dronecan-recorded/dictionary-profile.json",
+      "contentDigest": "sha256:43506a30b41e13fa528f92727c8771b041394b589da81b3d84505721cb2c92d1",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/dronecan-recorded/pdo-profile.json",
+      "contentDigest": "sha256:c8f7cca6a9a248ceecf3e45b0cc8d39e78571cf52327bfc8de45209ec9009106",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/dronecan-recorded/profile.json",
+      "contentDigest": "sha256:b475979a9240d3336a8efdf667da2a44efcfe36857ccdc930f4034e7b825edba",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/edgetx-handset-clock/boot-counter.profile.json",
+      "contentDigest": "sha256:18a85f05615f57bd4eb6fd925e5a818d264d4aa71ee7d8d33a88c0561ab171b8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/edgetx-handset-clock/rtc-date-time.profile.json",
+      "contentDigest": "sha256:d6c15fdfb79f029a4d014b0eab1a6109059214aeeddd9edb76582902b941f83e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/edgetx-handset-clock/time-alternatives.profile.json",
+      "contentDigest": "sha256:900867dc602ac31f98e37a79d448d3b0171dfdcd603d0391e15cfd713b7061ef",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/electrical-events/profile.json",
+      "contentDigest": "sha256:dafdc7019600dd568852d900d0f56e4c7901f6703fbf8f6173923ffd53dd165d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/electrical-schema-reuse/farmbot-profile.json",
+      "contentDigest": "sha256:6069ac06a03e53baa6df35e7ece6aa3bccfb56c8752939c74d2a3fc727335587",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/electrical-schema-reuse/json-profile.json",
+      "contentDigest": "sha256:090f865378b206846f7c3a77cb9800b8907433b70d12bd6b46b702716e281446",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/electrical-schema-reuse/vda-connection-profile.json",
+      "contentDigest": "sha256:e877c00ff19d6b69494ee687053a8fd862eb4d3952a7c256ec6ae61eaa884ed7",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/elrs-settings/profile.json",
+      "contentDigest": "sha256:8e6e3a024b7027ded69e1915226b05c7b6726d051981b2d5520d3ad103c52e55",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/file-presence/profile.json",
+      "contentDigest": "sha256:d8a55628da72ce45c6435f8e5fb974a5e105bb3d2b7e531a8f250f7b181cf66c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/gateway-link-state/profile.json",
+      "contentDigest": "sha256:639b251f5c8c77b4fd51f491d485e7d4f6a7aac1ae5c8256b9ffbcf126c3545c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/gcs-csv-reuse/attitude-profile.json",
+      "contentDigest": "sha256:fba5cd23a70e3f9484efb4544cc7af62cc1bf9a0475db020f605afb484b07bd2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/gcs-csv-reuse/gimbal-device-status-profile.json",
+      "contentDigest": "sha256:1775dc627e9f9cf542f9a22f29a5f14b74afde557868a4c958e9cb3fff1163df",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/gcs-csv-reuse/status-profile.json",
+      "contentDigest": "sha256:a288bd0d1f04dd9bb4e64357e4eb2bb55046402767367e387e8afeeb06b17c64",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/gcs-csv-reuse/storage-information-profile.json",
+      "contentDigest": "sha256:e7abf027af5805e62b661612849bb8a632b82d5f2560bf2bcdca4ab8fcedcfe5",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/gpx-points/boundary-profile.json",
+      "contentDigest": "sha256:b2c3091bf3f738f22f6ff0e122ae167ad5a999aa6e7523d8f0320172097de85d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/gpx-points/kmz-profile.json",
+      "contentDigest": "sha256:5c61ec911add7f46e26eafd0bb82db2b10683c6fab7955b03af13a2037637cfa",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/gpx-points/profile.json",
+      "contentDigest": "sha256:934a2dbadec7125a7b0ff58661293f4ba2f896b39ebbbeae9cb27898fa83f2fc",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/gpx-points/track-profile.json",
+      "contentDigest": "sha256:99f66765f1baaa1522599caee6f0bb2503abf09b0391b8a636eb624d3ec0807a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/gpx-points/wpl-profile.json",
+      "contentDigest": "sha256:f728777f80d68b4da281fb3e861191f4d96e49c57454360341f1da129f282e71",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/ground-message-closure/profile.json",
+      "contentDigest": "sha256:bdbc5efdd88fd2b3fd73a10a7329428035f63113e9ff587fd7f5ab507d8d7ce2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/image-metadata/profile.json",
+      "contentDigest": "sha256:0794e415c94f0014e78312a05f2074dec889f521c6144b66431d53dbba236c56",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/imc-schema-application/profile.json",
+      "contentDigest": "sha256:9073ee67ebc6cab9ac75116938faec4ce6cb0ce5b8379a3fd790da07015a8d27",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/imc-sensors/alog-profile.json",
+      "contentDigest": "sha256:57d4d51d476558b69783c679a273c4827a6c101c30989bbf3f9d8041e4888ca9",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/imc-sensors/moos-declarations-profile.json",
+      "contentDigest": "sha256:5fcad97e4a8c004e74391e3da4bb0d17f11bed9f76ebd132a4c39a8b4437b619",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/imc-sensors/profile.json",
+      "contentDigest": "sha256:b00545d3370a5a2c692ba6264797edab8cc281d3d34cc3d69246e599329db786",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/isobus-ut-tc-passive/profile.json",
+      "contentDigest": "sha256:4fb13a7a13f8b1fe2d61bea969aea29c0cc9aa0bb298b59f145acb4bfd8ba22c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/isoxml-prescription-reuse/profile.json",
+      "contentDigest": "sha256:76421e36bfa6f85db4f2fa5e4677d23302c0d8dd0b2f1ba0752965e91bab20a5",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/isoxml-rate/profile.json",
+      "contentDigest": "sha256:2aa78fb899b0f122db9359b93bd4d0debba3b9c008433a986d479ad588e315bb",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/lanelet-declarations/profile.json",
+      "contentDigest": "sha256:ce3516b7e63625bd4b0bed09c2bc05ff22e51ed4c006f620f2f25e084ff3405c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/link-cue-fields/profile-boot-relative.json",
+      "contentDigest": "sha256:5b5384b2f03d1fb2704a6b031976246f29eb2dfc7c5f3ee31a666809ea5416c5",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/link-cue-fields/profile.json",
+      "contentDigest": "sha256:5b5384b2f03d1fb2704a6b031976246f29eb2dfc7c5f3ee31a666809ea5416c5",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/link-level-events/profile.json",
+      "contentDigest": "sha256:365d0480c832f4ce2ec881d693decbd7ca4fc1217c1f047828247bede6f3c32b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/m3m-capture/profile.json",
+      "contentDigest": "sha256:485473e3b071e47c799f2213d8b556b06528173869274db4f854facddc3d0064",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/marine-ardu-reuse/profile.json",
+      "contentDigest": "sha256:8e933f2527f051a196eadc27481f91ce2d6130d8a288b12b1203323b0ae5e5e1",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/moos-node-report/profile.json",
+      "contentDigest": "sha256:2a590c05ff565f1d089129ea1236928b6b97cc445d389512ef6da1b4f4f55cb2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/nav2-map-content/profile.json",
+      "contentDigest": "sha256:b3451a2ed30487c2580cf7809378c3535097cbe84e64b187b0e42eccc9c0f379",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/nav2-passive-progress/profile.json",
+      "contentDigest": "sha256:7c671be94e841a05893fa4d887cb5ebd85d367f96acc8838b1b4dc754fa5fd5a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/nmea-wind/profile.json",
+      "contentDigest": "sha256:6d7184cc6833a640f3dec983581ef0166a470485e9f609ef7d0817d1c50e2b7a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/oauth-reported-rejection/profile.json",
+      "contentDigest": "sha256:8b9f86e3b5d03976b2c4a3ed162bdece6cc1419e4b81f5b5f931d6e05030986d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/opcua-recorded/profile.json",
+      "contentDigest": "sha256:99b6a1b7a6c55a865056aa230e843c390ead48e2bcfb940a93df64a8fd8813af",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/parrot-telemetry-export/profile.json",
+      "contentDigest": "sha256:3c3cc4272351bc208e10e801da8e8b980e22a8d1aff5ae8e617e7860edbe0dd4",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/pose-text/orbslam2-profile.json",
+      "contentDigest": "sha256:5c45b5f1ad24ff444f84d676ac3a9fba69ebe176d832e381c55c0da249375d0f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/pose-text/profile.json",
+      "contentDigest": "sha256:e0ddc628d22d567ba27ac8b2b027227b91a9a958651c8cc533e96408f2d37b83",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/power-thermal-reports/reception-profile.json",
+      "contentDigest": "sha256:9081e1ce99ca9806d9d2e5fc86f73731a6c5f9d907d17a7f4173c8fddc1291e3",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/public/ardupilot_plane_bin.json",
+      "contentDigest": "sha256:a8c1fc141cb4bbf516540932d91a376262fb0500d0473647e895cb3ed65eadc8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/public/ardupilot_plane_tlog.json",
+      "contentDigest": "sha256:a8c1fc141cb4bbf516540932d91a376262fb0500d0473647e895cb3ed65eadc8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/public/ardupilot_rover_bin.json",
+      "contentDigest": "sha256:a8c1fc141cb4bbf516540932d91a376262fb0500d0473647e895cb3ed65eadc8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/public/ardupilot_rover_tlog.json",
+      "contentDigest": "sha256:a8c1fc141cb4bbf516540932d91a376262fb0500d0473647e895cb3ed65eadc8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/public/betaflight_blackbox_csv.json",
+      "contentDigest": "sha256:a8c1fc141cb4bbf516540932d91a376262fb0500d0473647e895cb3ed65eadc8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/public/edgetx_handset_csv.json",
+      "contentDigest": "sha256:a8c1fc141cb4bbf516540932d91a376262fb0500d0473647e895cb3ed65eadc8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/px4-battery/profile.json",
+      "contentDigest": "sha256:710a7e43cd0fda953210f91dd758dceafa0adfcc4784698d495d0df954c4c55d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/recorded-angles/profile.json",
+      "contentDigest": "sha256:49be6eb20c47ce1d3de82184764b819bf062b3f715e746d5c82d86f9ad6e9d44",
+      "mode": "100644"
+    },
+    {
       "path": "profiles/meanings/reported-quantities.json",
       "contentDigest": "sha256:6f8b2bca3cde321600aa3eca039540b7d4707b6364827dea0500e4b8cf2146ed",
       "mode": "100644"
     },
     {
+      "path": "profiles/meanings/request-response-match/profile.json",
+      "contentDigest": "sha256:7846f06e72693246eaeb1c9952fc71c54b2fedc6c89a0e35f2763e61ce303e47",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/rinex-records/nav-profile.json",
+      "contentDigest": "sha256:072a2385db30421ab09d53a897dfd83248c8047a0e910e1ba4cfd0fa14308e4e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/rinex-records/obs-profile.json",
+      "contentDigest": "sha256:a9956a439cd03825c75c30b077e407a220ce9371e4b62220e99c37635cb22469",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/robotnik-dashboard-reuse/profile.json",
+      "contentDigest": "sha256:c492fda2be279f5f6037ce7aee4ea2e058e82e9f17d1ab83b0bfe5b24880a570",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/rtcp-sender-reports/profile.json",
+      "contentDigest": "sha256:181e3e55ebd506b5a917f74036e477f627bef31dddeeb2157a5f1049c078304c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/rtklib-solution/profile.json",
+      "contentDigest": "sha256:eae148787686ae0bf19dabd2645f118f0aa86479e8b49ed3dfe0acd2c7d78bf2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/rtp-recorded/profile.json",
+      "contentDigest": "sha256:9d9da22062a52cf9688ff2b3d8bf734cd5adee9a30e34d61c4ebe39707db0b6c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/rtsp-description-reuse/profile.json",
+      "contentDigest": "sha256:14385185ce69f0706c8b303991a4085fac13ab3309c394470aedbbd8753c5bc5",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/rviz-config/rviz-config-profile.json",
+      "contentDigest": "sha256:ca0fa78111c94e19bbab98317e78b345b2f54a5d325b490b7bbdbf110a5fa008",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/safety-reports/profile.json",
+      "contentDigest": "sha256:b897f528326e6c68ab2f8cd770302f6c230bb45c2ce8da14fe35ea599705575d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/saved-audit-events/profile.json",
+      "contentDigest": "sha256:c2742db4cc2eb5c6e5c75a73ce78751ddc95daa478f7abac2c59d13a2d8bc4b5",
+      "mode": "100644"
+    },
+    {
       "path": "profiles/meanings/saved-camera-pose.json",
       "contentDigest": "sha256:b22f7a1063a45874f4f17a3b98bf08b35015ce2c3a033627a6c662dfe37da086",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/saved-inspection-features/profile.json",
+      "contentDigest": "sha256:6bf1f357f2715cf94a07be90613982f1375c61dafee5002cf04fb7bc8093ba78",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/saved-mission-plan/profile.json",
+      "contentDigest": "sha256:454f5d208cc91888d51a0e32df38bd1865376250db0da52ec65fc9a53e617eb4",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/saved-point-cloud/profile.json",
+      "contentDigest": "sha256:954d703d50ca6509bbfb5995f51732aebc55dbd723a01de4779731b6343a8d74",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/saved-state-transitions/profile.json",
+      "contentDigest": "sha256:8985b2e4001d9fc5ddd0bee2f6f590009ab65ccd1762d6af6d81dda5e23242ad",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/saved-video-conditions/profile.json",
+      "contentDigest": "sha256:55867bec65e57cc512d28b4068d8e306a07f97df2b8e5112bec981069525ae31",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/sbf-records/profile.json",
+      "contentDigest": "sha256:8638ea6e4e2d05f8d3fcc23b9697426004cd4decfff778530826cf246562e535",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/schema-unit-checks/profile.json",
+      "contentDigest": "sha256:0e5bde75b0937eef33b6a0c78c925269147949aa452313d96700224f2fa0d01d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/sdf-airframe/profile.json",
+      "contentDigest": "sha256:49829b545e751e9ec01c4d84d4e9ba7ce387e7c6b17c0fe0a9c963f697119b99",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/skydio-flight-telemetry/profile.json",
+      "contentDigest": "sha256:8f693d77936f1c8464e2a85df9a131f6e43635d41d57e4acf208940504d5c856",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/software-identity-binding/profile.json",
+      "contentDigest": "sha256:f1b33f937380b9e8938a9748814a3d1ff1962b9df1d9a212ab6d336654a2990f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/storage-reported-errors/reception-profile.json",
+      "contentDigest": "sha256:46387454b17af61e76dd6b9c2262769329bdff02de5bb9d2708b8e7315ebd80a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/storage-reported-errors/source-time-profile.json",
+      "contentDigest": "sha256:663171ca30b64e04d2c46f9f87775f32af62b16e21f88fd4b72fd4025422bbfb",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/surface-usv/profile.json",
+      "contentDigest": "sha256:b06e69dd782074970f2f76efe55f1b873e1943741eb91cd77a98226ddbdd71f2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/surface-usv/rov-profile.json",
+      "contentDigest": "sha256:1b7a6992be50ef122fdf3b74582ff7473c14c2fb0e45e0b5cef4a3803e33e5d2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/surface-usv/survey-boat-profile.json",
+      "contentDigest": "sha256:67b06dc17e178880cb7f1a577ab881cb5bcacb77b833920e23836d217ba69bb5",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/tlog-state/gcs-recorded-profile.json",
+      "contentDigest": "sha256:799891af20f84614b935bf960fd51a27301b8764eca2b104d4d7c7eba63cc71c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/tlog-state/mavproxy-recorded-profile.json",
+      "contentDigest": "sha256:b99bd0937d629349618e7aa342f0ffb7e29fdb0c1fd99464db050d260d66772c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/tlog-state/profile.json",
+      "contentDigest": "sha256:03ea9c688e5e2c4bb3f6290ca4fbde98dc3858deadb46b46920893bb240ad09b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/tlog-state/selected-sender-profile.json",
+      "contentDigest": "sha256:3f8b36f6a83e8f85abea4f24cfe7a6654a1484444ebd9bf8e8a3b5df5b4dadf6",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/turtlebot3-trajectory/profile.json",
+      "contentDigest": "sha256:608950413f358fcaa80154f9b03a82141499cebce9da198034f3464a4ad95d29",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/vda-load-report/profile.json",
+      "contentDigest": "sha256:020d6680a00c79477af28dea7e323e2d8d646c33b55116235b359a38a1208fed",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/video-frame-export/detection-profile.json",
+      "contentDigest": "sha256:cbfbd0911a64f54e2a0016b14c38a1ddeeb2ab53c9fbaa8fc5419539ddc30eb7",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/video-frame-export/profile.json",
+      "contentDigest": "sha256:3f67a0cbcc2f51d60db01cbd296aa9839d6ff48ca8db716942030fba50459add",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/video-frame-export/progress-profile.json",
+      "contentDigest": "sha256:c26ee78929b3359381daea839abd019f3839ec8dcec92cb7e7b499dbfba4a808",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/vlm-response/profile.json",
+      "contentDigest": "sha256:81b8f52fa025c78d5d01b162053d9dadac1e161832c4f4661f742c1e14044f8e",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/voxl-px4-ulog/profile.json",
+      "contentDigest": "sha256:36529dd4b87bcb931e998fa1f03dea6c0e818ab81e7e0663edb6ce9ecee4dc76",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/meanings/vtx-tramp-replies/profile.json",
+      "contentDigest": "sha256:65c2f95c57b502e3c0d15a009bd2e55b4fbbe1c6c696ea8b305535f2b8e6a251",
       "mode": "100644"
     },
     {
@@ -1073,8 +2503,33 @@
       "mode": "100644"
     },
     {
+      "path": "profiles/recorded/agio-saved-events/profile.json",
+      "contentDigest": "sha256:fbb75de6bf544d2920add3afda35c26e93d41669ef7a54189591bf4c3660c2da",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/agopen-sections/profile.json",
+      "contentDigest": "sha256:7a33614dda8b4093c6f176acb8deb76480f8a188d32f5df91ac52f89239f0eff",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/agopen-steering-reuse/profile.json",
+      "contentDigest": "sha256:a1cb1c34f6a55bd9da81dc530899dff4c3cab13913d8614f8b1b427783e2dc95",
+      "mode": "100644"
+    },
+    {
       "path": "profiles/recorded/ardupilot-battery/profile.json",
-      "contentDigest": "sha256:6e23076346efee1f3f7324f6b167cef073d9ab43e7c2566af1a1f60e182b2222",
+      "contentDigest": "sha256:ac99fbdfbc12bcf0b765518ac3a54615f162b21505715c7dd92d379bd2a43c02",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-battery/rover-profile.json",
+      "contentDigest": "sha256:6eaa6c5b08da6a44a39673cb5291fadb8865490269e9b90d308815065323cafd",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-battery/unknown-profile.json",
+      "contentDigest": "sha256:19f2a498f75d686ebfb39db9e90d344a3680924ee792b14dab248b62a5780e52",
       "mode": "100644"
     },
     {
@@ -1099,7 +2554,7 @@
     },
     {
       "path": "profiles/recorded/ardupilot-mode/parameter-snapshot.json",
-      "contentDigest": "sha256:0f384869dd71c28d25cb0fc76fd463e28fa519214dfddca3a67cbb30ebdf2704",
+      "contentDigest": "sha256:a5ab720b6d00c4f2a0b00c0e6dc587f3120ca683a0b8bb584a2b1eaa5ba25d47",
       "mode": "100644"
     },
     {
@@ -1109,12 +2564,22 @@
     },
     {
       "path": "profiles/recorded/ardupilot-mode/vehicle-profile.json",
-      "contentDigest": "sha256:e3cbbbebb28ecbc088602bb68d96b56739a0b28cbcabc003b5f94cea11f42b8d",
+      "contentDigest": "sha256:5e6272d4e28640e705d374cebbc0872354b69771110518227e52de731253b738",
       "mode": "100644"
     },
     {
       "path": "profiles/recorded/arduplane-jsonl/profile.json",
       "contentDigest": "sha256:e98e93e90c18c0e3d8df03e93f2d8616386297ead11fcb404f584b1a290f63cc",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/auterion-suite-export/profile.json",
+      "contentDigest": "sha256:d15365e9e8760ffc2bb9a3fac14d44dc875da508c99849eb5e4b2dfcb4087e1a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/betaflight-motor-main/profile.json",
+      "contentDigest": "sha256:3d72f09218c7439e600e1794e941eb9c94d48882b7e6b11dd2acb0c3063fc31e",
       "mode": "100644"
     },
     {
@@ -1128,8 +2593,38 @@
       "mode": "100644"
     },
     {
+      "path": "profiles/recorded/bt-declarations/profile.json",
+      "contentDigest": "sha256:795100da8c0bcec1935a31e778bda1a1ba5c638ee4d55adcec6b793d935300cc",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/cable-test-export/profile.json",
+      "contentDigest": "sha256:3fa5970679d8557685b5976765927371cc903a6b1448b21c1f0d92db6f95cae4",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/cap-alert/profile.json",
+      "contentDigest": "sha256:5659034fdd937ea0ba2d83729c3be90532d1c2cd044cc4fe75b6d0448d7d9fb6",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/cockpit-clog/profile.json",
+      "contentDigest": "sha256:83eba5b824bb417ad8bf87073bbdfbbf5b1e4fa16f69e51eadcf6ca0652f5bc3",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/controller-reported-failure/profile.json",
+      "contentDigest": "sha256:45a3ddb34aa7456c3e4face956e64871fd149751827ac7af645ab55beb6383d8",
+      "mode": "100644"
+    },
+    {
       "path": "profiles/recorded/crsf-link/profile.json",
-      "contentDigest": "sha256:e77b30638fc39c2d917214236ec85dc84c23caa73be12e36019d57f5459bd8c8",
+      "contentDigest": "sha256:c0fcb44e3d60b5d64c43b82a453bde3ac333cfeb104449d0e16fe1e1c9f53cf9",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/crsf-reported-parameters/profile.json",
+      "contentDigest": "sha256:deb51692c2c1ab7bb81d3791fc1afee57b8f8e56085855f5d7225144ec99af51",
       "mode": "100644"
     },
     {
@@ -1138,18 +2633,48 @@
       "mode": "100644"
     },
     {
+      "path": "profiles/recorded/declared-expectation-checks/profile.json",
+      "contentDigest": "sha256:ed2c5ec94c7d3e9a7a8865e7d897e0dc44971a5b8cc601f2b55d7a0cef9dcf71",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/dji-dock-osd/profile.json",
+      "contentDigest": "sha256:800363dd9e48b798c795aed452bf894499a1f57281b6edca35b96d3d79a07e15",
+      "mode": "100644"
+    },
+    {
       "path": "profiles/recorded/dronecan-recorded/dictionary-profile.json",
-      "contentDigest": "sha256:00de4aa4c8cc736ff9ab673c635cd6f30a51a7ed9fe1851cdab4f4851d6667f7",
+      "contentDigest": "sha256:d212eff4effbc436140d05179663e7862ff467df9fe257a0a90294982579db98",
       "mode": "100644"
     },
     {
       "path": "profiles/recorded/dronecan-recorded/pdo-profile.json",
-      "contentDigest": "sha256:eccb8c08d85633d3cf777f67006eeeb0b9fb1515778620960a6b3ee15280820a",
+      "contentDigest": "sha256:bac5e1febfec38d5d1e337abe9b90fbdc5d57f332092b75e6dbc62852e820326",
       "mode": "100644"
     },
     {
       "path": "profiles/recorded/dronecan-recorded/profile.json",
-      "contentDigest": "sha256:f7a6d1c6641362672bea3318ea6d4cacaccd57dfcfe6a7fa2b55055709e1869f",
+      "contentDigest": "sha256:1917ff05315e32eae228607d9f4121113940c592f090311395b6de18fa070fb8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/edgetx-handset-clock/boot-counter.profile.json",
+      "contentDigest": "sha256:0d8abd77fd238b9fa7d86661301b5c094492eb4460dc213f8a9283242087e257",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/edgetx-handset-clock/rtc-date-time.profile.json",
+      "contentDigest": "sha256:fa83f58253eafeee6e90ca9054ed9f8e6c4227f2f6478510141ed111d730e47f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/edgetx-handset-clock/time-alternatives.profile.json",
+      "contentDigest": "sha256:b9ad18514ffbdb2450d88c3a56349824b86e053796ea6f9dc73a03afa681671d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/electrical-events/profile.json",
+      "contentDigest": "sha256:81425cb5f6c6e0347e9d667c3394b900be82e27e843e6363c743869a4e7947c4",
       "mode": "100644"
     },
     {
@@ -1159,12 +2684,47 @@
     },
     {
       "path": "profiles/recorded/electrical-schema-reuse/json-profile.json",
-      "contentDigest": "sha256:45af63cd62d403d952e558b867dbb37b78c258a0dc0c22ea2de0175c63de6e79",
+      "contentDigest": "sha256:d4bac1f7c00107b0340ce0ed204253ad3d1a0ee058a6d86bd73e1a04e4432d2b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/electrical-schema-reuse/vda-connection-profile.json",
+      "contentDigest": "sha256:f5d5f1bfc907a763730f057f4f7229746c20bd0f3cf45d6ab470dd264ab6f4a7",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/elrs-settings/profile.json",
+      "contentDigest": "sha256:b74adbb78538eab94adba89aa729b6e3e5383136309c0948108a79d9ad1cbab8",
       "mode": "100644"
     },
     {
       "path": "profiles/recorded/file-presence/profile.json",
       "contentDigest": "sha256:284666042d5f8657c386f4a58507e9546dc22235d56f5d7ecc74c6699643ae31",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/gateway-link-state/profile.json",
+      "contentDigest": "sha256:1215275e032063c3fcb1d671b7ab66ca47cd903db84bd6dba34e9b8ad2aa51e2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/gcs-csv-reuse/attitude-profile.json",
+      "contentDigest": "sha256:43491a728807cad867ba59ab9e65979acd6086fa246bbfa21e2ac247cd414f8a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/gcs-csv-reuse/gimbal-device-status-profile.json",
+      "contentDigest": "sha256:a29bd2f00665f5959fbaaf741167944d77c7acdc3edb9931f2ce88291a2611a2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/gcs-csv-reuse/status-profile.json",
+      "contentDigest": "sha256:fb296ef94147ecf041f7f205548e1f09fbc439cf2ec210cddbba26af3ced94c6",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/gcs-csv-reuse/storage-information-profile.json",
+      "contentDigest": "sha256:60e6c938d82f68e8e93acac41394f871a3ed080b751b16eb28e5a44b692ae688",
       "mode": "100644"
     },
     {
@@ -1183,8 +2743,28 @@
       "mode": "100644"
     },
     {
+      "path": "profiles/recorded/gpx-points/track-profile.json",
+      "contentDigest": "sha256:6a2fd4f7ee3259089bb70284c0b1d8c380d2c601d3767948c5d01161150576a1",
+      "mode": "100644"
+    },
+    {
       "path": "profiles/recorded/gpx-points/wpl-profile.json",
       "contentDigest": "sha256:f4733f5a35eec92cd529595e54382288e58b34cc552fd61a50d665eb47204f93",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/ground-message-closure/profile.json",
+      "contentDigest": "sha256:1af0b6ed5d7d59e9523c118821e685df86cbfc6f3045aeaa584887bf8a7bbcbc",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/image-metadata/profile.json",
+      "contentDigest": "sha256:503b98e2e61caa8e758c2087b9e788063bdd1ea912fb0e709b0b4e6d1b1950c2",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/imc-schema-application/profile.json",
+      "contentDigest": "sha256:99376b2e99de40115faf0b4f7e3046ede3f7dc95cbb1b3fcebf9fb81095e77a9",
       "mode": "100644"
     },
     {
@@ -1193,23 +2773,93 @@
       "mode": "100644"
     },
     {
+      "path": "profiles/recorded/imc-sensors/moos-declarations-profile.json",
+      "contentDigest": "sha256:08798a0fc89c01b48bdb977f1a9e451efcbe2161e398e03ef6a05e6984bc5005",
+      "mode": "100644"
+    },
+    {
       "path": "profiles/recorded/imc-sensors/profile.json",
-      "contentDigest": "sha256:2fd2307b3b1c052152bd5911a9059cb69be448f2aaac9bbb343859e069016f2e",
+      "contentDigest": "sha256:db7d64bbec327997d8fcb78110d86d8100ea65790acbe89094fc76b6551a4e9b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/isobus-ut-tc-passive/profile.json",
+      "contentDigest": "sha256:dff0b747e025edfeec3adece418e7defeed73c1caf06baa6f5d60ad8b36843b0",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/isoxml-prescription-reuse/profile.json",
+      "contentDigest": "sha256:de609f041b1dc0f2b8e83a83d4fd6e36ff91bff6a62878448ed77ac9953470bc",
       "mode": "100644"
     },
     {
       "path": "profiles/recorded/isoxml-rate/profile.json",
-      "contentDigest": "sha256:376377d9f0b0226d935600d196293d167078103da7ab459236b8f77c0158dd90",
+      "contentDigest": "sha256:a29236ecc2d09684d11e906babf353383c379d4ebeee8c1f6b89b63b618ce0a3",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/lanelet-declarations/profile.json",
+      "contentDigest": "sha256:0b4e4f19041d1797b5202b0fd27958f2a18cf901344dd076fd50fdddb35783cd",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/link-cue-fields/profile-boot-relative.json",
+      "contentDigest": "sha256:78ce7f8d245e23e14cbb99846231f46ab3ab04567da3945a49bb9dfdbc7fa958",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/link-cue-fields/profile.json",
+      "contentDigest": "sha256:9c97fe2938540887b4f9ee5f5a0cb0cde0970db0c00b03e9583afb70ade66c5a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/link-level-events/profile.json",
+      "contentDigest": "sha256:7c72f1e9a4f4ed2f570296c43a0cd99912046e4611d1df7c38b7166f1583cfd1",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/m3m-capture/profile.json",
+      "contentDigest": "sha256:0a99f3e714e26b79607169e2c576ae5be700bf23756930ac9c6bf2bda736cfba",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/marine-ardu-reuse/profile.json",
+      "contentDigest": "sha256:9debc3f9c6839617a601a41701abad4db0a4d66f7afb4c0d5a147fe81c7f251a",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/moos-node-report/profile.json",
+      "contentDigest": "sha256:1815a02492ca70367c3f5924cc37ee7b43df2227a8eda03788b24a5624dac051",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/nav2-map-content/profile.json",
+      "contentDigest": "sha256:de1a5d2f2254e0cbdd530f153a922f051a79f05c7f291ff6192cb9254abee99f",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/nav2-passive-progress/profile.json",
+      "contentDigest": "sha256:a267cc33b0ab3d974e583b6ee979122f8e147c527a6308dcb8b9fb0ffde22447",
       "mode": "100644"
     },
     {
       "path": "profiles/recorded/nmea-wind/profile.json",
-      "contentDigest": "sha256:985418a11a5b7dfded7ca3f836927cd69a87097b804b89c4834d4f31ada4a426",
+      "contentDigest": "sha256:2d0b7d65b765a5d04b0210177cf3352a8b55e3e12253670ed6ef59aafab03abb",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/oauth-reported-rejection/profile.json",
+      "contentDigest": "sha256:81985433e619276ad4d3e0558dc3e8b5d75c3de7e080fb86a17ce05100eff9a1",
       "mode": "100644"
     },
     {
       "path": "profiles/recorded/opcua-recorded/profile.json",
-      "contentDigest": "sha256:72f6805560f011ecc55f98aa3868fa2569635c3c082c499494e969b4dfe3337f",
+      "contentDigest": "sha256:b491459d82e29a0dffef4f89961ec1dc7ae76685a2331c7f71d59064164a973c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/parrot-telemetry-export/profile.json",
+      "contentDigest": "sha256:69322a66b634b3db86ab38f040e456f2d98f3e0989305c463f1e4e7eecb5d38b",
       "mode": "100644"
     },
     {
@@ -1220,6 +2870,11 @@
     {
       "path": "profiles/recorded/pose-text/profile.json",
       "contentDigest": "sha256:fb7b7bfdbd6469e8b14548af7ebb122a6ee2fca55a2940cb7b000cce0dec6311",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/power-thermal-reports/reception-profile.json",
+      "contentDigest": "sha256:5e4a95f8446cc6dc12b888ccd296f9c1ce73797396131cd4263316c5483ead71",
       "mode": "100644"
     },
     {
@@ -1268,6 +2923,136 @@
       "mode": "100644"
     },
     {
+      "path": "profiles/recorded/request-response-match/profile.json",
+      "contentDigest": "sha256:0b0fa793a987d4a0136f16009c5b17bcf9fd3e4fb97879a6101907a009035a56",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/rinex-records/nav-profile.json",
+      "contentDigest": "sha256:44864fff26672f3dd7132276224dcfd654dc04095d1db72b047dfcb843e153b5",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/rinex-records/obs-profile.json",
+      "contentDigest": "sha256:87e452ee975c1d3c3095f69048a7fbda604032facdaedfc6c5b2b04aa8a411ea",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/robotnik-dashboard-reuse/profile.json",
+      "contentDigest": "sha256:cdf3c4ebbe4e8040f3f8759eb41cc59ecae7282d27426cad4b657b7c8c96e7ce",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/rtcp-sender-reports/profile.json",
+      "contentDigest": "sha256:88a777462a9ecf3ab408b6e903e664d020dc05bd3e56c75b12df4a36bc50362d",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/rtklib-solution/profile.json",
+      "contentDigest": "sha256:1bdbbe47af6aa3855a0fd2f10157989dce18ef4bdcb49ea14b4a2791161816f6",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/rtp-recorded/profile.json",
+      "contentDigest": "sha256:428843837222a9a98b04d6f0f5f2f6b1bb156f3433d26760a5ab5408d96cb94c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/rtsp-description-reuse/profile.json",
+      "contentDigest": "sha256:c764066536808e0b374b4546657bf69cb2001a8f27ea26071ae368000b1c6f98",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/rviz-config/rviz-config-profile.json",
+      "contentDigest": "sha256:6985c3f2a7c7c0ae3210a02f4d95f726e7b995d8042745260e86fc84c780aa1b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/safety-reports/profile.json",
+      "contentDigest": "sha256:c69b5643fb107afdb35edbf7ec87f818a87f2baa4d85049d664ef600669a5bec",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/saved-audit-events/profile.json",
+      "contentDigest": "sha256:266b63680d38f2cbe3b0d9c0ed6ea1672f4e4a04e65a763c2f0b94bfee1c39f9",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/saved-inspection-features/profile.json",
+      "contentDigest": "sha256:e9891e26074556167bb69ca44e2e73fb0a945a8e64eec1d3f3ff9e0ea3a0f250",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/saved-mission-plan/profile.json",
+      "contentDigest": "sha256:72087a06e34eb16fff021ddba26439020b23e5bb26b7ac59566b2cb6e08ddf57",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/saved-point-cloud/profile.json",
+      "contentDigest": "sha256:fd456df94b3d7ab971aeb8b30aba44599f4da023f4547aed4fa26122ea8ef770",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/saved-state-transitions/profile.json",
+      "contentDigest": "sha256:718b823f318c8660a401d3edbc0879b70bfc4755e711dbd8a4916aabfe45e023",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/saved-video-conditions/profile.json",
+      "contentDigest": "sha256:8d9a09b7262a4230c8d4029e99c6731191c7b6604f80f0ef6f2465db586ee626",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/sbf-records/profile.json",
+      "contentDigest": "sha256:237629799141e13cde5c3e392191ef8d8d8bf5d0a7127b6ac80648573e7b4358",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/schema-unit-checks/profile.json",
+      "contentDigest": "sha256:7de8575cf3c351cf3bde0259a369a5aebb7f3a15092993ba9059e96fb55c9970",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/sdf-airframe/profile.json",
+      "contentDigest": "sha256:d4f8ecf7ab25e9d1966a16cd96b8ab50fb220b64101e8c1074c3f671213383c1",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/skydio-flight-telemetry/profile.json",
+      "contentDigest": "sha256:7e47cd943ff7781689d02029104eb7bf19f677212e0aef99912f2ba10b785eba",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/software-identity-binding/profile.json",
+      "contentDigest": "sha256:9d273663ad5fe58c25cf1767e66de62a4317df6ba9b5055bb66dbf58bdc59b04",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/storage-reported-errors/reception-profile.json",
+      "contentDigest": "sha256:460b48bd9fed1c84151a1220ff6915720d632fc0ba958e0781b4cad24f4ba7f6",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/storage-reported-errors/source-time-profile.json",
+      "contentDigest": "sha256:1638d25d5ee22b589c728a5163bc1edd425507a50c1081799b0a4584a1e2b468",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/surface-usv/profile.json",
+      "contentDigest": "sha256:5188082b0dbc7552ff1e9239d1d2dce21ead07a6d2d0813ee4cd02a6d68507db",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/surface-usv/rov-profile.json",
+      "contentDigest": "sha256:134753fd30c11af374041f68d431f86b5003790ea325d5a8bffc896546ebdf27",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/surface-usv/survey-boat-profile.json",
+      "contentDigest": "sha256:0cba43a43fc77abee7c29bc8502834ab221635441b44f5492b91cb3a805e88c1",
+      "mode": "100644"
+    },
+    {
       "path": "profiles/recorded/tlog-state/gcs-recorded-profile.json",
       "contentDigest": "sha256:fac9f6ce63c3382670768552ad71461e8e8fd9493f7f15ea131b191e8b813acf",
       "mode": "100644"
@@ -1279,12 +3064,22 @@
     },
     {
       "path": "profiles/recorded/tlog-state/profile.json",
-      "contentDigest": "sha256:9e7552885102f46ae9766543a341f90798afeda1504cd70d7c4db196edf413f2",
+      "contentDigest": "sha256:0397a6b01e263890f3c8b7469dff3a588a3c95325b632dae61f82df50eb7d703",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/tlog-state/selected-sender-profile.json",
+      "contentDigest": "sha256:2910eb6f9243f4d452b40ca792512736762355488a8e348a8bc413edb7594690",
       "mode": "100644"
     },
     {
       "path": "profiles/recorded/turtlebot3-trajectory/profile.json",
       "contentDigest": "sha256:41b6f0fa1aeaad749c765fc1f7ddcd5db80101f25b6ddeacd7e93a7809cf8784",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/vda-load-report/profile.json",
+      "contentDigest": "sha256:61b8bc1e93a87c1dc582e657341493172ee5bcbd9c5d836c78d2e3422431a506",
       "mode": "100644"
     },
     {
@@ -1295,6 +3090,26 @@
     {
       "path": "profiles/recorded/video-frame-export/profile.json",
       "contentDigest": "sha256:f62b9871d93c32cf83f8051cee30faec5aeb1ceed89036a663eb2b8a4d0d9ec7",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/video-frame-export/progress-profile.json",
+      "contentDigest": "sha256:651d3b54f0adbfe9778dd4a517b4393a531ff02e1d1931000cc9a99ee987803b",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/vlm-response/profile.json",
+      "contentDigest": "sha256:59043d838284ba9a5b23d928c610b768e3779c76e6933ea970fae1c43e0b686c",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/voxl-px4-ulog/profile.json",
+      "contentDigest": "sha256:4a0ff478852e47b782626ce9689f5d2ca67b24dbc19dce1230fec5b0be88a3a8",
+      "mode": "100644"
+    },
+    {
+      "path": "profiles/recorded/vtx-tramp-replies/profile.json",
+      "contentDigest": "sha256:16503b9b4f1f76d187571a4720732266f0c6b1622082369f9020752b4dc76d0c",
       "mode": "100644"
     },
     {
@@ -1319,7 +3134,7 @@
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:3d60ad8ead9cb69d16a04f0fcb9cfe70ef447db6ac165df4686a9e1e1fe31f9b",
+      "contentDigest": "sha256:455d03bcbe3ce616e20255ccdf017ff00667ff7c4918145b8257b33ca777c585",
       "mode": "100644"
     },
     {
@@ -1343,13 +3158,63 @@
       "mode": "100644"
     },
     {
+      "path": "scripts/assemble_saved_mavlink_ulog.py",
+      "contentDigest": "sha256:f44a449b84a32a04a917b7b45cb98de52bbcd68f5e3d0ca89768863b6fe0df44",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/check_declared_schema_units.py",
+      "contentDigest": "sha256:5da2741d1e29492ed5678d3e3d64b09f2f2ce1e8e26fe1acdad1514a40ac07e2",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_agio_events.py",
+      "contentDigest": "sha256:722dfd746cb565f48cd87f8638cd28d24455802b8872d23687ac058d71591fdc",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_agopen_sections.py",
+      "contentDigest": "sha256:02b539fbc9fd5bb78e79c76b98dc92ab65e65a69c2eb19c231e95c10aa872467",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_agopen_steering.py",
+      "contentDigest": "sha256:445c697f47eba01ddf7539d4814f41b396f39612101078b2a0d8a3ffe697a350",
+      "mode": "100644"
+    },
+    {
       "path": "scripts/convert_ardupilot_battery_csv.py",
-      "contentDigest": "sha256:5d39139eacb835a912684c8a163870ab38d9484c655cf40052363dbf3b381d46",
+      "contentDigest": "sha256:7ea9b2e80dfc5d87bf461321732bc83ad980b9d1eb91ef26216f90bbfad13269",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_ardupilot_controller_reports.py",
+      "contentDigest": "sha256:99a80d32aa39017dc9c7ec01febb4fe05a9fca58475da47aa563cc3f82286143",
       "mode": "100644"
     },
     {
       "path": "scripts/convert_ardupilot_mode_csv.py",
-      "contentDigest": "sha256:4fe6eba591ee4e700020855887eb42c1a02adc9cf81f5e4347bfdb6480d044c5",
+      "contentDigest": "sha256:a9aeb5d1f24f4246538ef30dd68a2ab153d037f663f4decf37addfd974f0d71c",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_ardupilot_safety_reports.py",
+      "contentDigest": "sha256:9603c524665a9b38a64a52113383172e46d87035092d5f75011460b4999b9f32",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_blackbox_motor_output.py",
+      "contentDigest": "sha256:8d2d37df131304f3bb59900948025e44fc4158f7bc656604f9bae9b045ea787e",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_bt_declarations.py",
+      "contentDigest": "sha256:57909256001681b33ab9616598e5a524fa68fcdef03109208da8162c09ad2f32",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_cable_test_export.py",
+      "contentDigest": "sha256:7b548c373a270a39351564ae701fa49ffbe7cdfe48758d41cdd7cf6f11d5857a",
       "mode": "100644"
     },
     {
@@ -1358,8 +3223,23 @@
       "mode": "100644"
     },
     {
+      "path": "scripts/convert_cap_alert.py",
+      "contentDigest": "sha256:6f8879bdcc5755cee355781b877ce7d3263b15fd81d72ea8d7585bbb39f42fb2",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_cockpit_clog.py",
+      "contentDigest": "sha256:807dfe684ba228f862ff2d166c89d35b5cbd4ce53fd9b9528201d0fb15691c87",
+      "mode": "100644"
+    },
+    {
       "path": "scripts/convert_crsf_link.py",
-      "contentDigest": "sha256:cd3f58fb5cbfa84313e62a2057aaa74c526a09b99015312bafd10184d1102bf2",
+      "contentDigest": "sha256:41e56c65bc3905c1e04fa0c357c0ba8206a0bdcf80b997d07fc0557feffbbe70",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_crsf_parameters.py",
+      "contentDigest": "sha256:20d1269c3a86a7ccc6de47e5a0086e1f0773f878c90f11470ecd9cd4e212c203",
       "mode": "100644"
     },
     {
@@ -1373,38 +3253,128 @@
       "mode": "100644"
     },
     {
+      "path": "scripts/convert_declared_expectation_check.py",
+      "contentDigest": "sha256:6e6f92a614e1172769889eea6dd63f67be3ea0cc5181db4261edf9ac33bdc700",
+      "mode": "100644"
+    },
+    {
       "path": "scripts/convert_dronecan_capture.py",
-      "contentDigest": "sha256:2c25f12f5b9a0fa6c4374a3263dffb8687e5a6aa9f938b87c81c16e50e7364e1",
+      "contentDigest": "sha256:38a30ac5bbfa58735fb5d3f2c99a0ed3f65f9b7529e0f5e622ac047453acbf58",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_electrical_events.py",
+      "contentDigest": "sha256:be998ae8179e13b74d35013b4bd3ad6e6321f8557dfbbc6814715d97dcc56a23",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_elrs_settings.py",
+      "contentDigest": "sha256:3389182835e8eaaf70e2f34bab563af81bf6f2103fefcdbece158c5159186838",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_gateway_link_state.py",
+      "contentDigest": "sha256:b83169ac65c2b66bbf667d38978de29f14c78412775845d5ab24b8e68d65447e",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_gcs_tlog_csv.py",
+      "contentDigest": "sha256:fc7cc19883872ec0ea68c2fa6165b2d9dce7dfa486aad88c3482c7843758cd46",
       "mode": "100644"
     },
     {
       "path": "scripts/convert_gpx_recorded.py",
-      "contentDigest": "sha256:0d71505e45867f1feff5ac603801a24708e9158d15cd332c8d1414b62f43c046",
+      "contentDigest": "sha256:67d76e8b30803d6cb266e1465a2d659908ba07b16e606ca997a2fc3c53fb8ea8",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_image_metadata.py",
+      "contentDigest": "sha256:7bdaf78ca016958cb4636f32b98838abe99fb035eb0fb16e6b2ed190c87840f3",
       "mode": "100644"
     },
     {
       "path": "scripts/convert_imc_sensors.py",
-      "contentDigest": "sha256:4277bc81e8f14698047bd87123f89fb7d2df24411a904ee9ae06850f78e87dff",
+      "contentDigest": "sha256:ee1a026911c65fa56c26b8604c9bde341e9dbb6991e0ff636dbf8ad49b1d3a68",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_isobus_ut_tc_capture.py",
+      "contentDigest": "sha256:5b6d18da7ea82788701dee2afdbc496f1dbe891c6e75a0c605e1e07ada9ff9cf",
       "mode": "100644"
     },
     {
       "path": "scripts/convert_isoxml_rate.py",
-      "contentDigest": "sha256:476403fd9900b90449f1e30a237ccc5c21b8586c2f69da3aec8bd73c67ae8df5",
+      "contentDigest": "sha256:93392db66c423a089c1116f9232dcbeb38a90264c399e494d1932ec400a1c23c",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_journal_power_thermal.py",
+      "contentDigest": "sha256:ad05dae1e9e2d93ecfe487c270d0760fcf57099b876761a06858d6e9b57db331",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_journal_storage_errors.py",
+      "contentDigest": "sha256:1a952d715e313a2144b1a85b64526363eb30ce45c68fada7efd43429c06cc477",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_k8s_audit_events.py",
+      "contentDigest": "sha256:11a284ff119213f472fe20afe27536d5ff99c50c2b2f684b70b7e8b715dc9198",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_lanelet_declarations.py",
+      "contentDigest": "sha256:d4e4ffbfe9ab1ab192973a33ce2834c5e742c66626ec617067031ae0d96b9e57",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_link_cue_fields.py",
+      "contentDigest": "sha256:9e1a4c992d2cf60f72a2346f7895beffb6383fb339aa9587fcf1c42153c9c4be",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_link_level_events.py",
+      "contentDigest": "sha256:9574ba324fa48c89b2e7ed097c68091ad17640fdb9b5ae72c677fb78458b270d",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_m3m_capture.py",
+      "contentDigest": "sha256:83fc5d8cd90f87be3d869705d68df6daad1e348640129b6facb29b11274c93b2",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_moos_declarations.py",
+      "contentDigest": "sha256:66d37f72ac97dae20746747b8dbbcdb8d5b10668b74e98fe21e619ffab5f5f92",
       "mode": "100644"
     },
     {
       "path": "scripts/convert_mqtt_recorded.py",
-      "contentDigest": "sha256:53bff64142354c8849cebc950a2d7bff470da0fabbbf38ce06222f7a47b71a20",
+      "contentDigest": "sha256:9b25394fe14e8a00dbd1cc34e00cfde73fae96402ec6310122cd2fbc795688b1",
       "mode": "100644"
     },
     {
       "path": "scripts/convert_nmea_wind.py",
-      "contentDigest": "sha256:a84ccf5a26b8c50b41c2326a86118de8109d2e3753062732cd57d83a06764a64",
+      "contentDigest": "sha256:ece4e367e374f3f2efe2262352bd989e352098f6912478616cc214777a014b2e",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_oauth_error_responses.py",
+      "contentDigest": "sha256:683d848e0035c3c99325b8bc1f2302a091a2a2c24ff40c115ede8ff73f7676be",
       "mode": "100644"
     },
     {
       "path": "scripts/convert_opcua_recorded.py",
-      "contentDigest": "sha256:51356b3f728c2712da3bb745b0d91d49d1589c9af11353a25192cb70194811bc",
+      "contentDigest": "sha256:52866f3d46d4c977f8bf08e748d57a506b9787442fac9a3e336a684de915919f",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_parrot_telemetry_export.py",
+      "contentDigest": "sha256:02eaabecee728e6fead9a89f9e015ffa716ebc5ef6c2ee69896235e56d08ec05",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_ping_frames.py",
+      "contentDigest": "sha256:8f9c06fc476a01b8041b3feeb38203f0c92d95d6c6592ca17d6c66665dd7a94c",
       "mode": "100644"
     },
     {
@@ -1419,22 +3389,112 @@
     },
     {
       "path": "scripts/convert_position_csv_batches.py",
-      "contentDigest": "sha256:44bc71b3af9cf7f9ba736dc56617776a6a6fc85e5e0046a4e484ba869bc9c994",
+      "contentDigest": "sha256:a2ba24502409d987b631c3a8ed80f93e58a69258604a02633ef29705afbddfe0",
       "mode": "100644"
     },
     {
       "path": "scripts/convert_recorded_angles_csv.py",
-      "contentDigest": "sha256:ae38315b20f4388ed605f6757318494e295441f0bbc4c713e67d956127509dab",
+      "contentDigest": "sha256:54219fd7633a60ea6d439711813b60fd6d7dd17f4224a40edc5870bc4cc5c0a9",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_request_response_match.py",
+      "contentDigest": "sha256:45a61ca85b0bb1c7188a085aad8450027c4d72932d04b5e5dc4ea76c8c7f569d",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_rinex_records.py",
+      "contentDigest": "sha256:33d50d6a7c0d9019477ef3744041457f0b4e01704d9588894c166ea9cf00f447",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_robotnik_dashboard_state.py",
+      "contentDigest": "sha256:b69e3fd55f6e545a5a9c96526381778ccd2c89b2718e2e75666077111f15a6c8",
       "mode": "100644"
     },
     {
       "path": "scripts/convert_rosbag_observations.py",
-      "contentDigest": "sha256:82007badff36343bab6d5d27586e2395eaf619488db97c9c8dbc4468805071ac",
+      "contentDigest": "sha256:54f9ba61a34f8a99aee0dd0c23309459108da8d9bb146c45b71d9742e63b52e6",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_rtcp_sender_reports.py",
+      "contentDigest": "sha256:8afbcc306ab57b3ef4f3d92cf3365e31eae9872b16e18b5cb4454256397d3a9f",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_rtklib_solution.py",
+      "contentDigest": "sha256:55750a33d4624c0fa3b5afc1471e0d2db6d4cb8ff09398f91a5d9e58002974ee",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_rtp_h264_stream.py",
+      "contentDigest": "sha256:bcf0e1f8a71dbb222240fd31a76b343a23680c66a1875498afa8541ec5eb7354",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_rtp_records.py",
+      "contentDigest": "sha256:569db03813b58756e209f0e701a1b49038e3542434aa0ed90f062d2b3be5456b",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_rtsp_description.py",
+      "contentDigest": "sha256:00e12fbf1d590158c51a07c99112b71ca7391db673d22718e34add9f6005dca2",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_rviz_config.py",
+      "contentDigest": "sha256:88ba82ba6b2791a10ddbfb00aa67ee00f53f176e2354f73c61b5ba179fa97af4",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_saved_inspection_features.py",
+      "contentDigest": "sha256:45c09d3cbfcda39db5fe9ecff1be11aa20a47722057f1e028c54a4aa34501e18",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_saved_mission_plan.py",
+      "contentDigest": "sha256:29fa7fda90922421f51995e2db430b00f0cb13fa01bcf2811fc8a88d22a4632b",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_saved_point_cloud.py",
+      "contentDigest": "sha256:6b6b751e2f59d48aac9b9455ec6a87c3cb242f6b15f358cb94035d9ebbe54058",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_saved_state_transitions.py",
+      "contentDigest": "sha256:f67b872b4f842f458f83f3fe85006a2ad506b0e6707ce739dc55d55e9725c1cd",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_saved_video_conditions.py",
+      "contentDigest": "sha256:52b32790c991f355f7dc2720250a02384d4dbff1a464dbcb87005af28c6589d9",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_sbf_records.py",
+      "contentDigest": "sha256:94ad5553836d2fdfa7efee7b2547462c9d3ea3a195e2288f1e45e10fa70c81f9",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_sdf_airframe.py",
+      "contentDigest": "sha256:465b7cbd5c723ee1dc85e59140fa4f68de5942785163acac4ade642f67ae054c",
       "mode": "100644"
     },
     {
       "path": "scripts/convert_signalk_recorded.py",
-      "contentDigest": "sha256:2ea364f8a7482cb26d3d559a9c6013e8a342b043c0ac48fa7bdb42abae13b3c4",
+      "contentDigest": "sha256:7912b1cf55d001b8e6b2b50024ecf976655211e12e424a8ffd6ecc19ece5fedf",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_skydio_flight_telemetry.py",
+      "contentDigest": "sha256:1081c1ccd452c75ef14ceeec751fdf85db30406162116851c65044cd790ca9c9",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_software_identity_binding.py",
+      "contentDigest": "sha256:291f0637e3fa74b09061fafce3c3dae30a7afa1701130d29bc9d86cca9ba9b50",
       "mode": "100644"
     },
     {
@@ -1443,18 +3503,48 @@
       "mode": "100644"
     },
     {
+      "path": "scripts/convert_vda_load_report.py",
+      "contentDigest": "sha256:97691982d4c6b4df7599efeace4210524323d6398a74b6b82f3469d5e5160a23",
+      "mode": "100644"
+    },
+    {
       "path": "scripts/convert_video_frames.py",
-      "contentDigest": "sha256:bc84dd9e43f4ec639fdf7536824e87e6131d64095b6284590730011c399821b1",
+      "contentDigest": "sha256:011e3aeceaf251642986ea14d6b248b366f106590e532453974d41d5d35e02ef",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_vlm_response.py",
+      "contentDigest": "sha256:e05d2ea28e606f513e8aeaaf9b3b8669b8ea1ad512343b42022110a5c19767f5",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/convert_vtx_tramp_replies.py",
+      "contentDigest": "sha256:a6cf46e3523546df8ad8cb09d2babcc906beb42b2ee1835e50248f58327fd068",
       "mode": "100644"
     },
     {
       "path": "scripts/decode_blackbox_recording.py",
-      "contentDigest": "sha256:9828ede655bcf2d93a99eb0e56f362636b9a4536e5e1ddba61a0fde073be608d",
+      "contentDigest": "sha256:b2863202f7c93118be32fdb69fdf7b34019b28b2cd944c869f49bf81f438b3b4",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/export_farmng_eventlog_filter_state.py",
+      "contentDigest": "sha256:525ec0938ac3834269fb517708e876b72854160c90f01b4e3cae0f2db4109a2d",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/export_point_cloud_chunks.py",
+      "contentDigest": "sha256:5b3a435e6927c1bbf2641e011b8184afe53a21b544415f0996dcdaef03b77bab",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/ingest_point_cloud_chunks.py",
+      "contentDigest": "sha256:c71c4a37941a25c63323ba0ec4cf48dfd9cc914c43d4d50739d7bcc72c8e8563",
       "mode": "100644"
     },
     {
       "path": "scripts/normalize_ardupilot_report.py",
-      "contentDigest": "sha256:544ebdc41f5bc6681c36d3d16b9c7c28ec103a41d598890eb8ab74a9f4631148",
+      "contentDigest": "sha256:1251b1f510fe1987d0ed238ec53ca1f26dbe0eb2143b4b29065bfbead53d17a3",
       "mode": "100644"
     },
     {
@@ -1523,28 +3613,58 @@
       "mode": "100644"
     },
     {
+      "path": "tests/test_agio_events.py",
+      "contentDigest": "sha256:184e8a8804f6ea82e8ac73e623a0ea671a8e68565339f013b824444ec182e40e",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_agopen_sections.py",
+      "contentDigest": "sha256:0e825db2720aa187488f609bfca7b95967e4ffb692f0cd99dba7418cc0d8ffc5",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_agopen_steering.py",
+      "contentDigest": "sha256:d889e4f942676716a27fbd10818bf1a7bc9e30b67784748a323a46a2d9700375",
+      "mode": "100644"
+    },
+    {
       "path": "tests/test_ais_recorded.py",
-      "contentDigest": "sha256:e9f93b5fa2f5a782560505563ed187acda7bd3b3614787c5c5c9ebaef1f67e38",
+      "contentDigest": "sha256:a4c4052b1ed7be101630cdb9055511e8882aee9e690afe25773e04dcd193dc59",
       "mode": "100644"
     },
     {
       "path": "tests/test_amiga_filter_export.py",
-      "contentDigest": "sha256:b5a4a3006c49409cb9168bfe7a08cb4c29287bb9283712fd83731d9fc17847cc",
+      "contentDigest": "sha256:b9e21a8819bd61fb3f549c89dae457434ffc6a2a09b496a79b02d26febf51fad",
       "mode": "100644"
     },
     {
       "path": "tests/test_ardupilot_battery_conversion.py",
-      "contentDigest": "sha256:93426b98209f20801fcc603d1abbbd03a2f1d7775acf17aecaaf831209c748f8",
+      "contentDigest": "sha256:d7af2d75cf55b9012dbf2aaf40bd88fa2e9ea8a07c36235e1dd64dfeac2e1cab",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_ardupilot_controller_reports.py",
+      "contentDigest": "sha256:cc74aef7f77a97afb7e2ab63ccf946990d001e2af7d09af868cb897c8321656c",
       "mode": "100644"
     },
     {
       "path": "tests/test_ardupilot_mode_conversion.py",
-      "contentDigest": "sha256:f4e9b4e85219b07e39a76369f00d743335db3e2050caaf129382792e4520f575",
+      "contentDigest": "sha256:e88b0ff1c88560696b1994e94f86fdc9330a98b7d32023365be6127e5bcd152d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_ardupilot_safety_reports.py",
+      "contentDigest": "sha256:55a8586752ac91354ee207daa9a576f0c5c0c4c4b16cbab3a11d30f334f27b09",
       "mode": "100644"
     },
     {
       "path": "tests/test_blackbox_gps_stream.py",
-      "contentDigest": "sha256:216763d6c6e4f2a8da527c5da0858e7950ccf0989c1e5550e0b004663d34a955",
+      "contentDigest": "sha256:b676dd2cebf508e96702744c07333a50bc091700260ed8bd3010af053e83cdf1",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_blackbox_motor_output.py",
+      "contentDigest": "sha256:3f6b25009727d22edc7e7605fe53b2940bdaea685c9d5a18bae32426e5993576",
       "mode": "100644"
     },
     {
@@ -1553,118 +3673,298 @@
       "mode": "100644"
     },
     {
+      "path": "tests/test_bt_declarations.py",
+      "contentDigest": "sha256:3db1cb3f25241c6ded514821227c24486492252bb279a0f2b37999cb6c86a414",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_cable_test_export.py",
+      "contentDigest": "sha256:cdf417ba4f2a894521cb4284e24235f275ae7ad1af078482ae359fb6d728cf73",
+      "mode": "100644"
+    },
+    {
       "path": "tests/test_candump_recorded.py",
-      "contentDigest": "sha256:d28284d6e4a610ef04f7da62259b584a5935e2bbc9a4cae8c0d607992442f39a",
+      "contentDigest": "sha256:9b257c32e0c189fcb804ff9d37a1101f5f871ba5dc090845019c9068aced3b2f",
       "mode": "100644"
     },
     {
       "path": "tests/test_canopen_recorded.py",
-      "contentDigest": "sha256:7c64596c85aa3da4a3610ceba2732e406749900a133b35f64e408bffc9e23ece",
+      "contentDigest": "sha256:7090869d70322f35fa25a6d85388ac413b162c25030ae56136dd64375214e5ad",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_cap_alert.py",
+      "contentDigest": "sha256:6eb44bc8ed851db441f44fdd3bdc51b0f7ba5c6e48a8184b684bb1dd37e2548b",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_cockpit_clog.py",
+      "contentDigest": "sha256:b6f97e7370513150893b52e152644ef8cba1789c5b2cbf198f2252ba021fe53c",
       "mode": "100644"
     },
     {
       "path": "tests/test_crsf_link.py",
-      "contentDigest": "sha256:e14350c3343e9dee5c160042f9deab89d7156d9c1b46e7bafca18392e34b4f4a",
+      "contentDigest": "sha256:04f6355a663a2626ad9a628f66405e51b9e8d3be81a23693b700fc46af7fb229",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_crsf_parameters.py",
+      "contentDigest": "sha256:a8ee534604e37ed1e71862e4fb339d3e7901a45db54e6cd054c8411348448bd0",
       "mode": "100644"
     },
     {
       "path": "tests/test_dataflash_text.py",
-      "contentDigest": "sha256:2ef5fb241f49df97aef016e034a685cc419346945508b329c3dbbc73722c276b",
+      "contentDigest": "sha256:afa2f99298b47876d6ab87e251359b69c07f8bfe23909716fde9c2fcba1cadd9",
       "mode": "100644"
     },
     {
       "path": "tests/test_dbc_recorded.py",
-      "contentDigest": "sha256:d0d98ff842d8635e8c14f8a096df11f83b08d6d26815bf3ef576865ffddf8cf4",
+      "contentDigest": "sha256:d8dd93689302956d1230d3b5dc893ab226131fca8ed57b9abf976143135aa6eb",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_declared_expectation_check.py",
+      "contentDigest": "sha256:0717587788185dca62e72b87b2f93c82f31866f32e50bd0e6ff9beac5919c1ce",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_declared_schema_units.py",
+      "contentDigest": "sha256:09e077c2c89b87a5ecd041b0060a4baa689f4395234cdee2e029b80620e3bcad",
       "mode": "100644"
     },
     {
       "path": "tests/test_dronecan_capture.py",
-      "contentDigest": "sha256:887ae87d758e134a665f0dc95487d5a7aa69c91ef2e4b070fc308d8f723e3edb",
+      "contentDigest": "sha256:d6ff9ff2a354f4d8899563acfe39582c4224602e55425974835d0c914fa3a664",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_electrical_events.py",
+      "contentDigest": "sha256:ee0229ebe430b18c5051c3458b7ad800913b3098a6823200a43bcdee5303ef82",
       "mode": "100644"
     },
     {
       "path": "tests/test_electrical_schema_reuse.py",
-      "contentDigest": "sha256:e36881b8cbee82f5ab829ee5649b5d643a9fd5f4a46303076101cd579c59cfa6",
+      "contentDigest": "sha256:99bf3aee258b223414099df0ece90e16d1213b87e894381ea6da2e9ef40007ad",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_elrs_settings.py",
+      "contentDigest": "sha256:a8099a995c5f5b0bf242a6bc45573c8cb4ee26b2c1e3cf1bd09d619b35085704",
       "mode": "100644"
     },
     {
       "path": "tests/test_farmbot_state.py",
-      "contentDigest": "sha256:d51beeaaac9befdab63a2c8d7fb361ce6f2d88a840c50849ae6eb0b01a7d9540",
+      "contentDigest": "sha256:dc2f9f586d88ed0e7876751e560d3f10b11ca259b15ec493b09cb25ce1e37340",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_farmng_eventlog.py",
+      "contentDigest": "sha256:ae3cade11528629d74539b36a130be38a8146c918b1b8075443277a91844934a",
       "mode": "100644"
     },
     {
       "path": "tests/test_file_presence.py",
-      "contentDigest": "sha256:0d1012a620d56a263933028c9a3848bc2ce3b76e95f5d60a8ec9112730148895",
+      "contentDigest": "sha256:38cb41fc31b87fd94a93e3fc479eca4aef04552a90025951bd20500fe1ad31b9",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_fpv_recording_reuse.py",
+      "contentDigest": "sha256:8a39460d925a6a3c3370ddcfed8cb1a123f10aeb4549f1a7aea5ac9d17c8e333",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_gateway_link_state.py",
+      "contentDigest": "sha256:046f6a1e44c6594b1162dc9c2a5be0de0c3c273a5a07cf66f305c7447d289d3e",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_gcs_tlog_csv.py",
+      "contentDigest": "sha256:2ffa26fa5a21affbd14011a21e2fbbed153983543b8dfec2973d28a5cfc19bea",
       "mode": "100644"
     },
     {
       "path": "tests/test_gpx_recorded.py",
-      "contentDigest": "sha256:97c5ad149304fe8869f0609bf3e712fdbcad5f8aff8eb2d2c14804315d3589cf",
+      "contentDigest": "sha256:7f53569e494726bda308d0c197ef01ed7c2b165530e37076be25b6ef333edd94",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_ground_message_closure.py",
+      "contentDigest": "sha256:2728421a0175dfcaba44e2333cd214872fdcd0454c176425051d932786533562",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_image_metadata.py",
+      "contentDigest": "sha256:2fb9fde1e8c7e47f5240f46687bf86276dfc8a7af602ea5d7cb697173ec1809b",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_imc_schema_application.py",
+      "contentDigest": "sha256:86343082b6d0f63bf55fe8ee30dd1cdf0a55e344e070f023710da300d3f7f127",
       "mode": "100644"
     },
     {
       "path": "tests/test_imc_sensors.py",
-      "contentDigest": "sha256:4fb209c80dad71789203d51c73f08884e034ae90b2cd4009030737690973e38d",
+      "contentDigest": "sha256:e062202f22cfa522bec389113d2c598999b5bb33db1200db2a65a5a9f23ce392",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_isobus_ut_tc_capture.py",
+      "contentDigest": "sha256:e7c1897245fb0423e8d0043c9c0efde63f2b2e19216e26b4848008702e01d73c",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_isoxml_prescription.py",
+      "contentDigest": "sha256:46ee78c90244d09e4cf75a423c9a628762cc81341b1388269c383d6eff67ab84",
       "mode": "100644"
     },
     {
       "path": "tests/test_isoxml_rate.py",
-      "contentDigest": "sha256:c4193a6da2b472456e073b99e11af895f5f15c99e7e481beda31690a60c2d46c",
+      "contentDigest": "sha256:50b1eb574b5f3f519b20806cde9b5ff544a19142e6d5ca524be48ba97a213a81",
       "mode": "100644"
     },
     {
       "path": "tests/test_j1939_recorded.py",
-      "contentDigest": "sha256:c4696bfd3453475c5cff11c8ae8b8574695f19c0d1ab07b8ae9cfaab0f03311b",
+      "contentDigest": "sha256:096b1a46b435457341774582149f470f0f7317baed0c144c9866dfd572e047ea",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_journal_power_thermal.py",
+      "contentDigest": "sha256:7eb8484042c5f6d9cce2fc08d350857f271e0e3ef91544f5bf5da5594db93093",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_journal_storage_errors.py",
+      "contentDigest": "sha256:e9116f8177ec6087309bc98eb1a0548d2c446ae837a0b3749cbd0539b2c52700",
       "mode": "100644"
     },
     {
       "path": "tests/test_jsonl_counter_remap.py",
-      "contentDigest": "sha256:48c5d6e8f6a9cbb72699e41afc6be84693b15b36f872c5536ace4124f105598d",
+      "contentDigest": "sha256:536e548241a64a5465bf2fc3523fa5481af8bf77e7ad7c2be82a628f140c39b0",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_k8s_audit_events.py",
+      "contentDigest": "sha256:a92fa549e6023470b4073a9ad3f922fa2e8d8a70480211f5b1c30930f28ecf7d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_lanelet_declarations.py",
+      "contentDigest": "sha256:e5c4a814b0528f7c5aaaeb41d84d93954f5ec83bffa632aa8a395c1172eeca2f",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_link_cue_fields.py",
+      "contentDigest": "sha256:f59ef83134db7a3007ec8046041dcec1aea9efd9d1c03f25519561f9d51920e0",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_link_level_events.py",
+      "contentDigest": "sha256:8a0787d657da3de50f504976b3d134bde1cebd66cf5cf08d99a9027cbadbd7e4",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_m3m_capture.py",
+      "contentDigest": "sha256:3ce06b153b3f8b9423fc37d4f23727a52553c1e6ce9a8d348df448c5796dfbda",
       "mode": "100644"
     },
     {
       "path": "tests/test_mavsdk_battery.py",
-      "contentDigest": "sha256:819c3506887ddba021fbd1c4e422ad248a8a941ec447e481758d6b9e521187de",
+      "contentDigest": "sha256:45459026d407f7dfa3998533dfab820491b29b59caa3b3d623eb813bc9261640",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_moos_declarations.py",
+      "contentDigest": "sha256:bcd0adadda23991751b06b4b80a878c0dae01463a365be1ae538e0305d158575",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_motion_report_composition.py",
+      "contentDigest": "sha256:2e89a57d5342e26a01a873255fb2d9119313b00c0e61e50144d30366b7e488c8",
       "mode": "100644"
     },
     {
       "path": "tests/test_mqtt_recorded.py",
-      "contentDigest": "sha256:50410be0a39428784f003f3418675eed6d48d13f419ebf2e0f1c9aa8ef534b1b",
+      "contentDigest": "sha256:e7d73994eb72c66b689335779ab892b79d25c958a32313050546d16e4f4764f5",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_nav2_map_content.py",
+      "contentDigest": "sha256:84f8b435f1ad9c2ece90a4c6c5281889539ed4f163e6119b9457ccb238c67687",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_nav2_progress.py",
+      "contentDigest": "sha256:5643005218987f84abc31ae6e04e78cc6c1f78579c2f0e9ef69f0fef09464b34",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_neptus_dictionary_compatibility.py",
+      "contentDigest": "sha256:bea999ae789ec4a897073773100ba7c8e1322e82e3630dd975f5cc19875716a1",
       "mode": "100644"
     },
     {
       "path": "tests/test_nmea2000_weather.py",
-      "contentDigest": "sha256:f9ed719a8822fdb1786d16ff34fb4d652449296b129635db48cf18bfc075b287",
+      "contentDigest": "sha256:8933eddf9eb831dda07cd7204a97c632017541c47dfdc8a15bdb8da45e251ee5",
       "mode": "100644"
     },
     {
       "path": "tests/test_nmea_wind_conversion.py",
-      "contentDigest": "sha256:81a0c7967b97a98a213edf9dc19f17cd22ccc8f5fbf712d13047557569c572ba",
+      "contentDigest": "sha256:9c640ac4f03e5f58d8b4c86a0e8491f3f9cdb4240f9415285b0dda5169570e3d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_oauth_error_responses.py",
+      "contentDigest": "sha256:b9693b7cfc6340f878c5e20e4d8220fa3aee064b0005c5bef3f8b8f32f3fe071",
       "mode": "100644"
     },
     {
       "path": "tests/test_opcua_recorded.py",
-      "contentDigest": "sha256:09a4f8bac64dff890f37954fe6e1f84bed3816ad777261d6fbc204a89c35802a",
+      "contentDigest": "sha256:06296839d0e7e10fb4c65f44ffabd83e0b2b2b0678800a8f46ef5d8c4390d632",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_parrot_telemetry_export.py",
+      "contentDigest": "sha256:4701a5ce171e659e11ef4fccceabaadd58a6c4a43f3d6bd14dbd7cff731dcd87",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_ping_saved_frames.py",
+      "contentDigest": "sha256:a689d1bef4f35197d2e596367248f5fc178da6435d4348cc5e262eff97a891be",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_point_cloud_chunks.py",
+      "contentDigest": "sha256:d8619548991dc40b0dbc8993922109be8a23eedbf853f393835f0df6f8221f8d",
       "mode": "100644"
     },
     {
       "path": "tests/test_pose_text_conversion.py",
-      "contentDigest": "sha256:ac644bd8009d8eb83a9a33f7473642f56044a1f25cbbe9640283359a2e4f81d0",
+      "contentDigest": "sha256:4c801da2ec4485844b820dcecc777627817c6118d485e4a0fc667242467271c2",
       "mode": "100644"
     },
     {
       "path": "tests/test_position_boundary_regressions.py",
-      "contentDigest": "sha256:39e3362a77475c8172fd169cf9938f6e9e704716de0eeadab095dea074ef140e",
+      "contentDigest": "sha256:ac89d2ffd63c443f8f18709471dc61320f3aeeb06f80eae7e7f124ead570bddf",
       "mode": "100644"
     },
     {
       "path": "tests/test_position_csv_batches.py",
-      "contentDigest": "sha256:c3ce392cb57df2c7d30a428fa15dd26548e19787fb0fed059bc5ac395185ff56",
+      "contentDigest": "sha256:a6fccbff359d60988afb232bcf9ba0ea361a993c2d1abf563f73176ef587a584",
       "mode": "100644"
     },
     {
       "path": "tests/test_position_csv_conversion.py",
       "contentDigest": "sha256:e4f5e6ea26067546d38f9982b9e499e8a1c77182a2a2cffff9a744182cdad8a1",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_public_point_chunks.py",
+      "contentDigest": "sha256:72c18d4d749553f745dd9881610fcfb62014cc7dbfccdbdf060849a1e42f5c30",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_public_saved_samples.py",
+      "contentDigest": "sha256:9e6c45a00714db4bd95ef7595686a2cc199db5ce30d6527decf0705edccb47b5",
       "mode": "100644"
     },
     {
@@ -1679,7 +3979,7 @@
     },
     {
       "path": "tests/test_recorded_angles.py",
-      "contentDigest": "sha256:4dc761b217d2d74cc403b05ebc4182993a1494d288a800cf98cfc02c99d248fd",
+      "contentDigest": "sha256:9924637fa3c06deb451a26b9c696d719c1a1f1fe552ed1d984dc1718231a4e3f",
       "mode": "100644"
     },
     {
@@ -1693,28 +3993,148 @@
       "mode": "100644"
     },
     {
+      "path": "tests/test_reported_build_binding.py",
+      "contentDigest": "sha256:ccd0ea2c9bd74abe66f25d44707211960cbf2360d22b31e6e6e96b9d89b4370d",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_request_response_match.py",
+      "contentDigest": "sha256:fd33812c340c9a26bac3dbd357173468b851f046649a0ec4d28eed5f191f4e52",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_rinex_records.py",
+      "contentDigest": "sha256:df64328a4841576331396694ad561ae2d44626e3641de9e83b8809721aeb5e60",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_robotnik_dashboard_state.py",
+      "contentDigest": "sha256:9f64ec81eda7dc7b6f8d8d4876f9db8eef77295f2d6ab6a3dab9c5107e187d3f",
+      "mode": "100644"
+    },
+    {
       "path": "tests/test_ros_parameter_yaml.py",
-      "contentDigest": "sha256:030a960d81135596b3b88a27f47642c6c593d09b4fd3f8c145b80b04cb9e0808",
+      "contentDigest": "sha256:2ffb3de4d59d070ff20048b8072d8bf990740f2eb17853b8c7c5799969972695",
       "mode": "100644"
     },
     {
       "path": "tests/test_rosbag_observations.py",
-      "contentDigest": "sha256:f49622e778568b9f1f2ca6a0d3d55a2e026343debb145964bde38868eb8a60ba",
+      "contentDigest": "sha256:6fb3917ae51359edfba35567e456aa52cd2cbf255ba2dd48d3b3389080b7dc0f",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_rover_battery_domain.py",
+      "contentDigest": "sha256:139b4e78b399a6919fcd549b0b8bbb88643ee2c4785b1ecee9cbf6faf78b8782",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_rtcp_sender_reports.py",
+      "contentDigest": "sha256:5d2eb7d2649e7746c09bdfce48a01f4c63832c5f27e634ab05d9a81cec80a461",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_rtklib_solution.py",
+      "contentDigest": "sha256:d2e6448af620fa047b9761d27babae6d4096a4dc670754cea985304752ecf8a9",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_rtp_h264_stream.py",
+      "contentDigest": "sha256:114eddd3fe157ad60f7aaead21293e3d8a546096ba2f5fbecbba3e0e6d35db0a",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_rtp_records.py",
+      "contentDigest": "sha256:2ef5bb973f01388b4ea63316d718a1175598b8c901f252ab53fc5c596904b8f2",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_rtsp_description.py",
+      "contentDigest": "sha256:b06d1f3be94832a74a8e40cd0e12be3d2c6c977a46ca047605aabec935469005",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_rviz_config.py",
+      "contentDigest": "sha256:45e54a524d9f60e4cc58f1f26cfe40bfb2e7cb8b9938ba5fb646c17a9138660c",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_saved_inspection_features.py",
+      "contentDigest": "sha256:8b919c55b9bfac1fa8c92ad1d2a8a889066161c369cf7cefa08bf00b1cb817f1",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_saved_mavlink_ulog.py",
+      "contentDigest": "sha256:d6daf50bacb41a7590caac0f08fd0d99f6da5d02180d06bd6f15cd19b59e31c5",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_saved_mission_plan.py",
+      "contentDigest": "sha256:505f31dc43a52b72091fc2620d1e65d731637ddd496d2742dc65656617241c87",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_saved_point_cloud.py",
+      "contentDigest": "sha256:dfb76a697fce9351ca2e502f5c4b190ef77f895b845df8d2a3ec4d5a63c8cf9b",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_saved_state_transitions.py",
+      "contentDigest": "sha256:942e30d7d1e660c0afed8f172ff022bc63d24d99b5e94873097992d1f1438044",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_saved_video_conditions.py",
+      "contentDigest": "sha256:26b11fd9a04ab1d712b6719d5d14491c1c1ec0dcae5c397b1e4b4ce1472dbec7",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_sbf_records.py",
+      "contentDigest": "sha256:5389bce854d6af8741adf481bb808b11c4758e20ab66fdc9e1989a083c357c17",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_sdf_airframe.py",
+      "contentDigest": "sha256:608aa4e197d3cf93a5fdcea83f8b0e64477178cef49c9b9e8b8a48c268688928",
       "mode": "100644"
     },
     {
       "path": "tests/test_signalk_recorded.py",
-      "contentDigest": "sha256:d08a4e6e720185c8cb9a1cc537dcc1a974e79b27b9e0ad2f84361e674e87cc02",
+      "contentDigest": "sha256:c34c0484292f25a4403b49d9f8e6356e6f69942a50c3d0a8aaa0a21548c1ce28",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_skydio_flight_telemetry.py",
+      "contentDigest": "sha256:b725e9ea8d17fa83c608d76554ab7a1c8a67043eea3bfb9cea3985e161442ab4",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_software_identity_binding.py",
+      "contentDigest": "sha256:a596623312242544b8da395ce050966ba68bb5548b284e88b9ece951b35d7caf",
       "mode": "100644"
     },
     {
       "path": "tests/test_trajectory_conversion.py",
-      "contentDigest": "sha256:589a22fe16c4b83a51145e9872307d05a1d86034702d9ab43582ffbbc6bb80f4",
+      "contentDigest": "sha256:8a32b4bc383e58bfed4a5fb42cec3cee53e1e751d057a21205e7011b0c35251e",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_vda_load_report.py",
+      "contentDigest": "sha256:514d75ac91f9d387346248619d336e90a328e46e1e848cec2bd3e345fd02cbf4",
       "mode": "100644"
     },
     {
       "path": "tests/test_video_frames.py",
-      "contentDigest": "sha256:ff394f7d487b78e6e85457388aded3e3ae7dccd24ba4e4d593095a458f7582ba",
+      "contentDigest": "sha256:66a59bcac8924d69328901084990a06369aca669f8e9039a3c0cc570d07f825b",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_vlm_response.py",
+      "contentDigest": "sha256:3276e8d8dbb8e8166583006e5c3141914d9701d214c163aaffac97c05c6f537f",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/test_vtx_tramp_replies.py",
+      "contentDigest": "sha256:ef034d07edb27411673a4529bcf9594f0759b1001b4281f32c749b682dde7490",
       "mode": "100644"
     }
   ]

@@ -1,0 +1,165 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_since_unix_epoch_utc_earliest_trusted_source_time_added_by_journald_not_authenticated_and_not_a_verified_absolute_instant",
+      "basis": "declared"
+    },
+    "record_time_basis": {
+      "meaning": "record_time_basis",
+      "unit": "UNKNOWN",
+      "basis": "declared"
+    },
+    "clock_field_basis": {
+      "meaning": "clock_field_basis",
+      "unit": "which_documented_journal_timestamp_this_conversion_used",
+      "basis": "declared"
+    },
+    "journal_reception_realtime_us": {
+      "meaning": "journal_reception_realtime_us",
+      "unit": "us_since_unix_epoch_utc_clock_realtime_when_journald_received_the_entry",
+      "basis": "declared"
+    },
+    "journal_source_realtime_us": {
+      "meaning": "journal_source_realtime_us",
+      "unit": "us_since_unix_epoch_utc_clock_realtime_earliest_trusted_source_time_added_by_journald_blank_when_this_entry_has_none",
+      "basis": "declared"
+    },
+    "source_time_status": {
+      "meaning": "source_time_status",
+      "unit": "whether_this_entry_carried_an_earliest_trusted_source_timestamp_differing_from_reception_at_all",
+      "basis": "declared"
+    },
+    "storage_event_class": {
+      "meaning": "storage_event_class",
+      "unit": "reported_error_class_no_space_read_only_io_error_unrecognised_or_configured_limit_truncated_store_never_a_physical_disk_diagnosis",
+      "basis": "declared"
+    },
+    "storage_event_basis": {
+      "meaning": "storage_event_basis",
+      "unit": "whether_the_class_came_from_the_client_supplied_errno_number_or_a_documented_catalog_message_id",
+      "basis": "declared"
+    },
+    "reported_errno": {
+      "meaning": "reported_errno",
+      "unit": "errno_integer_exactly_as_the_logging_process_supplied_it_at_the_declared_kernel_abi_not_a_byte_count",
+      "basis": "declared"
+    },
+    "reported_errno_name": {
+      "meaning": "reported_errno_name",
+      "unit": "abi_constant_name_for_that_number_blank_when_the_number_is_outside_the_finite_mapped_set",
+      "basis": "declared"
+    },
+    "write_operation_assertion": {
+      "meaning": "write_operation_assertion",
+      "unit": "whether_a_write_operation_is_established_not_established_for_a_bare_errno_because_no_journal_field_names_the_operation_or_its_target",
+      "basis": "declared"
+    },
+    "reported_message_id": {
+      "meaning": "reported_message_id",
+      "unit": "client_supplied_128_bit_catalog_identity_lower_case_hex_blank_when_absent",
+      "basis": "declared"
+    },
+    "message_text_status": {
+      "meaning": "message_text_status",
+      "unit": "present_utf8_withheld_by_exporter_size_limit_non_utf8_bytes_or_absent_message_text_is_never_parsed_here",
+      "basis": "declared"
+    },
+    "message_text_sha256": {
+      "meaning": "message_text_sha256",
+      "unit": "sha256_of_the_message_field_bytes_so_an_engineer_can_correlate_without_copying_log_text",
+      "basis": "declared"
+    },
+    "message_text_bytes": {
+      "meaning": "message_text_bytes",
+      "unit": "byte_length_of_the_message_field_blank_when_absent_or_withheld",
+      "basis": "declared"
+    },
+    "journal_trusted_comm": {
+      "meaning": "journal_trusted_comm",
+      "unit": "journald_added_originating_process_name_reported_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "journal_trusted_unit": {
+      "meaning": "journal_trusted_unit",
+      "unit": "journald_added_systemd_unit_of_the_originating_process_reported_only",
+      "basis": "declared"
+    },
+    "journal_trusted_pid": {
+      "meaning": "journal_trusted_pid",
+      "unit": "journald_added_process_id_of_the_originator_reported_only",
+      "basis": "declared"
+    },
+    "journal_trusted_boot_id": {
+      "meaning": "journal_trusted_boot_id",
+      "unit": "journald_added_kernel_boot_id_hex_reported_only",
+      "basis": "declared"
+    },
+    "journal_trusted_kernel_device": {
+      "meaning": "journal_trusted_kernel_device",
+      "unit": "journald_added_kernel_device_name_present_on_kernel_entries_only_and_not_the_target_of_the_failing_operation",
+      "basis": "declared"
+    },
+    "client_reported_priority": {
+      "meaning": "client_reported_priority",
+      "unit": "client_supplied_syslog_priority_not_a_severity_judgement_by_this_importer",
+      "basis": "declared"
+    },
+    "client_reported_syslog_identifier": {
+      "meaning": "client_reported_syslog_identifier",
+      "unit": "client_supplied_identifier_any_process_can_set_it",
+      "basis": "declared"
+    },
+    "journal_cursor": {
+      "meaning": "journal_cursor",
+      "unit": "verbatim_journal_entry_address_string_one_cursor_addresses_exactly_one_entry",
+      "basis": "declared"
+    },
+    "identity_basis": {
+      "meaning": "identity_basis",
+      "unit": "journald_trusted_fields_reported_not_cryptographic_or_runtime_identity",
+      "basis": "declared"
+    },
+    "source_pin": {
+      "meaning": "source_pin",
+      "unit": "systemd_release_whose_documented_export_shape_and_catalog_this_conversion_used",
+      "basis": "declared"
+    },
+    "errno_abi_pin": {
+      "meaning": "errno_abi_pin",
+      "unit": "kernel_release_whose_asm_generic_errno_constants_the_numbers_were_read_against",
+      "basis": "declared"
+    },
+    "identity_encoding_notes": {
+      "meaning": "identity_encoding_notes",
+      "unit": "named_reason_when_a_selected_identity_field_was_withheld_multi_valued_or_non_utf8_so_a_blank_cell_is_never_mistaken_for_absence",
+      "basis": "declared"
+    },
+    "record_sha256": {
+      "meaning": "record_sha256",
+      "unit": "sha256_of_this_one_records_own_bytes_excluding_its_line_terminator_binding_the_row_to_the_required_paired_sidecar_record_while_the_reports_source_sha256_covers_the_whole_saved_file_including_crlf",
+      "basis": "declared"
+    },
+    "record_bytes": {
+      "meaning": "record_bytes",
+      "unit": "byte_length_of_that_record_line",
+      "basis": "declared"
+    },
+    "unknown_field_count": {
+      "meaning": "unknown_field_count",
+      "unit": "how_many_fields_this_importer_does_not_interpret_were_present_in_this_record",
+      "basis": "declared"
+    },
+    "unknown_field_names": {
+      "meaning": "unknown_field_names",
+      "unit": "names_only_of_those_fields_their_values_are_preserved_in_the_required_paired_sidecar_as_reserialised_json_not_as_raw_record_bytes",
+      "basis": "declared"
+    }
+  }
+}

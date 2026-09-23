@@ -1,0 +1,145 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "PCAP_capture_microseconds_of_the_recording_host_not_a_trusted_UTC_anchor",
+      "basis": "declared"
+    },
+    "source_packet_index": {
+      "meaning": "source_packet_index",
+      "unit": "zero_based_datagram_index_within_the_saved_capture",
+      "basis": "declared"
+    },
+    "source_frame_hex": {
+      "meaning": "source_frame_hex",
+      "unit": "exact_14_byte_PGN253_frame_including_header_and_checksum",
+      "basis": "declared"
+    },
+    "source_frame_sha256": {
+      "meaning": "source_frame_sha256",
+      "unit": "digest_of_the_exact_frame_bytes_not_authenticity",
+      "basis": "declared"
+    },
+    "agopen_pgn_code": {
+      "meaning": "agopen_pgn_code",
+      "unit": "reported_PGN_253_declaration_byte",
+      "basis": "declared"
+    },
+    "agopen_source_id_code": {
+      "meaning": "agopen_source_id_code",
+      "unit": "reported_module_source_id_byte_not_an_authenticated_device",
+      "basis": "declared"
+    },
+    "agopen_declared_payload_length": {
+      "meaning": "agopen_declared_payload_length",
+      "unit": "writer_declared_payload_byte_count_8",
+      "basis": "declared"
+    },
+    "agopen_steer_angle_deg": {
+      "meaning": "agopen_steer_angle_deg",
+      "unit": "deg_reported_measured_WAS_angle_not_a_commanded_or_target_angle",
+      "basis": "declared"
+    },
+    "agopen_steer_angle_basis": {
+      "meaning": "agopen_steer_angle_basis",
+      "unit": "module_configuration_offset_counts_and_Ackerman_applied_before_the_wire",
+      "basis": "declared"
+    },
+    "agopen_steer_angle_sign_basis": {
+      "meaning": "agopen_steer_angle_sign_basis",
+      "unit": "sign_as_transmitted_under_the_module_wiring_not_a_global_left_right_convention",
+      "basis": "declared"
+    },
+    "agopen_heading_deg": {
+      "meaning": "agopen_heading_deg",
+      "unit": "deg_reported_IMU_heading_not_true_north_or_a_verified_course",
+      "basis": "declared"
+    },
+    "agopen_heading_status": {
+      "meaning": "agopen_heading_status",
+      "unit": "REPORTED_or_UNAVAILABLE_NO_IMU_SENTINEL_9999_or_UNQUALIFIED_IMU_SOURCE_NO_DEGREES",
+      "basis": "declared"
+    },
+    "agopen_roll_deg": {
+      "meaning": "agopen_roll_deg",
+      "unit": "deg_reported_IMU_roll_without_the_client_zero_invert_or_filter_transforms",
+      "basis": "declared"
+    },
+    "agopen_roll_status": {
+      "meaning": "agopen_roll_status",
+      "unit": "REPORTED_or_UNAVAILABLE_NO_IMU_SENTINEL_8888_or_UNQUALIFIED_IMU_SOURCE_NO_DEGREES",
+      "basis": "declared"
+    },
+    "agopen_imu_scale_basis": {
+      "meaning": "agopen_imu_scale_basis",
+      "unit": "meaning_of_the_declared_IMU_source_not_inferred_from_the_payload",
+      "basis": "declared"
+    },
+    "agopen_imu_source_declared": {
+      "meaning": "agopen_imu_source_declared",
+      "unit": "caller_declared_IMU_branch_only_bno08x_degrees_may_carry_degree_values",
+      "basis": "declared"
+    },
+    "agopen_heading_raw_int16": {
+      "meaning": "agopen_heading_raw_int16",
+      "unit": "exact_transmitted_int16_retained_under_every_declaration_no_unit_implied",
+      "basis": "declared"
+    },
+    "agopen_roll_raw_int16": {
+      "meaning": "agopen_roll_raw_int16",
+      "unit": "exact_transmitted_int16_retained_under_every_declaration_no_unit_implied",
+      "basis": "declared"
+    },
+    "agopen_switch_byte_code": {
+      "meaning": "agopen_switch_byte_code",
+      "unit": "reported_switch_byte_retained_whole",
+      "basis": "declared"
+    },
+    "agopen_work_bit": {
+      "meaning": "agopen_work_bit",
+      "unit": "bit0_as_transmitted_not_an_engaged_or_safe_state",
+      "basis": "declared"
+    },
+    "agopen_steer_bit": {
+      "meaning": "agopen_steer_bit",
+      "unit": "bit1_as_transmitted_not_an_engaged_or_safe_state",
+      "basis": "declared"
+    },
+    "agopen_remote_bit": {
+      "meaning": "agopen_remote_bit",
+      "unit": "bit2_as_transmitted_not_an_engaged_or_safe_state",
+      "basis": "declared"
+    },
+    "agopen_switch_sense_basis": {
+      "meaning": "agopen_switch_sense_basis",
+      "unit": "active_sense_not_declared_by_the_writer_so_no_on_off_meaning_is_assigned",
+      "basis": "declared"
+    },
+    "agopen_pwm_display_code": {
+      "meaning": "agopen_pwm_display_code",
+      "unit": "drive_side_display_byte_never_assigned_in_the_pinned_sketch",
+      "basis": "declared"
+    },
+    "agopen_pwm_display_basis": {
+      "meaning": "agopen_pwm_display_basis",
+      "unit": "output_side_value_not_a_measured_vehicle_state",
+      "basis": "declared"
+    },
+    "agopen_reported_source_address": {
+      "meaning": "agopen_reported_source_address",
+      "unit": "address_the_recording_says_not_an_authenticated_identity",
+      "basis": "declared"
+    },
+    "agopen_reported_source_port": {
+      "meaning": "agopen_reported_source_port",
+      "unit": "port_the_recording_says_not_an_authenticated_identity",
+      "basis": "declared"
+    }
+  }
+}

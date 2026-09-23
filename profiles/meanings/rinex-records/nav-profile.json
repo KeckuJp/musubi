@@ -1,0 +1,260 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_declared_capture_microseconds_separate_from_the_GNSS_epoch",
+      "basis": "declared"
+    },
+    "capture_clock_basis": {
+      "meaning": "capture_clock_basis",
+      "unit": "the_common_capture_clock_is_a_caller_declaration_not_the_satellite_clock",
+      "basis": "declared"
+    },
+    "source_line_index": {
+      "meaning": "source_line_index",
+      "unit": "zero_based_line_index_of_the_record_start",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact_eight_source_lines_retained_for_recovery",
+      "basis": "declared"
+    },
+    "rinex_version": {
+      "meaning": "rinex_version",
+      "unit": "declared_format_version_3_04_only",
+      "basis": "declared"
+    },
+    "rinex_file_type": {
+      "meaning": "rinex_file_type",
+      "unit": "N_navigation_declared_by_the_header",
+      "basis": "declared"
+    },
+    "rinex_satellite_system_declared": {
+      "meaning": "rinex_satellite_system_declared",
+      "unit": "G_or_M_as_the_header_declares",
+      "basis": "declared"
+    },
+    "rinex_satellite_id": {
+      "meaning": "rinex_satellite_id",
+      "unit": "declared_satellite_identifier_not_an_authenticated_identity",
+      "basis": "declared"
+    },
+    "rinex_satellite_identity_basis": {
+      "meaning": "rinex_satellite_identity_basis",
+      "unit": "declared_identity_not_authenticity",
+      "basis": "declared"
+    },
+    "rinex_toc_time_system": {
+      "meaning": "rinex_toc_time_system",
+      "unit": "GPS_time_of_clock_stated_by_the_specification_never_UTC",
+      "basis": "declared"
+    },
+    "rinex_epoch_time_basis": {
+      "meaning": "rinex_epoch_time_basis",
+      "unit": "exact_declared_GNSS_time_system_no_leap_seconds_applied",
+      "basis": "declared"
+    },
+    "rinex_toc_year": {
+      "meaning": "rinex_toc_year",
+      "unit": "time_of_clock_year_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_toc_month": {
+      "meaning": "rinex_toc_month",
+      "unit": "time_of_clock_month_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_toc_day": {
+      "meaning": "rinex_toc_day",
+      "unit": "time_of_clock_day_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_toc_hour": {
+      "meaning": "rinex_toc_hour",
+      "unit": "time_of_clock_hour_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_toc_minute": {
+      "meaning": "rinex_toc_minute",
+      "unit": "time_of_clock_minute_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_toc_second": {
+      "meaning": "rinex_toc_second",
+      "unit": "time_of_clock_second_exactly_as_written",
+      "basis": "declared"
+    },
+    "rinex_sv_clock_bias_s": {
+      "meaning": "rinex_sv_clock_bias_s",
+      "unit": "s_broadcast_clock_bias_not_an_applied_correction",
+      "basis": "declared"
+    },
+    "rinex_sv_clock_drift_s_per_s": {
+      "meaning": "rinex_sv_clock_drift_s_per_s",
+      "unit": "s_per_s_broadcast_clock_drift",
+      "basis": "declared"
+    },
+    "rinex_sv_clock_drift_rate_s_per_s2": {
+      "meaning": "rinex_sv_clock_drift_rate_s_per_s2",
+      "unit": "s_per_s2_broadcast_clock_drift_rate",
+      "basis": "declared"
+    },
+    "rinex_transmission_time_status": {
+      "meaning": "rinex_transmission_time_status",
+      "unit": "REPORTED_or_TRANSMISSION_TIME_NOT_KNOWN_or_NOT_DECLARED",
+      "basis": "declared"
+    },
+    "rinex_fit_interval_status": {
+      "meaning": "rinex_fit_interval_status",
+      "unit": "REPORTED_or_NOT_DECLARED_blank_is_not_a_zero",
+      "basis": "declared"
+    },
+    "rinex_iode_issue_of_data_ephemeris": {
+      "meaning": "rinex_iode_issue_of_data_ephemeris",
+      "unit": "issue_of_data_ephemeris_code_no_unit_declared",
+      "basis": "declared"
+    },
+    "rinex_crs_m": {
+      "meaning": "rinex_crs_m",
+      "unit": "m_orbit_radius_sine_correction",
+      "basis": "declared"
+    },
+    "rinex_delta_n_rad_per_s": {
+      "meaning": "rinex_delta_n_rad_per_s",
+      "unit": "rad_s_mean_motion_difference",
+      "basis": "declared"
+    },
+    "rinex_m0_rad": {
+      "meaning": "rinex_m0_rad",
+      "unit": "rad_mean_anomaly_at_reference_time",
+      "basis": "declared"
+    },
+    "rinex_cuc_rad": {
+      "meaning": "rinex_cuc_rad",
+      "unit": "rad_argument_of_latitude_cosine_correction",
+      "basis": "declared"
+    },
+    "rinex_eccentricity": {
+      "meaning": "rinex_eccentricity",
+      "unit": "dimensionless_eccentricity",
+      "basis": "declared"
+    },
+    "rinex_cus_rad": {
+      "meaning": "rinex_cus_rad",
+      "unit": "rad_argument_of_latitude_sine_correction",
+      "basis": "declared"
+    },
+    "rinex_sqrt_a_sqrt_m": {
+      "meaning": "rinex_sqrt_a_sqrt_m",
+      "unit": "sqrt_m_square_root_of_semi_major_axis",
+      "basis": "declared"
+    },
+    "rinex_toe_s_of_gps_week": {
+      "meaning": "rinex_toe_s_of_gps_week",
+      "unit": "s_of_GPS_week_time_of_ephemeris_not_UTC",
+      "basis": "declared"
+    },
+    "rinex_cic_rad": {
+      "meaning": "rinex_cic_rad",
+      "unit": "rad_inclination_cosine_correction",
+      "basis": "declared"
+    },
+    "rinex_omega0_rad": {
+      "meaning": "rinex_omega0_rad",
+      "unit": "rad_longitude_of_ascending_node_at_weekly_epoch",
+      "basis": "declared"
+    },
+    "rinex_cis_rad": {
+      "meaning": "rinex_cis_rad",
+      "unit": "rad_inclination_sine_correction",
+      "basis": "declared"
+    },
+    "rinex_i0_rad": {
+      "meaning": "rinex_i0_rad",
+      "unit": "rad_inclination_at_reference_time",
+      "basis": "declared"
+    },
+    "rinex_crc_m": {
+      "meaning": "rinex_crc_m",
+      "unit": "m_orbit_radius_cosine_correction",
+      "basis": "declared"
+    },
+    "rinex_omega_rad": {
+      "meaning": "rinex_omega_rad",
+      "unit": "rad_argument_of_perigee",
+      "basis": "declared"
+    },
+    "rinex_omega_dot_rad_per_s": {
+      "meaning": "rinex_omega_dot_rad_per_s",
+      "unit": "rad_s_rate_of_right_ascension",
+      "basis": "declared"
+    },
+    "rinex_idot_rad_per_s": {
+      "meaning": "rinex_idot_rad_per_s",
+      "unit": "rad_s_rate_of_inclination",
+      "basis": "declared"
+    },
+    "rinex_codes_on_l2_channel_code": {
+      "meaning": "rinex_codes_on_l2_channel_code",
+      "unit": "reported_code_no_unit_declared",
+      "basis": "declared"
+    },
+    "rinex_gps_week_continuous": {
+      "meaning": "rinex_gps_week_continuous",
+      "unit": "continuous_GPS_week_not_mod_1024_paired_with_toe",
+      "basis": "declared"
+    },
+    "rinex_l2_p_data_flag_code": {
+      "meaning": "rinex_l2_p_data_flag_code",
+      "unit": "reported_flag_no_unit_declared",
+      "basis": "declared"
+    },
+    "rinex_sv_accuracy_m": {
+      "meaning": "rinex_sv_accuracy_m",
+      "unit": "m_reported_URA_index_derived_value_not_a_measured_error",
+      "basis": "declared"
+    },
+    "rinex_sv_health_bits_code": {
+      "meaning": "rinex_sv_health_bits_code",
+      "unit": "reported_health_bit_field_not_read_as_healthy_or_unhealthy",
+      "basis": "declared"
+    },
+    "rinex_tgd_s": {
+      "meaning": "rinex_tgd_s",
+      "unit": "s_group_delay_differential",
+      "basis": "declared"
+    },
+    "rinex_iodc_issue_of_data_clock": {
+      "meaning": "rinex_iodc_issue_of_data_clock",
+      "unit": "issue_of_data_clock_code_no_unit_declared",
+      "basis": "declared"
+    },
+    "rinex_transmission_time_s_of_gps_week": {
+      "meaning": "rinex_transmission_time_s_of_gps_week",
+      "unit": "s_of_GPS_week_transmission_time_0_9999E9_means_not_known",
+      "basis": "declared"
+    },
+    "rinex_fit_interval_hours": {
+      "meaning": "rinex_fit_interval_hours",
+      "unit": "hours_fit_interval_blank_if_not_known",
+      "basis": "declared"
+    },
+    "rinex_spare_1": {
+      "meaning": "rinex_spare_1",
+      "unit": "reported_spare_field_no_meaning_declared",
+      "basis": "declared"
+    },
+    "rinex_spare_2": {
+      "meaning": "rinex_spare_2",
+      "unit": "reported_spare_field_no_meaning_declared",
+      "basis": "declared"
+    }
+  }
+}

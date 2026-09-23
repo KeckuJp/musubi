@@ -1,0 +1,60 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "microseconds_since_boot",
+      "basis": "declared"
+    },
+    "reported_roll_rad": {
+      "meaning": "reported_roll_rad",
+      "unit": "rad_reported_no_rotation_frame_inference",
+      "basis": "declared"
+    },
+    "reported_pitch_rad": {
+      "meaning": "reported_pitch_rad",
+      "unit": "rad_reported_no_rotation_frame_inference",
+      "basis": "declared"
+    },
+    "reported_yaw_rad": {
+      "meaning": "reported_yaw_rad",
+      "unit": "rad_reported_no_rotation_frame_inference",
+      "basis": "declared"
+    },
+    "reported_angular_velocity_x_rad_s": {
+      "meaning": "reported_angular_velocity_x_rad_s",
+      "unit": "rad_s_reported_axis0",
+      "basis": "declared"
+    },
+    "reported_angular_velocity_y_rad_s": {
+      "meaning": "reported_angular_velocity_y_rad_s",
+      "unit": "rad_s_reported_axis1",
+      "basis": "declared"
+    },
+    "reported_angular_velocity_z_rad_s": {
+      "meaning": "reported_angular_velocity_z_rad_s",
+      "unit": "rad_s_reported_axis2",
+      "basis": "declared"
+    },
+    "reported_acceleration_x_m_s2": {
+      "meaning": "reported_acceleration_x_m_s2",
+      "unit": "m_s2_reported_axis0",
+      "basis": "declared"
+    },
+    "reported_acceleration_y_m_s2": {
+      "meaning": "reported_acceleration_y_m_s2",
+      "unit": "m_s2_reported_axis1",
+      "basis": "declared"
+    },
+    "reported_acceleration_z_m_s2": {
+      "meaning": "reported_acceleration_z_m_s2",
+      "unit": "m_s2_reported_axis2",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "battery_voltage_v": {
+      "meaning": "battery_voltage_v",
+      "unit": "V_reported_not_calibrated",
+      "basis": "declared"
+    },
+    "battery_current_a": {
+      "meaning": "battery_current_a",
+      "unit": "A_reported_source_sign_not_inferred",
+      "basis": "declared"
+    },
+    "sport_physical_id_reported": {
+      "meaning": "sport_physical_id_reported",
+      "unit": "five_bit_receiver_physical_id_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "sport_application_id": {
+      "meaning": "sport_application_id",
+      "unit": "selected_SPort_application_ID",
+      "basis": "declared"
+    },
+    "sport_value_basis": {
+      "meaning": "sport_value_basis",
+      "unit": "raw_report_before_OpenTX_model_offset_ratio_positive_filter",
+      "basis": "declared"
+    },
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "capture_microseconds_untrusted_clock",
+      "basis": "declared"
+    },
+    "destination_address": {
+      "meaning": "destination_address",
+      "unit": "CRSF_address_not_authenticated_source_identity",
+      "basis": "declared"
+    },
+    "uplink_rssi_1_dbm": {
+      "meaning": "uplink_rssi_1_dbm",
+      "unit": "dBm_reported_possible_stale_if_no_link",
+      "basis": "declared"
+    },
+    "uplink_rssi_2_dbm": {
+      "meaning": "uplink_rssi_2_dbm",
+      "unit": "dBm_reported_possible_stale_if_no_link",
+      "basis": "declared"
+    },
+    "uplink_lq_fraction": {
+      "meaning": "uplink_lq_fraction",
+      "unit": "reported_packet_success_fraction",
+      "basis": "declared"
+    },
+    "uplink_snr_db": {
+      "meaning": "uplink_snr_db",
+      "unit": "dB",
+      "basis": "declared"
+    },
+    "downlink_rssi_dbm": {
+      "meaning": "downlink_rssi_dbm",
+      "unit": "dBm_reported_possible_stale_if_no_link",
+      "basis": "declared"
+    },
+    "downlink_lq_fraction": {
+      "meaning": "downlink_lq_fraction",
+      "unit": "reported_packet_success_fraction",
+      "basis": "declared"
+    },
+    "downlink_snr_db": {
+      "meaning": "downlink_snr_db",
+      "unit": "dB",
+      "basis": "declared"
+    },
+    "rf_mode_code": {
+      "meaning": "rf_mode_code",
+      "unit": "source_enum_not_mapped_to_rate",
+      "basis": "declared"
+    },
+    "tx_power_code": {
+      "meaning": "tx_power_code",
+      "unit": "source_enum_not_mapped_to_watts",
+      "basis": "declared"
+    }
+  }
+}

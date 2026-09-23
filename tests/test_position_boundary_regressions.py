@@ -92,8 +92,6 @@ class PositionBoundaries(unittest.TestCase):
                                  + result.stderr.decode())
 
     def test_maximum_generated_record_remains_usable_after_spi_reserialization(self):
-        # Python emits 1e-05; serde_json emits 0.00001. Check the public adapter's
-        # reserialized payload boundary too, not only the converter's byte count.
         row = b"1,0.00001,0.00001,0.00001,"
         baseline = self.module.convert(HEADER + row + b"\n", PROFILE)
         self.assertEqual(self.replay(baseline).returncode, 0)
@@ -103,8 +101,6 @@ class PositionBoundaries(unittest.TestCase):
         try:
             output = self.module.convert(raw, PROFILE)
         except ValueError:
-            # The converter may conservatively refuse a line that cannot survive
-            # the downstream representation; it must not emit unusable success.
             return
         self.assertEqual(len(output) - 1, 64 * 1024)
         result = self.replay(output)

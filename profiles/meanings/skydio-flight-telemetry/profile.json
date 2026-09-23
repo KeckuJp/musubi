@@ -1,0 +1,210 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "skydio_sample_index": {
+      "meaning": "skydio_sample_index",
+      "unit": "zero_based_position_of_this_sample_in_the_saved_aligned_telemetry_array_as_written_array_order_and_never_evidence_of_completeness",
+      "basis": "declared"
+    },
+    "skydio_sample_count": {
+      "meaning": "skydio_sample_count",
+      "unit": "how_many_samples_the_saved_array_carried_a_count_of_what_this_body_contained_and_never_a_claim_that_the_flight_was_fully_covered_because_the_endpoint_page_declares_no_pagination_or_record_count",
+      "basis": "declared"
+    },
+    "skydio_gps_altitude_m": {
+      "meaning": "skydio_gps_altitude_m",
+      "unit": "m_of_the_reported_GPS_based_absolute_altitude_above_sea_level_exactly_as_the_pinned_endpoint_page_declares_the_unit_in_metres_it_is_a_reported_value_and_not_a_surveyed_or_datum_qualified_height",
+      "basis": "declared"
+    },
+    "skydio_height_above_takeoff_m": {
+      "meaning": "skydio_height_above_takeoff_m",
+      "unit": "m_of_the_reported_height_above_the_takeoff_point_which_the_page_declares_as_height_in_metres_estimated_from_visual_and_baro_systems_a_relative_report_and_never_a_terrain_clearance_or_an_absolute_altitude",
+      "basis": "declared"
+    },
+    "skydio_hybrid_altitude_m": {
+      "meaning": "skydio_hybrid_altitude_m",
+      "unit": "m_of_the_reported_vision_plus_baro_estimated_absolute_altitude_above_sea_level_which_the_page_declares_in_metres_it_is_a_different_estimator_from_the_gps_altitude_column_and_is_kept_in_its_own_column_rather_than_merged_with_it",
+      "basis": "declared"
+    },
+    "skydio_gps_latitude_deg": {
+      "meaning": "skydio_gps_latitude_deg",
+      "unit": "deg_of_the_reported_GPS_based_global_latitude_the_page_declares_degrees_and_names_NO_datum_so_none_is_asserted_here_and_no_coordinate_conversion_is_performed",
+      "basis": "declared"
+    },
+    "skydio_gps_longitude_deg": {
+      "meaning": "skydio_gps_longitude_deg",
+      "unit": "deg_of_the_reported_GPS_based_global_longitude_under_the_same_declared_degrees_and_the_same_absence_of_a_declared_datum",
+      "basis": "declared"
+    },
+    "skydio_gps_horizontal_accuracy_m": {
+      "meaning": "skydio_gps_horizontal_accuracy_m",
+      "unit": "m_of_the_reported_GPS_position_accuracy_estimate_in_XY_which_the_page_declares_in_metres_it_is_the_producers_own_estimate_and_never_an_error_bound_this_path_certifies",
+      "basis": "declared"
+    },
+    "skydio_gps_vertical_accuracy_m": {
+      "meaning": "skydio_gps_vertical_accuracy_m",
+      "unit": "m_of_the_reported_GPS_position_accuracy_estimate_in_Z_which_the_page_declares_in_metres_under_the_same_estimate_not_guarantee_rule",
+      "basis": "declared"
+    },
+    "skydio_gps_speed_accuracy_m_s": {
+      "meaning": "skydio_gps_speed_accuracy_m_s",
+      "unit": "m_s_of_the_reported_GPS_velocity_accuracy_estimate_which_the_page_declares_in_metres_per_second_under_the_same_estimate_not_guarantee_rule",
+      "basis": "declared"
+    },
+    "skydio_gps_velocity_ned_m_s_north": {
+      "meaning": "skydio_gps_velocity_ned_m_s_north",
+      "unit": "m_s_of_the_reported_GPS_velocity_north_component_the_page_declares_metres_per_second_and_names_the_world_frame_order_north_east_down_so_the_component_name_is_the_pages_own_and_not_an_assumed_axis",
+      "basis": "declared"
+    },
+    "skydio_gps_velocity_ned_m_s_east": {
+      "meaning": "skydio_gps_velocity_ned_m_s_east",
+      "unit": "m_s_of_the_reported_east_component_under_the_same_declared_unit_and_the_same_declared_north_east_down_order",
+      "basis": "declared"
+    },
+    "skydio_gps_velocity_ned_m_s_down": {
+      "meaning": "skydio_gps_velocity_ned_m_s_down",
+      "unit": "m_s_of_the_reported_down_component_under_the_same_declaration_positive_down_as_the_declared_frame_name_states_and_nothing_is_negated_or_rotated_here",
+      "basis": "declared"
+    },
+    "skydio_site_position_enu_m_east": {
+      "meaning": "skydio_site_position_enu_m_east",
+      "unit": "m_of_the_reported_site_relative_east_component_the_page_declares_metres_and_the_east_north_up_order_of_the_Site_frame_the_site_origin_is_not_in_this_body_so_the_value_is_an_offset_and_never_geodetic",
+      "basis": "declared"
+    },
+    "skydio_site_position_enu_m_north": {
+      "meaning": "skydio_site_position_enu_m_north",
+      "unit": "m_of_the_same_reported_site_relative_north_component_under_the_same_declaration_and_the_same_unresolved_origin",
+      "basis": "declared"
+    },
+    "skydio_site_position_enu_m_up": {
+      "meaning": "skydio_site_position_enu_m_up",
+      "unit": "m_of_the_same_reported_site_relative_up_component_under_the_same_declaration_and_the_same_unresolved_origin",
+      "basis": "declared"
+    },
+    "skydio_site_camera_position_enu_m_east": {
+      "meaning": "skydio_site_camera_position_enu_m_east",
+      "unit": "m_of_the_reported_camera_position_east_component_in_the_same_declared_Site_frame_east_north_up_order_with_the_same_unresolved_site_origin",
+      "basis": "declared"
+    },
+    "skydio_site_camera_position_enu_m_north": {
+      "meaning": "skydio_site_camera_position_enu_m_north",
+      "unit": "m_of_the_reported_camera_position_north_component_under_the_same_condition",
+      "basis": "declared"
+    },
+    "skydio_site_camera_position_enu_m_up": {
+      "meaning": "skydio_site_camera_position_enu_m_up",
+      "unit": "m_of_the_reported_camera_position_up_component_under_the_same_condition",
+      "basis": "declared"
+    },
+    "skydio_site_orientation_rpy_enu_deg_roll": {
+      "meaning": "skydio_site_orientation_rpy_enu_deg_roll",
+      "unit": "deg_of_the_reported_roll_of_the_drone_orientation_in_the_Site_frame_the_page_declares_degrees_and_the_roll_pitch_yaw_order_nothing_is_rotated_to_another_frame_here",
+      "basis": "declared"
+    },
+    "skydio_site_orientation_rpy_enu_deg_pitch": {
+      "meaning": "skydio_site_orientation_rpy_enu_deg_pitch",
+      "unit": "deg_of_the_reported_pitch_under_the_same_declaration",
+      "basis": "declared"
+    },
+    "skydio_site_orientation_rpy_enu_deg_yaw": {
+      "meaning": "skydio_site_orientation_rpy_enu_deg_yaw",
+      "unit": "deg_of_the_reported_yaw_under_the_same_declaration_and_it_is_not_a_true_or_magnetic_north_heading",
+      "basis": "declared"
+    },
+    "skydio_site_camera_orientation_rpy_enu_deg_roll": {
+      "meaning": "skydio_site_camera_orientation_rpy_enu_deg_roll",
+      "unit": "deg_of_the_reported_camera_roll_in_the_same_declared_Site_frame",
+      "basis": "declared"
+    },
+    "skydio_site_camera_orientation_rpy_enu_deg_pitch": {
+      "meaning": "skydio_site_camera_orientation_rpy_enu_deg_pitch",
+      "unit": "deg_of_the_reported_camera_pitch_under_the_same_condition",
+      "basis": "declared"
+    },
+    "skydio_site_camera_orientation_rpy_enu_deg_yaw": {
+      "meaning": "skydio_site_camera_orientation_rpy_enu_deg_yaw",
+      "unit": "deg_of_the_reported_camera_yaw_under_the_same_condition",
+      "basis": "declared"
+    },
+    "skydio_hybrid_camera_orientation_rpy_ned_deg_roll": {
+      "meaning": "skydio_hybrid_camera_orientation_rpy_ned_deg_roll",
+      "unit": "deg_of_the_reported_vision_plus_gps_based_camera_roll_in_the_world_frame_the_producers_own_field_name_calls_NED_declared_in_degrees_by_the_page_and_never_rotated_into_the_Site_frame_columns_beside_it",
+      "basis": "declared"
+    },
+    "skydio_hybrid_camera_orientation_rpy_ned_deg_pitch": {
+      "meaning": "skydio_hybrid_camera_orientation_rpy_ned_deg_pitch",
+      "unit": "deg_of_the_reported_camera_pitch_in_that_same_declared_world_frame",
+      "basis": "declared"
+    },
+    "skydio_hybrid_camera_orientation_rpy_ned_deg_yaw": {
+      "meaning": "skydio_hybrid_camera_orientation_rpy_ned_deg_yaw",
+      "unit": "deg_of_the_reported_camera_yaw_in_that_same_declared_world_frame_and_not_a_qualified_heading",
+      "basis": "declared"
+    },
+    "skydio_gps_satellites_used_reported": {
+      "meaning": "skydio_gps_satellites_used_reported",
+      "unit": "the_reported_count_of_satellites_used_by_the_gps_receiver_a_plain_count_for_which_the_page_states_no_unit_and_never_a_fix_quality_or_integrity_claim",
+      "basis": "declared"
+    },
+    "skydio_flight_id_hex": {
+      "meaning": "skydio_flight_id_hex",
+      "unit": "utf8_hex_of_the_reported_flight_identifier_of_the_saved_body_which_the_page_requires_a_reported_reference_and_never_an_authenticated_identity",
+      "basis": "declared"
+    },
+    "skydio_vehicle_serial_hex": {
+      "meaning": "skydio_vehicle_serial_hex",
+      "unit": "utf8_hex_of_the_reported_vehicle_serial_which_the_page_also_requires_retained_verbatim_as_reported_provenance_and_never_authenticated_or_physically_verified",
+      "basis": "declared"
+    },
+    "skydio_battery_serial_hex": {
+      "meaning": "skydio_battery_serial_hex",
+      "unit": "utf8_hex_of_the_reported_battery_serial_which_the_page_does_NOT_require_so_this_column_is_blank_and_the_absence_is_counted_when_the_saved_body_omits_it_under_the_same_reported_not_authenticated_rule",
+      "basis": "declared"
+    },
+    "skydio_declared_uninterpreted_key_count": {
+      "meaning": "skydio_declared_uninterpreted_key_count",
+      "unit": "how_many_keys_of_this_sample_the_page_declares_but_this_path_gives_no_column_so_they_travel_only_inside_source_record_hex_for_example_the_two_declared_quaternion_arrays_a_count_of_retained_declared_keys_and_never_a_quality_or_loss_score",
+      "basis": "declared"
+    },
+    "skydio_undeclared_key_count": {
+      "meaning": "skydio_undeclared_key_count",
+      "unit": "how_many_keys_of_this_sample_the_pinned_page_does_not_declare_at_all_which_matters_because_the_page_sets_additionalProperties_false_so_such_a_key_indicates_a_newer_or_nonconforming_body_it_is_retained_and_counted_here_and_never_silently_treated_as_declared",
+      "basis": "declared"
+    },
+    "skydio_clock_basis": {
+      "meaning": "skydio_clock_basis",
+      "unit": "states_that_the_row_clock_is_the_producers_reported_vehicle_sample_time_read_offset_aware_by_exact_integer_arithmetic_to_the_declared_microsecond_resolution_and_is_not_an_attested_synchronised_or_verified_clock",
+      "basis": "declared"
+    },
+    "skydio_unit_basis": {
+      "meaning": "skydio_unit_basis",
+      "unit": "states_that_units_and_axis_orders_are_taken_only_where_the_pinned_endpoint_page_declares_them_and_that_nothing_is_scaled_clamped_or_given_a_unit_the_page_does_not_state",
+      "basis": "declared"
+    },
+    "skydio_frame_basis": {
+      "meaning": "skydio_frame_basis",
+      "unit": "states_that_the_frame_names_and_component_orders_come_from_the_pages_own_field_descriptions_that_nothing_is_rotated_between_frames_that_a_site_position_is_an_offset_because_the_site_origin_is_absent_and_that_no_geodetic_datum_is_declared_or_assumed",
+      "basis": "declared"
+    },
+    "skydio_identity_basis": {
+      "meaning": "skydio_identity_basis",
+      "unit": "states_that_the_flight_and_vehicle_identifiers_are_required_by_the_page_that_the_battery_serial_is_not_and_that_all_are_reported_as_written_neither_authenticated_nor_physically_verified_while_the_operator_email_is_never_emitted",
+      "basis": "declared"
+    },
+    "skydio_producer_basis": {
+      "meaning": "skydio_producer_basis",
+      "unit": "states_that_the_samples_are_the_aircrafts_reported_telemetry_while_the_cloud_application_is_only_the_delivery_source_of_this_saved_body_and_that_the_page_declares_no_pagination_or_record_count_so_no_completeness_is_asserted",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "sha256_of_the_exact_saved_response_body_this_row_came_from_binding_rows_to_their_source_and_never_authentication",
+      "basis": "declared"
+    }
+  }
+}

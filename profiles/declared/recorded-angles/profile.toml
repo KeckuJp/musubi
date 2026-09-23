@@ -1,0 +1,21 @@
+profile_id = "reported_angles_boot_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "boot_relative"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "microseconds_since_boot"
+reported_roll_rad = "rad_reported_no_rotation_frame_inference"
+reported_pitch_rad = "rad_reported_no_rotation_frame_inference"
+reported_yaw_rad = "rad_reported_no_rotation_frame_inference"
+reported_angular_velocity_x_rad_s = "rad_s_reported_axis0"
+reported_angular_velocity_y_rad_s = "rad_s_reported_axis1"
+reported_angular_velocity_z_rad_s = "rad_s_reported_axis2"
+reported_acceleration_x_m_s2 = "m_s2_reported_axis0"
+reported_acceleration_y_m_s2 = "m_s2_reported_axis1"
+reported_acceleration_z_m_s2 = "m_s2_reported_axis2"

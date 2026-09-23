@@ -956,9 +956,11 @@ consistent_with = "consistent with FC failure"
 
     #[test]
     fn unknown_alignment_reaches_existing_time_confidence_cap() {
-        let mut profile =
-            crate::profile::parse_profile(include_str!("fixtures/pose-text.toml"), "test")
-                .expect("profile");
+        let mut profile = crate::profile::parse_profile(
+            include_str!("fixtures/unknown-adapter--pose-text--profile.toml"),
+            "test",
+        )
+        .expect("profile");
         for basis in [
             ClockBasis::Unknown,
             ClockBasis::GpsSuspect,
@@ -1096,6 +1098,8 @@ consistent_with = "consistent with FC failure"
             default_clock_basis: basis,
             declared_platform_domain: None,
             origin: "public".into(),
+            declared_clock_rate: None,
+            declared_sender: None,
         }
     }
 

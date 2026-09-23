@@ -1,0 +1,27 @@
+profile_id = "mp_tlog_csv_attitude_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "boot_relative"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "us_from_the_selected_messages_dialect_time_boot_ms_field_not_utc_and_not_the_exporter_stamp"
+record_time_basis = "BOOT_MS_FROM_THE_SELECTED_MESSAGE_NOT_UTC"
+source_local_time_text = "exporter_lastlogread_text_local_time_millisecond_resolution_zone_not_recorded_never_converted_to_utc"
+source_msgid = "dialect_message_id_parsed_from_the_writers_hexadecimal_header_field"
+source_sysid = "reported_system_id_from_the_writers_hexadecimal_header_not_authenticated_identity"
+source_compid = "reported_component_id_from_the_writers_hexadecimal_header_not_authenticated_identity"
+source_row_hex = "hex_encoded_exact_bytes_of_this_one_exported_row_including_the_writers_header_and_tail_but_excluding_the_crlf_separator_not_whole_file_retention"
+selected_message = "declared_mavlink_struct_name_the_exporter_wrote_for_this_row"
+exporter_pin = "declared_missionplanner_release_that_wrote_this_export_1_3_81_2f3e02b2_or_1_3_82_ca3731f5_same_tlog_csv_handler_functions_at_both_pins"
+dialect_pin = "c_library_v2_a3661c0a_field_units"
+reported_roll_rad = "rad_dialect_attitude_roll_no_scaling_applied_by_the_exporter_no_frame_inference"
+reported_pitch_rad = "rad_dialect_attitude_pitch_no_scaling_applied_by_the_exporter_no_frame_inference"
+reported_yaw_rad = "rad_dialect_attitude_yaw_no_scaling_applied_by_the_exporter_no_frame_inference"
+reported_angular_velocity_x_rad_s = "rad_s_dialect_attitude_rollspeed_axis_naming_follows_the_adopted_columns"
+reported_angular_velocity_y_rad_s = "rad_s_dialect_attitude_pitchspeed_axis_naming_follows_the_adopted_columns"
+reported_angular_velocity_z_rad_s = "rad_s_dialect_attitude_yawspeed_axis_naming_follows_the_adopted_columns"

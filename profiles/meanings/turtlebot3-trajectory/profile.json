@@ -1,0 +1,60 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time": {
+      "meaning": "record_time",
+      "unit": "us",
+      "basis": "declared"
+    },
+    "time": {
+      "meaning": "time",
+      "unit": "s",
+      "basis": "declared"
+    },
+    "x_true": {
+      "meaning": "x_true",
+      "unit": "m_local_map_reference_estimate",
+      "basis": "declared"
+    },
+    "y_true": {
+      "meaning": "y_true",
+      "unit": "m_local_map_reference_estimate",
+      "basis": "declared"
+    },
+    "x_pred": {
+      "meaning": "x_pred",
+      "unit": "m_local_map_model_estimate",
+      "basis": "declared"
+    },
+    "y_pred": {
+      "meaning": "y_pred",
+      "unit": "m_local_map_model_estimate",
+      "basis": "declared"
+    },
+    "feat_time_ms": {
+      "meaning": "feat_time_ms",
+      "unit": "ms",
+      "basis": "declared"
+    },
+    "scale_time_ms": {
+      "meaning": "scale_time_ms",
+      "unit": "ms",
+      "basis": "declared"
+    },
+    "infer_time_ms": {
+      "meaning": "infer_time_ms",
+      "unit": "ms",
+      "basis": "declared"
+    },
+    "total_time_ms": {
+      "meaning": "total_time_ms",
+      "unit": "ms",
+      "basis": "declared"
+    }
+  }
+}

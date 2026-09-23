@@ -12,10 +12,7 @@ import json
 from pathlib import Path
 import sys
 
-try:
-    from scripts import convert_position_csv as single
-except ModuleNotFoundError:
-    import convert_position_csv as single
+import convert_position_csv as single
 
 MAX_INPUT = single.MAX_INPUT
 MAX_PART_BYTES = single.MAX_INPUT

@@ -1,0 +1,50 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "IMU.I": {
+      "meaning": "IMU.I",
+      "unit": "instance",
+      "basis": "declared"
+    },
+    "IMU.TimeUS": {
+      "meaning": "IMU.TimeUS",
+      "unit": "us",
+      "basis": "declared"
+    },
+    "IMU.GyrX": {
+      "meaning": "IMU.GyrX",
+      "unit": "rad/s",
+      "basis": "declared"
+    },
+    "IMU.GyrY": {
+      "meaning": "IMU.GyrY",
+      "unit": "rad/s",
+      "basis": "declared"
+    },
+    "IMU.GyrZ": {
+      "meaning": "IMU.GyrZ",
+      "unit": "rad/s",
+      "basis": "declared"
+    },
+    "IMU.AccX": {
+      "meaning": "IMU.AccX",
+      "unit": "m/s2",
+      "basis": "declared"
+    },
+    "IMU.AccY": {
+      "meaning": "IMU.AccY",
+      "unit": "m/s2",
+      "basis": "declared"
+    },
+    "IMU.AccZ": {
+      "meaning": "IMU.AccZ",
+      "unit": "m/s2",
+      "basis": "declared"
+    }
+  }
+}

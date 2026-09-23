@@ -1,0 +1,30 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "time": {
+      "meaning": "time",
+      "unit": "us",
+      "basis": "declared"
+    },
+    "vbatLatest": {
+      "meaning": "vbatLatest",
+      "unit": "cV",
+      "basis": "declared"
+    },
+    "amperageLatest": {
+      "meaning": "amperageLatest",
+      "unit": "cA",
+      "basis": "declared"
+    },
+    "BaroAlt": {
+      "meaning": "BaroAlt",
+      "unit": "cm",
+      "basis": "declared"
+    }
+  }
+}

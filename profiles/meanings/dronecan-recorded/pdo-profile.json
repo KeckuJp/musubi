@@ -1,0 +1,145 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_capture_not_device_clock",
+      "basis": "declared"
+    },
+    "mapped_bit_offset": {
+      "meaning": "mapped_bit_offset",
+      "unit": "bit_offset_of_this_slot_from_the_least_significant_bit_of_the_first_payload_byte_a_float_slot_is_always_a_multiple_of_8_because_the_reference_can_read_no_other_float_layout",
+      "basis": "declared"
+    },
+    "mapped_bit_width": {
+      "meaning": "mapped_bit_width",
+      "unit": "bit_width_this_slot_was_mapped_at_equal_to_the_declared_width_for_REAL32_and_REAL64_so_offset_plus_width_locates_the_exact_source_bytes_inside_source_frame_hex",
+      "basis": "declared"
+    },
+    "raw_value": {
+      "meaning": "raw_value",
+      "unit": "value_as_decoded_from_the_mapped_bits_before_Factor_little_endian_per_the_pinned_reference_or_the_text_NONFINITE_when_the_source_float_was_NaN_or_infinite_never_replaced_by_zero",
+      "basis": "declared"
+    },
+    "quantity_status": {
+      "meaning": "quantity_status",
+      "unit": "REPORTED_CONFIGURED_QUANTITY_or_NONFINITE_RETAINED_or_BOOLEAN_REPORTED_NOT_PHYSICAL_STATE_a_source_report_under_caller_configuration_not_calibration_or_device_verification",
+      "basis": "declared"
+    },
+    "data_type_code": {
+      "meaning": "data_type_code",
+      "unit": "CANopen_object_DataType_code_declared_in_the_saved_dictionary_8_is_REAL32_and_17_is_REAL64_a_declaration_not_a_measured_property",
+      "basis": "declared"
+    },
+    "configured_unit": {
+      "meaning": "configured_unit",
+      "unit": "engineering_unit_string_the_caller_configured_in_the_saved_dictionary_a_python_canopen_extension_not_a_standard_CANopen_guarantee",
+      "basis": "declared"
+    },
+    "configured_factor": {
+      "meaning": "configured_factor",
+      "unit": "scaling_the_saved_dictionary_declared_applied_to_integers_only_and_required_to_be_exactly_1_for_a_float_never_applied_to_a_nonfinite_value",
+      "basis": "declared"
+    },
+    "pdo_slot": {
+      "meaning": "pdo_slot",
+      "unit": "zero_based_position_of_this_object_in_the_configured_mapping_order_as_configured_not_a_time_or_priority_order",
+      "basis": "declared"
+    },
+    "object_index": {
+      "meaning": "object_index",
+      "unit": "CANopen_object_index_from_the_mapping_word_decimal_here_identity_within_the_saved_dictionary_only",
+      "basis": "declared"
+    },
+    "object_subindex": {
+      "meaning": "object_subindex",
+      "unit": "CANopen_object_subindex_from_the_mapping_word_identity_within_the_saved_dictionary_only",
+      "basis": "declared"
+    },
+    "object_name_hex": {
+      "meaning": "object_name_hex",
+      "unit": "hex_of_the_ParameterName_the_saved_dictionary_declared_a_name_is_not_physical_accuracy_platform_domain_or_authenticated_identity",
+      "basis": "declared"
+    },
+    "dictionary_sha256": {
+      "meaning": "dictionary_sha256",
+      "unit": "SHA256_of_the_exact_saved_dictionary_text_binding_the_configuration_this_row_was_decoded_under_not_device_verification",
+      "basis": "declared"
+    },
+    "pdo_cob_id": {
+      "meaning": "pdo_cob_id",
+      "unit": "COB_ID_the_caller_selected_for_this_recording_matched_against_the_saved_frame_identifier_no_node_was_read",
+      "basis": "declared"
+    },
+    "pdo_mapping_index": {
+      "meaning": "pdo_mapping_index",
+      "unit": "TPDO_mapping_object_index_the_caller_selected_configuration_not_a_verified_live_mapping",
+      "basis": "declared"
+    },
+    "source_frame_hex": {
+      "meaning": "source_frame_hex",
+      "unit": "hex_of_the_original_saved_capture_line_retained_whole_so_the_mapped_bits_including_a_nonfinite_float_bit_pattern_stay_recoverable_this_output_is_not_secret_scrubbed",
+      "basis": "declared"
+    },
+    "voltage_v": {
+      "meaning": "voltage_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "current_a": {
+      "meaning": "current_a",
+      "unit": "A",
+      "basis": "declared"
+    },
+    "temperature_k": {
+      "meaning": "temperature_k",
+      "unit": "K",
+      "basis": "declared"
+    },
+    "distance_m": {
+      "meaning": "distance_m",
+      "unit": "m",
+      "basis": "declared"
+    },
+    "speed_m_s": {
+      "meaning": "speed_m_s",
+      "unit": "m/s",
+      "basis": "declared"
+    },
+    "angular_speed_rad_s": {
+      "meaning": "angular_speed_rad_s",
+      "unit": "rad/s",
+      "basis": "declared"
+    },
+    "angle_rad": {
+      "meaning": "angle_rad",
+      "unit": "rad",
+      "basis": "declared"
+    },
+    "pressure_pa": {
+      "meaning": "pressure_pa",
+      "unit": "Pa",
+      "basis": "declared"
+    },
+    "reported_ratio": {
+      "meaning": "reported_ratio",
+      "unit": "1_not_inferred_SOC",
+      "basis": "declared"
+    },
+    "energy_j": {
+      "meaning": "energy_j",
+      "unit": "J",
+      "basis": "declared"
+    },
+    "boolean_reported": {
+      "meaning": "boolean_reported",
+      "unit": "TRUE_FALSE_reported_not_physical_state",
+      "basis": "declared"
+    }
+  }
+}

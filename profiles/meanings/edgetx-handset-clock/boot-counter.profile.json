@@ -1,0 +1,20 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "tmr10ms": {
+      "meaning": "tmr10ms",
+      "unit": "handset_power_on_relative_tick_counter_of_10_ms_units_NOT_seconds_the_reader_multiplies_it_by_10_exactly_once_to_get_milliseconds_and_this_declaration_applies_no_further_scale_the_origin_is_the_handsets_own_power_on_and_is_never_an_anchor_to_wall_time",
+      "basis": "declared"
+    },
+    "RQly(%)": {
+      "meaning": "RQly(%)",
+      "unit": "reported_receiver_link_quality_percent_as_the_handset_logged_it_never_a_calibrated_radio_measurement",
+      "basis": "declared"
+    }
+  }
+}

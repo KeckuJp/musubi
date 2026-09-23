@@ -1,0 +1,45 @@
+{
+  "profile_id": "marine_ardupilot_declared_vehicle_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "TimeUS"
+  },
+  "units": {
+    "TimeUS": "us_since_boot",
+    "Mode": "reported_number_with_explicit_vehicle_schema",
+    "ModeNum": "alias_of_Mode",
+    "Rsn": "reported_reason_code_not_verified_cause",
+    "reported_mode_name": "declared_vehicle_mode_not_command_cause_or_motion",
+    "reported_mode_known": "known_schema_enum_not_enabled_build_feature",
+    "reported_mode_schema": "explicit_vehicle_and_finite_source_version",
+    "Maj": "reported_firmware_major",
+    "Min": "reported_firmware_minor",
+    "Pat": "reported_firmware_patch",
+    "FWS": "reported_firmware_string_from_fw_string_custom_or_THISFIRMWARE",
+    "BU": "build_directory_code_preserved_not_decoded_not_MAV_TYPE_or_product",
+    "reported_firmware_family": "ArduRover_or_ArduSub_family_not_product_or_vendor",
+    "reported_firmware_version": "reported_firmware_version_not_installed_device_proof",
+    "reported_firmware_suffix": "prerelease_suffix_preserved_means_not_the_pinned_stable_release",
+    "reported_firmware_build_annotation": "git_version_appended_by_the_build_commit_not_resolved_here",
+    "reported_vehicle_identity_basis": "firmware_family_only_a_log_cannot_name_BlueBoat_or_BlueROV2",
+    "declared_vehicle_agreement": "caller_declaration_checked_against_the_logged_family_not_trusted_alone",
+    "FWT": "reported_firmware_version_type_byte_exactly_as_the_writer_stored_fw_type",
+    "APJ": "reported_APJ_BOARD_ID_exactly_as_stored_including_a_raw_zero_whose_cause_the_record_does_not_carry",
+    "GH": "truncated_uint32_git_hash_of_the_source_commit_this_is_neither_a_build_number_nor_a_full_image_hash_and_is_not_resolved_here",
+    "BT": "compile_time_board_type_code_a_board_class_not_a_hardware_revision_and_not_decoded_here",
+    "BST": "compile_time_board_subtype_code_a_board_class_not_a_hardware_revision_and_not_decoded_here",
+    "reported_release_channel": "which_release_channel_the_build_declared_named_only_DEV_0_ALPHA_64_BETA_128_RC_192_or_OFFICIAL_255_because_the_writer_stores_one_named_FIRMWARE_VERSION_TYPE_constant_and_qualifies_no_intermediate_value_so_any_other_byte_stays_UNKNOWN_with_its_raw_number_and_is_never_folded_into_a_neighbouring_channel_this_is_the_publishers_own_build_declaration_never_a_certification_or_an_installed_binary_proof",
+    "reported_release_channel_code": "the_original_FWT_byte_kept_beside_the_channel_name_so_an_unbanded_value_stays_readable_blank_when_the_writer_layout_declared_no_such_column",
+    "reported_board_target_id": "the_APJ_BOARD_ID_the_firmware_declared_as_its_build_target_when_nonzero_used_to_match_firmware_to_a_board_a_zero_is_reported_as_ZERO_OR_NOT_PROVIDED_because_an_undefined_macro_and_a_macro_defined_as_zero_leave_the_same_byte_and_the_record_cannot_tell_them_apart_blank_instead_means_the_writer_layout_declared_no_such_column_this_is_a_build_target_not_a_hardware_revision_and_not_an_authenticated_board_identity"
+  }
+}

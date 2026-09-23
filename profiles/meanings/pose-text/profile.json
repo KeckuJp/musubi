@@ -1,0 +1,55 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time": {
+      "meaning": "record_time",
+      "unit": "us",
+      "basis": "declared"
+    },
+    "timestamp_unix_s": {
+      "meaning": "timestamp_unix_s",
+      "unit": "s_unix_source",
+      "basis": "declared"
+    },
+    "tx": {
+      "meaning": "tx",
+      "unit": "m",
+      "basis": "declared"
+    },
+    "ty": {
+      "meaning": "ty",
+      "unit": "m",
+      "basis": "declared"
+    },
+    "tz": {
+      "meaning": "tz",
+      "unit": "m",
+      "basis": "declared"
+    },
+    "qx": {
+      "meaning": "qx",
+      "unit": "1",
+      "basis": "declared"
+    },
+    "qy": {
+      "meaning": "qy",
+      "unit": "1",
+      "basis": "declared"
+    },
+    "qz": {
+      "meaning": "qz",
+      "unit": "1",
+      "basis": "declared"
+    },
+    "qw": {
+      "meaning": "qw",
+      "unit": "1",
+      "basis": "declared"
+    }
+  }
+}

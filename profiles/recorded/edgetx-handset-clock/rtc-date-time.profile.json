@@ -1,0 +1,25 @@
+{
+  "profile_id": "edgetx_handset_rtc_date_time_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "handset",
+  "format": "edgetx_csv",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "link_stats"
+  ],
+  "fields": {
+    "time": "Date,Time",
+    "link": [
+      "RQly(%)"
+    ]
+  },
+  "units": {
+    "Date": "handset_RTC_calendar_date_as_the_handset_wrote_it_with_no_zone_so_it_is_local_civil_order_only_and_never_an_authenticated_or_synchronised_UTC_date",
+    "Time": "handset_RTC_time_of_day_with_10_ms_resolution_as_written_with_no_zone_and_no_offset_so_it_orders_rows_and_never_anchors_them_to_wall_time",
+    "RQly(%)": "reported_receiver_link_quality_percent_as_the_handset_logged_it_never_a_calibrated_radio_measurement"
+  }
+}

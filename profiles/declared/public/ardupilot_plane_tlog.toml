@@ -1,0 +1,40 @@
+profile_id = "ardupilot_plane_tlog"
+version = "2026-08-21.1"
+family = "fixed_wing"
+source_role = "gcs"
+format = "mavlink_tlog"
+extensions = ["tlog"]
+default_clock_basis = "host_received"
+channels = ["tlog", "heartbeat", "link_stats", "rc", "gps_ekf", "event"]
+
+[fields]
+time = "host_us"
+status = ["HEARTBEAT.custom_mode", "HEARTBEAT.system_status", "STATUSTEXT.text"]
+link = ["RADIO_STATUS.rssi", "RADIO_STATUS.remrssi", "RADIO_STATUS.noise", "RADIO_STATUS.rxerrors", "RC_CHANNELS.rssi", "RC_CHANNELS.chancount"]
+battery = ["SYS_STATUS.voltage_battery", "SYS_STATUS.battery_remaining"]
+gps = ["GPS_RAW_INT.fix_type", "GPS_RAW_INT.satellites_visible", "GPS_RAW_INT.eph", "EKF_STATUS_REPORT.flags", "EKF_STATUS_REPORT.pos_horiz_variance"]
+health = ["SYS_STATUS.onboard_control_sensors_health", "SYS_STATUS.drop_rate_comm"]
+
+[[expectations]]
+id = "heartbeat_1hz"
+channel = "heartbeat"
+cadence_ms = 1000
+grace_k = 3
+
+[[expectations]]
+id = "radio_status_1hz"
+channel = "link_stats"
+cadence_ms = 1000
+grace_k = 5
+
+[[expectations]]
+id = "gps_raw_2hz"
+channel = "gps_ekf"
+cadence_ms = 500
+grace_k = 6
+
+[[expectations]]
+id = "rc_channels_2hz"
+channel = "rc"
+cadence_ms = 500
+grace_k = 6

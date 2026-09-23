@@ -1,0 +1,120 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_supplied_capture_microseconds_not_tree_execution_time",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "exact_input_document_digest_not_authenticity",
+      "basis": "declared"
+    },
+    "bt_record_kind": {
+      "meaning": "bt_record_kind",
+      "unit": "TREE_NODE_PORT_RESERVED_or_MODEL_PORT_declaration_row",
+      "basis": "declared"
+    },
+    "bt_element_index": {
+      "meaning": "bt_element_index",
+      "unit": "zero_based_document_element_order_join_key",
+      "basis": "declared"
+    },
+    "bt_tree_id_hex": {
+      "meaning": "bt_tree_id_hex",
+      "unit": "declared_BehaviorTree_ID_UTF8_hex",
+      "basis": "declared"
+    },
+    "bt_main_tree_declared": {
+      "meaning": "bt_main_tree_declared",
+      "unit": "one_when_this_tree_is_the_declared_main_not_a_started_tree",
+      "basis": "declared"
+    },
+    "bt_node_uid": {
+      "meaning": "bt_node_uid",
+      "unit": "document_element_order_identity_within_this_file_only",
+      "basis": "declared"
+    },
+    "bt_parent_uid": {
+      "meaning": "bt_parent_uid",
+      "unit": "declared_parent_element_identity_empty_for_a_tree_row",
+      "basis": "declared"
+    },
+    "bt_child_ordinal": {
+      "meaning": "bt_child_ordinal",
+      "unit": "zero_based_declared_sibling_position_not_execution_order",
+      "basis": "declared"
+    },
+    "bt_child_count": {
+      "meaning": "bt_child_count",
+      "unit": "declared_child_element_count",
+      "basis": "declared"
+    },
+    "bt_tag_hex": {
+      "meaning": "bt_tag_hex",
+      "unit": "exact_declared_XML_tag_UTF8_hex",
+      "basis": "declared"
+    },
+    "bt_node_category": {
+      "meaning": "bt_node_category",
+      "unit": "CONTROL_DECORATOR_ACTION_CONDITION_SUBTREE_or_UNKNOWN_NOT_REGISTERED",
+      "basis": "declared"
+    },
+    "bt_category_basis": {
+      "meaning": "bt_category_basis",
+      "unit": "which_pinned_registry_or_declared_model_established_the_category",
+      "basis": "declared"
+    },
+    "bt_declared_id_hex": {
+      "meaning": "bt_declared_id_hex",
+      "unit": "declared_ID_attribute_UTF8_hex_not_an_authenticated_identity",
+      "basis": "declared"
+    },
+    "bt_node_name_hex": {
+      "meaning": "bt_node_name_hex",
+      "unit": "declared_name_label_UTF8_hex_may_repeat",
+      "basis": "declared"
+    },
+    "bt_subtree_ref_hex": {
+      "meaning": "bt_subtree_ref_hex",
+      "unit": "referenced_BehaviorTree_ID_resolved_within_this_document_only",
+      "basis": "declared"
+    },
+    "bt_attribute_name_hex": {
+      "meaning": "bt_attribute_name_hex",
+      "unit": "declared_attribute_or_port_name_UTF8_hex",
+      "basis": "declared"
+    },
+    "bt_attribute_kind": {
+      "meaning": "bt_attribute_kind",
+      "unit": "static_declaration_blackboard_reference_same_name_remap_or_reserved",
+      "basis": "declared"
+    },
+    "bt_blackboard_key_hex": {
+      "meaning": "bt_blackboard_key_hex",
+      "unit": "declared_blackboard_key_UTF8_hex_not_a_read_value",
+      "basis": "declared"
+    },
+    "bt_attribute_value_hex": {
+      "meaning": "bt_attribute_value_hex",
+      "unit": "exact_declared_attribute_text_not_a_resolved_runtime_value",
+      "basis": "declared"
+    },
+    "bt_port_direction": {
+      "meaning": "bt_port_direction",
+      "unit": "INPUT_OUTPUT_INOUT_from_declared_model_or_UNKNOWN_WITHOUT_DECLARED_MODEL",
+      "basis": "declared"
+    },
+    "bt_declaration_basis": {
+      "meaning": "bt_declaration_basis",
+      "unit": "declared_structure_not_executed_or_ticked",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_capture_reported_time_carried_through_from_the_adopted_candump_conversion_it_is_the_capturing_hosts_own_stamp_and_never_a_bus_clock_never_synchronised_and_never_authenticated",
+      "basis": "declared"
+    },
+    "isobus_capture_index": {
+      "meaning": "isobus_capture_index",
+      "unit": "one_based_row_position_of_this_frame_in_the_selected_capture_csv_source_order_only_and_never_evidence_of_completeness_because_a_capture_may_start_or_stop_at_any_moment",
+      "basis": "declared"
+    },
+    "isobus_protocol_role": {
+      "meaning": "isobus_protocol_role",
+      "unit": "states_which_of_the_two_protocol_roles_this_row_belongs_to_the_universal_terminal_iso11783_6_virtual_terminal_or_the_task_controller_iso11783_10_process_data_the_two_are_never_merged_and_neither_implies_the_other",
+      "basis": "declared"
+    },
+    "isobus_message_kind": {
+      "meaning": "isobus_message_kind",
+      "unit": "names_the_message_this_row_carries_using_the_pinned_enumerations_own_names_a_kind_suffixed_NOT_INTERPRETED_HERE_is_recognised_but_deliberately_not_decoded_and_a_kind_suffixed_UNDEFINED_BY_THE_PIN_is_a_code_the_pinned_source_does_not_define_at_all",
+      "basis": "declared"
+    },
+    "isobus_pgn": {
+      "meaning": "isobus_pgn",
+      "unit": "the_parameter_group_number_computed_from_the_29_bit_identifier_by_the_pdu_rule_0xE600_is_VirtualTerminalToECU_and_0xCB00_is_ProcessData_in_the_pinned_header_both_are_destination_specific_pdu1_groups",
+      "basis": "declared"
+    },
+    "isobus_source_address": {
+      "meaning": "isobus_source_address",
+      "unit": "the_reported_source_address_byte_of_the_29_bit_identifier_a_bus_address_is_not_a_device_identity_and_no_address_claim_or_NAME_is_read_on_this_path",
+      "basis": "declared"
+    },
+    "isobus_destination_address": {
+      "meaning": "isobus_destination_address",
+      "unit": "the_reported_destination_address_byte_of_a_destination_specific_pdu1_identifier_reported_as_written_and_never_resolved_to_a_device",
+      "basis": "declared"
+    },
+    "isobus_function_or_command_code": {
+      "meaning": "isobus_function_or_command_code",
+      "unit": "the_raw_code_this_row_was_classified_by_for_the_terminal_role_it_is_the_vt_function_byte_zero_and_for_the_task_controller_role_it_is_the_low_nibble_of_byte_zero_which_the_pinned_header_calls_the_process_data_command",
+      "basis": "declared"
+    },
+    "ut_working_set_master_address": {
+      "meaning": "ut_working_set_master_address",
+      "unit": "the_reported_active_working_set_master_address_which_the_pinned_vt_client_reads_from_byte_one_of_the_vt_status_message_a_reported_bus_address_and_not_an_identity",
+      "basis": "declared"
+    },
+    "ut_data_mask_object_id": {
+      "meaning": "ut_data_mask_object_id",
+      "unit": "the_reported_active_working_set_data_mask_object_id_a_16_bit_little_endian_value_from_bytes_two_and_three_it_is_an_object_pool_reference_number_and_this_path_neither_holds_nor_loads_any_object_pool_so_no_object_meaning_is_resolved",
+      "basis": "declared"
+    },
+    "ut_soft_key_mask_object_id": {
+      "meaning": "ut_soft_key_mask_object_id",
+      "unit": "the_reported_active_working_set_soft_key_mask_object_id_from_bytes_four_and_five_under_the_same_unresolved_object_pool_rule",
+      "basis": "declared"
+    },
+    "ut_busy_codes_bitfield": {
+      "meaning": "ut_busy_codes_bitfield",
+      "unit": "the_reported_busy_codes_bitfield_from_byte_six_carried_as_written_the_pinned_source_defines_only_the_0x40_bit_so_no_other_bit_of_this_byte_is_named_here_and_none_is_guessed",
+      "basis": "declared"
+    },
+    "ut_auxiliary_input_learn_mode_reported": {
+      "meaning": "ut_auxiliary_input_learn_mode_reported",
+      "unit": "one_when_the_0x40_bit_of_the_busy_codes_bitfield_is_set_which_the_pinned_vt_client_reads_as_auxiliary_input_learn_mode_enabled_a_reported_terminal_condition_and_never_a_command",
+      "basis": "declared"
+    },
+    "ut_current_command_function_code": {
+      "meaning": "ut_current_command_function_code",
+      "unit": "the_reported_current_command_function_code_from_byte_seven_of_the_vt_status_message_it_names_what_the_terminal_says_it_is_working_on_and_is_not_a_command_issued_by_this_path",
+      "basis": "declared"
+    },
+    "tc_status_bitfield": {
+      "meaning": "tc_status_bitfield",
+      "unit": "the_reported_task_controller_status_bitfield_which_the_pinned_tc_client_reads_from_byte_four_of_the_status_message_carried_as_written_because_the_pinned_source_names_no_individual_bit_of_it",
+      "basis": "declared"
+    },
+    "tc_source_address_of_command_being_executed": {
+      "meaning": "tc_source_address_of_command_being_executed",
+      "unit": "the_reported_source_address_of_the_command_being_executed_from_byte_five_of_the_status_message_a_reported_bus_address_only",
+      "basis": "declared"
+    },
+    "tc_command_being_executed": {
+      "meaning": "tc_command_being_executed",
+      "unit": "the_reported_command_being_executed_from_byte_six_of_the_status_message_a_process_data_command_code_as_the_controller_reports_it",
+      "basis": "declared"
+    },
+    "tc_reported_work_state": {
+      "meaning": "tc_reported_work_state",
+      "unit": "the_reported_actual_work_state_of_ddi_141_named_from_the_adopted_four_state_vocabulary_disabled_enabled_error_or_undefined_or_not_installed_where_the_last_is_NOT_the_same_as_disabled_it_is_a_reported_state_and_never_a_command_issued_here",
+      "basis": "declared"
+    },
+    "tc_child_states_named": {
+      "meaning": "tc_child_states_named",
+      "unit": "the_sixteen_two_bit_child_states_of_a_condensed_state_ddi_named_from_the_same_four_state_vocabulary_and_joined_by_a_vertical_bar_in_ascending_child_order_the_signed_wire_value_is_read_as_its_full_32_bit_pattern_exactly_as_the_adopted_converter_reads_it",
+      "basis": "declared"
+    },
+    "isobus_clock_basis": {
+      "meaning": "isobus_clock_basis",
+      "unit": "states_that_the_row_clock_is_the_capturing_hosts_reported_stamp_from_the_adopted_candump_conversion_and_is_not_a_bus_clock_or_an_authenticated_time",
+      "basis": "declared"
+    },
+    "isobus_identity_basis": {
+      "meaning": "isobus_identity_basis",
+      "unit": "states_that_source_and_destination_are_reported_29_bit_identifier_bytes_that_a_bus_address_is_not_a_device_identity_and_that_no_address_claim_or_NAME_is_read_here",
+      "basis": "declared"
+    },
+    "isobus_semantic_basis": {
+      "meaning": "isobus_semantic_basis",
+      "unit": "states_that_every_field_meaning_comes_from_the_pinned_agisostack_plus_plus_source_and_that_a_code_the_pin_does_not_define_is_reported_as_a_number_with_its_bytes_retained_rather_than_interpreted",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "utf8_hex_of_the_29_bit_identifier_in_four_big_endian_bytes_followed_by_the_eight_data_bytes_exactly_as_captured_so_every_byte_of_a_selected_frame_including_the_ones_this_path_does_not_interpret_stays_recoverable_beside_the_interpreted_columns",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "sha256_of_the_exact_capture_csv_this_row_came_from_binding_rows_to_their_source_and_never_authentication",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+profile_id = "pose_text_recorded_v1"
+version = "1"
+family = "ugv"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+
+[fields]
+time = "record_time"
+
+[units]
+record_time = "us"
+timestamp_unix_s = "s_unix_source"
+tx = "m"
+ty = "m"
+tz = "m"
+qx = "1"
+qy = "1"
+qz = "1"
+qw = "1"

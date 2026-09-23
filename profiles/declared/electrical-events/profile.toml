@@ -1,0 +1,33 @@
+profile_id = "electrical_declared_condition_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+
+[fields]
+time = "record_time_us"
+
+[units]
+record_time_us = "us_on_the_source_observation_axis_copied_not_reinterpreted"
+source_observations_sha256 = "sha256_of_the_normalized_observations_evaluated"
+declared_limits_sha256 = "sha256_of_the_operator_declared_limit_document"
+condition_status = "observed_against_declared_limit_not_a_cause_or_fault"
+declared_limit = "operator_declared_value_in_declared_unit_not_a_certified_safe_limit"
+declared_comparison = "declared_boundary_below_at_or_below_above_at_or_above"
+declared_release_limit = "declared_hysteresis_release_value_blank_when_none"
+declared_window_kind = "min_samples_count_or_min_duration_us_exactly_one"
+declared_max_gap_us = "us_gap_that_breaks_a_run_blank_when_undeclared"
+declared_sign_handling = "signed_as_recorded_or_magnitude_for_current_only"
+declared_sign_basis = "operator_statement_of_what_the_recorded_current_sign_means_never_a_measurement"
+observed_sign_basis = "declared_current_sign_basis_values_seen_plus_separated"
+evaluated_sample_count = "rows_belonging_to_this_instance_not_usable_evidence"
+usable_sample_count = "rows_carrying_a_reading_for_this_quantity"
+crossing_sample_count = "samples_past_the_declared_limit_not_a_run_length"
+run_sample_count = "longest_consecutive_crossing_run_length"
+run_span_us = "us_between_first_and_last_sample_of_that_run"
+run_extreme_value = "most_extreme_value_inside_that_run_in_the_declared_unit"
+duration_basis = "which_axis_a_duration_was_measured_on_if_any"
+threshold_authority = "operator_declared_not_certified"

@@ -33,7 +33,7 @@ fn preserve() -> ParseOptions {
 #[test]
 fn battery_only_profile_does_not_assign_an_air_vehicle_family() {
     let profile = parse_profile(
-        include_str!("fixtures/px4-battery--profile.toml"),
+        include_str!("fixtures/unknown-adapter--px4-battery--profile.toml"),
         "synthetic",
     )
     .unwrap();

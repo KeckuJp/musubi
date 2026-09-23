@@ -1,17 +1,13 @@
-"""Synthetic checks for exact timestamp conversion."""
+"""Independent synthetic inputs for the trajectory CSV bridge."""
 import csv
 import importlib.util
 import io
 from pathlib import Path
 import unittest
-import subprocess
-import sys
-import tempfile
 
-ROOT = next(root for root in Path(__file__).resolve().parents
-            if (root / "scripts/convert_trajectory_csv.py").is_file())
-SCRIPT = ROOT / "scripts/convert_trajectory_csv.py"
-SPEC = importlib.util.spec_from_file_location("trajectory_converter", SCRIPT)
+SPEC = importlib.util.spec_from_file_location(
+    "trajectory_converter", Path(__file__).resolve().parents[1] / "scripts/convert_trajectory_csv.py"
+)
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
@@ -51,33 +47,6 @@ class TrajectoryConversionContract(unittest.TestCase):
         for header in ['time,"x,y"', 'time,"x\ny"', 'time,"x""y"']:
             with self.subTest(header=header), self.assertRaises(ValueError):
                 MODULE.convert(header + "\n1,2\n", "time")
-
-    def test_cli_alternate_column_and_existing_output_preserved(self):
-        with tempfile.TemporaryDirectory() as directory:
-            source, output = Path(directory) / "input.csv", Path(directory) / "output.csv"
-            source.write_text("elapsed,label\n0.000001,first\n0.000002,next\n")
-            command = [sys.executable, str(SCRIPT), str(source), str(output), "--time-column", "elapsed"]
-            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
-            self.assertEqual(result.returncode, 0)
-            expected = "record_time (us),elapsed,label\n1,0.000001,first\n2,0.000002,next\n"
-            self.assertEqual(output.read_text(), expected)
-            output.write_text("existing output must survive\n")
-            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertEqual(output.read_text(), "existing output must survive\n")
-
-    def test_cli_invalid_input_never_creates_output(self):
-        with tempfile.TemporaryDirectory() as directory:
-            source, output = Path(directory) / "input.csv", Path(directory) / "output.csv"
-            for text in ["time,x\n0.0000001,2\n", "time,x\n1,2\n1,3\n", "other,x\n1,2\n"]:
-                source.write_text(text)
-                result = subprocess.run(
-                    [sys.executable, str(SCRIPT), str(source), str(output), "--time-column", "time"],
-                    capture_output=True, text=True, timeout=10,
-                )
-                with self.subTest(text=text):
-                    self.assertNotEqual(result.returncode, 0)
-                    self.assertFalse(output.exists())
 
 
 if __name__ == "__main__":

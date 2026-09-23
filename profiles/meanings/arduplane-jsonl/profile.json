@@ -1,0 +1,45 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "TimeUS": {
+      "meaning": "TimeUS",
+      "unit": "us",
+      "basis": "declared"
+    },
+    "GPS.Lat": {
+      "meaning": "GPS.Lat",
+      "unit": "deg",
+      "basis": "declared"
+    },
+    "GPS.Lng": {
+      "meaning": "GPS.Lng",
+      "unit": "deg",
+      "basis": "declared"
+    },
+    "GPS.Alt": {
+      "meaning": "GPS.Alt",
+      "unit": "m",
+      "basis": "declared"
+    },
+    "PARM.Name": {
+      "meaning": "PARM.Name",
+      "unit": "reported_parameter_identifier",
+      "basis": "declared"
+    },
+    "PARM.Value": {
+      "meaning": "PARM.Value",
+      "unit": "reported_parameter_value_unit_not_inferred",
+      "basis": "declared"
+    },
+    "PARM.Default": {
+      "meaning": "PARM.Default",
+      "unit": "reported_board_config_default_unit_not_inferred",
+      "basis": "declared"
+    }
+  }
+}

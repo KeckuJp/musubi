@@ -1,0 +1,300 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "local_calendar_microseconds_since_1980_not_UTC",
+      "basis": "declared"
+    },
+    "actual_volume_rate_l_ha": {
+      "meaning": "actual_volume_rate_l_ha",
+      "unit": "L/ha_reported_actual_volume_per_area_not_setpoint",
+      "basis": "declared"
+    },
+    "source_raw_value": {
+      "meaning": "source_raw_value",
+      "unit": "signed_integer_with_resolution_selected_by_source_ddi",
+      "basis": "declared"
+    },
+    "source_ddi": {
+      "meaning": "source_ddi",
+      "unit": "decimal_reported_DDI_not_device_identity",
+      "basis": "declared"
+    },
+    "actual_mass_rate_kg_m2": {
+      "meaning": "actual_mass_rate_kg_m2",
+      "unit": "kg_per_m2_reported_actual_not_setpoint",
+      "basis": "declared"
+    },
+    "actual_count_per_m2": {
+      "meaning": "actual_count_per_m2",
+      "unit": "count_per_m2_reported_actual_not_setpoint",
+      "basis": "declared"
+    },
+    "device_element_hex": {
+      "meaning": "device_element_hex",
+      "unit": "UTF8_reported_device_element_reference",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact_binary_TIM_record",
+      "basis": "declared"
+    },
+    "source_row": {
+      "meaning": "source_row",
+      "unit": "one_based_record_ordinal",
+      "basis": "declared"
+    },
+    "source_update": {
+      "meaning": "source_update",
+      "unit": "zero_based_update_ordinal_not_global_sequence",
+      "basis": "declared"
+    },
+    "source_column": {
+      "meaning": "source_column",
+      "unit": "zero_based_DLV_column_of_the_declared_template_the_update_arrived_in_not_a_device_channel",
+      "basis": "declared"
+    },
+    "declared_device_id_hex": {
+      "meaning": "declared_device_id_hex",
+      "unit": "UTF8_reported_DVC_id_from_the_saved_device_description_resolved_in_that_document_only_not_an_authenticated_device",
+      "basis": "declared"
+    },
+    "declared_element_object_id": {
+      "meaning": "declared_element_object_id",
+      "unit": "declared_DET_object_id_within_that_device_description_not_a_network_address_or_a_serial_number",
+      "basis": "declared"
+    },
+    "declared_parent_object_id": {
+      "meaning": "declared_parent_object_id",
+      "unit": "declared_parent_object_id_of_that_element_a_document_relation_not_a_verified_physical_assembly",
+      "basis": "declared"
+    },
+    "declared_element_type": {
+      "meaning": "declared_element_type",
+      "unit": "declared_DET_type_name_or_UNKNOWN_RETAINED_for_a_code_this_decoder_does_not_name_never_guessed",
+      "basis": "declared"
+    },
+    "declared_element_type_raw": {
+      "meaning": "declared_element_type_raw",
+      "unit": "raw_declared_DET_type_code_kept_beside_the_name_so_an_unnamed_code_is_still_readable",
+      "basis": "declared"
+    },
+    "declared_element_number": {
+      "meaning": "declared_element_number",
+      "unit": "declared_element_number_within_its_device_a_document_ordinal_not_a_physical_section_position",
+      "basis": "declared"
+    },
+    "declared_element_designator_hex": {
+      "meaning": "declared_element_designator_hex",
+      "unit": "UTF8_declared_element_name_as_written_by_the_task_controller_not_a_measured_implement_identity",
+      "basis": "declared"
+    },
+    "device_description_sha256": {
+      "meaning": "device_description_sha256",
+      "unit": "SHA256_of_the_saved_device_description_that_resolved_these_references_not_authenticity",
+      "basis": "declared"
+    },
+    "reported_latitude_deg": {
+      "meaning": "reported_latitude_deg",
+      "unit": "deg_reported_same_record_position_of_this_update_never_held_over_from_another_record_and_not_a_qualified_fix",
+      "basis": "declared"
+    },
+    "reported_longitude_deg": {
+      "meaning": "reported_longitude_deg",
+      "unit": "deg_reported_same_record_position_of_this_update_never_held_over_from_another_record_and_not_a_qualified_fix",
+      "basis": "declared"
+    },
+    "position_status_raw": {
+      "meaning": "position_status_raw",
+      "unit": "raw_reported_PTN_status_byte_retained_uninterpreted_not_an_accuracy_or_validity_verdict",
+      "basis": "declared"
+    },
+    "position_disposition": {
+      "meaning": "position_disposition",
+      "unit": "why_the_position_cells_are_what_they_are_including_when_the_record_declares_none_blank_is_never_read_as_zero_degrees",
+      "basis": "declared"
+    },
+    "reported_yield_mass_kg_m2": {
+      "meaning": "reported_yield_mass_kg_m2",
+      "unit": "kg_per_m2_reported_yield_not_moisture_corrected",
+      "basis": "declared"
+    },
+    "reported_yield_mass_kg_s": {
+      "meaning": "reported_yield_mass_kg_s",
+      "unit": "kg_per_s_reported_yield_not_moisture_corrected",
+      "basis": "declared"
+    },
+    "reported_yield_total_mass_kg": {
+      "meaning": "reported_yield_total_mass_kg",
+      "unit": "kg_reported_total_yield_not_moisture_corrected",
+      "basis": "declared"
+    },
+    "reported_average_crop_moisture_ppm": {
+      "meaning": "reported_average_crop_moisture_ppm",
+      "unit": "ppm_reported_task_average_not_instantaneous",
+      "basis": "declared"
+    },
+    "reported_average_crop_moisture_fraction": {
+      "meaning": "reported_average_crop_moisture_fraction",
+      "unit": "fraction_reported_task_average_not_instantaneous",
+      "basis": "declared"
+    },
+    "reported_moisture_status": {
+      "meaning": "reported_moisture_status",
+      "unit": "reported_fraction_availability_not_sensor_health",
+      "basis": "declared"
+    },
+    "reported_work_state": {
+      "meaning": "reported_work_state",
+      "unit": "reported_DDI141_enum_not_measured_material_flow",
+      "basis": "declared"
+    },
+    "first_child_ordinal": {
+      "meaning": "first_child_ordinal",
+      "unit": "one_based_child_block_start_not_physical_geometry_or_resolved_child_ID",
+      "basis": "declared"
+    },
+    "declared_transfer_origin_code": {
+      "meaning": "declared_transfer_origin_code",
+      "unit": "the_raw_DataTransferOrigin_digit_the_TASKDATA_root_declared_blank_when_the_attribute_was_absent_which_is_not_the_same_as_declaring_a_side",
+      "basis": "declared"
+    },
+    "declared_transfer_origin": {
+      "meaning": "declared_transfer_origin",
+      "unit": "FMIS_when_that_digit_is_1_MICS_when_it_is_2_and_UNKNOWN_CODE_RETAINED_for_any_other_documented_or_undocumented_number_it_says_which_side_the_file_claims_wrote_it_and_authenticates_nothing",
+      "basis": "declared"
+    },
+    "declared_management_software_hex": {
+      "meaning": "declared_management_software_hex",
+      "unit": "utf8_hex_of_the_ManagementSoftwareManufacturer_string_exactly_as_written_a_self_declaration_by_the_writing_software_and_never_a_verified_vendor_identity",
+      "basis": "declared"
+    },
+    "declared_management_software_version_hex": {
+      "meaning": "declared_management_software_version_hex",
+      "unit": "utf8_hex_of_the_ManagementSoftwareVersion_string_as_written_retained_verbatim_because_no_version_ordering_or_support_claim_follows_from_it",
+      "basis": "declared"
+    },
+    "declared_task_controller_hex": {
+      "meaning": "declared_task_controller_hex",
+      "unit": "utf8_hex_of_the_TaskControllerManufacturer_string_as_written_which_names_the_counterpart_the_writer_recorded_not_a_certified_task_controller",
+      "basis": "declared"
+    },
+    "declared_task_controller_version_hex": {
+      "meaning": "declared_task_controller_version_hex",
+      "unit": "utf8_hex_of_the_TaskControllerVersion_string_as_written_under_the_same_rule",
+      "basis": "declared"
+    },
+    "declared_transfer_provenance_basis": {
+      "meaning": "declared_transfer_provenance_basis",
+      "unit": "states_that_these_values_are_the_TASKDATA_roots_own_declarations_that_they_are_not_authenticated_that_they_are_not_a_conformance_role_and_that_they_are_not_evidence_that_any_task_controller_was_certified",
+      "basis": "declared"
+    },
+    "declared_actual_working_width_m": {
+      "meaning": "declared_actual_working_width_m",
+      "unit": "m_declared_DDI0043_actual_working_width_of_this_element_converted_from_the_declared_millimetre_integer_a_description_written_into_the_file_not_a_measured_or_verified_implement_dimension",
+      "basis": "declared"
+    },
+    "declared_default_working_width_m": {
+      "meaning": "declared_default_working_width_m",
+      "unit": "m_declared_DDI0044_default_working_width_kept_separate_from_the_actual_and_maximum_widths_because_the_dictionary_defines_them_differently_and_this_converter_never_collapses_them_into_one_width",
+      "basis": "declared"
+    },
+    "declared_maximum_working_width_m": {
+      "meaning": "declared_maximum_working_width_m",
+      "unit": "m_declared_DDI0046_maximum_working_width_kept_separate_under_the_same_rule",
+      "basis": "declared"
+    },
+    "declared_element_offset_x_m": {
+      "meaning": "declared_element_offset_x_m",
+      "unit": "m_declared_DDI0086_X_offset_of_this_device_element_referred_to_the_device_reference_point_named_by_DDI180_with_no_axis_sign_convention_no_rotation_and_no_ground_datum_stated_by_the_source",
+      "basis": "declared"
+    },
+    "declared_element_offset_y_m": {
+      "meaning": "declared_element_offset_y_m",
+      "unit": "m_declared_DDI0087_Y_offset_under_the_same_reference_and_the_same_limits",
+      "basis": "declared"
+    },
+    "declared_element_offset_z_m": {
+      "meaning": "declared_element_offset_z_m",
+      "unit": "m_declared_DDI0088_Z_offset_under_the_same_reference_and_the_same_limits_a_declared_height_relative_to_that_point_not_a_height_above_ground",
+      "basis": "declared"
+    },
+    "declared_geometry_raw_mm": {
+      "meaning": "declared_geometry_raw_mm",
+      "unit": "the_exact_declared_integers_under_their_declared_DDI_strings_in_millimetres_so_the_raw_value_and_the_DDI_survive_the_conversion_blank_when_the_element_declared_no_selected_geometry_and_blank_is_never_zero",
+      "basis": "declared"
+    },
+    "declared_geometry_property_ids": {
+      "meaning": "declared_geometry_property_ids",
+      "unit": "the_device_property_object_ids_within_that_device_description_that_supplied_each_declared_value_a_document_reference_not_a_physical_part_identity",
+      "basis": "declared"
+    },
+    "declared_geometry_value_presentation": {
+      "meaning": "declared_geometry_value_presentation",
+      "unit": "the_device_value_presentation_object_ids_the_selected_properties_declared_retained_verbatim_and_not_applied",
+      "basis": "declared"
+    },
+    "declared_referenced_property_count": {
+      "meaning": "declared_referenced_property_count",
+      "unit": "how_many_device_properties_this_element_referenced_and_resolved_selected_or_not_so_a_declaration_this_converter_does_not_read_is_still_counted",
+      "basis": "declared"
+    },
+    "declared_unselected_property_ddis": {
+      "meaning": "declared_unselected_property_ddis",
+      "unit": "the_DDIs_of_referenced_device_properties_this_converter_does_not_select_named_rather_than_counted_so_an_unknown_declared_property_is_never_invisible",
+      "basis": "declared"
+    },
+    "declared_unresolved_reference_ids": {
+      "meaning": "declared_unresolved_reference_ids",
+      "unit": "object_ids_this_element_referenced_that_match_no_device_process_data_and_no_device_property_in_the_same_device_recorded_rather_than_dropped_and_never_guessed_into_a_neighbour",
+      "basis": "declared"
+    },
+    "declared_referenced_process_data_count": {
+      "meaning": "declared_referenced_process_data_count",
+      "unit": "how_many_referenced_objects_were_device_process_data_that_is_the_reported_side_of_the_same_element_counted_here_only_so_the_boundary_between_a_declaration_and_a_report_stays_visible",
+      "basis": "declared"
+    },
+    "declared_product_group_ref_hex": {
+      "meaning": "declared_product_group_ref_hex",
+      "unit": "utf8_hex_of_the_declared_product_group_reference_when_the_product_declares_one_carried_as_a_reference_only_and_never_resolved_into_a_category_meaning_here",
+      "basis": "declared"
+    },
+    "declared_product_type_code": {
+      "meaning": "declared_product_type_code",
+      "unit": "the_raw_product_type_enumeration_code_the_document_declares_kept_as_its_own_number_because_this_converter_does_not_map_it_to_a_material_class_an_unmapped_code_is_never_read_as_water_chemical_or_seed",
+      "basis": "declared"
+    },
+    "declared_product_quantity_ddi": {
+      "meaning": "declared_product_quantity_ddi",
+      "unit": "the_quantity_DDI_the_product_declares_carried_as_written_it_describes_what_the_product_is_measured_in_and_is_never_the_DDI_of_the_measured_rate_on_this_row",
+      "basis": "declared"
+    },
+    "declared_allocation_element_ref_hex": {
+      "meaning": "declared_allocation_element_ref_hex",
+      "unit": "utf8_hex_of_the_device_element_reference_the_product_allocation_itself_names_which_is_what_made_this_attribution_element_scoped_the_pinned_definition_makes_this_reference_optional_so_an_allocation_without_it_is_task_scoped_and_is_never_bound_to_one_element",
+      "basis": "declared"
+    },
+    "declared_allocation_transfer_mode_code": {
+      "meaning": "declared_allocation_transfer_mode_code",
+      "unit": "the_raw_transfer_mode_enumeration_code_the_allocation_declares_carried_as_its_own_number_and_never_resolved_into_a_direction_or_an_operation_meaning_here",
+      "basis": "declared"
+    },
+    "declared_allocation_source_hex": {
+      "meaning": "declared_allocation_source_hex",
+      "unit": "utf8_hex_of_a_JSON_array_naming_the_task_the_index_of_the_product_allocation_within_it_and_the_product_reference_it_named_so_every_link_this_attribution_rests_on_can_be_reopened_in_the_original_document",
+      "basis": "declared"
+    },
+    "applied_converter_id": {
+      "meaning": "applied_converter_id",
+      "unit": "the_stable_identifier_this_converter_uses_for_itself_emitted_by_the_code_that_produced_this_row_it_names_the_adaptation_that_ran_and_is_never_the_writer_of_the_saved_source_data_nor_the_reference_specification_this_adaptation_was_written_against",
+      "basis": "declared"
+    }
+  }
+}

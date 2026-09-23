@@ -1,0 +1,130 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "sensor_combined.timestamp": {
+      "meaning": "sensor_combined.timestamp",
+      "unit": "us_time_since_system_start_declared_by_the_source_not_UTC_and_not_a_named_clock_domain",
+      "basis": "declared"
+    },
+    "sensor_combined.gyro_rad[0]": {
+      "meaning": "sensor_combined.gyro_rad[0]",
+      "unit": "rad_per_s_average_angular_rate_in_the_declared_FRD_body_frame_X_axis_over_the_last_gyro_sampling_period",
+      "basis": "declared"
+    },
+    "sensor_combined.gyro_rad[1]": {
+      "meaning": "sensor_combined.gyro_rad[1]",
+      "unit": "rad_per_s_average_angular_rate_in_the_declared_FRD_body_frame_Y_axis_over_the_last_gyro_sampling_period",
+      "basis": "declared"
+    },
+    "sensor_combined.gyro_rad[2]": {
+      "meaning": "sensor_combined.gyro_rad[2]",
+      "unit": "rad_per_s_average_angular_rate_in_the_declared_FRD_body_frame_Z_axis_over_the_last_gyro_sampling_period",
+      "basis": "declared"
+    },
+    "sensor_combined.gyro_integral_dt": {
+      "meaning": "sensor_combined.gyro_integral_dt",
+      "unit": "us_gyro_measurement_sampling_period_declared_by_the_source",
+      "basis": "declared"
+    },
+    "sensor_combined.accelerometer_m_s2[0]": {
+      "meaning": "sensor_combined.accelerometer_m_s2[0]",
+      "unit": "m_per_s2_average_acceleration_in_the_declared_FRD_body_frame_X_axis_over_the_last_accelerometer_sampling_period",
+      "basis": "declared"
+    },
+    "sensor_combined.accelerometer_m_s2[1]": {
+      "meaning": "sensor_combined.accelerometer_m_s2[1]",
+      "unit": "m_per_s2_average_acceleration_in_the_declared_FRD_body_frame_Y_axis_over_the_last_accelerometer_sampling_period",
+      "basis": "declared"
+    },
+    "sensor_combined.accelerometer_m_s2[2]": {
+      "meaning": "sensor_combined.accelerometer_m_s2[2]",
+      "unit": "m_per_s2_average_acceleration_in_the_declared_FRD_body_frame_Z_axis_over_the_last_accelerometer_sampling_period",
+      "basis": "declared"
+    },
+    "sensor_combined.accelerometer_integral_dt": {
+      "meaning": "sensor_combined.accelerometer_integral_dt",
+      "unit": "us_accelerometer_measurement_sampling_period_declared_by_the_source",
+      "basis": "declared"
+    },
+    "sensor_combined.accelerometer_clipping": {
+      "meaning": "sensor_combined.accelerometer_clipping",
+      "unit": "per_axis_clipping_bitfield_declared_as_X_1_Y_2_Z_4_a_reported_saturation_indication_and_never_a_measurement",
+      "basis": "declared"
+    },
+    "sensor_combined.gyro_clipping": {
+      "meaning": "sensor_combined.gyro_clipping",
+      "unit": "per_axis_clipping_bitfield_under_the_same_declared_axis_bits_never_a_measurement",
+      "basis": "declared"
+    },
+    "sensor_combined.accel_calibration_count": {
+      "meaning": "sensor_combined.accel_calibration_count",
+      "unit": "monotonic_counter_of_accelerometer_calibration_changes_not_a_measurement_and_not_a_time",
+      "basis": "declared"
+    },
+    "sensor_combined.gyro_calibration_count": {
+      "meaning": "sensor_combined.gyro_calibration_count",
+      "unit": "monotonic_counter_of_rate_gyro_calibration_changes_not_a_measurement_and_not_a_time",
+      "basis": "declared"
+    },
+    "vehicle_attitude.timestamp": {
+      "meaning": "vehicle_attitude.timestamp",
+      "unit": "us_time_since_system_start_declared_by_the_source_not_UTC",
+      "basis": "declared"
+    },
+    "vehicle_attitude.timestamp_sample": {
+      "meaning": "vehicle_attitude.timestamp_sample",
+      "unit": "us_the_timestamp_of_the_raw_data_declared_by_the_source_kept_beside_the_record_timestamp_and_never_merged_with_it",
+      "basis": "declared"
+    },
+    "vehicle_attitude.q[0]": {
+      "meaning": "vehicle_attitude.q[0]",
+      "unit": "dimensionless_quaternion_component_in_source_order_position_0_the_source_states_the_rotation_is_from_the_declared_FRD_body_frame_to_the_declared_NED_earth_frame_but_states_neither_the_component_order_nor_normalisation_so_neither_is_asserted",
+      "basis": "declared"
+    },
+    "vehicle_attitude.q[1]": {
+      "meaning": "vehicle_attitude.q[1]",
+      "unit": "dimensionless_quaternion_component_in_source_order_position_1_under_the_same_unresolved_component_order",
+      "basis": "declared"
+    },
+    "vehicle_attitude.q[2]": {
+      "meaning": "vehicle_attitude.q[2]",
+      "unit": "dimensionless_quaternion_component_in_source_order_position_2_under_the_same_unresolved_component_order",
+      "basis": "declared"
+    },
+    "vehicle_attitude.q[3]": {
+      "meaning": "vehicle_attitude.q[3]",
+      "unit": "dimensionless_quaternion_component_in_source_order_position_3_under_the_same_unresolved_component_order",
+      "basis": "declared"
+    },
+    "vehicle_attitude.delta_q_reset[0]": {
+      "meaning": "vehicle_attitude.delta_q_reset[0]",
+      "unit": "dimensionless_amount_by_which_the_quaternion_changed_during_the_last_reset_position_0_no_frame_or_component_order_is_stated_for_this_field_at_all",
+      "basis": "declared"
+    },
+    "vehicle_attitude.delta_q_reset[1]": {
+      "meaning": "vehicle_attitude.delta_q_reset[1]",
+      "unit": "dimensionless_reset_delta_component_position_1_under_the_same_absence_of_stated_metadata",
+      "basis": "declared"
+    },
+    "vehicle_attitude.delta_q_reset[2]": {
+      "meaning": "vehicle_attitude.delta_q_reset[2]",
+      "unit": "dimensionless_reset_delta_component_position_2_under_the_same_absence_of_stated_metadata",
+      "basis": "declared"
+    },
+    "vehicle_attitude.delta_q_reset[3]": {
+      "meaning": "vehicle_attitude.delta_q_reset[3]",
+      "unit": "dimensionless_reset_delta_component_position_3_under_the_same_absence_of_stated_metadata",
+      "basis": "declared"
+    },
+    "vehicle_attitude.quat_reset_counter": {
+      "meaning": "vehicle_attitude.quat_reset_counter",
+      "unit": "reported_quaternion_reset_counter_not_a_measurement_and_not_a_time",
+      "basis": "declared"
+    }
+  }
+}

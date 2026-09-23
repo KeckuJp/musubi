@@ -3,7 +3,7 @@ use musubi_reference_readers::{
 };
 use musubi_reference_types::{ChannelId, ClockBasis, Family};
 
-const PROFILE: &str = include_str!("fixtures/boreas-enu--profile.toml");
+const PROFILE: &str = include_str!("fixtures/unknown-adapter--boreas-enu--profile.toml");
 const HEADER: &str = "GPSTime,easting,northing,altitude,vel_east,vel_north,vel_up,roll,pitch,heading,angvel_z,angvel_y,angvel_x,vendor_future,vendor_blank";
 const VALUES: &str = "1.25,-2.5,0.125,0.75,-1.5,0.25,0.01,-0.02,0.3,0.1,-0.2,0.4,not-identified,";
 
@@ -71,7 +71,7 @@ fn profile_only_route_retains_local_source_fields_without_clock_or_frame_inferen
 #[test]
 fn old_trajectory_profile_does_not_silently_reinterpret_microseconds() {
     let p = parse_profile(
-        include_str!("fixtures/turtlebot3-trajectory--profile.toml"),
+        include_str!("fixtures/unknown-adapter--turtlebot3-trajectory--profile.toml"),
         "synthetic",
     )
     .unwrap();

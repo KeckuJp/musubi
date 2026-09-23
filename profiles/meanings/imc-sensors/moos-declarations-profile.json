@@ -1,0 +1,120 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_declared_capture_microseconds_no_time_exists_in_the_saved_declaration_file",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "exact_input_document_digest_not_authenticity",
+      "basis": "declared"
+    },
+    "declaration_kind": {
+      "meaning": "declaration_kind",
+      "unit": "mission_global_or_process_setting_process_block_behavior_block_setting_initialize_mode_set_or_mode_condition_row",
+      "basis": "declared"
+    },
+    "scope_kind": {
+      "meaning": "scope_kind",
+      "unit": "global_process_behavior_or_mode_set_as_the_file_structures_it_not_a_runtime_scope",
+      "basis": "declared"
+    },
+    "scope_name": {
+      "meaning": "scope_name",
+      "unit": "authored_process_behavior_or_mode_variable_name_exact_case",
+      "basis": "declared"
+    },
+    "scope_occurrence": {
+      "meaning": "scope_occurrence",
+      "unit": "one_based_occurrence_of_that_named_block_in_file_order",
+      "basis": "declared"
+    },
+    "setting_name": {
+      "meaning": "setting_name",
+      "unit": "authored_parameter_name_exact_case",
+      "basis": "declared"
+    },
+    "setting_name_folded": {
+      "meaning": "setting_name_folded",
+      "unit": "lowercased_lookup_form_as_the_pinned_reader_folds_it",
+      "basis": "declared"
+    },
+    "setting_value_hex": {
+      "meaning": "setting_value_hex",
+      "unit": "hex_encoded_authored_value_byte_exact_reversible_never_reformatted_or_projected",
+      "basis": "declared"
+    },
+    "setting_value_stripped_hex": {
+      "meaning": "setting_value_stripped_hex",
+      "unit": "hex_encoded_same_value_with_spaces_and_tabs_removed_as_the_default_reader_yields",
+      "basis": "declared"
+    },
+    "value_kind": {
+      "meaning": "value_kind",
+      "unit": "integer_decimal_boolean_or_string_only_for_an_unambiguous_literal",
+      "basis": "declared"
+    },
+    "value_number": {
+      "meaning": "value_number",
+      "unit": "parsed_number_only_when_value_kind_is_numeric_or_boolean_else_empty",
+      "basis": "declared"
+    },
+    "assignment_order": {
+      "meaning": "assignment_order",
+      "unit": "one_based_position_within_its_scope_in_file_order_also_the_declared_order_of_a_mode_set_condition",
+      "basis": "declared"
+    },
+    "setting_occurrence": {
+      "meaning": "setting_occurrence",
+      "unit": "one_based_repeat_index_of_this_name_within_its_scope",
+      "basis": "declared"
+    },
+    "accumulates_upstream": {
+      "meaning": "accumulates_upstream",
+      "unit": "accumulates_overwrites_or_per_key_only_for_names_the_pinned_base_class_handles_else_unqualified_empty_where_the_row_is_not_a_parameter_and_never_applied_here",
+      "basis": "declared"
+    },
+    "expression_basis": {
+      "meaning": "expression_basis",
+      "unit": "condition_parameters_and_mode_set_conditions_retained_unevaluated_never_executed_here",
+      "basis": "declared"
+    },
+    "source_line": {
+      "meaning": "source_line",
+      "unit": "one_based_first_line_number_in_the_saved_declaration_file",
+      "basis": "declared"
+    },
+    "source_line_end": {
+      "meaning": "source_line_end",
+      "unit": "one_based_last_line_number_of_the_same_declaration_equal_to_source_line_unless_a_continuation_spans_several",
+      "basis": "declared"
+    },
+    "source_text_hex": {
+      "meaning": "source_text_hex",
+      "unit": "hex_encoded_exact_authored_line_or_newline_joined_lines_retained_for_reference",
+      "basis": "declared"
+    },
+    "lexical_text_hex": {
+      "meaning": "lexical_text_hex",
+      "unit": "hex_encoded_unit_this_importer_parsed_equal_to_source_text_unless_a_continuation_was_joined_or_a_brace_split_off",
+      "basis": "declared"
+    },
+    "source_text_basis": {
+      "meaning": "source_text_basis",
+      "unit": "whether_source_text_is_the_exact_authored_line_or_the_lexical_text_is_a_reconstruction",
+      "basis": "declared"
+    },
+    "interpretation_basis": {
+      "meaning": "interpretation_basis",
+      "unit": "declared_configuration_not_observed_behavior_status_or_command",
+      "basis": "declared"
+    }
+  }
+}

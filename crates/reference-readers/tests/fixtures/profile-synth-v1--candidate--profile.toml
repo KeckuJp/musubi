@@ -1,0 +1,24 @@
+profile_id = "synthetic_profile"
+version = "1"
+family = "fpv"
+source_role = "handset"
+format = "edgetx_csv"
+extensions = [".csv"]
+default_clock_basis = "host_received"
+channels = ["link_stats"]
+
+[fields]
+time = "tmr10ms"
+status = ["Mode"]
+link = ["RQly(%)"]
+
+[units]
+tmr10ms = "10_ms_tick"
+Mode = "enum"
+"RQly(%)" = "percent"
+
+[[expectations]]
+id = "synthetic_link_100ms"
+channel = "link_stats"
+cadence_ms = 100
+grace_k = 3

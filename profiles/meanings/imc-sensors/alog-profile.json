@@ -1,0 +1,20 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_caller_capture_not_logger_or_device_time",
+      "basis": "declared"
+    },
+    "logger_relative_time_us": {
+      "meaning": "logger_relative_time_us",
+      "unit": "us_reported_relative_to_logger_start",
+      "basis": "declared"
+    }
+  }
+}

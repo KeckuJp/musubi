@@ -1,0 +1,21 @@
+profile_id = "turtlebot3_trajectory_export_v1"
+version = "1"
+family = "ugv"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time"
+[units]
+"record_time" = "us"
+"time" = "s"
+"x_true" = "m_local_map_reference_estimate"
+"y_true" = "m_local_map_reference_estimate"
+"x_pred" = "m_local_map_model_estimate"
+"y_pred" = "m_local_map_model_estimate"
+"feat_time_ms" = "ms"
+"scale_time_ms" = "ms"
+"infer_time_ms" = "ms"
+"total_time_ms" = "ms"
