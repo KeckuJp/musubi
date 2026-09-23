@@ -1,0 +1,35 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "t_us_since_power_on": {
+      "meaning": "t_us_since_power_on",
+      "unit": "us_since_power_on_not_wall_clock",
+      "basis": "declared"
+    },
+    "depth_below_transducer_m": {
+      "meaning": "depth_below_transducer_m",
+      "unit": "m_below_transducer_not_geodetic_altitude",
+      "basis": "declared"
+    },
+    "bus_voltage_v": {
+      "meaning": "bus_voltage_v",
+      "unit": "V_reported_not_calibrated",
+      "basis": "declared"
+    },
+    "port_thruster_pwm_us": {
+      "meaning": "port_thruster_pwm_us",
+      "unit": "us_command_echo_not_measured_thrust",
+      "basis": "declared"
+    },
+    "starboard_thruster_pwm_us": {
+      "meaning": "starboard_thruster_pwm_us",
+      "unit": "us_command_echo_not_measured_thrust",
+      "basis": "declared"
+    }
+  }
+}

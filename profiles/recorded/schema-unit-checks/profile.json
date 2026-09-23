@@ -1,0 +1,41 @@
+{
+  "profile_id": "declared_schema_unit_checks_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_of_the_callers_declared_capture_clock_a_comparison_has_no_clock_of_its_own_and_this_is_never_a_source_time",
+    "record_time_basis": "states_that_the_time_is_the_callers_declared_capture_microseconds",
+    "check_kind": "PROFILE_IDENTITY_or_SCHEMA_COLUMN_or_COLUMN_UNIT_naming_which_declaration_this_row_compared",
+    "check_subject_hex": "utf8_hex_of_the_column_name_or_identity_key_this_row_compared_retained_rather_than_interpreted",
+    "expected_declared_hex": "utf8_hex_of_the_string_the_caller_declared_for_that_subject_blank_when_the_caller_declared_none",
+    "actual_declared_hex": "utf8_hex_of_the_string_the_saved_read_report_declares_for_that_subject_blank_when_the_artefact_declares_none",
+    "disposition": "matches_declared_expectation_or_a_named_disagreement_schema_column_absent_from_artefact_schema_column_not_expected_unit_declaration_different_unit_scale_different_unit_quantity_kind_different_identity_different_or_a_named_unknown_when_one_side_declares_no_unit",
+    "evidence_state": "BOTH_SIDES_DECLARED_or_MISSING_DECLARED_BASIS_so_a_disagreement_is_never_confused_with_absent_evidence",
+    "expected_quantity_kind": "the_common_quantity_the_finite_source_qualified_unit_table_gives_for_the_expected_symbol_blank_when_that_string_is_not_a_symbol_in_it",
+    "actual_quantity_kind": "the_same_for_the_artefacts_declared_symbol_blank_when_that_string_is_not_a_symbol_in_the_finite_table",
+    "expected_scale": "the_scale_that_table_gives_for_the_expected_symbol_blank_when_not_interpreted",
+    "actual_scale": "the_scale_that_table_gives_for_the_artefacts_symbol_blank_when_not_interpreted",
+    "expected_offset": "the_offset_that_table_gives_for_the_expected_symbol_blank_when_not_interpreted_an_offset_is_why_degc_and_k_differ_without_a_scale_difference",
+    "actual_offset": "the_offset_that_table_gives_for_the_artefacts_symbol_blank_when_not_interpreted",
+    "unit_interpretation_basis": "states_whether_both_declared_symbols_were_in_the_finite_table_and_so_interpreted_or_whether_the_two_declarations_were_compared_only_as_text_or_whether_one_side_declared_nothing",
+    "comparison_basis": "states_that_a_row_is_a_disagreement_between_two_declarations_not_a_statement_that_either_side_is_wrong_not_an_integration_cause_not_a_physical_finding_and_never_a_unit_inferred_from_a_column_name_or_a_value",
+    "expected_source": "names_the_callers_declared_expectation_document_as_the_source_of_the_expected_side",
+    "actual_source": "names_which_field_of_the_saved_read_report_the_actual_side_came_from",
+    "expectation_sha256": "sha256_of_the_exact_expectation_document_compared",
+    "read_report_sha256": "sha256_of_the_exact_saved_read_report_compared",
+    "artefact_input_sha256": "the_input_digest_the_saved_read_report_itself_carries_for_the_artefact_it_read",
+    "profile_source_sha256": "the_profile_digest_the_saved_read_report_itself_carries_blank_when_it_carries_none"
+  }
+}

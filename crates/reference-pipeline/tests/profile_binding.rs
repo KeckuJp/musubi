@@ -2,8 +2,8 @@ use musubi_reference_pipeline::{InputFile, Knowledge, ObservationWindow, Pipelin
 use musubi_reference_readers::profile::parse_profile;
 use musubi_reference_types::{FamilyProfile, SignatureCatalog, SourceRole};
 
-const USV: &str = include_str!("fixtures/surface-usv--profile.toml");
-const ROV: &str = include_str!("fixtures/surface-usv--rov-profile.toml");
+const USV: &str = include_str!("fixtures/unknown-adapter--surface-usv--profile.toml");
+const ROV: &str = include_str!("fixtures/unknown-adapter--surface-usv--rov-profile.toml");
 
 const CSV: &[u8] = b"record_time_us,depth_m,sog_m_s\n1000,4.5,1.5\n2000,4.75,1.25\n";
 

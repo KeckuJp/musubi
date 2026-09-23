@@ -1,0 +1,85 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "TimeUS": {
+      "meaning": "TimeUS",
+      "unit": "us_since_boot",
+      "basis": "declared"
+    },
+    "Mode": {
+      "meaning": "Mode",
+      "unit": "reported_number_with_explicit_vehicle_schema",
+      "basis": "declared"
+    },
+    "ModeNum": {
+      "meaning": "ModeNum",
+      "unit": "alias_of_Mode",
+      "basis": "declared"
+    },
+    "Rsn": {
+      "meaning": "Rsn",
+      "unit": "reported_reason_code_not_verified_cause",
+      "basis": "declared"
+    },
+    "reported_mode_name": {
+      "meaning": "reported_mode_name",
+      "unit": "declared_vehicle_mode_not_health_or_armed",
+      "basis": "declared"
+    },
+    "reported_mode_known": {
+      "meaning": "reported_mode_known",
+      "unit": "known_schema_enum_not_enabled_build_feature",
+      "basis": "declared"
+    },
+    "ArmState": {
+      "meaning": "ArmState",
+      "unit": "reported_source_arm_state_byte_1_armed_0_disarmed_exactly_as_logged",
+      "basis": "declared"
+    },
+    "ArmChecks": {
+      "meaning": "ArmChecks",
+      "unit": "reported_source_arm_checks_mask_uint32_exactly_as_logged",
+      "basis": "declared"
+    },
+    "Forced": {
+      "meaning": "Forced",
+      "unit": "reported_source_forced_byte_exactly_as_logged",
+      "basis": "declared"
+    },
+    "Method": {
+      "meaning": "Method",
+      "unit": "reported_source_method_byte_exactly_as_logged",
+      "basis": "declared"
+    },
+    "reported_arm_state": {
+      "meaning": "reported_arm_state",
+      "unit": "armed_reported_or_disarmed_reported_as_the_record_said_never_a_command_an_enablement_a_safety_verdict_or_a_physical_actuator_state",
+      "basis": "declared"
+    },
+    "reported_arm_forced": {
+      "meaning": "reported_arm_forced",
+      "unit": "reported_forced_flag_of_this_event_not_an_authority_permission_or_override_claim",
+      "basis": "declared"
+    },
+    "reported_arm_checks_mask": {
+      "meaning": "reported_arm_checks_mask",
+      "unit": "reported_uint32_checks_mask_at_this_event_exactly_as_logged_a_zero_mask_on_a_disarm_is_what_the_writer_records_and_is_not_evidence_that_any_check_passed",
+      "basis": "declared"
+    },
+    "reported_arm_method_code": {
+      "meaning": "reported_arm_method_code",
+      "unit": "reported_method_code_number_kept_raw_and_unnamed_here_not_a_verified_cause",
+      "basis": "declared"
+    },
+    "reported_arm_schema": {
+      "meaning": "reported_arm_schema",
+      "unit": "explicit_vehicle_and_finite_source_version_of_the_arm_layout_absent_on_the_legacy_plane_route",
+      "basis": "declared"
+    }
+  }
+}

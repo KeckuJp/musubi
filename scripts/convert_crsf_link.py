@@ -21,7 +21,9 @@ BATTERY_FIELDS = ["battery_voltage_v", "battery_average_cell_voltage_v", "batter
                   "battery_consumed_charge_c", "battery_remaining_reported_ratio", "battery_wire_basis"]
 SPORT_FIELDS = ["battery_voltage_v", "battery_current_a", "sport_physical_id_reported",
                 "sport_application_id", "sport_value_basis"]
-KINDS = ("link", "attitude", "link-rx", "link-tx", "msp-attitude-bf452", "sport-electrical-fb8622dd") + tuple(
+DISPLAY_FIELDS = ["display_operation_reported", "display_row", "display_column", "display_font_bank",
+                  "display_blink_reported", "display_glyph_bytes_hex", "display_glyph_count"]
+KINDS = ("link", "attitude", "link-rx", "link-tx", "msp-attitude-bf452", "msp-displayport-bf452", "sport-electrical-fb8622dd") + tuple(
     f"battery-{version}-{source}" for version in ("bf443", "bf450", "bf451", "bf452")
     for source in ("pack", "cell"))
 
@@ -39,9 +41,10 @@ def convert(text, kind="link"):
     if kind not in KINDS:
         raise ValueError("unknown selected CRSF quantity")
     battery = kind.startswith("battery-")
-    msp = kind == "msp-attitude-bf452"
+    display = kind == "msp-displayport-bf452"
+    msp = kind in ("msp-attitude-bf452", "msp-displayport-bf452")
     sport = kind == "sport-electrical-fb8622dd"
-    selected_type = 1 if sport else 108 if msp else 0x08 if battery else {"link": 0x14, "attitude": 0x1E, "link-rx": 0x1C, "link-tx": 0x1D}[kind]
+    selected_type = 1 if sport else 182 if display else 108 if msp else 0x08 if battery else {"link": 0x14, "attitude": 0x1E, "link-rx": 0x1C, "link-tx": 0x1D}[kind]
     fields = FIELDS if kind == "link" else ATTITUDE_FIELDS if kind == "attitude" or msp else DIRECTIONAL_FIELDS
     if msp:
         fields = fields + ["attitude_wire_basis"]
@@ -49,6 +52,8 @@ def convert(text, kind="link"):
         fields = BATTERY_FIELDS
     if sport:
         fields = SPORT_FIELDS
+    if display:
+        fields = DISPLAY_FIELDS
     if len(text.encode("utf-8")) > LIMIT:
         raise ValueError("input exceeds bound")
     reader = csv.DictReader(io.StringIO(text), strict=True)
@@ -103,7 +108,9 @@ def convert(text, kind="link"):
             if len(raw) > 12000:
                 raise ValueError("retained source record exceeds bound")
             report["source_records"] += 1
-            if message_type != selected_type:
+            if display and message_type == selected_type and len(frame) == 6:
+                raise ValueError("DisplayPort subcommand required")
+            if message_type != selected_type or (display and frame[5] not in (0, 1, 2, 3, 4)):
                 record = {"line": line, "frame_hex": frame.hex(), "source_record_hex": raw.hex()}
                 retained_size += len(json.dumps(record))
                 if retained_size > LIMIT:
@@ -117,6 +124,19 @@ def convert(text, kind="link"):
                     raise ValueError("negative reported VFAS voltage")
                 values = [value / 100 if voltage else None, None if voltage else value / 10,
                           frame[0] & 0x1f, application, "SPORT_UNCALIBRATED_REPORT_CURRENT_SIGN_UNSPECIFIED"]
+            elif display:
+                payload = frame[5:-1]
+                operation = payload[0]
+                if operation == 3:
+                    if not 4 <= len(payload) <= 34 or payload[3] & ~0x43 or 0 in payload[4:]:
+                        raise ValueError("fixed DisplayPort string length/attribute/glyph mismatch")
+                    values = ["WRITE_GLYPHS", payload[1], payload[2], payload[3] & 3,
+                              bool(payload[3] & 0x40), "hex:" + payload[4:].hex(), len(payload) - 4]
+                else:
+                    if len(payload) != 1:
+                        raise ValueError("fixed DisplayPort operation length mismatch")
+                    values = [{0: "HEARTBEAT_REPORTED", 1: "RELEASE_REPORTED", 2: "CLEAR_REPORTED",
+                               4: "DRAW_REPORTED"}[operation], None, None, None, None, None, None]
             elif msp:
                 if len(frame) != 12:
                     raise ValueError("fixed MSP attitude requires six payload bytes")

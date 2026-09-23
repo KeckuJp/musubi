@@ -1,0 +1,40 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "MAVLINK.host_recorded_us": {
+      "meaning": "MAVLINK.host_recorded_us",
+      "unit": "reported_host_us_with_low_two_bits_removed_not_UTC_anchor",
+      "basis": "declared"
+    },
+    "MAVLINK.mavproxy_recorded_word": {
+      "meaning": "MAVLINK.mavproxy_recorded_word",
+      "unit": "original_uint64_timestamp_and_tag_not_plain_time",
+      "basis": "declared"
+    },
+    "MAVLINK.mavproxy_link_tag": {
+      "meaning": "MAVLINK.mavproxy_link_tag",
+      "unit": "low_two_bits_not_authenticated_link_or_unambiguous_direction",
+      "basis": "declared"
+    },
+    "MAVLINK.recorded_clock_quantum_us": {
+      "meaning": "MAVLINK.recorded_clock_quantum_us",
+      "unit": "us_writer_quantization_not_accuracy_guarantee",
+      "basis": "declared"
+    },
+    "MAVLINK.direction": {
+      "meaning": "MAVLINK.direction",
+      "unit": "not_inferred_from_ambiguous_link_tag",
+      "basis": "declared"
+    },
+    "MAVLINK.raw_frame_hex": {
+      "meaning": "MAVLINK.raw_frame_hex",
+      "unit": "exact_frame_including_unknown_payload_and_signature",
+      "basis": "declared"
+    }
+  }
+}

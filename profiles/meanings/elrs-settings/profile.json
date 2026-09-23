@@ -1,0 +1,60 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_supplied_capture_microseconds_not_source_qualified",
+      "basis": "declared"
+    },
+    "elrs_setting_index": {
+      "meaning": "elrs_setting_index",
+      "unit": "zero_based_emission_order_not_time",
+      "basis": "declared"
+    },
+    "elrs_scope": {
+      "meaning": "elrs_scope",
+      "unit": "DEVICE_or_MODEL_settings_scope",
+      "basis": "declared"
+    },
+    "elrs_model_index": {
+      "meaning": "elrs_model_index",
+      "unit": "transmitter_model_slot_0_to_63_not_a_vehicle_identity",
+      "basis": "declared"
+    },
+    "elrs_setting_path_hex": {
+      "meaning": "elrs_setting_path_hex",
+      "unit": "reversible_utf8_hex_of_the_exported_json_path",
+      "basis": "declared"
+    },
+    "elrs_value_label": {
+      "meaning": "elrs_value_label",
+      "unit": "pinned_enum_name_or_blank_when_not_a_defined_enum",
+      "basis": "declared"
+    },
+    "packet_rate_configured_hz": {
+      "meaning": "packet_rate_configured_hz",
+      "unit": "Hz_configured_table_label_for_the_declared_radio_not_observed_throughput",
+      "basis": "declared"
+    },
+    "packet_rate_basis": {
+      "meaning": "packet_rate_basis",
+      "unit": "which_radio_table_resolved_the_index_or_why_it_could_not",
+      "basis": "declared"
+    },
+    "telemetry_ratio_denominator": {
+      "meaning": "telemetry_ratio_denominator",
+      "unit": "one_telemetry_response_per_N_packets_blank_when_not_numeric",
+      "basis": "declared"
+    },
+    "elrs_source_sha256": {
+      "meaning": "elrs_source_sha256",
+      "unit": "digest_of_the_exact_input_document_not_a_copy_of_it",
+      "basis": "declared"
+    }
+  }
+}

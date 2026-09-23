@@ -1,0 +1,100 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_since_boot_copied_from_the_records_own_timeus_not_utc_and_never_a_receive_clock",
+      "basis": "declared"
+    },
+    "record_time_basis": {
+      "meaning": "record_time_basis",
+      "unit": "US_SINCE_BOOT_FROM_THE_RECORDS_OWN_TIMEUS_NOT_UTC",
+      "basis": "declared"
+    },
+    "declared_vehicle": {
+      "meaning": "declared_vehicle",
+      "unit": "the_vehicle_the_caller_declared_for_this_export_a_declaration_and_not_a_detected_or_authenticated_airframe",
+      "basis": "declared"
+    },
+    "reported_mode_number": {
+      "meaning": "reported_mode_number",
+      "unit": "the_mode_number_the_record_carries_retained_as_reported_and_never_read_as_a_cause",
+      "basis": "declared"
+    },
+    "reported_mode_reason_code": {
+      "meaning": "reported_mode_reason_code",
+      "unit": "the_raw_uint8_mode_reason_byte_exactly_as_the_record_carries_it",
+      "basis": "declared"
+    },
+    "reported_mode_reason": {
+      "meaning": "reported_mode_reason",
+      "unit": "the_pinned_mode_reason_entry_name_at_the_declared_producer_version_or_unknown_code_n_when_the_number_is_outside_that_enum_or_not_interpreted_at_this_declared_vehicle_version_when_the_declared_release_is_not_the_one_the_enum_was_read_at",
+      "basis": "declared"
+    },
+    "reason_class": {
+      "meaning": "reason_class",
+      "unit": "safety_event_reported_or_commanded_mode_change_or_recovery_or_return_reported_or_source_declared_unknown_or_other_reported_reason_or_unmapped_code_no_meaning_assigned_or_unqualified_vehicle_version_not_interpreted",
+      "basis": "declared"
+    },
+    "safety_domain": {
+      "meaning": "safety_domain",
+      "unit": "geofence_or_failsafe_when_the_pinned_reason_names_one_and_blank_otherwise_a_commanded_change_never_carries_a_domain",
+      "basis": "declared"
+    },
+    "reported_failsafe_kind": {
+      "meaning": "reported_failsafe_kind",
+      "unit": "the_failsafe_the_pinned_reason_names_radio_battery_gcs_ekf_terrain_crash_leak_deadreckon_mode_takeoff_or_unspecified_general_blank_when_the_reason_is_not_a_failsafe_entry",
+      "basis": "declared"
+    },
+    "reported_geofence_report": {
+      "meaning": "reported_geofence_report",
+      "unit": "breach_reported_or_return_to_previous_mode_reported_blank_otherwise_and_never_a_boundary_a_fence_type_or_a_position",
+      "basis": "declared"
+    },
+    "report_basis": {
+      "meaning": "report_basis",
+      "unit": "states_that_this_is_the_autopilots_own_report_of_why_a_mode_changed_not_a_geometry_evaluation_not_a_control_action_and_not_a_physical_cause",
+      "basis": "declared"
+    },
+    "coverage_basis": {
+      "meaning": "coverage_basis",
+      "unit": "states_that_a_mode_record_exists_only_when_the_mode_changed_so_the_absence_of_a_row_is_not_evidence_that_no_breach_or_failsafe_occurred",
+      "basis": "declared"
+    },
+    "quantity_basis": {
+      "meaning": "quantity_basis",
+      "unit": "states_that_a_mode_record_carries_no_threshold_no_distance_and_no_margin_so_no_quantity_is_emitted_and_nothing_is_compared_with_a_configured_limit",
+      "basis": "declared"
+    },
+    "original_record_hex": {
+      "meaning": "original_record_hex",
+      "unit": "hex_encoded_exact_characters_of_this_one_saved_record_all_columns_including_ones_this_converter_does_not_interpret_and_the_writers_own_quoting_excluding_only_the_record_separator_it_is_never_rebuilt_from_parsed_cells",
+      "basis": "declared"
+    },
+    "original_record_columns": {
+      "meaning": "original_record_columns",
+      "unit": "how_many_columns_that_saved_record_carried_so_a_reader_can_see_that_nothing_was_dropped",
+      "basis": "declared"
+    },
+    "original_record_sha256": {
+      "meaning": "original_record_sha256",
+      "unit": "sha256_of_those_exact_record_bytes",
+      "basis": "declared"
+    },
+    "producer_pin": {
+      "meaning": "producer_pin",
+      "unit": "the_declared_ardupilot_release_and_commit_whose_mode_reason_enum_gave_these_names_or_a_statement_that_the_declared_vehicle_version_is_not_the_pinned_producer_so_no_meaning_was_assigned",
+      "basis": "declared"
+    },
+    "source_format": {
+      "meaning": "source_format",
+      "unit": "the_declared_saved_export_format_this_conversion_accepted",
+      "basis": "declared"
+    }
+  }
+}

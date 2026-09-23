@@ -1,0 +1,46 @@
+{
+  "profile_id": "agopen_steering_reported_state_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "PCAP_capture_microseconds_of_the_recording_host_not_a_trusted_UTC_anchor",
+    "source_packet_index": "zero_based_datagram_index_within_the_saved_capture",
+    "source_frame_hex": "exact_14_byte_PGN253_frame_including_header_and_checksum",
+    "source_frame_sha256": "digest_of_the_exact_frame_bytes_not_authenticity",
+    "agopen_pgn_code": "reported_PGN_253_declaration_byte",
+    "agopen_source_id_code": "reported_module_source_id_byte_not_an_authenticated_device",
+    "agopen_declared_payload_length": "writer_declared_payload_byte_count_8",
+    "agopen_steer_angle_deg": "deg_reported_measured_WAS_angle_not_a_commanded_or_target_angle",
+    "agopen_steer_angle_basis": "module_configuration_offset_counts_and_Ackerman_applied_before_the_wire",
+    "agopen_steer_angle_sign_basis": "sign_as_transmitted_under_the_module_wiring_not_a_global_left_right_convention",
+    "agopen_heading_deg": "deg_reported_IMU_heading_not_true_north_or_a_verified_course",
+    "agopen_heading_status": "REPORTED_or_UNAVAILABLE_NO_IMU_SENTINEL_9999_or_UNQUALIFIED_IMU_SOURCE_NO_DEGREES",
+    "agopen_roll_deg": "deg_reported_IMU_roll_without_the_client_zero_invert_or_filter_transforms",
+    "agopen_roll_status": "REPORTED_or_UNAVAILABLE_NO_IMU_SENTINEL_8888_or_UNQUALIFIED_IMU_SOURCE_NO_DEGREES",
+    "agopen_imu_scale_basis": "meaning_of_the_declared_IMU_source_not_inferred_from_the_payload",
+    "agopen_imu_source_declared": "caller_declared_IMU_branch_only_bno08x_degrees_may_carry_degree_values",
+    "agopen_heading_raw_int16": "exact_transmitted_int16_retained_under_every_declaration_no_unit_implied",
+    "agopen_roll_raw_int16": "exact_transmitted_int16_retained_under_every_declaration_no_unit_implied",
+    "agopen_switch_byte_code": "reported_switch_byte_retained_whole",
+    "agopen_work_bit": "bit0_as_transmitted_not_an_engaged_or_safe_state",
+    "agopen_steer_bit": "bit1_as_transmitted_not_an_engaged_or_safe_state",
+    "agopen_remote_bit": "bit2_as_transmitted_not_an_engaged_or_safe_state",
+    "agopen_switch_sense_basis": "active_sense_not_declared_by_the_writer_so_no_on_off_meaning_is_assigned",
+    "agopen_pwm_display_code": "drive_side_display_byte_never_assigned_in_the_pinned_sketch",
+    "agopen_pwm_display_basis": "output_side_value_not_a_measured_vehicle_state",
+    "agopen_reported_source_address": "address_the_recording_says_not_an_authenticated_identity",
+    "agopen_reported_source_port": "port_the_recording_says_not_an_authenticated_identity"
+  }
+}

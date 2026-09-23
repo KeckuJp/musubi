@@ -14,6 +14,44 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class FilePresenceTests(unittest.TestCase):
+    def test_real_local_entry_states_and_shared_observation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, content in (("empty.dat", b""), ("separate.dat", b"separate-content")):
+                source = root / name; source.write_bytes(content)
+                os.utime(source, ns=(1000000000, 1234567890))
+                output, report = capture(source)
+                row = next(csv.DictReader(io.StringIO(output)))
+                self.assertEqual(row["regular_file_size_bytes"], str(len(content)))
+                self.assertEqual(row["entry_kind"], "REGULAR_FILE")
+                self.assertEqual(int(row["filesystem_mtime_ns"]), source.stat().st_mtime_ns)
+                self.assertNotEqual(int(row["record_time_us"]), source.stat().st_mtime_ns // 1000)
+                self.assertEqual(bytes.fromhex(row["source_path_hex"][4:]).decode(), str(source))
+                self.assertFalse(report["content_read"])
+                if os.environ.get("MUSUBI_TELEMETRY_READER"):
+                    csv_path = root / "output.csv"; csv_path.write_text(output)
+                    common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                        str(ROOT / "profiles/declared/file-presence/profile.toml"),
+                        str(csv_path)], check=True, capture_output=True).stdout)
+                    self.assertEqual(common["main_rows"], 1)
+                    self.assertEqual(common["observations"][0]["fields"]["regular_file_size_bytes"], len(content))
+                    self.assertIsNone(common["observations"][0]["anchor_unix_us"])
+            absent_csv = capture(root / "missing")[0]
+            absent = next(csv.DictReader(io.StringIO(absent_csv)))
+            self.assertEqual((absent["entry_present"], absent["entry_kind"]), ("0", "ABSENT"))
+            self.assertEqual(absent["regular_file_size_bytes"], "")
+            if os.environ.get("MUSUBI_TELEMETRY_READER"):
+                csv_path = root / "absent.csv"; csv_path.write_text(absent_csv)
+                common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                    str(ROOT / "profiles/declared/file-presence/profile.toml"),
+                    str(csv_path)], check=True, capture_output=True).stdout)
+                self.assertEqual(common["observations"][0]["fields"]["entry_present"], 0)
+                self.assertEqual(common["observations"][0]["fields"]["entry_kind"], "ABSENT")
+            link = root / "link"; link.symlink_to(root / "missing")
+            linked = next(csv.DictReader(io.StringIO(capture(link)[0])))
+            self.assertEqual((linked["entry_present"], linked["entry_kind"]), ("1", "SYMLINK_NOT_FOLLOWED"))
+            self.assertEqual(linked["regular_file_size_bytes"], "")
+            self.assertEqual(next(csv.DictReader(io.StringIO(capture(root)[0])))["entry_kind"], "DIRECTORY")
 
     def test_permission_failure_is_not_absence_and_cli_preserves_existing_output(self):
         with patch("scripts.record_file_presence.os.lstat", side_effect=PermissionError("denied")):

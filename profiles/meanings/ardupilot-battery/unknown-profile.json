@@ -1,0 +1,190 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "TimeUS": {
+      "meaning": "TimeUS",
+      "unit": "us_since_boot",
+      "basis": "declared"
+    },
+    "Instance": {
+      "meaning": "Instance",
+      "unit": "recorded_battery_instance_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "Volt": {
+      "meaning": "Volt",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "VoltR": {
+      "meaning": "VoltR",
+      "unit": "V_estimated_resting",
+      "basis": "declared"
+    },
+    "Curr": {
+      "meaning": "Curr",
+      "unit": "A_native_source_value_this_log_states_no_sign_convention_so_none_is_established_here",
+      "basis": "declared"
+    },
+    "CurrTot": {
+      "meaning": "CurrTot",
+      "unit": "mAh_consumed",
+      "basis": "declared"
+    },
+    "EnrgTot": {
+      "meaning": "EnrgTot",
+      "unit": "Wh_consumed",
+      "basis": "declared"
+    },
+    "Temp": {
+      "meaning": "Temp",
+      "unit": "degC_or_unavailable_zero",
+      "basis": "declared"
+    },
+    "Res": {
+      "meaning": "Res",
+      "unit": "ohm_estimated",
+      "basis": "declared"
+    },
+    "RemPct": {
+      "meaning": "RemPct",
+      "unit": "percent_estimated_or_255_unavailable",
+      "basis": "declared"
+    },
+    "battery_voltage_v": {
+      "meaning": "battery_voltage_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_current_a": {
+      "meaning": "battery_current_a",
+      "unit": "A_native_sign_kept_exactly_as_the_BAT_record_wrote_it_this_source_states_no_sign_convention_so_no_discharging_or_charging_direction_is_established_here",
+      "basis": "declared"
+    },
+    "battery_consumed_ah": {
+      "meaning": "battery_consumed_ah",
+      "unit": "Ah",
+      "basis": "declared"
+    },
+    "battery_consumed_j": {
+      "meaning": "battery_consumed_j",
+      "unit": "J",
+      "basis": "declared"
+    },
+    "battery_power_w": {
+      "meaning": "battery_power_w",
+      "unit": "W_calculated_voltage_times_current",
+      "basis": "declared"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "fraction_estimated_or_blank_unavailable",
+      "basis": "declared"
+    },
+    "battery_resting_voltage_estimate_v": {
+      "meaning": "battery_resting_voltage_estimate_v",
+      "unit": "V_estimated_resting",
+      "basis": "declared"
+    },
+    "battery_resistance_estimate_ohm": {
+      "meaning": "battery_resistance_estimate_ohm",
+      "unit": "ohm_estimated",
+      "basis": "declared"
+    },
+    "battery_temperature_k": {
+      "meaning": "battery_temperature_k",
+      "unit": "K_or_blank_ambiguous_zero",
+      "basis": "declared"
+    },
+    "battery_temperature_state": {
+      "meaning": "battery_temperature_state",
+      "unit": "reported_or_zero_or_unavailable",
+      "basis": "declared"
+    },
+    "battery_health_reported": {
+      "meaning": "battery_health_reported",
+      "unit": "source_report_not_independent_diagnosis",
+      "basis": "declared"
+    },
+    "battery_state_of_health_fraction": {
+      "meaning": "battery_state_of_health_fraction",
+      "unit": "reported_fraction_or_blank_unknown",
+      "basis": "declared"
+    },
+    "battery_cell_1_v": {
+      "meaning": "battery_cell_1_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_2_v": {
+      "meaning": "battery_cell_2_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_3_v": {
+      "meaning": "battery_cell_3_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_4_v": {
+      "meaning": "battery_cell_4_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_5_v": {
+      "meaning": "battery_cell_5_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_6_v": {
+      "meaning": "battery_cell_6_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_7_v": {
+      "meaning": "battery_cell_7_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_8_v": {
+      "meaning": "battery_cell_8_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_9_v": {
+      "meaning": "battery_cell_9_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_10_v": {
+      "meaning": "battery_cell_10_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_11_v": {
+      "meaning": "battery_cell_11_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_12_v": {
+      "meaning": "battery_cell_12_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_13_v": {
+      "meaning": "battery_cell_13_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_cell_14_v": {
+      "meaning": "battery_cell_14_v",
+      "unit": "V",
+      "basis": "declared"
+    }
+  }
+}

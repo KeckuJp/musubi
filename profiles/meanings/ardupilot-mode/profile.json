@@ -1,0 +1,40 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "TimeUS": {
+      "meaning": "TimeUS",
+      "unit": "us_since_boot",
+      "basis": "declared"
+    },
+    "Mode": {
+      "meaning": "Mode",
+      "unit": "reported_plane_mode_number",
+      "basis": "declared"
+    },
+    "ModeNum": {
+      "meaning": "ModeNum",
+      "unit": "alias_of_Mode",
+      "basis": "declared"
+    },
+    "Rsn": {
+      "meaning": "Rsn",
+      "unit": "reported_mode_reason_code_not_verified_cause",
+      "basis": "declared"
+    },
+    "reported_mode_name": {
+      "meaning": "reported_mode_name",
+      "unit": "plane_mode_identifier_not_health_or_armed_state",
+      "basis": "declared"
+    },
+    "reported_mode_known": {
+      "meaning": "reported_mode_known",
+      "unit": "known_enum_not_build_capability",
+      "basis": "declared"
+    }
+  }
+}

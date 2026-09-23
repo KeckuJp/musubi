@@ -1,0 +1,110 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_of_the_saved_record_this_row_was_read_from_on_the_clock_named_in_declared_clock_basis_carried_over_unchanged_and_never_converted_to_wall_time_or_called_UTC",
+      "basis": "declared"
+    },
+    "event_kind": {
+      "meaning": "event_kind",
+      "unit": "STATE_TRANSITION_for_a_change_between_two_saved_state_values_or_OBSERVATION_WINDOW_for_a_count_of_records_the_file_contains_in_one_declared_window_the_two_kinds_share_a_file_and_never_share_a_meaning",
+      "basis": "declared"
+    },
+    "subject_columns_hex": {
+      "meaning": "subject_columns_hex",
+      "unit": "utf8_hex_of_a_JSON_array_of_the_identity_column_names_the_caller_declared_in_the_same_order_as_subject_hex_so_the_grouping_is_readable_rather_than_implied",
+      "basis": "declared"
+    },
+    "state_column_hex": {
+      "meaning": "state_column_hex",
+      "unit": "utf8_hex_of_the_saved_column_this_transition_was_read_from_a_column_name_in_the_source_export_not_a_device_channel",
+      "basis": "declared"
+    },
+    "state_meaning_hex": {
+      "meaning": "state_meaning_hex",
+      "unit": "utf8_hex_of_the_caller_declared_citation_naming_where_these_state_values_are_defined_this_bridge_never_maps_ranks_or_compares_the_words_itself_so_without_that_citation_the_column_is_refused",
+      "basis": "declared"
+    },
+    "previous_state_hex": {
+      "meaning": "previous_state_hex",
+      "unit": "utf8_hex_of_the_previously_reported_value_for_this_subject_and_column_blank_for_the_first_reported_value_and_blank_after_an_unreported_one_where_blank_is_never_read_as_a_state",
+      "basis": "declared"
+    },
+    "reported_state_hex": {
+      "meaning": "reported_state_hex",
+      "unit": "utf8_hex_of_the_value_saved_in_this_record_exactly_as_the_source_converter_wrote_it",
+      "basis": "declared"
+    },
+    "transition_disposition": {
+      "meaning": "transition_disposition",
+      "unit": "FIRST_REPORTED_VALUE_which_is_a_starting_state_and_not_a_change_or_CHANGE_BETWEEN_TWO_REPORTED_VALUES_or_PREVIOUS_VALUE_NOT_REPORTED_when_a_blank_cell_broke_the_chain_so_the_earlier_value_is_not_carried_across_an_unknown",
+      "basis": "declared"
+    },
+    "transition_index": {
+      "meaning": "transition_index",
+      "unit": "one_based_ordinal_of_this_transition_within_its_subject_and_column_a_position_in_this_file_not_a_device_event_counter",
+      "basis": "declared"
+    },
+    "elapsed_us": {
+      "meaning": "elapsed_us",
+      "unit": "us_between_the_record_that_last_reported_the_previous_value_and_this_one_a_difference_of_saved_times_on_a_caller_declared_clock_not_a_measured_duration_of_any_physical_state_and_not_how_long_the_previous_state_lasted",
+      "basis": "declared"
+    },
+    "window_index": {
+      "meaning": "window_index",
+      "unit": "one_based_ordinal_of_the_window_within_its_subject_counted_from_that_subjects_first_saved_record",
+      "basis": "declared"
+    },
+    "window_start_us": {
+      "meaning": "window_start_us",
+      "unit": "us_inclusive_start_of_the_declared_window",
+      "basis": "declared"
+    },
+    "window_end_us": {
+      "meaning": "window_end_us",
+      "unit": "us_exclusive_end_of_the_declared_window",
+      "basis": "declared"
+    },
+    "window_observations": {
+      "meaning": "window_observations",
+      "unit": "how_many_records_this_file_contains_inside_the_window_a_count_of_what_was_saved_and_never_a_count_of_what_was_transmitted_sensed_or_received",
+      "basis": "declared"
+    },
+    "window_observed_span_us": {
+      "meaning": "window_observed_span_us",
+      "unit": "us_between_this_subjects_first_and_last_saved_record_in_the_file_an_observed_duration_only_never_the_last_record_plus_an_expected_interval_stated_so_the_windows_own_coverage_can_be_judged_by_the_reader",
+      "basis": "declared"
+    },
+    "declared_expected_interval_us": {
+      "meaning": "declared_expected_interval_us",
+      "unit": "us_the_caller_declared_as_the_expected_spacing_of_observations_a_stated_expectation_not_a_measured_or_configured_device_rate",
+      "basis": "declared"
+    },
+    "declared_recording_end_us": {
+      "meaning": "declared_recording_end_us",
+      "unit": "us_the_caller_declared_as_the_end_of_the_recording_itself_on_the_same_saved_clock_blank_when_none_was_declared_it_may_not_precede_the_last_saved_record_and_it_is_the_callers_word_about_capture_never_an_observation",
+      "basis": "declared"
+    },
+    "window_rate_ratio": {
+      "meaning": "window_rate_ratio",
+      "unit": "saved_observations_divided_by_the_declared_expectation_as_an_exact_decimal_blank_for_a_window_nothing_covers_a_value_below_one_says_the_file_holds_fewer_records_than_the_caller_expected_and_says_nothing_about_why",
+      "basis": "declared"
+    },
+    "declared_clock_basis": {
+      "meaning": "declared_clock_basis",
+      "unit": "the_saved_clocks_basis_exactly_as_the_caller_declared_it_from_the_source_profile_retained_verbatim_because_this_bridge_did_not_produce_that_clock_and_cannot_qualify_it",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "SHA256_of_the_saved_CSV_these_rows_were_read_from_which_identifies_the_input_and_authenticates_nothing",
+      "basis": "declared"
+    }
+  }
+}

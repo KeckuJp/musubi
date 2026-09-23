@@ -1,0 +1,85 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "recorder_capture_us_not_device_clock",
+      "basis": "declared"
+    },
+    "runtime_uptime_s": {
+      "meaning": "runtime_uptime_s",
+      "unit": "rounded_Erlang_runtime_uptime_seconds_not_system_boot_or_UTC",
+      "basis": "declared"
+    },
+    "soc_temperature_k": {
+      "meaning": "soc_temperature_k",
+      "unit": "K_from_reported_integer_Celsius",
+      "basis": "declared"
+    },
+    "busy_reported": {
+      "meaning": "busy_reported",
+      "unit": "0_or_1_not_verified_movement",
+      "basis": "declared"
+    },
+    "idle_reported": {
+      "meaning": "idle_reported",
+      "unit": "0_or_1_reported_flag",
+      "basis": "declared"
+    },
+    "locked_reported": {
+      "meaning": "locked_reported",
+      "unit": "0_or_1_not_certified_physical_safe_state",
+      "basis": "declared"
+    },
+    "farm_position_x_m": {
+      "meaning": "farm_position_x_m",
+      "unit": "m_reported_machine_axis_not_geodetic",
+      "basis": "declared"
+    },
+    "farm_position_y_m": {
+      "meaning": "farm_position_y_m",
+      "unit": "m_reported_machine_axis_not_geodetic",
+      "basis": "declared"
+    },
+    "farm_position_z_m": {
+      "meaning": "farm_position_z_m",
+      "unit": "m_reported_machine_axis_not_altitude",
+      "basis": "declared"
+    },
+    "farm_scaled_encoder_x_m": {
+      "meaning": "farm_scaled_encoder_x_m",
+      "unit": "m_reported_scaled_encoder",
+      "basis": "declared"
+    },
+    "farm_scaled_encoder_y_m": {
+      "meaning": "farm_scaled_encoder_y_m",
+      "unit": "m_reported_scaled_encoder",
+      "basis": "declared"
+    },
+    "farm_scaled_encoder_z_m": {
+      "meaning": "farm_scaled_encoder_z_m",
+      "unit": "m_reported_scaled_encoder",
+      "basis": "declared"
+    },
+    "farm_raw_encoder_x_edges": {
+      "meaning": "farm_raw_encoder_x_edges",
+      "unit": "reported_encoder_edges_not_length",
+      "basis": "declared"
+    },
+    "farm_raw_encoder_y_edges": {
+      "meaning": "farm_raw_encoder_y_edges",
+      "unit": "reported_encoder_edges_not_length",
+      "basis": "declared"
+    },
+    "farm_raw_encoder_z_edges": {
+      "meaning": "farm_raw_encoder_z_edges",
+      "unit": "reported_encoder_edges_not_length",
+      "basis": "declared"
+    }
+  }
+}

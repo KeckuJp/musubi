@@ -1,0 +1,125 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_supplied_capture_microseconds_the_moment_the_description_file_was_taken_in_and_never_a_time_at_which_any_aircraft_existed_flew_or_was_measured",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "exact_input_document_digest_not_authenticity_and_not_a_signature",
+      "basis": "declared"
+    },
+    "airframe_record_kind": {
+      "meaning": "airframe_record_kind",
+      "unit": "MODEL_for_the_one_declared_model_row_or_LINK_for_one_declared_rigid_body_or_JOINT_for_one_declared_connection_between_two_named_frames",
+      "basis": "declared"
+    },
+    "airframe_element_index": {
+      "meaning": "airframe_element_index",
+      "unit": "zero_based_position_of_this_element_among_the_declared_models_children_a_document_order_join_key_and_never_an_assembly_order_or_a_build_sequence",
+      "basis": "declared"
+    },
+    "airframe_model_name_hex": {
+      "meaning": "airframe_model_name_hex",
+      "unit": "utf8_hex_of_the_declared_model_name_exactly_as_written_an_author_chosen_label_never_an_aircraft_type_certificate_a_registration_or_an_identified_physical_article",
+      "basis": "declared"
+    },
+    "airframe_link_name_hex": {
+      "meaning": "airframe_link_name_hex",
+      "unit": "utf8_hex_of_the_declared_link_name_a_named_rigid_body_in_the_description_and_never_evidence_that_such_a_part_was_built_fitted_or_measured",
+      "basis": "declared"
+    },
+    "airframe_joint_name_hex": {
+      "meaning": "airframe_joint_name_hex",
+      "unit": "utf8_hex_of_the_declared_joint_name_naming_a_connection_the_document_declares_and_nothing_that_was_assembled_or_verified",
+      "basis": "declared"
+    },
+    "airframe_joint_type": {
+      "meaning": "airframe_joint_type",
+      "unit": "the_joint_type_string_the_document_declares_such_as_revolute_or_fixed_carried_uninterpreted_no_motion_range_actuation_or_degree_of_freedom_is_derived_from_it_here",
+      "basis": "declared"
+    },
+    "airframe_parent_name_hex": {
+      "meaning": "airframe_parent_name_hex",
+      "unit": "utf8_hex_of_the_frame_name_the_joint_declares_as_its_parent_the_specification_calls_this_the_name_of_the_parent_frame_or_world",
+      "basis": "declared"
+    },
+    "airframe_child_name_hex": {
+      "meaning": "airframe_child_name_hex",
+      "unit": "utf8_hex_of_the_frame_name_the_joint_declares_as_its_child_the_specification_states_the_value_world_may_not_be_specified_here_and_a_document_that_does_so_is_refused",
+      "basis": "declared"
+    },
+    "airframe_parent_is_world": {
+      "meaning": "airframe_parent_is_world",
+      "unit": "one_when_the_declared_parent_is_the_world_frame_which_the_specification_expressly_permits_and_which_is_an_attachment_declaration_rather_than_a_reference_to_a_link_this_document_failed_to_declare",
+      "basis": "declared"
+    },
+    "airframe_parent_resolution": {
+      "meaning": "airframe_parent_resolution",
+      "unit": "WORLD_FRAME_or_DECLARED_IN_THIS_DOCUMENT_or_NOT_DECLARED_IN_THIS_DOCUMENT_NOT_RESOLVED_HERE_the_last_is_a_preserved_unknown_because_an_include_element_is_real_and_is_never_followed_by_this_path_so_nothing_outside_the_one_document_is_read_or_resolved",
+      "basis": "declared"
+    },
+    "airframe_child_resolution": {
+      "meaning": "airframe_child_resolution",
+      "unit": "the_same_three_answers_for_the_declared_child_frame_read_this_before_treating_a_child_name_as_a_link_that_exists_in_this_document",
+      "basis": "declared"
+    },
+    "airframe_link_parent_hex": {
+      "meaning": "airframe_link_parent_hex",
+      "unit": "utf8_hex_of_the_parent_frame_of_the_one_joint_that_declares_this_link_as_its_child_blank_when_no_declared_joint_makes_this_link_a_child_which_is_what_a_root_of_the_declared_structure_looks_like",
+      "basis": "declared"
+    },
+    "airframe_link_parent_resolution": {
+      "meaning": "airframe_link_parent_resolution",
+      "unit": "whether_that_parent_is_the_world_frame_is_declared_in_this_document_or_is_an_unresolved_external_name_blank_when_this_link_has_no_declared_parent_joint_at_all",
+      "basis": "declared"
+    },
+    "airframe_link_child_count": {
+      "meaning": "airframe_link_child_count",
+      "unit": "how_many_declared_joints_name_this_link_as_their_parent_counting_only_joints_whose_child_this_document_also_declares_a_structural_count_and_never_a_part_count_or_a_bill_of_materials",
+      "basis": "declared"
+    },
+    "airframe_com_y_m": {
+      "meaning": "airframe_com_y_m",
+      "unit": "m_canonical_distance_from_the_same_declared_position_unit_for_the_second_component_under_exactly_the_same_frame_qualification",
+      "basis": "declared"
+    },
+    "airframe_com_z_m": {
+      "meaning": "airframe_com_z_m",
+      "unit": "m_canonical_distance_from_the_same_declared_position_unit_for_the_third_component_under_exactly_the_same_frame_qualification",
+      "basis": "declared"
+    },
+    "airframe_com_pose_frame_hex": {
+      "meaning": "airframe_com_pose_frame_hex",
+      "unit": "utf8_hex_of_the_frame_name_the_declared_pose_names_in_its_own_frame_attribute_which_only_the_older_read_version_carries_blank_when_the_document_named_none_the_name_is_carried_and_never_resolved_so_no_transform_is_composed_here",
+      "basis": "declared"
+    },
+    "airframe_com_y": {
+      "meaning": "airframe_com_y",
+      "unit": "the_second_component_of_the_same_declared_inertial_pose_under_exactly_the_same_undeclared_length_unit",
+      "basis": "declared"
+    },
+    "airframe_com_z": {
+      "meaning": "airframe_com_z",
+      "unit": "the_third_component_of_the_same_declared_inertial_pose_under_exactly_the_same_undeclared_length_unit",
+      "basis": "declared"
+    },
+    "airframe_joint_frame_basis": {
+      "meaning": "airframe_joint_frame_basis",
+      "unit": "the_specifications_own_statement_that_by_default_the_pose_of_a_joint_is_expressed_in_the_child_link_frame_recorded_so_a_reader_knows_the_convention_this_path_reads_only_the_declared_attachment_and_resolves_no_transform_and_no_geometry",
+      "basis": "declared"
+    },
+    "airframe_unselected_child_count": {
+      "meaning": "airframe_unselected_child_count",
+      "unit": "how_many_children_of_the_declared_model_this_finite_selection_did_not_take_including_every_include_element_plugin_sensor_and_visual_they_are_counted_rather_than_dropped_and_the_whole_document_is_retained_in_the_report",
+      "basis": "declared"
+    }
+  }
+}

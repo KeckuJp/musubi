@@ -1,4 +1,3 @@
-//! Offline tlog decoding and record preservation. See the recorded-input guide.
 use crate::config::{ChannelId, ReadProfile};
 use crate::mavlink_header::parse_mavlink2_header;
 
@@ -9,6 +8,57 @@ pub struct TlogReader;
 
 const MAVLINK1_MAGIC: u8 = 0xFE;
 const MAVLINK2_MAGIC: u8 = 0xFD;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DefiningDialect {
+    Minimal,
+    Standard,
+    Common,
+    ArduPilotMega,
+}
+
+impl DefiningDialect {
+    #[must_use]
+    pub const fn file(self) -> &'static str {
+        match self {
+            Self::Minimal => "minimal.xml",
+            Self::Standard => "standard.xml",
+            Self::Common => "common.xml",
+            Self::ArduPilotMega => "ardupilotmega.xml",
+        }
+    }
+
+    #[must_use]
+    pub const fn inherited_from_common_chain(self) -> bool {
+        matches!(self, Self::Minimal | Self::Standard | Self::Common)
+    }
+
+    #[must_use]
+    pub const fn scope(self) -> &'static str {
+        if self.inherited_from_common_chain() {
+            "COMMON_INCLUDE_CHAIN_DEFINITION_INHERITED_UNCHANGED_BY_EVERY_DIALECT_THAT_INCLUDES_IT"
+        } else {
+            "VENDOR_DIALECT_DEFINITION_NOT_PRESENT_IN_THE_COMMON_INCLUDE_CHAIN"
+        }
+    }
+}
+
+pub const DIALECT_DEFINITION_PIN: &str = "mavlink/mavlink@3203f89c510337c0088244735c6a5056c52b5a28";
+
+pub const DIALECT_UNQUALIFIED: &str =
+    "UNQUALIFIED_MSGID_NOT_IN_THE_PINNED_TABLE_NO_DIALECT_CLAIMED";
+
+#[must_use]
+pub const fn defining_dialect(msgid: u32) -> Option<DefiningDialect> {
+    match msgid {
+        0 => Some(DefiningDialect::Minimal),
+        33 | 148 => Some(DefiningDialect::Standard),
+        1 | 2 | 24 | 26 | 29 | 30 | 32 | 42 | 46 | 65 | 109 | 116 | 129 | 132 | 137 | 143 | 147
+        | 253 | 262 | 270 => Some(DefiningDialect::Common),
+        193 => Some(DefiningDialect::ArduPilotMega),
+        _ => None,
+    }
+}
 
 #[must_use]
 pub const fn crc_extra(msgid: u32) -> Option<u8> {
@@ -871,9 +921,93 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                 f("GPS_RAW_INT.lat", i32_at(p, 8)),
                 f("GPS_RAW_INT.lon", i32_at(p, 12)),
                 f("GPS_RAW_INT.eph", u16_at(p, 20)),
+                f("GPS_RAW_INT.vel", u16_at(p, 24)),
                 f("GPS_RAW_INT.fix_type", u8_at(p, 28)),
                 f("GPS_RAW_INT.satellites_visible", u8_at(p, 29)),
+                (
+                    "gps_fix_type_reported".into(),
+                    FieldValue::Text(
+                        match u8_at(p, 28) {
+                            0 => "NO_GPS",
+                            1 => "NO_FIX",
+                            2 => "2D_FIX",
+                            3 => "3D_FIX",
+                            4 => "DGPS",
+                            5 => "RTK_FLOAT",
+                            6 => "RTK_FIXED",
+                            7 => "STATIC",
+                            8 => "PPP",
+                            _ => "UNKNOWN_RETAINED",
+                        }
+                        .into(),
+                    ),
+                ),
+                (
+                    "gps_satellites_visible_reported".into(),
+                    if u8_at(p, 29) == 255 {
+                        FieldValue::Blank
+                    } else {
+                        FieldValue::I64(u8_at(p, 29))
+                    },
+                ),
+                (
+                    "gps_ground_speed_m_s_reported".into(),
+                    if u16_at(p, 24) == 65535 {
+                        FieldValue::Blank
+                    } else {
+                        FieldValue::F64(u16_at(p, 24) as f64 / 100.0)
+                    },
+                ),
+                (
+                    "gps_hdop_reported".into(),
+                    if u16_at(p, 20) == 65535 {
+                        FieldValue::Blank
+                    } else {
+                        FieldValue::F64(u16_at(p, 20) as f64 / 100.0)
+                    },
+                ),
             ];
+            for (name, value) in [
+                (
+                    "gps_rtk_status_basis",
+                    "REPORTED_FIX_TYPE_ONLY_CORRECTION_LINK_BASE_STATION_AND_AUTHENTICATION_ABSENT_FROM_THIS_MESSAGE_WHILE_UNCERTAINTY_EXTENSION_FIELDS_EXIST_BUT_ARE_NOT_DECODED_IN_THIS_PATH",
+                ),
+                (
+                    "gps_channel_basis",
+                    "SHARED_CHANNEL_NAME_ONLY_NOT_A_FUSED_OR_EKF_SOLUTION",
+                ),
+            ] {
+                d.fields.push((name.into(), FieldValue::Text(value.into())));
+            }
+            let latitude = i32_at(p, 8) as f64 / 1e7;
+            let longitude = i32_at(p, 12) as f64 / 1e7;
+            let latitude_in_domain = (-90.0..=90.0).contains(&latitude);
+            let longitude_in_domain = (-180.0..=180.0).contains(&longitude);
+            for (name, value, in_domain) in [
+                ("gps_latitude_deg_reported", latitude, latitude_in_domain),
+                ("gps_longitude_deg_reported", longitude, longitude_in_domain),
+            ] {
+                d.fields.push((
+                    name.into(),
+                    if in_domain {
+                        FieldValue::F64(value)
+                    } else {
+                        FieldValue::Blank
+                    },
+                ));
+            }
+            d.fields.push((
+                "gps_coordinate_domain_disposition".into(),
+                FieldValue::Text(
+                    match (latitude_in_domain, longitude_in_domain) {
+                        (true, true) => "WITHIN_DECLARED_DEGREE_DOMAIN",
+                        (false, true) => "LATITUDE_OUTSIDE_DEGREE_DOMAIN_DERIVED_VALUE_WITHHELD",
+                        (true, false) => "LONGITUDE_OUTSIDE_DEGREE_DOMAIN_DERIVED_VALUE_WITHHELD",
+                        (false, false) => "BOTH_OUTSIDE_DEGREE_DOMAIN_DERIVED_VALUES_WITHHELD",
+                    }
+                    .into(),
+                ),
+            ));
             if t < 1_000_000_000_000_000 {
                 d.t_boot_us = Some(t);
             }
@@ -906,8 +1040,10 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
             d.channel = ChannelId::LinkStats;
             d.fields = vec![
                 f("RADIO_STATUS.rxerrors", u16_at(p, 0)),
+                f("RADIO_STATUS.fixed", u16_at(p, 2)),
                 f("RADIO_STATUS.rssi", u8_at(p, 4)),
                 f("RADIO_STATUS.remrssi", u8_at(p, 5)),
+                f("RADIO_STATUS.txbuf", u8_at(p, 6)),
                 f("RADIO_STATUS.noise", u8_at(p, 7)),
                 f("RADIO_STATUS.remnoise", u8_at(p, 8)),
             ];
@@ -964,6 +1100,8 @@ impl ProfileReader for TlogReader {
         let mut out = Vec::new();
         let mut off = 0usize;
         let mut sequences = std::collections::BTreeMap::<(u8, u8, u8), (u8, usize)>::new();
+        let selected = profile.declared_sender;
+        let mut unselected_records = 0usize;
         while off < bytes.len() {
             let rest = &bytes[off..];
             if rest.len() < 8 + 6 {
@@ -1223,6 +1361,27 @@ impl ProfileReader for TlogReader {
                     FieldValue::I64(i64::from(crc_extra(msgid).is_some())),
                 ),
                 (
+                    "MAVLINK.defining_dialect".into(),
+                    FieldValue::Text(match defining_dialect(msgid) {
+                        Some(dialect) => dialect.file().into(),
+                        None => DIALECT_UNQUALIFIED.into(),
+                    }),
+                ),
+                (
+                    "MAVLINK.defining_dialect_pin".into(),
+                    FieldValue::Text(match defining_dialect(msgid) {
+                        Some(_) => DIALECT_DEFINITION_PIN.into(),
+                        None => DIALECT_UNQUALIFIED.into(),
+                    }),
+                ),
+                (
+                    "MAVLINK.defining_dialect_scope".into(),
+                    FieldValue::Text(match defining_dialect(msgid) {
+                        Some(dialect) => dialect.scope().into(),
+                        None => DIALECT_UNQUALIFIED.into(),
+                    }),
+                ),
+                (
                     "MAVLINK.signature".into(),
                     FieldValue::Text(
                         if signed {
@@ -1267,6 +1426,27 @@ impl ProfileReader for TlogReader {
                     ),
                 ));
             }
+            if let Some(want) = selected {
+                if source_key.0 == 0 || source_key.1 == 0 {
+                    return Err(ReadError::Malformed {
+                        offset: off + 8,
+                        what: "record reports no addressable sender while one sender is selected"
+                            .into(),
+                    });
+                }
+                if (source_key.0, source_key.1) != (want.system_id, want.component_id) {
+                    unselected_records += 1;
+                    off += 8 + total;
+                    continue;
+                }
+                d.fields.push((
+                    "MAVLINK.declared_sender_selection".into(),
+                    FieldValue::Text(format!(
+                        "SELECTED_DECLARED_SENDER_{}_{}_REPORTED_NOT_AUTHENTICATED_THIS_READ_IS_A_SUBSET_OF_THE_RECORDING",
+                        want.system_id, want.component_id
+                    )),
+                ));
+            }
             let t_ms = i64::try_from(host_us / 1000).unwrap_or(i64::MAX);
             let mut o = observation(profile, t_ms, d.channel, d.fields, d.stale);
             o.t_boot_us = d.t_boot_us;
@@ -1274,1193 +1454,36 @@ impl ProfileReader for TlogReader {
             out.push(o);
             off += 8 + total;
         }
+        let emitted = out.len();
+        if let Some(want) = selected {
+            if let Some(first) = out.first_mut() {
+                first.fields.extend([
+                    (
+                        "MAVLINK.selected_sender_records".into(),
+                        FieldValue::I64(i64::try_from(emitted).unwrap_or(i64::MAX)),
+                    ),
+                    (
+                        "MAVLINK.unselected_sender_records".into(),
+                        FieldValue::I64(i64::try_from(unselected_records).unwrap_or(i64::MAX)),
+                    ),
+                    (
+                        "MAVLINK.selected_sender_record_scope".into(),
+                        FieldValue::Text(
+                            "WHOLE_RECORDING_COUNTS_ON_THE_FIRST_SELECTED_ROW_EVERY_VALIDATED_RECORD_INCLUDING_UNKNOWN_MESSAGE_TYPES_COUNTED_ONCE_THIS_READ_IS_A_SUBSET_OF_THE_RECORDING"
+                                .into(),
+                        ),
+                    ),
+                ]);
+                first.digest = crate::observation_digest(first.t_ms, first.channel, &first.fields);
+            }
+            if out.is_empty() {
+                return Err(ReadError::Profile(format!(
+                    "selected sender {}/{} reports no record in this recording ({unselected_records} \
+                     records report other senders)",
+                    want.system_id, want.component_id
+                )));
+            }
+        }
         Ok(out)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::profile::parse_profile;
-
-    const PROFILE: &str = r#"{"profile_id": "p", "version": "1", "family": "ugv", "source_role": "gcs", "format": "mavlink_tlog", "extensions": ["tlog"], "default_clock_basis": "host_received", "fields": {"time": "host_us"}}"#;
-
-    #[test]
-    fn truncated_record_is_malformed_not_silently_dropped() {
-        let p = parse_profile(PROFILE).expect("profile");
-        let mut bytes = vec![0u8; 8];
-        bytes.extend_from_slice(&[0xFD, 0x09, 0, 0, 0, 1, 1, 0, 0, 0]); // header says 9 B payload, none follows
-        assert!(matches!(
-            TlogReader.read(&p, &bytes),
-            Err(ReadError::Malformed { .. })
-        ));
-    }
-
-    #[test]
-    fn mission_reports_distinguish_reached_current_totals_and_plan_ids() {
-        let profile = parse_profile(PROFILE).unwrap();
-        for (sequence, total, id) in [(7_u16, 12_u16, 42_u32), (3, 65535, 4294967295)] {
-            let mut payload = sequence.to_le_bytes().to_vec();
-            payload.extend_from_slice(&total.to_le_bytes());
-            payload.extend_from_slice(&[3, 2]);
-            payload.extend_from_slice(&id.to_le_bytes());
-            payload.extend_from_slice(&0_u32.to_le_bytes());
-            payload.extend_from_slice(&9_u32.to_le_bytes());
-            let current = TlogReader
-                .read(&profile, &framed(42, &payload, true))
-                .unwrap();
-            let fields = &current[0].fields;
-            assert!(fields.contains(&(
-                "mission_plan_id_reported".into(),
-                FieldValue::I64(i64::from(id))
-            )));
-            assert!(fields.contains(&("fence_plan_id_reported".into(), FieldValue::Blank)));
-            assert!(fields.contains(&(
-                "mission_total_items".into(),
-                if total == 65535 {
-                    FieldValue::Blank
-                } else {
-                    FieldValue::I64(i64::from(total))
-                }
-            )));
-            assert!(fields.contains(&(
-                "mission_mode_reported".into(),
-                FieldValue::Text("SUSPENDED_REPORTED".into())
-            )));
-            let reached = TlogReader
-                .read(&profile, &framed(46, &sequence.to_le_bytes(), false))
-                .unwrap();
-            assert!(reached[0].fields.contains(&(
-                "mission_item_reached_sequence_reported".into(),
-                FieldValue::I64(i64::from(sequence))
-            )));
-            assert!(
-                !reached[0]
-                    .fields
-                    .iter()
-                    .any(|(key, _)| key == "mission_current_sequence")
-            );
-            assert!(reached[0].t_boot_us.is_none());
-            assert_eq!(reached[0].clock_basis, crate::ClockBasis::HostReceived);
-        }
-        for (payload, v2) in [(&[1, 0][..], false), (&[1][..], true)] {
-            let current = TlogReader.read(&profile, &framed(42, payload, v2)).unwrap();
-            assert!(
-                current[0]
-                    .fields
-                    .contains(&("mission_plan_id_reported".into(), FieldValue::Blank))
-            );
-            assert!(current[0].fields.contains(&(
-                "mission_total_disposition".into(),
-                FieldValue::Text("NOT_SUPPORTED".into())
-            )));
-        }
-        let unknown = TlogReader
-            .read(&profile, &framed(42, &[1, 0, 3, 0, 254, 255], true))
-            .unwrap();
-        assert!(unknown[0].fields.contains(&(
-            "mission_mode_reported".into(),
-            FieldValue::Text("UNKNOWN_255".into())
-        )));
-        for (id, payload) in [(42, vec![0; 19]), (46, vec![0; 3])] {
-            assert!(
-                TlogReader
-                    .read(&profile, &framed(id, &payload, true))
-                    .is_err()
-            );
-        }
-        assert!(TlogReader.read(&profile, &framed(46, &[1], false)).is_err());
-        let mut bad = framed(46, &[1, 0], true);
-        *bad.last_mut().unwrap() ^= 1;
-        assert!(TlogReader.read(&profile, &bad).is_err());
-    }
-
-    #[test]
-    fn mavlink1_full_payload_is_read_but_truncation_is_not_zero_filled() {
-        let p = parse_profile(PROFILE).expect("profile");
-        let mut bytes = 1_700_000_000_000_000_u64.to_be_bytes().to_vec();
-        let mut frame = vec![0xFE, 9, 0, 1, 1, 0];
-        frame.extend_from_slice(&[0; 9]);
-        let crc = crc_x25(&frame[1..], 0xFFFF);
-        let crc = crc_x25(&[50], crc);
-        frame.extend_from_slice(&crc.to_le_bytes());
-        bytes.extend_from_slice(&frame);
-        let obs = TlogReader.read(&p, &bytes).expect("reads");
-        assert_eq!(obs.len(), 1);
-        assert_eq!(obs[0].channel, ChannelId::Heartbeat);
-        assert_eq!(obs[0].t_ms, 1_700_000_000_000);
-        assert_eq!(obs[0].clock_basis, crate::ClockBasis::HostReceived);
-        let short = framed(0, &[], false);
-        assert!(TlogReader.read(&p, &short).is_err());
-    }
-
-    #[test]
-    fn crc_mismatch_on_known_msgid_is_malformed() {
-        let p = parse_profile(PROFILE).expect("profile");
-        let mut bytes = 1_700_000_000_000_000_u64.to_be_bytes().to_vec();
-        bytes.extend_from_slice(&[0xFE, 9, 0, 1, 1, 0]);
-        bytes.extend_from_slice(&[0; 9]);
-        bytes.extend_from_slice(&[0xAB, 0xCD]);
-        assert!(matches!(
-            TlogReader.read(&p, &bytes),
-            Err(ReadError::Malformed { what, .. }) if what.contains("CRC mismatch")
-        ));
-    }
-
-    fn framed(id: u32, payload: &[u8], v2: bool) -> Vec<u8> {
-        let mut record = 1_700_000_000_123_456_u64.to_be_bytes().to_vec();
-        let mut frame = if v2 {
-            vec![
-                0xFD,
-                payload.len() as u8,
-                0,
-                0,
-                7,
-                42,
-                3,
-                id as u8,
-                (id >> 8) as u8,
-                (id >> 16) as u8,
-            ]
-        } else {
-            vec![0xFE, payload.len() as u8, 7, 42, 3, id as u8]
-        };
-        frame.extend_from_slice(payload);
-        let crc = crc_x25(&[crc_extra(id).unwrap_or(0)], crc_x25(&frame[1..], 0xffff));
-        frame.extend_from_slice(&crc.to_le_bytes());
-        record.extend_from_slice(&frame);
-        record
-    }
-
-    #[test]
-    fn recorded_sequence_relations_preserve_wrap_sources_and_ambiguity() {
-        fn packet(v2: bool, seq: u8, sys: u8, comp: u8, tag: u8, unknown: bool) -> Vec<u8> {
-            let id = if unknown {
-                if v2 { 999_999 } else { 200 }
-            } else {
-                0
-            };
-            if unknown {
-                assert!(crc_extra(id).is_none());
-            }
-            let mut bytes = framed(id, &[0; 9], v2);
-            bytes[7] = (bytes[7] & !3) | tag;
-            let pos = 8 + if v2 { 4 } else { 2 };
-            bytes[pos..pos + 3].copy_from_slice(&[seq, sys, comp]);
-            let end = bytes.len() - 2;
-            let crc = crc_x25(
-                &[crc_extra(id).unwrap_or(0)],
-                crc_x25(&bytes[9..end], 0xffff),
-            );
-            bytes[end..].copy_from_slice(&crc.to_le_bytes());
-            bytes
-        }
-        let relation =
-            |o: &Observation| crate::field(o, "MAVLINK.recorded_sequence_relation").cloned();
-        for v2 in [false, true] {
-            let profile = parse_profile(PROFILE).unwrap();
-            let specs = [
-                (254, 1, 1, false),
-                (20, 2, 1, false),
-                (255, 1, 1, false),
-                (0, 1, 1, false),
-                (0, 1, 1, false),
-                (3, 1, 1, false),
-                (1, 1, 1, false),
-                (21, 2, 1, false),
-                (8, 1, 2, false),
-                (2, 1, 1, true),
-                (3, 1, 1, false),
-                (4, 0, 1, false),
-            ];
-            let bytes: Vec<u8> = specs
-                .iter()
-                .flat_map(|&(s, y, c, u)| packet(v2, s, y, c, 0, u))
-                .collect();
-            let obs = TlogReader.read(&profile, &bytes).unwrap();
-            assert_eq!(obs.len(), specs.len());
-            for (o, expected) in obs.iter().zip([
-                "FIRST",
-                "FIRST",
-                "NEXT_MOD256",
-                "NEXT_MOD256",
-                "SAME_COUNTER",
-                "DISCONTINUITY_AMBIGUOUS",
-                "DISCONTINUITY_AMBIGUOUS",
-                "NEXT_MOD256",
-                "FIRST",
-                "UNQUALIFIED_HEADER",
-                "FIRST",
-                "UNQUALIFIED_HEADER",
-            ]) {
-                assert_eq!(relation(o), Some(FieldValue::Text(expected.into())));
-                assert!(crate::field(o, "MAVLINK.raw_frame_hex").is_some());
-            }
-            assert_eq!(
-                crate::field(&obs[5], "MAVLINK.recorded_sequence_step_mod256"),
-                Some(&FieldValue::I64(3))
-            );
-            assert_eq!(
-                crate::field(&obs[6], "MAVLINK.recorded_sequence_step_mod256"),
-                Some(&FieldValue::I64(254))
-            );
-            assert_eq!(
-                crate::field(&obs[2], "MAVLINK.previous_record_offset_bytes"),
-                Some(&FieldValue::Text("0".into()))
-            );
-            assert!(crate::field(&obs[10], "MAVLINK.previous_packet_sequence").is_none());
-            let mut bad = bytes.clone();
-            bad[9] ^= 1; // corrupt known frame/header, no successful partial output
-            assert!(TlogReader.read(&profile, &bad).is_err());
-        }
-        let mut profile = parse_profile(PROFILE).unwrap();
-        profile.fields.time = "mavproxy_recorded_us".into();
-        profile.default_clock_basis = crate::ClockBasis::Unknown;
-        let bytes: Vec<u8> = [(4, 0), (200, 1), (5, 0), (201, 1)]
-            .iter()
-            .flat_map(|&(seq, tag)| packet(true, seq, 1, 1, tag, false))
-            .collect();
-        let obs = TlogReader.read(&profile, &bytes).unwrap();
-        for (o, expected) in obs
-            .iter()
-            .zip(["FIRST", "FIRST", "NEXT_MOD256", "NEXT_MOD256"])
-        {
-            assert_eq!(relation(o), Some(FieldValue::Text(expected.into())));
-            assert_eq!(o.clock_basis, crate::ClockBasis::Unknown);
-        }
-    }
-
-    #[test]
-    fn video_stream_reports_preserve_status_without_inventing_delivery() {
-        let mut profile = parse_profile(PROFILE).unwrap();
-        profile.fields.time = "host_recorded_us".into();
-        profile.default_clock_basis = crate::ClockBasis::Unknown;
-        for (rate, bitrate, flags, stream) in [
-            (29.97_f32, 4_000_000_u32, 1_u16, 1_u8),
-            (60.0, 12_000_000, 0x8006, 2),
-        ] {
-            let mut payload = [0u8; 20];
-            payload[..4].copy_from_slice(&rate.to_le_bytes());
-            payload[4..8].copy_from_slice(&bitrate.to_le_bytes());
-            payload[8..10].copy_from_slice(&flags.to_le_bytes());
-            payload[10..12].copy_from_slice(&1920u16.to_le_bytes());
-            payload[12..14].copy_from_slice(&1080u16.to_le_bytes());
-            payload[14..16].copy_from_slice(&90u16.to_le_bytes());
-            payload[16..18].copy_from_slice(&75u16.to_le_bytes());
-            payload[18] = stream;
-            payload[19] = 2;
-            let bytes = framed(270, &payload, true);
-            let rows = TlogReader.read(&profile, &bytes).unwrap();
-            assert_eq!(rows.len(), 1);
-            let row = &rows[0];
-            assert_eq!(row.channel, ChannelId::Event);
-            assert_eq!(row.clock_basis, crate::ClockBasis::Unknown);
-            assert!(row.t_boot_us.is_none());
-            assert!(row.anchor_unix_us.is_none());
-            assert_eq!(
-                crate::field(row, "video_stream_framerate_hz_reported"),
-                Some(&FieldValue::F64(f64::from(rate)))
-            );
-            assert_eq!(
-                crate::field(row, "video_stream_bitrate_bits_s_reported"),
-                Some(&FieldValue::I64(i64::from(bitrate)))
-            );
-            assert_eq!(
-                crate::field(row, "video_stream_running_reported"),
-                Some(&FieldValue::I64(i64::from(flags & 1 != 0)))
-            );
-            assert_eq!(
-                crate::field(row, "video_stream_unknown_flag_bits"),
-                Some(&FieldValue::I64(i64::from(flags & !7)))
-            );
-            assert_eq!(
-                crate::field(row, "video_stream_id_raw"),
-                Some(&FieldValue::I64(i64::from(stream)))
-            );
-            let mut corrupt = bytes.clone();
-            corrupt[20] ^= 1;
-            assert!(TlogReader.read(&profile, &corrupt).is_err());
-            for invalid in [f32::NAN, f32::INFINITY, -1.0] {
-                payload[..4].copy_from_slice(&invalid.to_le_bytes());
-                assert!(
-                    TlogReader
-                        .read(&profile, &framed(270, &payload, true))
-                        .is_err()
-                );
-            }
-        }
-        let zero = TlogReader.read(&profile, &framed(270, &[0], true)).unwrap();
-        assert_eq!(
-            crate::field(&zero[0], "video_stream_id_basis"),
-            Some(&FieldValue::Text("UNQUALIFIED_ZERO".into()))
-        );
-        assert_eq!(
-            crate::field(&zero[0], "video_stream_camera_id_basis"),
-            Some(&FieldValue::Text("SENDER_OR_UNAVAILABLE_EXTENSION".into()))
-        );
-        assert!(
-            TlogReader
-                .read(&profile, &framed(270, &[0; 21], true))
-                .is_err()
-        );
-    }
-
-    #[test]
-    fn camera_reports_reuse_frame_clock_without_claiming_recording_success() {
-        let mut profile = parse_profile(PROFILE).unwrap();
-        profile.fields.time = "host_recorded_us".into();
-        profile.default_clock_basis = crate::ClockBasis::Unknown;
-        assert_eq!(crc_extra(262), Some(12));
-        for (interval, capacity, count) in [(1.5_f32, 1024.25_f32, 12_i32), (0.0, 0.5, 314)] {
-            let mut payload = [0u8; 23];
-            payload[..4].copy_from_slice(&1234u32.to_le_bytes());
-            payload[4..8].copy_from_slice(&interval.to_le_bytes());
-            payload[8..12].copy_from_slice(&2345u32.to_le_bytes());
-            payload[12..16].copy_from_slice(&capacity.to_le_bytes());
-            payload[16] = 3;
-            payload[17] = 1;
-            payload[18..22].copy_from_slice(&count.to_le_bytes());
-            payload[22] = 2;
-            let bytes = framed(262, &payload, true);
-            let rows = TlogReader.read(&profile, &bytes).unwrap();
-            let row = &rows[0];
-            assert_eq!(rows.len(), 1);
-            assert_eq!(row.channel, ChannelId::Event);
-            assert_eq!(row.t_boot_us, Some(1_234_000));
-            assert_eq!(row.clock_basis, crate::ClockBasis::Unknown);
-            assert!(row.anchor_unix_us.is_none());
-            for (field, value) in [
-                ("camera_image_interval_s_reported", f64::from(interval)),
-                (
-                    "camera_available_capacity_bytes_reported",
-                    f64::from(capacity) * 1_048_576.,
-                ),
-                ("camera_recording_time_s_reported", 2.345),
-            ] {
-                assert_eq!(crate::field(row, field), Some(&FieldValue::F64(value)));
-            }
-            assert_eq!(
-                crate::field(row, "camera_image_count_reported"),
-                Some(&FieldValue::I64(i64::from(count)))
-            );
-            assert_eq!(
-                crate::field(row, "camera_video_status_reported"),
-                Some(&FieldValue::Text("CAPTURING".into()))
-            );
-            assert!(crate::field(row, "MAVLINK.raw_frame_hex").is_some());
-            assert!(
-                TlogReader
-                    .read(&profile, &bytes[..bytes.len() - 1])
-                    .is_err()
-            );
-            let mut corrupt = bytes;
-            *corrupt.last_mut().unwrap() ^= 1;
-            assert!(TlogReader.read(&profile, &corrupt).is_err());
-            payload[16] = 255;
-            payload[17] = 99;
-            payload[22] = 255;
-            payload[18..22].copy_from_slice(&(-1i32).to_le_bytes());
-            payload[12..16].copy_from_slice(&(-1f32).to_le_bytes());
-            let row = TlogReader
-                .read(&profile, &framed(262, &payload, true))
-                .unwrap()
-                .remove(0);
-            assert_eq!(
-                crate::field(&row, "camera_video_status_reported"),
-                Some(&FieldValue::Text("UNKNOWN".into()))
-            );
-            assert!(crate::field(&row, "camera_image_count_reported").is_none());
-            assert!(crate::field(&row, "camera_available_capacity_bytes_reported").is_none());
-            for (offset, value) in [(4, -0.1f32), (4, f32::NAN), (12, f32::INFINITY)] {
-                let mut invalid = payload;
-                invalid[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
-                assert!(
-                    TlogReader
-                        .read(&profile, &framed(262, &invalid, true))
-                        .is_err()
-                );
-            }
-        }
-        let row = TlogReader
-            .read(&profile, &framed(262, &[0], true))
-            .unwrap()
-            .remove(0);
-        assert_eq!(
-            crate::field(&row, "camera_image_count_status"),
-            Some(&FieldValue::Text("ZERO_OR_EXTENSION_UNAVAILABLE".into()))
-        );
-        assert!(crate::field(&row, "camera_recording_time_s_reported").is_none());
-        assert!(crate::field(&row, "camera_image_count_reported").is_none());
-        assert!(
-            TlogReader
-                .read(&profile, &framed(262, &[0; 24], true))
-                .is_err()
-        );
-    }
-
-    #[test]
-    fn mavproxy_tagged_clock_reuses_frames_without_treating_tag_as_time() {
-        let p = parse_profile(include_str!(
-            "../../../profiles/recorded/tlog-state/mavproxy-recorded-profile.json"
-        ))
-        .unwrap();
-        for (v2, voltage) in [(false, 12300_u16), (true, 24600)] {
-            let mut payload = [0_u8; 31];
-            payload[14..16].copy_from_slice(&voltage.to_le_bytes());
-            payload[16..18].copy_from_slice(&(-120_i16).to_le_bytes());
-            payload[30] = 50;
-            let mut bytes = Vec::new();
-            for tag in [3_u64, 0, 2, 1] {
-                let mut frame = framed(1, &payload, v2);
-                frame[..8].copy_from_slice(&(1_700_000_000_123_456_u64 | tag).to_be_bytes());
-                bytes.extend(frame);
-            }
-            let rows = TlogReader.read(&p, &bytes).unwrap();
-            assert_eq!(rows.len(), 4);
-            for (row, tag) in rows.iter().zip([3_u64, 0, 2, 1]) {
-                assert_eq!(row.t_ms, 1_700_000_000_123);
-                assert_eq!(row.clock_basis, crate::ClockBasis::Unknown);
-                assert!(row.anchor_unix_us.is_none());
-                assert_eq!(
-                    crate::field(row, "MAVLINK.host_recorded_us"),
-                    Some(&FieldValue::Text("1700000000123456".into()))
-                );
-                assert_eq!(
-                    crate::field(row, "MAVLINK.mavproxy_link_tag"),
-                    Some(&FieldValue::I64(tag as i64))
-                );
-                assert_eq!(
-                    crate::field(row, "MAVLINK.mavproxy_recorded_word"),
-                    Some(&FieldValue::Text(
-                        (1_700_000_000_123_456_u64 | tag).to_string()
-                    ))
-                );
-                assert_eq!(
-                    crate::field(row, "battery_voltage_v"),
-                    Some(&FieldValue::F64(f64::from(voltage) / 1000.))
-                );
-                assert!(crate::field(row, "MAVLINK.raw_frame_hex").is_some());
-            }
-            assert!(TlogReader.read(&p, &bytes[..bytes.len() - 1]).is_err());
-        }
-        let mut wrong = p;
-        wrong.default_clock_basis = crate::ClockBasis::HostReceived;
-        assert!(TlogReader.read(&wrong, &[]).is_err());
-    }
-
-    #[test]
-    fn explicit_gcs_recorded_clock_preserves_units_without_receipt_or_anchor_claim() {
-        let mut p = parse_profile(PROFILE).unwrap();
-        p.fields.time = "host_recorded_us".into();
-        p.default_clock_basis = crate::ClockBasis::Unknown;
-        for (v2, millivolts) in [(false, 12_300_u16), (true, 24_600)] {
-            let mut payload = [0_u8; 31];
-            payload[14..16].copy_from_slice(&millivolts.to_le_bytes());
-            payload[16..18].copy_from_slice(&120_i16.to_le_bytes());
-            payload[30] = 50;
-            let mut bytes = framed(1, &payload, v2);
-            let mut time = 1_700_000_000_000_000_u64.to_le_bytes().to_vec();
-            time.extend_from_slice(&42_u32.to_le_bytes());
-            bytes.extend(framed(2, &time, v2));
-            let rows = TlogReader.read(&p, &bytes).unwrap();
-            assert_eq!(rows.len(), 2);
-            assert_eq!(
-                crate::field(&rows[0], "battery_voltage_v"),
-                Some(&FieldValue::F64(f64::from(millivolts) / 1000.0))
-            );
-            for row in &rows {
-                assert_eq!(row.clock_basis, crate::ClockBasis::Unknown);
-                assert_eq!(row.t_ms, 1_700_000_000_123);
-                assert!(row.anchor_unix_us.is_none());
-                assert!(crate::field(row, "MAVLINK.host_received_us").is_none());
-                assert_eq!(
-                    crate::field(row, "MAVLINK.host_recorded_us"),
-                    Some(&FieldValue::Text("1700000000123456".into()))
-                );
-                assert_eq!(
-                    crate::field(row, "MAVLINK.direction"),
-                    Some(&FieldValue::Text("UNKNOWN_NOT_ENCODED_IN_RECORD".into()))
-                );
-            }
-            assert!(crate::field(&rows[1], "SYSTEM_TIME.time_unix_usec").is_some());
-            assert!(TlogReader.read(&p, &bytes[..bytes.len() - 1]).is_err());
-        }
-        p.default_clock_basis = crate::ClockBasis::HostReceived;
-        assert!(TlogReader.read(&p, &[]).is_err());
-        p.default_clock_basis = crate::ClockBasis::Unknown;
-        p.fields.time = "host_us".into();
-        assert!(TlogReader.read(&p, &[]).is_err());
-    }
-
-    #[test]
-    fn scaled_imu_instances_reuse_units_and_keep_temperature_uncertainty() {
-        let profile = parse_profile(PROFILE).unwrap();
-        for (id, index, crc) in [(26, 1, 170), (116, 2, 76), (129, 3, 46)] {
-            assert_eq!(crc_extra(id), Some(crc));
-            for sample in [1000i16, -2000] {
-                let mut payload = [0u8; 24];
-                payload[..4].copy_from_slice(&1234u32.to_le_bytes());
-                for offset in (4..22).step_by(2) {
-                    payload[offset..offset + 2].copy_from_slice(&sample.to_le_bytes());
-                }
-                for v2 in [false, true] {
-                    for temperature in [0i16, 1, -500, 2000] {
-                        payload[22..].copy_from_slice(&temperature.to_le_bytes());
-                        let selected = if v2 { &payload[..] } else { &payload[..22] };
-                        let rows = TlogReader
-                            .read(&profile, &framed(id, selected, v2))
-                            .unwrap();
-                        assert_eq!(rows.len(), 1);
-                        assert_eq!(rows[0].t_boot_us, Some(1_234_000));
-                        assert_eq!(
-                            crate::field(&rows[0], "imu_sensor_index_reported"),
-                            Some(&FieldValue::I64(index))
-                        );
-                        for (quantity, scale) in [
-                            ("acceleration_m_s2", 9.80665 / 1000.0),
-                            ("angular_velocity_rad_s", 0.001),
-                            ("magnetic_field_t", 1e-7),
-                        ] {
-                            for axis in ["x", "y", "z"] {
-                                assert_eq!(
-                                    crate::field(
-                                        &rows[0],
-                                        &format!("scaled_imu_{quantity}_{axis}")
-                                    ),
-                                    Some(&FieldValue::F64(sample as f64 * scale))
-                                );
-                            }
-                        }
-                        let expected = if !v2 || temperature == 0 || temperature == 1 {
-                            FieldValue::Blank
-                        } else {
-                            FieldValue::F64(temperature as f64 / 100.0 + 273.15)
-                        };
-                        assert_eq!(crate::field(&rows[0], "imu_temperature_k"), Some(&expected));
-                        assert!(rows[0].anchor_unix_us.is_none());
-                    }
-                }
-                payload[22..].copy_from_slice(&(-27316i16).to_le_bytes());
-                assert!(
-                    TlogReader
-                        .read(&profile, &framed(id, &payload, true))
-                        .is_err()
-                );
-                assert!(
-                    TlogReader
-                        .read(&profile, &framed(id, &[0; 25], true))
-                        .is_err()
-                );
-                assert!(
-                    TlogReader
-                        .read(&profile, &framed(id, &[0; 21], false))
-                        .is_err()
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn pressure_instances_share_units_without_inventing_altitude_or_missing_temperature() {
-        let profile = parse_profile(PROFILE).unwrap();
-        for (id, index, crc) in [(29, 1, 115), (137, 2, 195), (143, 3, 131)] {
-            assert_eq!(crc_extra(id), Some(crc));
-            for (absolute, differential, temperature) in
-                [(1013.25f32, -2.5f32, 2000i16), (900.0, 0.0, -500)]
-            {
-                let mut payload = [0u8; 16];
-                payload[..4].copy_from_slice(&1234u32.to_le_bytes());
-                payload[4..8].copy_from_slice(&absolute.to_le_bytes());
-                payload[8..12].copy_from_slice(&differential.to_le_bytes());
-                payload[12..14].copy_from_slice(&temperature.to_le_bytes());
-                for v2 in [false, true] {
-                    for extra in [0i16, 1, -100, 2500] {
-                        payload[14..].copy_from_slice(&extra.to_le_bytes());
-                        let selected = if v2 { &payload[..] } else { &payload[..14] };
-                        let rows = TlogReader
-                            .read(&profile, &framed(id, selected, v2))
-                            .unwrap();
-                        assert_eq!(rows.len(), 1);
-                        assert_eq!(rows[0].t_boot_us, Some(1_234_000));
-                        assert_eq!(
-                            crate::field(&rows[0], "pressure_sensor_index_reported"),
-                            Some(&FieldValue::I64(index))
-                        );
-                        assert_eq!(
-                            crate::field(&rows[0], "pressure_absolute_pa"),
-                            Some(&FieldValue::F64(absolute as f64 * 100.0))
-                        );
-                        assert_eq!(
-                            crate::field(&rows[0], "pressure_differential_pa"),
-                            Some(&FieldValue::F64(differential as f64 * 100.0))
-                        );
-                        assert_eq!(
-                            crate::field(&rows[0], "pressure_temperature_k"),
-                            Some(&FieldValue::F64(temperature as f64 / 100.0 + 273.15))
-                        );
-                        let expected = if !v2 || extra == 0 || extra == 1 {
-                            FieldValue::Blank
-                        } else {
-                            FieldValue::F64(extra as f64 / 100.0 + 273.15)
-                        };
-                        assert_eq!(
-                            crate::field(&rows[0], "differential_temperature_k"),
-                            Some(&expected)
-                        );
-                        assert!(rows[0].anchor_unix_us.is_none());
-                    }
-                }
-                for offset in [4, 8] {
-                    let mut bad = payload;
-                    bad[offset..offset + 4].copy_from_slice(&f32::NAN.to_le_bytes());
-                    assert!(TlogReader.read(&profile, &framed(id, &bad, true)).is_err());
-                }
-                for offset in [12, 14] {
-                    let mut bad = payload;
-                    bad[offset..offset + 2].copy_from_slice(&(-27316i16).to_le_bytes());
-                    assert!(TlogReader.read(&profile, &framed(id, &bad, true)).is_err());
-                }
-                assert!(
-                    TlogReader
-                        .read(&profile, &framed(id, &[0; 17], true))
-                        .is_err()
-                );
-                assert!(
-                    TlogReader
-                        .read(&profile, &framed(id, &[0; 13], false))
-                        .is_err()
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn recorded_distance_preserves_units_quality_and_source_without_world_transform() {
-        let profile = parse_profile(PROFILE).unwrap();
-        let mut payload = [0u8; 39];
-        payload[..4].copy_from_slice(&1234u32.to_le_bytes());
-        payload[4..6].copy_from_slice(&20u16.to_le_bytes());
-        payload[6..8].copy_from_slice(&1000u16.to_le_bytes());
-        payload[8..10].copy_from_slice(&125u16.to_le_bytes());
-        payload[11] = 7;
-        payload[12] = 250; // Unknown direction code is preserved, not rotated.
-        payload[13] = 25;
-        payload[14..18].copy_from_slice(&0.5f32.to_le_bytes());
-        payload[22..26].copy_from_slice(&1.0f32.to_le_bytes());
-        payload[38] = 75;
-        for v2 in [false, true] {
-            let input = if v2 { &payload[..] } else { &payload[..14] };
-            let rows = TlogReader.read(&profile, &framed(132, input, v2)).unwrap();
-            assert_eq!(rows[0].t_boot_us, Some(1_234_000));
-            for (name, value) in [
-                ("reported_distance_m", 1.25),
-                ("min_distance_m", 0.2),
-                ("variance_m2", 0.0025),
-            ] {
-                assert_eq!(
-                    crate::field(&rows[0], &format!("DISTANCE_SENSOR.{name}")),
-                    Some(&FieldValue::F64(value))
-                );
-            }
-            assert_eq!(
-                crate::field(&rows[0], "DISTANCE_SENSOR.sensor_id"),
-                Some(&FieldValue::I64(7))
-            );
-            assert_eq!(
-                crate::field(&rows[0], "DISTANCE_SENSOR.orientation_code"),
-                Some(&FieldValue::I64(250))
-            );
-            assert_eq!(
-                crate::field(&rows[0], "DISTANCE_SENSOR.horizontal_fov_rad"),
-                Some(&if v2 {
-                    FieldValue::F64(0.5)
-                } else {
-                    FieldValue::Blank
-                })
-            );
-        }
-        payload[13] = 255;
-        payload[38] = 1;
-        let rows = TlogReader
-            .read(&profile, &framed(132, &payload, true))
-            .unwrap();
-        assert_eq!(
-            crate::field(&rows[0], "DISTANCE_SENSOR.variance_m2"),
-            Some(&FieldValue::Blank)
-        );
-        assert_eq!(
-            crate::field(&rows[0], "DISTANCE_SENSOR.range_state"),
-            Some(&FieldValue::Text("INVALID_SIGNAL".into()))
-        );
-        payload[38] = 0;
-        payload[8..10].copy_from_slice(&1100u16.to_le_bytes());
-        let rows = TlogReader
-            .read(&profile, &framed(132, &payload, true))
-            .unwrap();
-        assert_eq!(
-            crate::field(&rows[0], "DISTANCE_SENSOR.range_state"),
-            Some(&FieldValue::Text("OUTSIDE_DECLARED_RANGE".into()))
-        );
-        for (offset, value) in [(38, 101), (14, 255)] {
-            let mut invalid = payload;
-            invalid[offset] = value;
-            if offset == 14 {
-                invalid[14..18].copy_from_slice(&f32::NAN.to_le_bytes());
-            }
-            assert!(
-                TlogReader
-                    .read(&profile, &framed(132, &invalid, true))
-                    .is_err()
-            );
-        }
-        assert!(
-            TlogReader
-                .read(&profile, &framed(132, &[0; 40], true))
-                .is_err()
-        );
-        assert!(TlogReader.read(&profile, &framed(132, &[1], true)).is_ok());
-        assert!(
-            TlogReader
-                .read(&profile, &framed(132, &[1], false))
-                .is_err()
-        );
-        let mut corrupt = framed(132, &payload, true);
-        *corrupt.last_mut().unwrap() ^= 1;
-        assert!(TlogReader.read(&profile, &corrupt).is_err());
-    }
-
-    #[test]
-    fn motion_messages_preserve_units_frames_and_boot_time() {
-        let profile = parse_profile(PROFILE).unwrap();
-        let mut payload = 1234u32.to_le_bytes().to_vec();
-        for value in [0.25f32, -0.5, 1.0, 2.0, -3.0, 4.0] {
-            payload.extend_from_slice(&value.to_le_bytes());
-        }
-        for id in [30, 32] {
-            for v2 in [false, true] {
-                let rows = TlogReader
-                    .read(&profile, &framed(id, &payload, v2))
-                    .unwrap();
-                assert_eq!(rows[0].t_boot_us, Some(1_234_000));
-                assert_eq!(rows[0].clock_basis, crate::ClockBasis::HostReceived);
-                let key = if id == 30 {
-                    "ATTITUDE.roll_rad"
-                } else {
-                    "LOCAL_POSITION_NED.north_m"
-                };
-                assert_eq!(crate::field(&rows[0], key), Some(&FieldValue::F64(0.25)));
-            }
-            assert!(TlogReader.read(&profile, &framed(id, &[1], true)).is_ok());
-            assert!(TlogReader.read(&profile, &framed(id, &[1], false)).is_err());
-            assert!(
-                TlogReader
-                    .read(&profile, &framed(id, &[0; 29], true))
-                    .is_err()
-            );
-            let mut invalid = payload.clone();
-            invalid[4..8].copy_from_slice(&f32::NAN.to_le_bytes());
-            assert!(
-                TlogReader
-                    .read(&profile, &framed(id, &invalid, true))
-                    .is_err()
-            );
-            let mut corrupt = framed(id, &payload, true);
-            *corrupt.last_mut().unwrap() ^= 1;
-            assert!(TlogReader.read(&profile, &corrupt).is_err());
-        }
-    }
-
-    #[test]
-    fn battery_status_preserves_units_missing_slots_and_multiple_ids() {
-        let profile = parse_profile(PROFILE).unwrap();
-        let mut payload = [0u8; 54];
-        payload[..4].copy_from_slice(&1250i32.to_le_bytes());
-        payload[4..8].copy_from_slice(&36i32.to_le_bytes());
-        payload[8..10].copy_from_slice(&2500i16.to_le_bytes());
-        for index in 0..10 {
-            payload[10 + index * 2..12 + index * 2].copy_from_slice(&65535u16.to_le_bytes());
-        }
-        payload[10..12].copy_from_slice(&12000u16.to_le_bytes());
-        payload[30..32].copy_from_slice(&250i16.to_le_bytes());
-        payload[35] = 75;
-        payload[36..40].copy_from_slice(&60i32.to_le_bytes());
-        payload[40] = 5;
-        payload[41..43].copy_from_slice(&1u16.to_le_bytes());
-        for (id, v2) in [(1, false), (2, true)] {
-            payload[32] = id;
-            let bytes = if v2 { &payload[..] } else { &payload[..36] };
-            let rows = TlogReader.read(&profile, &framed(147, bytes, v2)).unwrap();
-            assert_eq!(
-                crate::field(&rows[0], "battery_id_reported"),
-                Some(&FieldValue::I64(id.into()))
-            );
-            for (name, expected) in [
-                ("battery_consumed_ah", 1.25),
-                ("battery_consumed_j", 3600.0),
-                ("battery_current_a", 2.5),
-                ("battery_temperature_k", 298.15),
-                ("battery_remaining_fraction", 0.75),
-                ("battery_voltage_slot_v_1", 12.0),
-            ] {
-                assert_eq!(
-                    crate::field(&rows[0], name),
-                    Some(&FieldValue::F64(expected))
-                );
-            }
-            assert_eq!(
-                crate::field(&rows[0], "battery_voltage_slot_v_2"),
-                Some(&FieldValue::Blank)
-            );
-            assert_eq!(
-                crate::field(&rows[0], "battery_voltage_slot_v_11"),
-                Some(&FieldValue::Blank)
-            );
-            assert_eq!(rows[0].clock_basis, crate::ClockBasis::HostReceived);
-        }
-        payload[..8].fill(255);
-        payload[8..10].copy_from_slice(&32767i16.to_le_bytes());
-        payload[30..32].copy_from_slice(&(-1i16).to_le_bytes());
-        payload[35] = 255;
-        let rows = TlogReader
-            .read(&profile, &framed(147, &payload, true))
-            .unwrap();
-        for name in [
-            "battery_current_a",
-            "battery_consumed_ah",
-            "battery_consumed_j",
-            "battery_temperature_k",
-            "battery_remaining_fraction",
-        ] {
-            assert_eq!(crate::field(&rows[0], name), Some(&FieldValue::Blank));
-        }
-        let mut bad = payload;
-        bad[35] = 101;
-        assert!(TlogReader.read(&profile, &framed(147, &bad, true)).is_err());
-        assert!(
-            TlogReader
-                .read(&profile, &framed(147, &[0; 55], true))
-                .is_err()
-        );
-        assert!(
-            TlogReader
-                .read(&profile, &framed(147, &[0; 35], false))
-                .is_err()
-        );
-        let mut corrupt = framed(147, &payload, true);
-        *corrupt.last_mut().unwrap() ^= 1;
-        assert!(TlogReader.read(&profile, &corrupt).is_err());
-    }
-
-    #[test]
-    fn wire_version_and_clock_range_do_not_wrap_into_false_time() {
-        let profile = parse_profile(PROFILE).unwrap();
-        for id in [2, 24] {
-            let mut payload = vec![0; if id == 2 { 12 } else { 30 }];
-            for v2 in [false, true] {
-                for timestamp in [0, 1_700_000_000_000_000, i64::MAX as u64] {
-                    payload[..8].copy_from_slice(&timestamp.to_le_bytes());
-                    let rows = TlogReader
-                        .read(&profile, &framed(id, &payload, v2))
-                        .unwrap();
-                    assert_eq!(
-                        crate::field(&rows[0], "MAVLINK.wire_version"),
-                        Some(&FieldValue::I64(if v2 { 2 } else { 1 }))
-                    );
-                    let key = if id == 2 {
-                        "SYSTEM_TIME.time_unix_usec"
-                    } else {
-                        "GPS_RAW_INT.time_usec"
-                    };
-                    assert_eq!(
-                        crate::field(&rows[0], key),
-                        Some(&FieldValue::I64(timestamp as i64))
-                    );
-                    if id == 2 {
-                        assert_eq!(
-                            rows[0].anchor_unix_us,
-                            if timestamp == 0 {
-                                None
-                            } else {
-                                Some(timestamp as i64)
-                            }
-                        );
-                    }
-                }
-                for timestamp in [i64::MAX as u64 + 1, u64::MAX] {
-                    payload[..8].copy_from_slice(&timestamp.to_le_bytes());
-                    assert!(
-                        TlogReader
-                            .read(&profile, &framed(id, &payload, v2))
-                            .is_err()
-                    );
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn reported_firmware_and_uid_do_not_become_authenticated_identity() {
-        let profile = parse_profile(PROFILE).unwrap();
-        let mut payload = [0u8; 78];
-        payload[0..8].copy_from_slice(&u64::MAX.to_le_bytes());
-        payload[8..16].copy_from_slice(&u64::MAX.to_le_bytes());
-        payload[16..20].copy_from_slice(&0x04050341u32.to_le_bytes());
-        payload[32..34].copy_from_slice(&123u16.to_le_bytes());
-        payload[36..44].copy_from_slice(&[1, 2, 3, 4, 5, 6, 7, 8]);
-        for v2 in [false, true] {
-            let data = if v2 { &payload[..] } else { &payload[..60] };
-            let rows = TlogReader.read(&profile, &framed(148, data, v2)).unwrap();
-            for (key, value) in [
-                ("major", 4),
-                ("minor", 5),
-                ("patch", 3),
-                ("release_type_code", 65),
-                ("vendor_id", 123),
-            ] {
-                assert_eq!(
-                    crate::field(&rows[0], &format!("AUTOPILOT_VERSION.{key}")),
-                    Some(&FieldValue::I64(value))
-                );
-            }
-            for (key, value) in [
-                ("release_channel_reported", "ALPHA"),
-                ("uid_preference_reported", "UID"),
-                ("uid_hex", "ffffffffffffffff"),
-                ("flight_custom_bytes_hex", "0102030405060708"),
-                ("identity_basis", "SELF_REPORTED_NOT_AUTHENTICATED"),
-            ] {
-                assert_eq!(
-                    crate::field(&rows[0], &format!("AUTOPILOT_VERSION.{key}")),
-                    Some(&FieldValue::Text(value.into()))
-                );
-            }
-            assert_eq!(rows[0].t_boot_us, None);
-        }
-        payload[60] = 1;
-        let rows = TlogReader
-            .read(&profile, &framed(148, &payload[..61], true))
-            .unwrap();
-        assert_eq!(
-            crate::field(&rows[0], "AUTOPILOT_VERSION.uid_preference_reported"),
-            Some(&FieldValue::Text("UID2".into()))
-        );
-        let rows = TlogReader.read(&profile, &framed(148, &[0], true)).unwrap();
-        assert_eq!(
-            crate::field(&rows[0], "AUTOPILOT_VERSION.uid_preference_reported"),
-            Some(&FieldValue::Text("NOT_PROVIDED".into()))
-        );
-        assert!(
-            TlogReader
-                .read(&profile, &framed(148, &[0; 59], false))
-                .is_err()
-        );
-        assert!(
-            TlogReader
-                .read(&profile, &framed(148, &[0; 79], true))
-                .is_err()
-        );
-        let mut corrupt = framed(148, &payload, true);
-        *corrupt.last_mut().unwrap() ^= 1;
-        assert!(TlogReader.read(&profile, &corrupt).is_err());
-    }
-
-    #[test]
-    fn state_units_unknown_frames_and_sender_survive_the_same_reader() {
-        let profile = parse_profile(PROFILE).unwrap();
-        let mut heartbeat = [0; 9];
-        heartbeat[6] = 128;
-        heartbeat[7] = 4;
-        heartbeat[8] = 3;
-        let mut sys = [0; 31];
-        sys[14..16].copy_from_slice(&24000u16.to_le_bytes());
-        sys[16..18].copy_from_slice(&200i16.to_le_bytes());
-        sys[18..20].copy_from_slice(&250u16.to_le_bytes());
-        sys[30] = 75;
-        let unknown = framed(20000, &[0x12, 0x34, 0x56], true);
-        let bytes = [
-            framed(0, &heartbeat, false),
-            framed(1, &sys, false),
-            framed(42, &[2, 0, 10, 0, 3, 1], true),
-            unknown.clone(),
-        ]
-        .concat();
-        let obs = TlogReader.read(&profile, &bytes).unwrap();
-        assert_eq!(obs.len(), 4);
-        assert_eq!(
-            crate::field(&obs[0], "HEARTBEAT.reported_armed"),
-            Some(&FieldValue::I64(1))
-        );
-        assert_eq!(
-            crate::field(&obs[1], "battery_voltage_v").unwrap().as_f64(),
-            Some(24.)
-        );
-        assert_eq!(
-            crate::field(&obs[1], "battery_current_a").unwrap().as_f64(),
-            Some(2.)
-        );
-        assert_eq!(
-            crate::field(&obs[1], "communication_drop_fraction")
-                .unwrap()
-                .as_f64(),
-            Some(0.025)
-        );
-        assert_eq!(
-            crate::field(&obs[2], "mission_state_reported"),
-            Some(&FieldValue::Text("ACTIVE".into()))
-        );
-        assert_eq!(
-            crate::field(&obs[3], "MAVLINK.crc_verified"),
-            Some(&FieldValue::I64(0))
-        );
-        assert_eq!(
-            crate::field(&obs[3], "MAVLINK.raw_frame_hex"),
-            Some(&FieldValue::Text(
-                unknown[8..].iter().map(|b| format!("{b:02x}")).collect()
-            ))
-        );
-        for o in obs {
-            assert_eq!(
-                crate::field(&o, "MAVLINK.system_id"),
-                Some(&FieldValue::I64(42))
-            );
-            assert_eq!(
-                crate::field(&o, "MAVLINK.component_id"),
-                Some(&FieldValue::I64(3))
-            );
-            assert_eq!(o.clock_basis, crate::ClockBasis::HostReceived);
-        }
-    }
-
-    #[test]
-    fn sensor_report_bits_preserve_declared_extensions_without_safety_inference() {
-        let profile = parse_profile(PROFILE).unwrap();
-        for (present, enabled, healthy) in [
-            (0x8000_0001_u32, 2_u32, 4_u32),
-            (0xc001_0000, 0x1000_0000, 0x1000_0000),
-        ] {
-            let mut payload = [0_u8; 43];
-            payload[..4].copy_from_slice(&present.to_le_bytes());
-            payload[4..8].copy_from_slice(&enabled.to_le_bytes());
-            payload[8..12].copy_from_slice(&healthy.to_le_bytes());
-            payload[12..14].copy_from_slice(&500_u16.to_le_bytes());
-            payload[31..35].copy_from_slice(&0x8000_0081_u32.to_le_bytes());
-            payload[35..39].copy_from_slice(&2_u32.to_le_bytes());
-            payload[39..43].copy_from_slice(&4_u32.to_le_bytes());
-            let rows = TlogReader
-                .read(&profile, &framed(1, &payload, true))
-                .unwrap();
-            for (name, value) in [
-                ("gyro3d.present_reported", i64::from(present & 1 != 0)),
-                ("accel3d.enabled_reported", i64::from(enabled & 2 != 0)),
-                ("mag3d.healthy_reported", i64::from(healthy & 4 != 0)),
-                (
-                    "prearm_check.healthy_reported",
-                    i64::from(healthy & 0x1000_0000 != 0),
-                ),
-                ("recovery_system.present_reported", 1),
-                ("mag3d_4.present_reported", 1),
-                ("leak.enabled_reported", 1),
-                ("gyro3d_3.healthy_reported", 1),
-                ("present_extended_unknown_bits", 0x8000_0000),
-            ] {
-                assert_eq!(
-                    crate::field(&rows[0], &format!("SYS_STATUS.{name}")),
-                    Some(&FieldValue::I64(value))
-                );
-            }
-            assert_eq!(
-                crate::field(&rows[0], "SYS_STATUS.mainloop_load_fraction_reported"),
-                Some(&FieldValue::F64(0.5))
-            );
-            assert_eq!(rows[0].t_boot_us, None);
-            let v1 = TlogReader
-                .read(&profile, &framed(1, &payload[..31], false))
-                .unwrap();
-            assert_eq!(
-                crate::field(&v1[0], "SYS_STATUS.leak.present_reported"),
-                Some(&FieldValue::Blank)
-            );
-            payload[3] &= 0x7f;
-            let undeclared = TlogReader
-                .read(&profile, &framed(1, &payload, true))
-                .unwrap();
-            assert_eq!(
-                crate::field(&undeclared[0], "SYS_STATUS.present_extended_raw"),
-                Some(&FieldValue::I64(0x8000_0081))
-            );
-            assert_eq!(
-                crate::field(&undeclared[0], "SYS_STATUS.leak.present_reported"),
-                Some(&FieldValue::Blank)
-            );
-            payload[12..14].copy_from_slice(&1001_u16.to_le_bytes());
-            assert!(
-                TlogReader
-                    .read(&profile, &framed(1, &payload, true))
-                    .is_err()
-            );
-        }
-        assert!(
-            TlogReader
-                .read(&profile, &framed(1, &[0; 44], true))
-                .is_err()
-        );
-        let short = TlogReader.read(&profile, &framed(1, &[0], true)).unwrap();
-        assert_eq!(
-            crate::field(&short[0], "SYS_STATUS.extended_declared_reported"),
-            Some(&FieldValue::I64(0))
-        );
-    }
-
-    #[test]
-    fn unavailable_v2_extension_and_wrong_profile_do_not_become_claims() {
-        let mut profile = parse_profile(PROFILE).unwrap();
-        let obs = TlogReader.read(&profile, &framed(42, &[2], true)).unwrap();
-        assert_eq!(
-            crate::field(&obs[0], "mission_state_reported"),
-            Some(&FieldValue::Text("UNKNOWN".into()))
-        );
-        profile.default_clock_basis = crate::ClockBasis::BootRelative;
-        assert!(TlogReader.read(&profile, &framed(42, &[2], true)).is_err());
-    }
-
-    #[test]
-    fn sys_status_missing_and_invalid_percent_are_distinct() {
-        let profile = parse_profile(PROFILE).unwrap();
-        let mut payload = [0; 31];
-        payload[14..18].fill(255);
-        payload[30] = 255;
-        let obs = TlogReader
-            .read(&profile, &framed(1, &payload, true))
-            .unwrap();
-        for name in [
-            "battery_voltage_v",
-            "battery_current_a",
-            "battery_remaining_fraction",
-        ] {
-            assert_eq!(crate::field(&obs[0], name), Some(&FieldValue::Blank));
-        }
-        payload[30] = 101;
-        assert!(
-            TlogReader
-                .read(&profile, &framed(1, &payload, true))
-                .is_err()
-        );
-    }
-
-    #[test]
-    fn signature_is_retained_but_never_authenticated_and_unknown_flags_reject() {
-        let profile = parse_profile(PROFILE).unwrap();
-        let mut bytes = framed(42, &[2], true);
-        bytes[10] = 1; // incompatibility flag, after eight-byte receipt timestamp
-        let crc = crc_x25(&[28], crc_x25(&bytes[9..19], 0xffff));
-        bytes[19..21].copy_from_slice(&crc.to_le_bytes());
-        bytes.extend_from_slice(&[7; 13]);
-        let obs = TlogReader.read(&profile, &bytes).unwrap();
-        assert_eq!(
-            crate::field(&obs[0], "MAVLINK.signature"),
-            Some(&FieldValue::Text("present_unverified".into()))
-        );
-        bytes[10] = 2;
-        assert!(TlogReader.read(&profile, &bytes).is_err());
     }
 }

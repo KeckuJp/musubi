@@ -41,12 +41,12 @@ fn record(name: &str, data: Value) -> Value {
 #[test]
 fn fixed_ardu_vehicle_imu_profiles_reuse_values_without_domain_inference() {
     let unknown = parse_profile(
-        include_str!("fixtures/ardupilot-mode--imu-unclassified-profile.toml"),
+        include_str!("fixtures/unknown-adapter--ardupilot-mode--imu-unclassified-profile.toml"),
         "test",
     )
     .unwrap();
     let rover = parse_profile(
-        include_str!("fixtures/ardupilot-mode--imu-rover-profile.toml"),
+        include_str!("fixtures/unknown-adapter--ardupilot-mode--imu-rover-profile.toml"),
         "test",
     )
     .unwrap();
@@ -102,7 +102,7 @@ fn fixed_ardu_vehicle_imu_profiles_reuse_values_without_domain_inference() {
 #[test]
 fn selected_plane_4x_instances_reuse_imu_and_attitude_profile() {
     let p = parse_profile(
-        include_str!("fixtures/ardupilot-mode--imu-profile.toml"),
+        include_str!("fixtures/unknown-adapter--ardupilot-mode--imu-profile.toml"),
         "public",
     )
     .unwrap();
@@ -424,7 +424,7 @@ fn invalid_time_fields_and_malformed_records_fail_without_partial_success() {
 #[test]
 fn fixed_imu_profile_reuses_reader_without_rescaling_or_merging_instances() {
     let p = parse_profile(
-        include_str!("fixtures/ardupilot-mode--imu-profile.toml"),
+        include_str!("fixtures/unknown-adapter--ardupilot-mode--imu-profile.toml"),
         "test",
     )
     .unwrap();
@@ -465,7 +465,7 @@ fn fixed_imu_profile_reuses_reader_without_rescaling_or_merging_instances() {
 #[test]
 fn reported_attitude_and_targets_remain_distinct_decoded_degrees() {
     let p = parse_profile(
-        include_str!("fixtures/ardupilot-mode--imu-profile.toml"),
+        include_str!("fixtures/unknown-adapter--ardupilot-mode--imu-profile.toml"),
         "test",
     )
     .unwrap();

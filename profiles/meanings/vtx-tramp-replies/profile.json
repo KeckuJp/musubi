@@ -1,0 +1,155 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_the_caller_declared_clock_for_when_this_stream_was_taken_in_which_is_never_when_the_device_answered_because_a_Tramp_reply_carries_no_time_of_its_own_at_all",
+      "basis": "declared"
+    },
+    "capture_clock_basis": {
+      "meaning": "capture_clock_basis",
+      "unit": "the_fixed_statement_that_the_common_capture_clock_is_a_caller_declaration",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "sha256_of_the_exact_saved_bytes_binding_not_authenticity_and_not_approval",
+      "basis": "declared"
+    },
+    "source_device_declared": {
+      "meaning": "source_device_declared",
+      "unit": "utf8_hex_of_the_callers_own_statement_of_which_device_this_stream_came_from_or_blank_a_CALLER_DECLARATION_never_read_from_the_wire",
+      "basis": "declared"
+    },
+    "device_identity_basis": {
+      "meaning": "device_identity_basis",
+      "unit": "the_fixed_statement_that_the_protocol_carries_no_serial_number_no_model_and_no_identity_so_none_is_invented_here",
+      "basis": "declared"
+    },
+    "frame_offset": {
+      "meaning": "frame_offset",
+      "unit": "zero_based_byte_offset_of_this_frame_in_the_saved_stream_a_join_key_into_the_original_and_never_an_order_of_transmission",
+      "basis": "declared"
+    },
+    "frame_hex": {
+      "meaning": "frame_hex",
+      "unit": "hex_of_the_exact_16_bytes_this_row_was_read_from_so_every_field_stays_recoverable_from_what_was_saved",
+      "basis": "declared"
+    },
+    "vtx_reply_kind": {
+      "meaning": "vtx_reply_kind",
+      "unit": "DEVICE_LIMITS_REPLY_or_STATUS_REPLY_or_TEMPERATURE_REPLY_which_are_the_only_three_codes_the_pinned_receiver_accepts_and_they_are_different_rows_because_a_limit_is_not_a_state",
+      "basis": "declared"
+    },
+    "vtx_reply_code": {
+      "meaning": "vtx_reply_code",
+      "unit": "the_single_reply_code_letter_r_or_v_or_s_exactly_as_the_frame_carried_it",
+      "basis": "declared"
+    },
+    "reply_readiness_basis": {
+      "meaning": "reply_readiness_basis",
+      "unit": "the_fixed_statement_that_this_row_says_only_WHICH_REPLY_KIND_ARRIVED_that_readiness_in_the_pinned_firmware_is_its_own_state_machine_and_not_a_field_in_any_reply_and_that_no_device_health_verdict_no_fault_and_no_interference_diagnosis_is_reached_here",
+      "basis": "declared"
+    },
+    "frequency_mhz_reported": {
+      "meaning": "frequency_mhz_reported",
+      "unit": "MHz_the_frequency_the_device_reports_for_itself_the_unit_comes_from_the_pinned_headers_own_min_and_max_frequency_MHz_declarations_and_it_is_a_REPORTED_CONFIGURATION_never_a_measured_emission",
+      "basis": "declared"
+    },
+    "frequency_range_disposition": {
+      "meaning": "frequency_range_disposition",
+      "unit": "REPORTED_INSIDE_THE_DECLARED_SETTING_RANGE_or_REPORTED_OUTSIDE_THE_DECLARED_SETTING_RANGE_RETAINED_for_the_5000_to_5999_MHz_range_the_pinned_source_declares_for_its_own_setting",
+      "basis": "declared"
+    },
+    "frequency_range_basis": {
+      "meaning": "frequency_range_basis",
+      "unit": "the_fixed_statement_that_the_range_is_REPORTED_and_never_enforced_because_a_device_may_report_outside_the_range_its_controller_declares",
+      "basis": "declared"
+    },
+    "frequency_min_mhz_reported": {
+      "meaning": "frequency_min_mhz_reported",
+      "unit": "MHz_the_minimum_frequency_the_device_reports_as_its_own_limit_under_the_same_unit_provenance",
+      "basis": "declared"
+    },
+    "frequency_max_mhz_reported": {
+      "meaning": "frequency_max_mhz_reported",
+      "unit": "MHz_the_maximum_frequency_the_device_reports_as_its_own_limit_under_the_same_unit_provenance",
+      "basis": "declared"
+    },
+    "power_max_reported": {
+      "meaning": "power_max_reported",
+      "unit": "the_maximum_power_the_device_reports_as_its_own_limit_in_the_quantity_named_by_power_basis",
+      "basis": "declared"
+    },
+    "configured_power_reported": {
+      "meaning": "configured_power_reported",
+      "unit": "the_power_the_device_reports_it_is_CONFIGURED_at_in_the_quantity_named_by_power_basis",
+      "basis": "declared"
+    },
+    "actual_power_reported": {
+      "meaning": "actual_power_reported",
+      "unit": "the_power_the_device_reports_as_ACTUAL_which_is_still_the_devices_own_claim_about_itself_and_NOT_a_measurement_of_what_was_radiated",
+      "basis": "declared"
+    },
+    "control_mode_code": {
+      "meaning": "control_mode_code",
+      "unit": "the_reported_control_mode_byte_kept_WHOLE_because_the_pinned_source_says_it_is_currently_only_used_for_race_lock_so_every_other_bit_is_retained_and_not_interpreted",
+      "basis": "declared"
+    },
+    "race_lock_declared": {
+      "meaning": "race_lock_declared",
+      "unit": "1_or_0_for_the_one_bit_the_pinned_source_names_TRAMP_CONTROL_RACE_LOCK_and_nothing_else_is_read_from_that_byte",
+      "basis": "declared"
+    },
+    "pit_mode_code": {
+      "meaning": "pit_mode_code",
+      "unit": "the_reported_pit_mode_byte_exactly_as_written",
+      "basis": "declared"
+    },
+    "pit_mode_reported": {
+      "meaning": "pit_mode_reported",
+      "unit": "PIT_MODE_REPORTED_SET_or_PIT_MODE_REPORTED_CLEAR_which_is_what_the_device_says_about_its_own_mode",
+      "basis": "declared"
+    },
+    "pit_mode_basis": {
+      "meaning": "pit_mode_basis",
+      "unit": "the_fixed_statement_that_a_reported_pit_mode_is_a_STATED_MODE_and_never_evidence_that_radio_frequency_output_was_actually_suppressed",
+      "basis": "declared"
+    },
+    "temperature_word_reported": {
+      "meaning": "temperature_word_reported",
+      "unit": "the_raw_16_bit_word_the_device_sent_in_the_temperature_field_carried_as_written",
+      "basis": "declared"
+    },
+    "temperature_signed_reading": {
+      "meaning": "temperature_signed_reading",
+      "unit": "the_same_word_read_as_a_signed_16_bit_value_which_is_how_the_pinned_DECODE_casts_it",
+      "basis": "declared"
+    },
+    "temperature_unsigned_reading": {
+      "meaning": "temperature_unsigned_reading",
+      "unit": "the_same_word_read_as_an_unsigned_16_bit_value_which_is_how_the_pinned_ACCESSOR_returns_it_both_readings_are_carried_because_the_source_does_not_settle_which_is_right",
+      "basis": "declared"
+    },
+    "temperature_basis": {
+      "meaning": "temperature_basis",
+      "unit": "the_fixed_statement_that_the_UNIT_IS_UNRESOLVED_that_the_pinned_source_states_no_unit_for_this_field_at_all_that_it_does_not_settle_the_sign_either_and_that_NO_DEGREE_IS_ASSERTED_here",
+      "basis": "declared"
+    },
+    "source_basis": {
+      "meaning": "source_basis",
+      "unit": "the_fixed_statement_that_these_are_bytes_a_transmitter_produced_and_somebody_saved_read_under_the_pinned_flight_controller_receivers_own_acceptance_rules_which_are_an_IMPLEMENTATION_and_not_a_vendor_specification",
+      "basis": "declared"
+    },
+    "record_basis": {
+      "meaning": "record_basis",
+      "unit": "the_fixed_statement_that_every_row_is_an_OBSERVED_RECORD_read_from_saved_bytes_that_it_is_never_a_command_never_a_transmission_never_a_device_contact_and_never_a_measurement_made_here",
+      "basis": "declared"
+    }
+  }
+}

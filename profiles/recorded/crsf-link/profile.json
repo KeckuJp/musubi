@@ -42,6 +42,7 @@
     "downlink_rssi_dbm": "dBm_reported_possible_stale_if_no_link",
     "downlink_lq_fraction": "reported_packet_success_fraction",
     "downlink_snr_db": "dB",
+    "active_antenna": "the_diversity_antenna_the_sender_reported_as_active_for_that_frame_ANTENNA_1_or_ANTENNA_2_read_from_the_reported_byte_with_any_other_byte_retained_as_UNKNOWN_followed_by_that_number_rather_than_guessed_it_is_a_selection_the_sender_declared_and_never_one_this_path_verified_and_it_is_never_an_antenna_quality_never_evidence_that_another_antenna_failed_was_disconnected_or_was_unused_never_the_cause_of_either_reported_uplink_RSSI_never_a_physical_antenna_identity_position_or_orientation_and_never_an_interference_obstruction_or_range_finding",
     "rf_mode_code": "source_enum_not_mapped_to_rate",
     "tx_power_code": "source_enum_not_mapped_to_watts"
   }

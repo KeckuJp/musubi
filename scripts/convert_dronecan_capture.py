@@ -20,6 +20,21 @@ else:
 
 TYPES = {341: "NodeStatus", 1092: "BatteryInfo", 1027: "RawAirData", 1002: "MagneticFieldStrength2",
          1034: "ESCStatus", 1045: "RPM", 1011: "ActuatorStatus"}
+# Services live in their own 0..255 number space, resolved at the pin by (id, KIND_SERVICE), so this
+# table is separate from TYPES and is consulted only when the service bit of the CAN ID is set.
+# Response direction only: a request frame is never decoded, and none is ever generated or sent.
+SERVICES = {1: "GetNodeInfo.Response"}
+# PGN 127257 Attitude at the adopted canboat pin declares only "Attitude" and the field names Yaw,
+# Pitch and Roll: no reference frame, no axis convention and no true/magnetic wording anywhere.
+# canboat ENGINE_INSTANCE.yaml declares exactly these two values; any other code is retained as a
+# reported number and named unknown rather than the lookup being extended.
+ENGINE_INSTANCE = {0: "Single Engine or Dual Engine Port", 1: "Dual Engine Starboard"}
+ENGINE_TRIM_SCALE_BASIS = ("PERCENT_AT_SCALE_ONE_ESTABLISHED_BY_THE_PINNED_DECODER_NOT_BY_A_DOCUMENTED_SCHEMA_DEFAULT_"
+                           "THE_FIELD_TYPE_DECLARES_THE_UNIT_PERCENT_AND_DECLARES_NO_RESOLUTION_"
+                           "AND_THE_DECODER_FIXES_ONE_POINT_ZERO_FOR_A_NUMBER_ROOTED_FIELD_THAT_"
+                           "HAS_NONE_SO_THE_REPORTED_SIGNED_COUNT_IS_THE_PERCENT_VALUE")
+ATTITUDE_REFERENCE_BASIS = ("REPORTED_YAW_PITCH_ROLL_RADIANS_THE_PINNED_DECLARATION_STATES_NO_"
+                            "REFERENCE_FRAME_NO_AXIS_CONVENTION_AND_NO_TRUE_OR_MAGNETIC_REFERENCE")
 
 
 def convert_canopen_dictionary(text, capture_time_us):
@@ -48,6 +63,15 @@ def convert_canopen_dictionary(text, capture_time_us):
              16: ("INTEGER24", 24), 17: ("REAL64", 64), 18: ("INTEGER40", 40), 19: ("INTEGER48", 48),
              20: ("INTEGER56", 56), 21: ("INTEGER64", 64), 22: ("UNSIGNED24", 24),
              24: ("UNSIGNED40", 40), 25: ("UNSIGNED48", 48), 26: ("UNSIGNED56", 56), 27: ("UNSIGNED64", 64)}
+    for section in parser.sections():
+        if section.lower() != "deviceinfo":
+            continue
+        for option, value in parser.items(section):
+            # DS306 4.6.3.4.1/5.3.3.1: a non-zero CompactPDO bitmask means PDO objects are *implicit* -
+            # their mapping words are not in the file and their types/defaults come from CiA301, which
+            # this repo does not pin. Refuse rather than emit a dictionary with those objects missing.
+            if option.lower() == "compactpdo" and number(value, 255):
+                raise ValueError("implicit CompactPDO definitions are not expanded")
     entries = {}
     for section in parser.sections():
         match = re.fullmatch(r"([0-9A-Fa-f]{4})(?:[Ss]ub([0-9A-Fa-f]{1,2}))?", section)
@@ -69,9 +93,13 @@ def convert_canopen_dictionary(text, capture_time_us):
         count = number(values["CompactSubObj"], 255)
         if not count:
             continue
-        # Incomplete/other compact forms stay explicitly unexpanded. Only the
-        # fixed DS306 array template is interpreted, not implicit PDOs or nodes.
-        if kind != 8 or "DataType" not in values or "AccessType" not in values:
+        # Incomplete/other compact forms stay explicitly unexpanded. Only the fixed DS306 template is
+        # interpreted, not implicit PDOs or nodes. DS306 V1.3 defines no separate compact RECORD form:
+        # its 4.6.3.2 obligation table admits non-zero CompactSubObj on ARRAY** and RECORD** alike and
+        # routes both to the one template of 4.6.3.4.2, where DataType/AccessType are mandatory and all
+        # sub-objects share them. A RECORD whose sub-objects are not homogeneous therefore has no
+        # compact form at all, and none is invented here.
+        if kind not in (8, 9) or "DataType" not in values or "AccessType" not in values:
             continue
         if count == 255 or values.get("SubNumber", "") not in ("", "0", "0x0"):
             raise ValueError("unsupported compact array extent or SubNumber")
@@ -140,16 +168,28 @@ def convert_canopen_dictionary(text, capture_time_us):
         source_document_hex="hex:" + text.encode().hex(), scope="declarations only; no expressions or node access")
 FIELDS = list(NORMALIZED) + [
     "battery_temperature_k", "battery_remaining_energy_j", "battery_health_fraction",
-    "node_uptime_s", "node_reported_health", "node_reported_mode",
+    "node_uptime_s", "node_reported_health", "node_health_code", "node_reported_mode",
+    "node_mode_code", "node_sub_mode_reported", "node_vendor_status_code",
     "air_static_pressure_pa", "air_differential_pressure_pa", "air_temperature_k",
     "magnetic_body_x_t", "magnetic_body_y_t", "magnetic_body_z_t", "sensor_id",
     "esc_voltage_v", "esc_current_a", "esc_temperature_k", "esc_reported_error_count",
     "esc_index", "reported_rpm", "esc_demand_fraction", "rpm_reported_health", "rpm_unknown_flags",
     "actuator_id", "actuator_unit_basis", "actuator_position_m", "actuator_position_rad",
     "actuator_force_n", "actuator_torque_n_m", "actuator_linear_speed_m_s",
-    "actuator_angular_speed_rad_s", "actuator_demand_fraction"]
+    "actuator_angular_speed_rad_s", "actuator_demand_fraction",
+    # Self-reported version and identity declarations from the GetNodeInfo response. They describe
+    # the node that sent them and are never an authenticated device, a commercial model or a
+    # verified firmware image.
+    "node_hardware_major_reported", "node_hardware_minor_reported", "node_hardware_unique_id_hex",
+    "node_unique_id_disposition", "node_certificate_of_authenticity_hex",
+    "node_software_major_reported", "node_software_minor_reported",
+    "node_software_version_disposition", "node_software_optional_flags_reported",
+    "node_software_vcs_commit_hex", "node_software_image_crc_hex", "node_name_reported_hex",
+    "node_version_identity_basis"]
 META = ["record_time_us", "first_frame_time_us", "source_node_id", "transfer_id",
-        "data_type", "source_frames_hex"]
+        "data_type", "transfer_kind", "destination_node_id", "source_frames_hex"]
+IDENTITY_BASIS = ("SELF_REPORTED_DECLARATION_BY_THE_SOURCE_NODE_NOT_AUTHENTICATED_DEVICE_MODEL_OR_"
+                  "VERIFIED_FIRMWARE_IMAGE_BOUND_ONLY_BY_SOURCE_NODE_ID_WITHIN_THIS_CAPTURE")
 
 
 def convert_canopen_pdo(text, dictionary, cob_id, mapping_index, *, bit_fields=False, booleans=False):
@@ -192,9 +232,16 @@ def convert_canopen_pdo(text, dictionary, cob_id, mapping_index, *, bit_fields=F
                     or (datatype not in (2, 3, 4, 5, 6, 7, 8, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27)
                         and not (booleans and datatype == 1))
                     or (datatype == 1 and bits not in (1, 8))
-                    or not 1 <= bits <= int(row["declared_bit_width"])
-                    or (not bit_fields and (bits % 8 or bits != int(row["declared_bit_width"])))
-                    or (datatype in (8, 17) and (total % 8 or bits != int(row["declared_bit_width"])))):
+                    or not 1 <= bits <= int(row["declared_bit_width"])):
+                raise ValueError("unsupported scalar PDO mapping")
+            # The pinned reference cannot read a float anywhere else, so this is checked before the
+            # shared width rule below and reported as its own cause. Its non-byte-aligned branch
+            # shift/masks the struct-unpacked value, which is a Python float for <f/<d and raises;
+            # its aligned branch slices the *declared* width and ignores the mapped width, so a
+            # short mapped float would be silently mis-read there. Neither is guessed at here.
+            if datatype in (8, 17) and (total % 8 or bits != int(row["declared_bit_width"])):
+                raise ValueError("float PDO mapping requires byte alignment and the full declared width")
+            if not bit_fields and (bits % 8 or bits != int(row["declared_bit_width"])):
                 raise ValueError("unsupported scalar PDO mapping")
             unit = values.get("Unit")
             if datatype == 1 and ("Unit" in values or "Factor" in values):
@@ -214,15 +261,20 @@ def convert_canopen_pdo(text, dictionary, cob_id, mapping_index, *, bit_fields=F
     fields = ["record_time_us", "source_frame_hex", "dictionary_sha256", "pdo_cob_id", "pdo_mapping_index",
               "pdo_slot", "object_index", "object_subindex", "object_name_hex", "data_type_code",
               "raw_value", "configured_unit", "configured_factor", "quantity_status", *dict.fromkeys(v[0] for v in UNITS.values())]
-    if bit_fields:
-        fields += ["mapped_bit_offset", "mapped_bit_width"]
+    # Every slot reports the bits it came from, not only the integer bit-field mode: a byte-aligned
+    # float is the only float this reference can read, so without these columns a reported float
+    # quantity would carry no source bit range, and a nonfinite one could not be located in the
+    # retained frame. They also make the payload coverage checkable slot by slot.
+    fields += ["mapped_bit_offset", "mapped_bit_width"]
     if booleans:
         fields += ["boolean_reported"]
     output = io.StringIO(newline=""); writer = csv.DictWriter(output, fields, lineterminator="\n"); writer.writeheader()
     report = dict(dictionary_report, dictionary_sha256=digest, frames=0, decoded_frames=0,
                   output_records=0, unsupported_frames=[], qualification="caller-configured TPDO and python Unit/Factor extensions; not device verified")
-    if bit_fields:
-        report.update(mapped_bits=total, retained_padding_bits=(-total) % 8)
+    # Stated for both modes: how many payload bits the mapping actually covers, and how many are
+    # retained padding. In the byte-aligned float mode the padding is zero, and saying so is what
+    # makes "no unmapped loss" checkable rather than assumed.
+    report.update(mapped_bits=total, retained_padding_bits=(-total) % 8)
     report_bytes = len(json.dumps(report).encode())
     for line, original, timestamp, identifier, payload in capture_rows(text, extended=False):
         report["frames"] += 1
@@ -248,8 +300,7 @@ def convert_canopen_pdo(text, dictionary, cob_id, mapping_index, *, bit_fields=F
                        pdo_slot=slot, object_index=index, object_subindex=subindex, object_name_hex=name,
                        data_type_code=datatype, raw_value=value if math.isfinite(value) else "NONFINITE",
                        configured_unit=unit, configured_factor=factor, quantity_status="NONFINITE_RETAINED")
-            if bit_fields:
-                row.update(mapped_bit_offset=offset, mapped_bit_width=bits)
+            row.update(mapped_bit_offset=offset, mapped_bit_width=bits)
             offset += bits
             if datatype == 1:
                 row.update(boolean_reported="TRUE" if value else "FALSE",
@@ -278,6 +329,42 @@ def finite(value, *, scale=1):
     return value * scale
 
 
+def node_info_meanings(payload):
+    """The saved GetNodeInfo response: the adopted NodeStatus meanings plus what the node declares.
+
+    Every version field is the sender's own statement about itself. The optional software fields are
+    read only when their declared flag is set, and a zeroed unique id stays undefined, both exactly
+    as the pinned definitions state.
+    """
+    software, hardware = payload.software_version, payload.hardware_version
+    flags = int(software.optional_field_flags)
+    unique = bytes(hardware.unique_id)
+    values = dict(zip(FIELDS, meanings(341, payload.status)))
+    values.update(
+        node_hardware_major_reported=int(hardware.major),
+        node_hardware_minor_reported=int(hardware.minor),
+        # The adopted "hex:" prefix keeps these text in the common output: a bare "010203" or an
+        # all-zero id would otherwise be read as the number 10203 or 0, losing leading zeros and
+        # the distinction between an identifier and a quantity.
+        node_hardware_unique_id_hex="hex:" + unique.hex(),
+        # "All zeros is not a valid UID. If filled with zeros, assume that the value is undefined."
+        node_unique_id_disposition="ALL_ZERO_UNDEFINED_PER_DEFINITION" if not any(unique)
+        else "REPORTED_BY_NODE_NOT_VERIFIED",
+        node_certificate_of_authenticity_hex="hex:" + bytes(hardware.certificate_of_authenticity).hex(),
+        node_software_major_reported=int(software.major),
+        node_software_minor_reported=int(software.minor),
+        # "If both fields are set to zero, the version is considered unknown." The definitions say
+        # nothing equivalent about the hardware numbers, so nothing is claimed for those.
+        node_software_version_disposition="VERSION_REPORTED_UNKNOWN_BOTH_ZERO"
+        if not software.major and not software.minor else "REPORTED_BY_NODE_NOT_VERIFIED",
+        node_software_optional_flags_reported=flags,
+        node_software_vcs_commit_hex=f"hex:{int(software.vcs_commit):08x}" if flags & 1 else None,
+        node_software_image_crc_hex=f"hex:{int(software.image_crc):016x}" if flags & 2 else None,
+        node_name_reported_hex="hex:" + bytes(payload.name).hex(),
+        node_version_identity_basis=IDENTITY_BASIS)
+    return [values[key] for key in FIELDS]
+
+
 def meanings(type_id, payload, actuator_layout=None):
     result = dict.fromkeys(FIELDS)
     if type_id == 1092:
@@ -297,10 +384,17 @@ def meanings(type_id, payload, actuator_layout=None):
             if result[name] is not None and result[name] < 0:
                 raise ValueError("negative absolute quantity")
     elif type_id == 341:
+        # Every selected NodeStatus report reaches the row: the numeric code beside its name, and the
+        # two codes the sender defines for itself. sub_mode and the vendor code have no standard
+        # meaning, so they are carried as numbers and never named.
         result.update(node_uptime_s=int(payload.uptime_sec),
+                      node_health_code=int(payload.health),
                       node_reported_health=("OK", "WARNING", "ERROR", "CRITICAL")[payload.health],
+                      node_mode_code=int(payload.mode),
                       node_reported_mode={0: "OPERATIONAL", 1: "INITIALIZATION", 2: "MAINTENANCE",
-                                          3: "SOFTWARE_UPDATE", 7: "OFFLINE"}.get(payload.mode, f"UNKNOWN_{payload.mode}"))
+                                          3: "SOFTWARE_UPDATE", 7: "OFFLINE"}.get(payload.mode, f"UNKNOWN_{payload.mode}"),
+                      node_sub_mode_reported=int(payload.sub_mode),
+                      node_vendor_status_code=int(payload.vendor_specific_status_code))
     elif type_id == 1027:
         result.update(air_static_pressure_pa=finite(payload.static_pressure),
                       air_differential_pressure_pa=finite(payload.differential_pressure),
@@ -389,8 +483,17 @@ def convert(text, *, actuator_layout=None):
               "operator_declared_actuator_layout": layout}
     for line, row, timestamp, frame_id, data in capture_rows(text, extended=True):
         report["frames"] += 1
-        type_id = (frame_id >> 8) & 0xffff
-        if frame_id & 0x80 or not frame_id & 0x7f or type_id not in TYPES or (type_id == 1011 and not layout):
+        # Bit 7 is the pin's service-not-message flag; the two number spaces never share a table.
+        service = bool(frame_id & 0x80)
+        if service:
+            # id = service_id<<16 | request_not_response<<15 | dest<<8 | 1<<7 | source
+            type_id, destination = (frame_id >> 16) & 0xff, (frame_id >> 8) & 0x7f
+            # A request is accounted, never decoded as a response, and never generated here.
+            selected = type_id in SERVICES and not frame_id & 0x8000 and destination
+        else:
+            type_id, destination = (frame_id >> 8) & 0xffff, None
+            selected = type_id in TYPES and not (type_id == 1011 and not layout)
+        if not frame_id & 0x7f or not selected:
             report["unsupported_frames"].append({"line": line, "source": row})
             continue
         frame = Frame(frame_id, data)
@@ -416,12 +519,19 @@ def convert(text, *, actuator_layout=None):
             wire_length = sum(len(f.bytes) - 1 for f in frames) - (2 if len(frames) > 1 else 0)
             if len(Transfer(payload=transfer.payload).payload) != wire_length:
                 raise ValueError("payload length does not match selected DSDL")
-            values = meanings(type_id, transfer.payload, layout)
+            if service and (not transfer.service_not_message or transfer.request_not_response
+                            or transfer.dest_node_id != destination):
+                raise ValueError("service transfer direction or destination does not match its frames")
+            values = (node_info_meanings(transfer.payload) if service
+                      else meanings(type_id, transfer.payload, layout))
         except (dronecan.UAVCANException, ValueError, IndexError, TypeError, AttributeError) as exc:
             raise ValueError("invalid supported DroneCAN transfer") from exc
         source = "hex:" + json.dumps(originals, separators=(",", ":")).encode().hex()
         writer.writerow([timestamp, first_time, transfer.source_node_id, transfer.transfer_id,
-                         TYPES[type_id], source] + ["" if v is None else v for v in values])
+                         (SERVICES if service else TYPES)[type_id],
+                         "SERVICE_RESPONSE" if service else "MESSAGE",
+                         "" if destination is None else destination,
+                         source] + ["" if v is None else v for v in values])
         report["decoded_transfers"] += 1
         report["decoded_frames"] += len(frames)
         del pending[key]
@@ -450,8 +560,15 @@ def convert_canopen(text, *, include_emergency=False):
     output = io.StringIO(newline="")
     fields = ["record_time_us", "source_node_id", "node_reported_mode", "canopen_state_code", "source_frames_hex"]
     error_names = ["generic", "current", "voltage", "temperature", "communication", "device_profile", "reserved", "manufacturer"]
-    error_fields = ["canopen_error_code", "canopen_error_report_kind", "canopen_error_register", "canopen_manufacturer_data_hex"]
-    error_fields += ["canopen_error_" + name + "_reported" for name in error_names if name != "reserved"]
+    error_fields = ["canopen_error_code", "canopen_error_report_kind", "canopen_error_register",
+                    "canopen_error_register_disposition", "canopen_manufacturer_data_hex"]
+    # Every register bit gets a column, bit 6 included. CANopenNode v4.1 (ac214071) declares
+    # CO_ERR_REG_RESERVED 0x40 "bit 6, reserved (always 0)" - a rule for the transmitter - and its own
+    # receive path passes data[2] through untouched (301/CO_Emergency.c pFunctSignalRx), rejecting
+    # nothing for that bit. A node that sets it has sent a well-formed 8-byte frame whose register value
+    # is nonconformant, so the bit is retained and labelled as such, never discarded and never read as a
+    # vendor fault.
+    error_fields += ["canopen_error_" + name + "_reported" for name in error_names]
     if include_emergency:
         fields += error_fields
     writer = csv.writer(output, lineterminator="\n")
@@ -464,12 +581,12 @@ def convert_canopen(text, *, include_emergency=False):
             if len(row[2]) != 16:
                 raise ValueError("invalid emergency payload length")
             code, register = int.from_bytes(payload[:2], "little"), payload[2]
-            if register & 0x40:
-                raise ValueError("reserved error register bit")
             writer.writerow([timestamp, identifier - 0x80, "", "", retained,
                 code, "ERROR_RESET_REPORTED" if code == 0 else "ERROR_REPORTED", register,
+                "RESERVED_BIT6_SET_NONCONFORMANT_TRANSMITTER_REPORT_RETAINED" if register & 0x40
+                else "ALL_DEFINED_REGISTER_BITS",
                 "hex:" + payload[3:].hex()]
-                + [int(bool(register & (1 << bit))) for bit in range(8) if bit != 6])
+                + [int(bool(register & (1 << bit))) for bit in range(8)])
             report["decoded_frames"] += 1
             if output.tell() > 16 * 1024 * 1024:
                 raise ValueError("converted CSV too large")
@@ -555,7 +672,7 @@ def convert_j1939(text, *, bam=False):
     fields += [f"{name}_{kind}_code" for kind in ("lamp", "flash") for name in lamps]
     writer.writerow(fields)
     report = {"frames": 0, "decoded_frames": 0, "unsupported_frames": [],
-              "observations": 0, "unsupported_dtcs": []}
+              "observations": 0, "unsupported_dtcs": [], "zero_spn_reports": 0}
     for timestamp, first, source, pgn, payload, rows, line in diagnostic_messages(text, report, bam):
         retained = "hex:" + json.dumps(rows, separators=(",", ":")).encode().hex()
         count = (len(payload) - 2) // 4
@@ -571,7 +688,11 @@ def convert_j1939(text, *, bam=False):
             spn = dtc[0] | (dtc[1] << 8) | ((dtc[2] & 224) << 11)
             kind = "ACTIVE_DTC_REPORTED" if pgn == 65226 else "PREVIOUS_DTC_REPORTED"
             if spn == 0:
+                # The J1939 "no active DTC" idiom. It is emitted and counted as a row, but it is not a
+                # qualified fault report, so it is also counted separately instead of hiding inside
+                # `observations`. The reporting PGN still says whether this came from DM1 or DM2.
                 kind = "ZERO_SPN_REPORTED_NOT_PHYSICAL_HEALTH"
+                report["zero_spn_reports"] += 1
             fmi = dtc[2] & 31
             meaning = fmi_names[fmi] if fmi < len(fmi_names) else ("NOT_AVAILABLE" if fmi == 31 else f"UNKNOWN_{fmi}")
             writer.writerow([timestamp, source, pgn, kind, spn, fmi, meaning, dtc[3] & 127,
@@ -590,16 +711,39 @@ def convert_j1939(text, *, bam=False):
     return output.getvalue(), report
 
 
-def convert_nmea2000_weather(text, *, heading=False):
-    """Finite classic single-frame wind/temperature reports, not vessel qualification."""
+def convert_nmea2000_weather(text, *, heading=False, battery=False, attitude=False, engine=False):
+    """Finite classic single-frame reports, not vessel or battery qualification.
+
+    Battery adds PGN 127508 on the same framing, accounting and sentinel rules. Its declared
+    quantities are what the device reported, never state of charge, chemistry, capacity or health.
+    Attitude adds PGN 127257 the same way: its declaration states no reference frame at all, so the
+    heading reference of 127250 is never carried over to it.
+    Engine adds PGN 127488, which the pinned definition marks `type: Single`. Its quantities are
+    reported engine state, never measured thrust, a command or engine health, and the group covers
+    only this one PGN.
+    """
+    if sum((heading, battery, attitude, engine)) > 1:
+        raise ValueError("one selected NMEA2000 report group at a time")
     quantities = ("wind_speed_m_s", "wind_angle_rad", "actual_temperature_k", "reported_set_temperature_k")
     if heading:
         quantities = ("heading_rad", "heading_deviation_rad", "heading_variation_rad", "turn_rate_rad_s")
+    elif battery:
+        quantities = ("battery_voltage_v", "battery_current_a", "battery_temperature_k")
+    elif attitude:
+        # Declared wire order is yaw, pitch, roll - not the usual roll/pitch/yaw recital.
+        quantities = ("attitude_yaw_rad", "attitude_pitch_rad", "attitude_roll_rad")
+    elif engine:
+        quantities = ("engine_speed_rpm", "engine_boost_pressure_pa", "engine_tilt_trim_percent")
     fields = ["record_time_us", "source_node_id", "nmea2000_pgn", "source_frames_hex",
               "sid_code", "instance_code", "wind_reference_code", "wind_reference_reported",
               "temperature_source_code"]
     if heading:
         fields += ["heading_reference_code", "heading_reference_reported"]
+    if attitude:
+        fields += ["attitude_reference_basis", "reserved_field_code", "reserved_field_disposition"]
+    if engine:
+        fields += ["engine_instance_reported", "engine_trim_scale_basis",
+                   "reserved_field_code", "reserved_field_disposition"]
     fields += [item for name in quantities for item in (name, name + "_status")]
     output = io.StringIO(newline="")
     writer = csv.DictWriter(output, fields, lineterminator="\n")
@@ -609,7 +753,9 @@ def convert_nmea2000_weather(text, *, heading=False):
     for line, original, timestamp, identifier, payload in capture_rows(text, extended=True):
         report["frames"] += 1
         pgn = (identifier >> 8) & 0x3ffff
-        if pgn not in ((127250, 127251) if heading else (130306, 130312)):
+        selected = ((127250, 127251) if heading else (127508,) if battery
+                    else (127257,) if attitude else (127488,) if engine else (130306, 130312))
+        if pgn not in selected:
             entry = dict(line=line, source=original, reason="unselected PGN")
             retained_size += len(json.dumps(entry))
             if retained_size > 16 * 1024 * 1024:
@@ -618,13 +764,30 @@ def convert_nmea2000_weather(text, *, heading=False):
             continue
         if len(payload) != 8:
             raise ValueError("selected NMEA2000 PGN requires eight bytes")
+        # 130306/130312/127250/127251 put SID first; 127508 declares it LAST, after temperature,
+        # with Instance in byte 0 (canboat 127508-batteryStatus.yaml field order).
         row = dict(record_time_us=timestamp, source_node_id=identifier & 255, nmea2000_pgn=pgn,
-                   sid_code=payload[0], source_frames_hex="hex:" + json.dumps([original], separators=(",", ":")).encode().hex())
+                   # 127488 declares no SID field at all; byte 0 is its Instance lookup.
+                   sid_code="" if pgn == 127488 else payload[7 if pgn == 127508 else 0],
+                   source_frames_hex="hex:" + json.dumps([original], separators=(",", ":")).encode().hex())
 
         def scalar(name, offset, scale, *, size=2, signed=False):
+            """Every selected quantity here is a fixed-point NUMBER, so all three codes apply.
+
+            The pinned source reserves three top-of-range values for a field of eight bits or more:
+            the maximum is data not available, maximum minus one is out of range, and maximum minus
+            two is reserved. For a signed field these are the maximum *positive* values, not the
+            all-ones encoding, so an all-ones byte stays ordinary data. Withholding only the first
+            two turned a declared reserved code into a measurement, which is why the third is
+            applied to every group here rather than to the engine group alone. Enumerated code
+            fields are untouched: this rule is about numbers.
+            """
             raw = int.from_bytes(payload[offset:offset + size], "little", signed=signed)
             missing = (1 << (size * 8 - int(signed))) - 1
-            status = "NOT_AVAILABLE" if raw == missing else "OUT_OF_RANGE_REPORTED" if raw == missing - 1 else "REPORTED"
+            status = ("NOT_AVAILABLE" if raw == missing
+                      else "OUT_OF_RANGE_REPORTED" if raw == missing - 1
+                      else "RESERVED_RANGE_REPORTED" if raw == missing - 2
+                      else "REPORTED")
             row[name + "_status"] = status
             if status == "REPORTED":
                 row[name] = raw * scale
@@ -646,6 +809,49 @@ def convert_nmea2000_weather(text, *, heading=False):
                         "TRUE_BOAT", "TRUE_WATER")
             row.update(wind_reference_code=reference, wind_reference_reported=
                        meanings[reference] if reference < 5 else f"UNKNOWN_{reference}")
+        elif pgn == 127257:
+            # ANGLE_FIX16 -> FIX16 -> SIGNED_FIXED_POINT_NUMBER: signed, resolution 0.0001, and
+            # `physical: ANGLE` gives `unit: rad`. Signed means the unavailable and error codes are
+            # 0x7fff/0x7ffe, which the shared helper already computes.
+            scalar("attitude_yaw_rad", 1, .0001, signed=True)
+            scalar("attitude_pitch_rad", 3, .0001, signed=True)
+            scalar("attitude_roll_rad", 5, .0001, signed=True)
+            # The declaration names no frame, no axis convention and no true/magnetic reference;
+            # 127250's heading reference belongs to that PGN and is never carried over here.
+            row.update(attitude_reference_basis=ATTITUDE_REFERENCE_BASIS,
+                       reserved_field_code=payload[7],
+                       # "All reserved bits shall be 1": a frame that breaks it is kept and named,
+                       # never accepted as a qualified value.
+                       reserved_field_disposition="ALL_BITS_SET_AS_DECLARED" if payload[7] == 0xff
+                       else "NONCONFORMANT_RESERVED_BITS_RETAINED")
+        elif pgn == 127488:
+            # canboat 127488-engineParametersRapidUpdate.yaml: Instance LOOKUP 8, Speed
+            # ROTATION_UFIX16_RPM (0.25, unit rpm), Boost Pressure PRESSURE_UFIX16_HPA (100.0,
+            # no unit of its own so `physical: PRESSURE` gives Pa), Tilt/Trim PERCENTAGE_INT8
+            # (signed, unit '%', and NO resolution declared), then 16 reserved bits.
+            instance = payload[0]
+            row.update(instance_code=instance, engine_instance_reported=
+                       ENGINE_INSTANCE.get(instance, f"UNKNOWN_INSTANCE_CODE_{instance}"),
+                       engine_trim_scale_basis=ENGINE_TRIM_SCALE_BASIS)
+            scalar("engine_speed_rpm", 1, .25)
+            scalar("engine_boost_pressure_pa", 3, 100.0)
+            # Scale 1 is the decoder's, not the schema's: the field type declares unit '%' and no
+            # resolution, and print.c fixes 1.0 when a NUMBER-rooted field has none, so the signed
+            # count is the percent value. 0xff is -1, a value, not a sentinel; the sentinels are
+            # the maximum positive codes 127/126/125.
+            scalar("engine_tilt_trim_percent", 5, 1, size=1, signed=True)
+            row.update(reserved_field_code=int.from_bytes(payload[6:8], "little"),
+                       # "All reserved bits shall be 1": a frame that breaks it is kept and named.
+                       reserved_field_disposition="ALL_BITS_SET_AS_DECLARED"
+                       if payload[6:8] == b"\xff\xff" else "NONCONFORMANT_RESERVED_BITS_RETAINED")
+        elif pgn == 127508:
+            # Voltage and current are FIX16, i.e. *signed*, so their unavailable and error codes are
+            # 0x7fff/0x7ffe rather than 0xffff/0xfffe; reading them unsigned would turn 0x7fff into
+            # a 327.67 V reading. Temperature is UFIX16.
+            row.update(instance_code=payload[0])
+            scalar("battery_voltage_v", 1, .01, signed=True)
+            scalar("battery_current_a", 3, .1, signed=True)
+            scalar("battery_temperature_k", 5, .01)
         else:
             row.update(instance_code=payload[1], temperature_source_code=payload[2])
             scalar("actual_temperature_k", 3, .01)
@@ -663,7 +869,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("new_output_directory", type=Path)
-    parser.add_argument("--protocol", choices=("dronecan", "canopen-heartbeat", "canopen-default-status", "canopen-dictionary", "canopen-pdo-python", "j1939-dm-single", "j1939-dm-bam", "nmea2000-weather", "nmea2000-heading"), default="dronecan")
+    parser.add_argument("--protocol", choices=("dronecan", "canopen-heartbeat", "canopen-default-status", "canopen-dictionary", "canopen-pdo-python", "j1939-dm-single", "j1939-dm-bam", "nmea2000-weather", "nmea2000-heading", "nmea2000-battery", "nmea2000-attitude", "nmea2000-engine-rapid"), default="dronecan")
     parser.add_argument("--pdo-dictionary", type=Path)
     parser.add_argument("--pdo-id", type=lambda value: int(value, 0))
     parser.add_argument("--pdo-map", type=lambda value: int(value, 0))
@@ -691,10 +897,17 @@ def main():
             if args.actuator:
                 raise ValueError("actuator mapping is not a dictionary option")
             converted, report = convert_canopen_dictionary(text, args.capture_time_us)
-        elif args.protocol in ("nmea2000-weather", "nmea2000-heading"):
+        # nmea2000-attitude was reachable as a choice but missing from this guard, so the CLI sent
+        # it to the DroneCAN converter and it failed; nmea2000-engine-rapid is added with it.
+        elif args.protocol in ("nmea2000-weather", "nmea2000-heading", "nmea2000-battery",
+                               "nmea2000-attitude", "nmea2000-engine-rapid"):
             if args.actuator:
                 raise ValueError("actuator layout is not a weather-report option")
-            converted, report = convert_nmea2000_weather(text, heading=args.protocol == "nmea2000-heading")
+            converted, report = convert_nmea2000_weather(
+                text, heading=args.protocol == "nmea2000-heading",
+                battery=args.protocol == "nmea2000-battery",
+                attitude=args.protocol == "nmea2000-attitude",
+                engine=args.protocol == "nmea2000-engine-rapid")
         elif args.protocol in ("j1939-dm-single", "j1939-dm-bam"):
             if args.actuator:
                 raise ValueError("actuator layout is not a diagnostic option")

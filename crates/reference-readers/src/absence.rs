@@ -118,8 +118,41 @@ pub fn detect_absences_with_bounds(
     window_start_ms: i64,
     window_end_ms: i64,
 ) -> Vec<(NegativeObservation, GapBounds)> {
+    detect_absences_in_declared_window(
+        profile,
+        asset_id,
+        obs,
+        (window_start_ms, window_end_ms),
+        (window_start_ms, window_end_ms),
+    )
+}
+
+#[must_use]
+pub fn detect_absences_in_declared_window(
+    profile: &FamilyProfile,
+    asset_id: &str,
+    obs: &[Observation],
+    scan: (i64, i64),
+    declared: (i64, i64),
+) -> Vec<(NegativeObservation, GapBounds)> {
     let mut out = Vec::new();
     for exp in &profile.expectations {
+        let (window_start_ms, window_end_ms) = if exp.declared_window_only {
+            declared
+        } else {
+            scan
+        };
+        let windowed: Vec<Observation>;
+        let obs: &[Observation] = if exp.declared_window_only {
+            windowed = obs
+                .iter()
+                .filter(|o| o.t_ms >= window_start_ms && o.t_ms <= window_end_ms)
+                .cloned()
+                .collect();
+            &windowed
+        } else {
+            obs
+        };
         let threshold = i64::try_from(exp.cadence_ms.saturating_mul(u64::from(exp.grace_k)))
             .unwrap_or(i64::MAX);
         let frozen_applied;
@@ -131,14 +164,14 @@ pub fn detect_absences_with_bounds(
             }
             None => obs,
         };
+        let admitting: Option<&[String]> = exp
+            .required_fields
+            .as_deref()
+            .or(exp.frozen_fields.as_deref());
         let mut good: Vec<&Observation> = src
             .iter()
             .filter(|o| o.channel == exp.channel && !o.stale)
-            .filter(|o| {
-                exp.frozen_fields
-                    .as_ref()
-                    .is_none_or(|names| selected_values(o, names).is_some())
-            })
+            .filter(|o| admitting.is_none_or(|names| selected_values(o, names).is_some()))
             .collect();
         good.sort_by_key(|o| o.t_ms);
         let basis = good
@@ -148,19 +181,26 @@ pub fn detect_absences_with_bounds(
             default_time_confidence(profile.default_clock_basis),
             f32::min,
         );
-        let make = |since: i64, last: Option<&Observation>| NegativeObservation {
-            subject: Subject {
-                family: profile.family,
-                asset_id: asset_id.to_string(),
-                channel: exp.channel,
-            },
-            expectation_id: format!("{}@{}", exp.expectation_id, profile.version),
-            absent_since_ms: since,
-            expected_by_ms: since.saturating_add(threshold),
-            last_good: last.map(|o| o.digest),
-            clock_basis: basis,
-            time_confidence_min: tc_min,
-            mark: absence_mark(basis, profile),
+        let content = |since: i64, until: i64| {
+            exp.required_fields
+                .as_deref()
+                .map(|names| gap_content(src, exp.channel, names, since, until))
+        };
+        let make = |since: i64, last: Option<&Observation>, content: Option<GapContent>| {
+            NegativeObservation {
+                subject: Subject {
+                    family: profile.family,
+                    asset_id: asset_id.to_string(),
+                    channel: exp.channel,
+                },
+                expectation_id: format!("{}@{}", exp.expectation_id, profile.version),
+                absent_since_ms: since,
+                expected_by_ms: since.saturating_add(threshold),
+                last_good: last.map(|o| o.digest),
+                clock_basis: basis,
+                time_confidence_min: tc_min,
+                mark: absence_mark(basis, profile, content),
+            }
         };
         let bounds = |next: Option<&Observation>| {
             let Some(o) = next else {
@@ -187,22 +227,68 @@ pub fn detect_absences_with_bounds(
         for o in &good {
             let since = prev.map_or(window_start_ms, |p| p.t_ms);
             if o.t_ms - since > threshold {
-                out.push((make(since, prev), bounds(Some(o))));
+                out.push((make(since, prev, content(since, o.t_ms)), bounds(Some(o))));
             }
             prev = Some(o);
         }
         let since = prev.map_or(window_start_ms, |p| p.t_ms);
         if window_end_ms - since > threshold {
-            out.push((make(since, prev), bounds(None)));
+            out.push((
+                make(since, prev, content(since, window_end_ms)),
+                bounds(None),
+            ));
         }
     }
     out
 }
 
-fn absence_mark(basis: ClockBasis, profile: &FamilyProfile) -> Mark {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GapContent {
+    NoRecordInGap,
+    RequiredFieldAbsent,
+    RecordMarkedStale,
+}
+
+impl GapContent {
+    #[must_use]
+    pub const fn as_label(self) -> &'static str {
+        match self {
+            Self::NoRecordInGap => "gap-content:no-record-in-gap",
+            Self::RequiredFieldAbsent => "gap-content:required-field-absent",
+            Self::RecordMarkedStale => "gap-content:record-marked-stale",
+        }
+    }
+}
+
+fn gap_content(
+    src: &[Observation],
+    channel: musubi_reference_types::ChannelId,
+    names: &[String],
+    since: i64,
+    until: i64,
+) -> GapContent {
+    let in_gap = || {
+        src.iter()
+            .filter(move |o| o.channel == channel && o.t_ms >= since && o.t_ms < until)
+    };
+    if in_gap().any(|o| !o.stale && selected_values(o, names).is_none()) {
+        GapContent::RequiredFieldAbsent
+    } else if in_gap().any(|o| o.stale) {
+        GapContent::RecordMarkedStale
+    } else {
+        GapContent::NoRecordInGap
+    }
+}
+
+fn absence_mark(basis: ClockBasis, profile: &FamilyProfile, content: Option<GapContent>) -> Mark {
+    let mut tokens = vec!["absence-expected-cadence".to_string(), basis.reason_token()];
+    if let Some(c) = content {
+        tokens.push(c.as_label().to_string());
+    }
+    let borrowed: Vec<&str> = tokens.iter().map(String::as_str).collect();
     Mark {
         status: MarkStatus::Degraded,
-        reason_code: join_reason_tokens(&["absence-expected-cadence", &basis.reason_token()]),
+        reason_code: join_reason_tokens(&borrowed),
         provenance: vec![format!(
             "musubi-reference-readers/{}@{}",
             profile.profile_id, profile.version
@@ -234,10 +320,14 @@ mod tests {
                 grace_k: 3,
                 frozen_ms: None,
                 frozen_fields: None,
+                required_fields: None,
+                declared_window_only: false,
             }],
             default_clock_basis: ClockBasis::HostReceived,
             declared_platform_domain: None,
             origin: "public".into(),
+            declared_clock_rate: None,
+            declared_sender: None,
         }
     }
 

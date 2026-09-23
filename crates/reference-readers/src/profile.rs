@@ -2,7 +2,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use musubi_reference_types::{
-    ChannelId, ClockBasis, ExpectationModel, Family, FamilyProfile, FieldMapping, SourceRole,
+    ChannelId, ClockBasis, ClockRateConfig, ExpectationModel, Family, FamilyProfile, FieldMapping,
+    SenderSelection, SourceRole,
 };
 use musubi_types::PlatformDomain;
 use serde::Deserialize;
@@ -57,6 +58,25 @@ struct ExpectationFile {
     frozen_ms: Option<u64>,
     #[serde(default)]
     frozen_fields: Option<Vec<String>>,
+    #[serde(default)]
+    required_fields: Option<Vec<String>>,
+    #[serde(default)]
+    window_rule: Option<String>,
+}
+
+const WINDOW_RULE_DECLARED_WALL: &str = "declared_wall_window";
+
+fn valid_field_selection(names: &[String]) -> bool {
+    !names.is_empty()
+        && names.len() <= 32
+        && names
+            .iter()
+            .all(|n| !n.is_empty() && n.len() <= 128 && n.trim() == n)
+        && names
+            .iter()
+            .collect::<std::collections::BTreeSet<_>>()
+            .len()
+            == names.len()
 }
 
 #[derive(Deserialize)]
@@ -73,11 +93,30 @@ struct ProfileFile {
     channels: Vec<String>,
     #[serde(default)]
     platform_domain: Option<String>,
+    #[serde(default)]
+    clock_rate: Option<ClockRateFile>,
+    #[serde(default)]
+    selected_sender: Option<SenderFile>,
     fields: FieldsFile,
     #[serde(default)]
     units: BTreeMap<String, String>,
     #[serde(default)]
     expectations: Vec<ExpectationFile>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ClockRateFile {
+    anchor_uncertainty_us: i64,
+    min_span_us: i64,
+    max_abs_rate_ppm: i64,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SenderFile {
+    system_id: u8,
+    component_id: u8,
 }
 
 pub fn parse_profile(toml_str: &str, origin: &str) -> Result<FamilyProfile, ReadError> {
@@ -90,6 +129,8 @@ pub fn parse_profile(toml_str: &str, origin: &str) -> Result<FamilyProfile, Read
     let default_clock_basis = ClockBasis::parse(&f.default_clock_basis)
         .ok_or_else(|| bad("clock_basis", &f.default_clock_basis))?;
     let declared_platform_domain = declared_domain(&f, family, &bad)?;
+    let declared_clock_rate = declared_clock_rate(&f)?;
+    let declared_sender = declared_sender(&f)?;
     let channels = f
         .channels
         .iter()
@@ -103,21 +144,45 @@ pub fn parse_profile(toml_str: &str, origin: &str) -> Result<FamilyProfile, Read
                 let valid_threshold = e
                     .frozen_ms
                     .is_some_and(|ms| ms > 0 && ms <= i64::MAX as u64);
-                if !valid_threshold
-                    || names.is_empty()
-                    || names.len() > 32
-                    || names
-                        .iter()
-                        .any(|n| n.is_empty() || n.len() > 128 || n.trim() != n)
-                    || names
-                        .iter()
-                        .collect::<std::collections::BTreeSet<_>>()
-                        .len()
-                        != names.len()
-                {
+                if !valid_threshold || !valid_field_selection(names) {
                     return Err(ReadError::Profile(
                         "invalid explicit frozen field selection".into(),
                     ));
+                }
+            }
+            if let Some(names) = &e.required_fields {
+                if !valid_field_selection(names) {
+                    return Err(ReadError::Profile(
+                        "invalid explicit required field selection".into(),
+                    ));
+                }
+                if e.frozen_fields.is_some() {
+                    return Err(ReadError::Profile(format!(
+                        "{}: expectation '{}' declares both required_fields and frozen_fields; \
+                         which one admits an observation would be decided silently",
+                        f.profile_id, e.id
+                    )));
+                }
+                if !f.channels.iter().any(|c| c == &e.channel) {
+                    return Err(ReadError::Profile(format!(
+                        "{}: expectation '{}' requires fields on channel '{}', which this profile \
+                         does not declare in channels",
+                        f.profile_id, e.id, e.channel
+                    )));
+                }
+            }
+            if let Some(rule) = &e.window_rule {
+                if rule != WINDOW_RULE_DECLARED_WALL {
+                    return Err(ReadError::Profile(format!(
+                        "{}: expectation '{}' has unknown window_rule '{rule}'",
+                        f.profile_id, e.id
+                    )));
+                }
+                if e.required_fields.is_none() {
+                    return Err(ReadError::Profile(format!(
+                        "{}: expectation '{}' declares window_rule without required_fields",
+                        f.profile_id, e.id
+                    )));
                 }
             }
             Ok(ExpectationModel {
@@ -128,6 +193,8 @@ pub fn parse_profile(toml_str: &str, origin: &str) -> Result<FamilyProfile, Read
                 grace_k: e.grace_k,
                 frozen_ms: e.frozen_ms,
                 frozen_fields: e.frozen_fields.clone(),
+                required_fields: e.required_fields.clone(),
+                declared_window_only: e.window_rule.is_some(),
             })
         })
         .collect::<Result<Vec<_>, ReadError>>()?;
@@ -155,8 +222,86 @@ pub fn parse_profile(toml_str: &str, origin: &str) -> Result<FamilyProfile, Read
         expectations,
         default_clock_basis,
         declared_platform_domain,
+        declared_clock_rate,
+        declared_sender,
         origin: origin.to_string(),
     })
+}
+
+const CLOCK_RATE_FORMATS: [(&str, i64); 1] = [("ardupilot_dataflash_bin", 1_000)];
+
+fn declared_clock_rate(f: &ProfileFile) -> Result<Option<ClockRateConfig>, ReadError> {
+    let Some(c) = &f.clock_rate else {
+        return Ok(None);
+    };
+    let refuse = |why: &str| {
+        Err(ReadError::Profile(format!(
+            "{}: clock_rate {why}",
+            f.profile_id
+        )))
+    };
+    let Some((_, floor_us)) = CLOCK_RATE_FORMATS
+        .iter()
+        .find(|(name, _)| *name == f.format.as_str())
+    else {
+        return refuse(&format!(
+            "is not honoured by format '{}'; it produces no paired in-log anchors",
+            f.format
+        ));
+    };
+    if c.anchor_uncertainty_us < *floor_us {
+        return refuse(&format!(
+            "needs a declared anchor_uncertainty_us of at least {floor_us} us for format '{}': its \
+             reference reading is quantized that coarsely, so a finer half-width would claim a \
+             precision the recording does not contain. This floor only refuses an impossible \
+             precision - it is not evidence that the pairing latency is bounded, and the real \
+             pairing error stays the operator's to declare in full",
+            f.format
+        ));
+    }
+    if c.min_span_us < 1 {
+        return refuse("needs a declared positive min_span_us");
+    }
+    if c.max_abs_rate_ppm < 1 {
+        return refuse(
+            "needs a declared positive max_abs_rate_ppm; no universal acceptable clock rate is supplied",
+        );
+    }
+    Ok(Some(ClockRateConfig {
+        anchor_uncertainty_us: c.anchor_uncertainty_us,
+        min_span_us: c.min_span_us,
+        max_abs_rate_ppm: c.max_abs_rate_ppm,
+    }))
+}
+
+const SENDER_SELECTING_FORMATS: [&str; 1] = ["mavlink_tlog"];
+
+fn declared_sender(f: &ProfileFile) -> Result<Option<SenderSelection>, ReadError> {
+    let Some(s) = &f.selected_sender else {
+        return Ok(None);
+    };
+    let refuse = |why: &str| {
+        Err(ReadError::Profile(format!(
+            "{}: selected_sender {why}",
+            f.profile_id
+        )))
+    };
+    if !SENDER_SELECTING_FORMATS.contains(&f.format.as_str()) {
+        return refuse(&format!(
+            "is not honoured by format '{}'; its records carry no reported sender tuple",
+            f.format
+        ));
+    }
+    if s.system_id == 0 || s.component_id == 0 {
+        return refuse(
+            "needs a nonzero system_id and component_id; a zero id is not an addressable recorded \
+             sender and would select nothing",
+        );
+    }
+    Ok(Some(SenderSelection {
+        system_id: s.system_id,
+        component_id: s.component_id,
+    }))
 }
 
 const DOMAIN_DECLARING_FORMATS: [&str; 1] = ["telemetry_csv_us"];

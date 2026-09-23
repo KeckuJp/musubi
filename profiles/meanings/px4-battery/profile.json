@@ -1,0 +1,70 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "timestamp": {
+      "meaning": "timestamp",
+      "unit": "us_since_boot",
+      "basis": "declared"
+    },
+    "id": {
+      "meaning": "id",
+      "unit": "recorded_battery_id_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "voltage_v": {
+      "meaning": "voltage_v",
+      "unit": "V_or_zero_unavailable",
+      "basis": "declared"
+    },
+    "current_a": {
+      "meaning": "current_a",
+      "unit": "A_or_minus_one_unavailable",
+      "basis": "declared"
+    },
+    "discharged_mah": {
+      "meaning": "discharged_mah",
+      "unit": "mAh_or_minus_one_unavailable",
+      "basis": "declared"
+    },
+    "remaining": {
+      "meaning": "remaining",
+      "unit": "fraction_or_minus_one_unavailable",
+      "basis": "declared"
+    },
+    "battery_voltage_v": {
+      "meaning": "battery_voltage_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_current_a": {
+      "meaning": "battery_current_a",
+      "unit": "A",
+      "basis": "declared"
+    },
+    "battery_consumed_ah": {
+      "meaning": "battery_consumed_ah",
+      "unit": "Ah",
+      "basis": "declared"
+    },
+    "battery_consumed_j": {
+      "meaning": "battery_consumed_j",
+      "unit": "J",
+      "basis": "declared"
+    },
+    "battery_power_w": {
+      "meaning": "battery_power_w",
+      "unit": "W_calculated_voltage_times_current",
+      "basis": "declared"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "fraction_estimated_or_blank_unavailable",
+      "basis": "declared"
+    }
+  }
+}

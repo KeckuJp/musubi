@@ -56,6 +56,29 @@ class ConversionTests(unittest.TestCase):
             self.assertEqual(rows[1][instance], "3")
             self.assertEqual(rows[1]["Future"], "other")
             self.assertNotIn("battery_temperature_k", self.converter.convert(text, fmt))
+            if os.environ.get("MUSUBI_TELEMETRY_READER"):
+                with tempfile.TemporaryDirectory() as directory:
+                    path = Path(directory) / "details.csv"
+                    path.write_text(output)
+                    common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                        str(ROOT / "profiles/declared/ardupilot-battery/profile.toml"),
+                        str(path), "--allow-equal-time", "--preserve-nonfinite-as-text"],
+                        check=True, capture_output=True).stdout)
+                    self.assertEqual(common["main_rows"], 2)
+                    fields = common["observations"][0]["fields"]
+                    self.assertAlmostEqual(fields["battery_temperature_k"], 260.81)
+                    self.assertEqual(fields["battery_current_a"], -2.)
+                    self.assertEqual(fields["battery_remaining_fraction"], .75)
+                    self.assertEqual(fields["battery_power_w"], -48.)
+                    second = common["observations"][1]["fields"]
+                    self.assertIsNone(second["battery_remaining_fraction"])  # RemPct 255
+                    self.assertEqual(second["battery_power_w"], 12.)
+                    units = common["profile_units"]
+                    self.assertTrue(units["battery_current_a"].startswith("A_native_sign_kept"))
+                    self.assertIn("states_no_sign_convention", units["battery_current_a"])
+                    self.assertNotIn("discharging_is_negative", units["battery_current_a"])
+                    self.assertIn("calculated", units["battery_power_w"])
+                    self.assertEqual(common["observations"][1]["fields"]["Res"], "nan")
 
     def test_reported_details_reject_bad_fields_and_cli_reuse(self):
         header = "TimeUS,Inst,Volt,Curr,CurrTot,EnrgTot,RemPct,VoltR,Temp,Res,H,SH"
@@ -86,6 +109,17 @@ class ConversionTests(unittest.TestCase):
         text += "".join(f"{i},0,24,2,{i},1,75,24.5,20.25,.02\n" for i in range(count))
         converted = self.converter.convert(text, "ardupilot-bat-4.3", bat_details=True)
         self.assertEqual(len(converted.splitlines()), count + 1)
+        if os.environ.get("MUSUBI_TELEMETRY_READER"):
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "details.csv"
+                path.write_text(converted)
+                common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                    str(ROOT / "profiles/declared/ardupilot-battery/profile.toml"),
+                    str(path)], check=True, capture_output=True).stdout)
+                self.assertEqual(common["main_rows"], count)
+                self.assertEqual(len(common["observations"]), count)
+                self.assertEqual(common["observations"][-1]["fields"]["TimeUS"], count - 1)
+                self.assertAlmostEqual(common["observations"][-1]["fields"]["battery_temperature_k"], 293.4)
 
     def test_cell_banks_use_documented_offset_and_preserve_zero_and_missing(self):
         header = "TimeUS,Volt," + ",".join(f"V{i}" for i in range(1, 11)) + ",Future"
@@ -102,6 +136,15 @@ class ConversionTests(unittest.TestCase):
             self.assertEqual(row["battery_cell_4_v"], "65.534")
             self.assertEqual(row["Future"], "retained")
             self.assertEqual(row["battery_current_a"], "")
+            if os.environ.get("MUSUBI_TELEMETRY_READER"):
+                with tempfile.TemporaryDirectory() as directory:
+                    path = Path(directory) / "cells.csv"; path.write_text(output)
+                    common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                        str(ROOT / "profiles/declared/ardupilot-battery/profile.toml"), str(path)],
+                        check=True, capture_output=True).stdout)
+                    self.assertEqual(common["main_rows"], 1)
+                    self.assertEqual(common["observations"][0]["fields"]["battery_cell_1_v"], 4.2)
+                    self.assertEqual(common["observations"][0]["t_boot_us"], 1001)
         for invalid in ["-1", "65536", "1.5", "nan", ""]:
             row = "1001,12.5," + ",".join([invalid] + ["0"] * 9) + ",retained"
             with self.assertRaises(ValueError):
@@ -126,6 +169,14 @@ class ConversionTests(unittest.TestCase):
             else:
                 self.assertEqual(row["battery_cell_2_v"], "0.0")
                 self.assertEqual(row["battery_cell_3_v"], "")
+            if os.environ.get("MUSUBI_TELEMETRY_READER"):
+                with tempfile.TemporaryDirectory() as directory:
+                    path = Path(directory) / "cells.csv"; path.write_text(output)
+                    common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                        str(ROOT / "profiles/declared/ardupilot-battery/profile.toml"), str(path)],
+                        check=True, capture_output=True).stdout)
+                    self.assertEqual(common["observations"][0]["fields"][key], expected)
+                    self.assertEqual(common["observations"][0]["t_boot_us"], 1001)
             for bad in (values.replace(",3,", ",256,").replace(",4,", ",256,"), values + ",extra"):
                 with self.assertRaises(ValueError): self.converter.convert(header + "\n" + bad + "\n", fmt)
 
@@ -187,6 +238,16 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(row["Extra"], "retained")
         with self.assertRaises(ValueError): self.converter.convert(text)
         with self.assertRaises(ValueError): self.converter.convert(text.replace("12.5", "-1"), "ardupilot-bat-4.3")
+        if os.environ.get("MUSUBI_TELEMETRY_READER"):
+            with tempfile.TemporaryDirectory() as directory:
+                source = Path(directory) / "converted.csv"; source.write_text(output)
+                result = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                    str(ROOT / "profiles/declared/ardupilot-battery/profile.toml"), str(source),
+                    "--preserve-nonfinite-as-text"], check=True, capture_output=True).stdout)
+                fields = result["observations"][0]["fields"]
+                self.assertEqual(fields["battery_voltage_v"], 12.5)
+                self.assertIsNone(fields["battery_current_a"])
+                self.assertEqual(fields["Curr"], "NaN")
 
     def test_reject_structural_ambiguity(self):
         cases = ["", HEADER + "\n", "not BAT\n1\n", HEADER + "\n" + ROW + ",extra\n",

@@ -137,17 +137,30 @@ def convert(raw, capture_time_us):
 
 
 def convert_kmz(raw, capture_time_us):
-    """Selected saved geometry declarations; never extract or fetch resources."""
+    """Selected saved geometry declarations in a ZIP; never extract or fetch resources."""
     if not isinstance(raw, bytes) or not raw or len(raw) > INPUT_LIMIT:
         raise ValueError("bounded KMZ required")
-    if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
-        raise ValueError("explicit capture microseconds required")
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         members = [m for m in archive.infolist() if m.filename.lower().endswith(".kml")]
         if len(members) != 1 or members[0].flag_bits & 1 or members[0].file_size > INPUT_LIMIT:
             raise ValueError("one bounded unencrypted KML member required")
         with archive.open(members[0]) as source:
             text = source.read(INPUT_LIMIT + 1).decode("utf-8-sig")
+    # The archive's own bytes are what the caller supplied, so they are what the digest binds.
+    return convert_kml_document(text, capture_time_us, raw, "source.kmz")
+
+
+def convert_kml(raw, capture_time_us):
+    """The same selected geometry declarations supplied as a bare saved KML2.2 document."""
+    if not isinstance(raw, bytes) or not raw or len(raw) > INPUT_LIMIT:
+        raise ValueError("bounded KML required")
+    return convert_kml_document(raw.decode("utf-8-sig"), capture_time_us, raw, "source.kml")
+
+
+def convert_kml_document(text, capture_time_us, raw, retained_name):
+    """One KML2.2 semantic implementation shared by both containers; no container is synthesised."""
+    if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
+        raise ValueError("explicit capture microseconds required")
     if len(text.encode("utf-8")) > INPUT_LIMIT or "\x00" in text or re.search(r"<!\s*(?:DOCTYPE|ENTITY)", text, re.I):
         raise ValueError("bounded XML without DTD required")
     ns = "{http://www.opengis.net/kml/2.2}"
@@ -161,9 +174,9 @@ def convert_kmz(raw, capture_time_us):
         "latitude_deg", "longitude_deg", "coordinate_basis", "declared_altitude_m",
         "altitude_basis", "coordinate_text_hex", "source_sha256"])
     report = dict(points=0, selected_geometries=0, ignored_altitudes=0, unselected_subtrees=0,
-        source_sha256=digest, source_retention="unchanged source.kmz required",
+        source_sha256=digest, source_retention=f"unchanged {retained_name} required",
         clock="CALLER_CAPTURE_NOT_POINT_OR_DEVICE_TIME",
-        unconverted_content="other geometry, metadata and resources retained only in source.kmz",
+        unconverted_content=f"other geometry, metadata and resources retained only in {retained_name}",
         evidence="declared-geometry-not-physical-trajectory-or-height-certification")
     def geometries(parent):
         for child in parent:
@@ -327,6 +340,114 @@ def convert_boundary(raw, capture_time_us):
     return output.getvalue(), report
 
 
+# TrackFiles.Save/Load at 21be26aa writes one TrackLines.txt block per track: name, heading, point
+# A, point B, nudge, mode, visibility, curve count, then that many easting,northing,heading lines.
+# Every mode stores both the A/B reference line and the curve list; the mode says which one is the
+# guidance geometry, so the layout never changes and no geometry is guessed from the shape.
+TRACK_MODES = {0: ("None", "NO_DESIGNATED_GEOMETRY_DECLARED"),
+               2: ("AB", "REFERENCE_LINE_A_TO_B_DECLARED"),
+               4: ("Curve", "CURVE_POINT_LIST_DECLARED"),
+               8: ("bndTrackOuter", "CURVE_POINT_LIST_DECLARED_FROM_OUTER_BOUNDARY"),
+               16: ("bndTrackInner", "CURVE_POINT_LIST_DECLARED_FROM_INNER_BOUNDARY"),
+               32: ("bndCurve", "CURVE_POINT_LIST_DECLARED_FROM_BOUNDARY_CURVE"),
+               64: ("waterPivot", "CURVE_POINT_LIST_DECLARED_AS_PIVOT_TRACK")}
+TRACK_FIELDS = ["record_time_us", "point_index", "track_index", "point_in_track", "point_role",
+                "track_name_hex", "track_mode_code", "track_mode_reported", "track_geometry_basis",
+                "track_heading_rad", "track_nudge_distance_m", "track_visible_reported",
+                "track_curve_point_count", "easting_m", "northing_m", "heading_rad",
+                "coordinate_basis", "source_sha256"]
+
+
+def track_pair(line):
+    """One declared easting,northing reference point; the writer rounds both to three decimals."""
+    cells = line.split(",")
+    if len(cells) != 2:
+        raise ValueError("exact easting,northing pair required; grouped formats not inferred")
+    return [decimal_value(cell, scientific=True) for cell in cells]
+
+
+def convert_track(raw, capture_time_us):
+    """Fixed TrackFiles.Save guidance declarations: a saved plan, never a driven or executed path."""
+    if not isinstance(raw, bytes) or not raw or len(raw) > INPUT_LIMIT:
+        raise ValueError("bounded UTF8 track file required")
+    if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
+        raise ValueError("explicit capture microseconds required")
+    lines = raw.decode("utf-8-sig").splitlines()
+    if not lines or lines[0] != "$TrackLines":
+        # The pinned loader also accepts $TwolTracks and then reads and discards two extra lines per
+        # track; accepting it here would silently drop declared data, so it is named and refused.
+        raise ValueError("explicit $TrackLines header required; the $TwolTracks variant of this "
+                         "writer carries two further declared lines per track and is not qualified")
+    digest = "sha256:" + hashlib.sha256(raw).hexdigest()
+    output = io.StringIO(newline="")
+    writer = csv.writer(output, lineterminator="\n")
+    writer.writerow(TRACK_FIELDS)
+    report = dict(tracks=0, points=0, curve_points=0, reference_points=0, unrecognised_modes=[],
+                  empty_curve_tracks=0, source_sha256=digest,
+                  source_retention="unchanged source.tracklines.txt, retained with CSV and report",
+                  clock="CALLER_CAPTURE_NOT_TRACK_OR_DEVICE_TIME",
+                  evidence="declared-guidance-plan-not-driven-path-or-actuation",
+                  numeric_precision="finite f64; writer rounds coordinates to 3 and point heading to 5",
+                  scope="TrackFiles.Save at 21be26aa; no field origin, world transform or execution")
+    cursor = 1
+    while cursor < len(lines):
+        block = lines[cursor:cursor + 8]
+        if len(block) < 8:
+            raise ValueError("truncated declared track block")
+        name, heading, a_line, b_line, nudge, mode_text, visible, count_text = block
+        if not name.strip():
+            # The writer can emit an empty name while its own loader skips that line, which
+            # desynchronises every following field. Refused rather than silently mirrored.
+            raise ValueError("declared track name required; the pinned loader skips an empty name "
+                             "line and would misread the rest of the block")
+        if not re.fullmatch(r"[0-9]{1,9}", count_text) or visible not in ("True", "False"):
+            raise ValueError("declared visibility flag and bounded curve count required")
+        if not re.fullmatch(r"-?[0-9]{1,9}", mode_text):
+            raise ValueError("declared integer track mode required")
+        mode = int(mode_text)
+        named, basis = TRACK_MODES.get(mode, (f"UNKNOWN_{mode}",
+                                              "GEOMETRY_ROLE_UNQUALIFIED_UNRECOGNISED_MODE"))
+        if mode not in TRACK_MODES:
+            report["unrecognised_modes"].append(dict(track_index=report["tracks"], mode_code=mode))
+        count = int(count_text)
+        cursor += 8
+        if count > len(lines) - cursor:
+            raise ValueError("truncated declared curve point list")
+        track_index = report["tracks"]
+        # The per-track declarations repeat on every row of that track, so a single point carries
+        # its own identity without a join. The name travels as hex: a numeric-looking track name
+        # would otherwise reach the common reader as a number.
+        declarations = ["hex:" + name.encode("utf-8").hex(), mode, named, basis,
+                        decimal_value(heading, scientific=True),
+                        decimal_value(nudge, scientific=True), int(visible == "True"), count]
+        points = [("REFERENCE_A_DECLARED", *track_pair(a_line), None),
+                  ("REFERENCE_B_DECLARED", *track_pair(b_line), None)]
+        for number in range(count):
+            cells = lines[cursor + number].split(",")
+            if len(cells) != 3:
+                raise ValueError("exact easting,northing,heading triple required")
+            east, north, point_heading = [decimal_value(cell, scientific=True) for cell in cells]
+            points.append(("CURVE_POINT_DECLARED", east, north, point_heading))
+        for number, (role, east, north, point_heading) in enumerate(points):
+            writer.writerow([capture_time_us, report["points"], track_index, number, role,
+                             *declarations, east, north,
+                             # Only a curve point carries its own heading; A and B never borrow
+                             # the track heading, which travels separately on every row.
+                             "" if point_heading is None else point_heading,
+                             "LOCAL_FIELD_ORIGIN_UNRESOLVED_NOT_WGS84", digest])
+            report["points"] += 1
+            report["curve_points"] += role == "CURVE_POINT_DECLARED"
+            report["reference_points"] += role != "CURVE_POINT_DECLARED"
+            if output.tell() > OUTPUT_LIMIT:
+                raise ValueError("CSV exceeds bound")
+        cursor += count
+        report["empty_curve_tracks"] += count == 0
+        report["tracks"] += 1
+    if not report["tracks"]:
+        raise ValueError("no declared guidance track")
+    return output.getvalue(), report
+
+
 def deere_points_to_gpx(raw):
     """Pinned decoder -> explicit derived standard export; original ZIP stays authoritative."""
     try:
@@ -400,21 +521,27 @@ def main():
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path, help="new directory only")
     parser.add_argument("--capture-time-us", type=int, required=True)
-    parser.add_argument("--source-format", choices=("gpx11", "agopen-boundary-21be26aa", "deere-point-v1", "qgc-wpl110", "kmz-kml22"), default="gpx11")
+    parser.add_argument("--source-format", choices=("gpx11", "agopen-boundary-21be26aa", "agopen-track-21be26aa", "deere-point-v1", "qgc-wpl110", "kmz-kml22", "kml22"), default="gpx11")
     args = parser.parse_args()
     try:
         with args.input.open("rb") as source:
             raw = source.read(INPUT_LIMIT + 1)
         boundary = args.source_format == "agopen-boundary-21be26aa"
+        track = args.source_format == "agopen-track-21be26aa"
         wpl = args.source_format == "qgc-wpl110"
         kmz = args.source_format == "kmz-kml22"
+        kml = args.source_format == "kml22"
         projection = args.source_format == "deere-point-v1"
         source, basis = deere_points_to_gpx(raw) if projection else (raw, None)
-        output, report = (convert_kmz if kmz else convert_wpl if wpl else convert_boundary if boundary else convert)(source, args.capture_time_us)
+        output, report = (convert_kmz if kmz else convert_kml if kml else convert_wpl if wpl
+                          else convert_track if track
+                          else convert_boundary if boundary else convert)(source, args.capture_time_us)
         if projection: report["input_projection"] = basis
         args.output.mkdir()
         if projection: (args.output / "source.zip").write_bytes(raw)
-        (args.output / ("source.kmz" if kmz else "source.waypoints" if wpl else "source.boundary.txt" if boundary else "source.gpx")).write_bytes(source)
+        (args.output / ("source.kmz" if kmz else "source.kml" if kml
+                            else "source.waypoints" if wpl else "source.tracklines.txt" if track
+                            else "source.boundary.txt" if boundary else "source.gpx")).write_bytes(source)
         (args.output / "observations.csv").write_text(output, encoding="utf-8")
         (args.output / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     except (ValueError, OSError, ET.ParseError, OverflowError, zipfile.BadZipFile,

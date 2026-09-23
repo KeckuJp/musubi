@@ -45,6 +45,7 @@ pub fn parse_profile(text: &str) -> Result<ReadProfile, ReadError> {
             "channels",
             "fields",
             "units",
+            "selected_sender",
         ]
         .contains(&k.as_str())
     }) {
@@ -69,7 +70,30 @@ pub fn parse_profile(text: &str) -> Result<ReadProfile, ReadError> {
     ) {
         return Err(bad());
     }
+    let declared_sender = if let Some(value) = m.get("selected_sender") {
+        if string(m, "format")? != "mavlink_tlog" {
+            return Err(bad());
+        }
+        let sender = value.as_object().ok_or_else(bad)?;
+        if sender.len() != 2 {
+            return Err(bad());
+        }
+        let id = |key: &str| -> Result<u8, ReadError> {
+            let n = sender.get(key).and_then(Value::as_u64).ok_or_else(bad)?;
+            if !(1..=255).contains(&n) {
+                return Err(bad());
+            }
+            Ok(n as u8)
+        };
+        Some(SenderSelection {
+            system_id: id("system_id")?,
+            component_id: id("component_id")?,
+        })
+    } else {
+        None
+    };
     Ok(ReadProfile {
+        declared_sender,
         profile_id: string(m, "profile_id")?,
         version: string(m, "version")?,
         family: Family::parse(&string(m, "family")?).ok_or_else(bad)?,

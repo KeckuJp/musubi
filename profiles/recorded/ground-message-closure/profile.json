@@ -1,0 +1,58 @@
+{
+  "profile_id": "ground_message_closure_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "reported_clock_us_truncated_from_source_not_boot_or_UTC_anchor",
+    "source_record_hex": "exact_source_record_including_identity_and_clock",
+    "charging_source_stamp_us": "reported_ROS_header_microseconds_not_capture_or_UTC_anchor",
+    "charging_frame_hex": "reported_header_frame_not_a_verified_mounting_or_world_frame",
+    "charging_reported_flag": "publisher_inference_over_connection_input_and_thresholds_not_safe_charging",
+    "charging_flag_basis": "false_can_also_mean_dual_battery_disagreement_not_only_not_charging",
+    "charging_current_total_a": "A_reported_sum_of_supply_currents_not_calibrated_measurement",
+    "charging_current_battery_1_a": "A_reported_per_battery_supply_current",
+    "charging_current_battery_2_a": "A_reported_per_battery_supply_current_NaN_in_single_battery_configuration",
+    "charging_current_total_status": "REPORTED_or_UNAVAILABLE_SOURCE_NAN_never_zero",
+    "charging_current_battery_1_status": "REPORTED_or_UNAVAILABLE_SOURCE_NAN_never_zero",
+    "charging_current_battery_2_status": "REPORTED_or_UNAVAILABLE_SOURCE_NAN_never_zero",
+    "charging_charger_type_code": "reported_uint8_retained_including_values_the_pin_never_writes",
+    "charging_charger_type_reported": "UNKNOWN_WIRED_WIRELESS_or_UNKNOWN_CODE_RETAINED_not_a_connector_inspection",
+    "charging_current_unit_basis": "amperes_declared_by_message_comment_only_publisher_scaling_uncommented",
+    "dynamic_joint_count": "reported_joint_names_length_zero_is_an_explicit_empty_report",
+    "dynamic_joint_index": "zero_based_source_order_not_causal_or_kinematic_order",
+    "dynamic_joint_name_hex": "untrusted_reported_resource_name_UTF8_hex_not_an_authenticated_joint",
+    "dynamic_interface_count": "reported_interface_names_length_for_this_joint",
+    "dynamic_interface_index": "zero_based_source_order_within_the_joint",
+    "dynamic_interface_name_hex": "untrusted_reported_interface_name_UTF8_hex_control_msgs_binds_no_unit_to_it",
+    "dynamic_interface_kind_configured": "caller_declared_axis_kind_and_quantity_never_inferred_from_the_name",
+    "dynamic_interface_status": "REPORTED_or_UNAVAILABLE_SOURCE_NAN_or_UNMAPPED_NO_CALLER_UNIT",
+    "dynamic_interface_value_rad": "rad_under_the_caller_declaration_not_a_commanded_position",
+    "dynamic_interface_value_rad_s": "rad_s_under_the_caller_declaration",
+    "dynamic_interface_value_nm": "Nm_under_the_caller_declaration_not_calibrated_torque",
+    "dynamic_interface_value_m": "m_under_the_caller_declaration_not_a_commanded_position",
+    "dynamic_interface_value_m_s": "m_s_under_the_caller_declaration",
+    "dynamic_interface_value_n": "N_under_the_caller_declaration_not_calibrated_force",
+    "dynamic_joint_source_stamp_us": "reported_ROS_header_microseconds_not_capture_or_UTC_anchor",
+    "autonomy_source_stamp_us": "reported_header_microseconds_of_the_OutdoorNav_autonomy_status_message_the_pinned_definition_declares_no_epoch_so_this_is_neither_UTC_nor_boot_relative_nor_an_attested_anchor",
+    "autonomy_last_start_us": "the_last_start_time_the_same_message_reports_in_microseconds_also_without_a_declared_epoch_it_is_the_publishers_own_value_and_not_a_measured_mission_duration",
+    "autonomy_time_basis": "states_that_both_autonomy_stamps_are_reported_values_whose_epoch_the_producer_never_declares_so_no_UTC_or_boot_relative_meaning_is_assigned_here",
+    "autonomy_frame_hex": "utf8_hex_of_the_reported_header_frame_id_retained_verbatim_and_never_resolved_against_a_transform_tree",
+    "autonomy_state_code": "the_reported_uint8_autonomy_state_number_retained_even_when_it_matches_no_documented_constant",
+    "autonomy_state_reported": "the_documented_constant_name_for_that_number_IDLE_MISSION_MISSION_FROM_GOAL_GOTO_GOTO_POI_DOCKING_LOCAL_UNDOCKING_LOCAL_or_DOCKING_MAP_otherwise_UNKNOWN_CODE_RETAINED_a_reported_state_and_never_a_verified_activity",
+    "autonomy_paused_reported": "the_boolean_the_publisher_reported_for_paused_true_or_false_it_is_a_publisher_statement_and_not_a_verified_stop_or_a_safety_state",
+    "autonomy_goal_hex": "utf8_hex_of_the_reported_current_goal_string_an_opaque_reference_the_pinned_message_gives_no_meaning_so_it_is_never_resolved_to_a_place_a_mission_or_a_waypoint",
+    "autonomy_status_basis": "states_that_this_row_is_the_reported_autonomy_state_of_a_serial_number_namespaced_topic_not_a_verified_activity_not_a_safety_state_and_not_a_fault_report_the_product_documents_no_battery_or_health_topic_at_all"
+  }
+}

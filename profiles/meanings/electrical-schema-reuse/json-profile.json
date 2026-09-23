@@ -1,0 +1,1290 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "mqtt_payload_bytes_reported": {
+      "meaning": "mqtt_payload_bytes_reported",
+      "unit": "the_payloadlen_the_publisher_client_reported_for_the_original_wire_payload_in_bytes_reported_only_and_never_compared_with_the_embedded_value_because_a_reserialized_payload_would_make_such_a_check_false",
+      "basis": "declared"
+    },
+    "mqtt_payload_length_basis": {
+      "meaning": "mqtt_payload_length_basis",
+      "unit": "states_that_the_reported_payload_byte_count_is_not_verified_because_the_publisher_may_have_reserialized_the_payload_so_a_byte_count_check_would_be_false_this_is_never_a_claim_about_delivery_arrival_time_or_broker_state",
+      "basis": "declared"
+    },
+    "tegrastats_reported_utilization_fraction": {
+      "meaning": "tegrastats_reported_utilization_fraction",
+      "unit": "reported_rough_per_core_load_at_current_frequency_not_peak_capacity",
+      "basis": "declared"
+    },
+    "tegrastats_reported_frequency_hz": {
+      "meaning": "tegrastats_reported_frequency_hz",
+      "unit": "Hz_reported_CPU_clock",
+      "basis": "declared"
+    },
+    "tegrastats_block_index": {
+      "meaning": "tegrastats_block_index",
+      "unit": "zero_based_ordinal_of_the_reported_GPU_frequency_entry_in_source_order_the_documented_two_GPC_form_lists_the_first_then_the_second_and_a_single_entry_line_is_accepted_without_asserting_a_count",
+      "basis": "declared"
+    },
+    "tegrastats_reported_memory_used": {
+      "meaning": "tegrastats_reported_memory_used",
+      "unit": "reported_memory_in_use_exactly_as_printed_in_the_source_unit_label_beside_it_no_byte_base_is_documented_so_none_is_applied",
+      "basis": "declared"
+    },
+    "tegrastats_reported_memory_total": {
+      "meaning": "tegrastats_reported_memory_total",
+      "unit": "reported_total_memory_available_for_applications_exactly_as_printed_the_page_labels_it_megabytes_but_states_no_byte_base_so_no_byte_conversion_is_made_here_and_this_is_not_a_hardware_capacity_claim",
+      "basis": "declared"
+    },
+    "tegrastats_reported_memory_unit_label": {
+      "meaning": "tegrastats_reported_memory_unit_label",
+      "unit": "the_unit_label_the_source_printed_for_the_memory_numbers_retained_verbatim_because_the_documentation_qualifies_a_label_and_not_a_base",
+      "basis": "declared"
+    },
+    "tegrastats_reported_free_block_count": {
+      "meaning": "tegrastats_reported_free_block_count",
+      "unit": "reported_number_of_free_blocks_of_the_largest_free_block_size_blank_when_the_line_carried_no_lfb_group",
+      "basis": "declared"
+    },
+    "tegrastats_reported_free_block_size": {
+      "meaning": "tegrastats_reported_free_block_size",
+      "unit": "reported_size_of_the_largest_free_memory_block_in_the_same_source_unit_label_a_fragmentation_report_and_never_an_allocatable_guarantee",
+      "basis": "declared"
+    },
+    "tegrastats_reported_power_current_w": {
+      "meaning": "tegrastats_reported_power_current_w",
+      "unit": "W_from_the_reported_current_power_consumption_of_one_named_rail_whose_milliwatt_unit_the_page_states_in_prose_while_the_documented_literal_shape_carries_bare_integers_never_summed_across_rails_and_never_an_energy_or_battery_figure",
+      "basis": "declared"
+    },
+    "tegrastats_reported_power_average_w": {
+      "meaning": "tegrastats_reported_power_average_w",
+      "unit": "W_from_the_reported_milliwatt_average_power_consumption_of_the_same_rail_the_averaging_window_is_not_documented_so_it_is_not_an_interval_qualified_mean",
+      "basis": "declared"
+    },
+    "trt_host_enqueue_start_offset_s": {
+      "meaning": "trt_host_enqueue_start_offset_s",
+      "unit": "s_reported_host_enqueue_offset_not_UTC",
+      "basis": "declared"
+    },
+    "trt_host_enqueue_end_offset_s": {
+      "meaning": "trt_host_enqueue_end_offset_s",
+      "unit": "s_reported_host_enqueue_offset_not_UTC",
+      "basis": "declared"
+    },
+    "trt_h2d_start_offset_s": {
+      "meaning": "trt_h2d_start_offset_s",
+      "unit": "s_reported_transfer_start_offset_not_host_clock",
+      "basis": "declared"
+    },
+    "trt_h2d_end_offset_s": {
+      "meaning": "trt_h2d_end_offset_s",
+      "unit": "s_reported_transfer_end_offset_not_host_clock",
+      "basis": "declared"
+    },
+    "trt_compute_start_offset_s": {
+      "meaning": "trt_compute_start_offset_s",
+      "unit": "s_reported_compute_start_offset_not_host_clock",
+      "basis": "declared"
+    },
+    "trt_compute_end_offset_s": {
+      "meaning": "trt_compute_end_offset_s",
+      "unit": "s_reported_compute_end_offset_not_host_clock",
+      "basis": "declared"
+    },
+    "trt_d2h_start_offset_s": {
+      "meaning": "trt_d2h_start_offset_s",
+      "unit": "s_reported_transfer_start_offset_not_host_clock",
+      "basis": "declared"
+    },
+    "trt_d2h_end_offset_s": {
+      "meaning": "trt_d2h_end_offset_s",
+      "unit": "s_reported_transfer_end_offset_not_host_clock",
+      "basis": "declared"
+    },
+    "trt_h2d_duration_s": {
+      "meaning": "trt_h2d_duration_s",
+      "unit": "s_reported_host_to_device_duration",
+      "basis": "declared"
+    },
+    "trt_compute_duration_s": {
+      "meaning": "trt_compute_duration_s",
+      "unit": "s_reported_compute_duration_not_model_accuracy",
+      "basis": "declared"
+    },
+    "trt_d2h_duration_s": {
+      "meaning": "trt_d2h_duration_s",
+      "unit": "s_reported_device_to_host_duration",
+      "basis": "declared"
+    },
+    "trt_ideal_transfer_compute_sum_s": {
+      "meaning": "trt_ideal_transfer_compute_sum_s",
+      "unit": "s_reported_h2d_compute_d2h_sum_not_end_to_end_wall_latency",
+      "basis": "declared"
+    },
+    "runtime_start_offset_s": {
+      "meaning": "runtime_start_offset_s",
+      "unit": "s_reported_relative_to_profile_start_not_UTC_or_capture_time",
+      "basis": "declared"
+    },
+    "runtime_duration_s": {
+      "meaning": "runtime_duration_s",
+      "unit": "s_reported_event_duration_not_GPU_completion_or_sum_of_runtime",
+      "basis": "declared"
+    },
+    "runtime_start_us_text": {
+      "meaning": "runtime_start_us_text",
+      "unit": "signed64_original_microsecond_offset",
+      "basis": "declared"
+    },
+    "runtime_duration_us_text": {
+      "meaning": "runtime_duration_us_text",
+      "unit": "signed64_original_nonnegative_microsecond_duration",
+      "basis": "declared"
+    },
+    "runtime_pid_text": {
+      "meaning": "runtime_pid_text",
+      "unit": "reported_process_identifier_not_authenticated",
+      "basis": "declared"
+    },
+    "runtime_tid_text": {
+      "meaning": "runtime_tid_text",
+      "unit": "reported_thread_identifier_not_authenticated",
+      "basis": "declared"
+    },
+    "canonical_event_hex": {
+      "meaning": "canonical_event_hex",
+      "unit": "canonical_JSON_event_not_original_whitespace_keep_source_document",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "exact_input_document_digest_not_authenticity",
+      "basis": "declared"
+    },
+    "farmduino_q_reported_text": {
+      "meaning": "farmduino_q_reported_text",
+      "unit": "signed32_reported_reference_not_execution_acknowledgement",
+      "basis": "declared"
+    },
+    "farmduino_position_basis": {
+      "meaning": "farmduino_position_basis",
+      "unit": "rounded_report_mm_with_declared_positive_steps_per_mm_not_calibration",
+      "basis": "declared"
+    },
+    "rmf_name_hex": {
+      "meaning": "rmf_name_hex",
+      "unit": "untrusted_reported_robot_name_UTF8_hex",
+      "basis": "declared"
+    },
+    "rmf_model_hex": {
+      "meaning": "rmf_model_hex",
+      "unit": "reported_model_UTF8_hex_not_identification",
+      "basis": "declared"
+    },
+    "rmf_task_id_hex": {
+      "meaning": "rmf_task_id_hex",
+      "unit": "reported_request_reference_not_execution_receipt",
+      "basis": "declared"
+    },
+    "rmf_sequence_reported_text": {
+      "meaning": "rmf_sequence_reported_text",
+      "unit": "uint64_text_not_authenticated_order",
+      "basis": "declared"
+    },
+    "rmf_mode_number_reported": {
+      "meaning": "rmf_mode_number_reported",
+      "unit": "uint32_reported_mode_including_unknown_values",
+      "basis": "declared"
+    },
+    "rmf_mode_reported": {
+      "meaning": "rmf_mode_reported",
+      "unit": "RobotMode_name_not_physical_state_or_task_acceptance",
+      "basis": "declared"
+    },
+    "rmf_mode_request_id_reported_text": {
+      "meaning": "rmf_mode_request_id_reported_text",
+      "unit": "uint64_reported_reference_not_acknowledgement",
+      "basis": "declared"
+    },
+    "rmf_performing_action_hex": {
+      "meaning": "rmf_performing_action_hex",
+      "unit": "reported_action_description_not_an_instruction",
+      "basis": "declared"
+    },
+    "rmf_source_record_index": {
+      "meaning": "rmf_source_record_index",
+      "unit": "zero_based_position_of_the_saved_record_this_row_came_from_in_the_input_file_so_two_state_records_for_the_same_robot_at_the_same_capture_time_stay_separable_file_order_is_not_time",
+      "basis": "declared"
+    },
+    "rmf_snapshot_sha256": {
+      "meaning": "rmf_snapshot_sha256",
+      "unit": "sha256_of_the_exact_saved_record_or_envelope_this_row_came_from_computed_once_per_record_it_binds_rows_to_their_source_without_repeating_the_source_on_every_row_and_is_not_authentication",
+      "basis": "declared"
+    },
+    "rmf_path_point_index": {
+      "meaning": "rmf_path_point_index",
+      "unit": "zero_based_position_of_this_waypoint_in_the_reported_path_array_as_saved_the_pinned_message_defines_no_ordering_and_the_pinned_consumers_read_the_array_as_travel_order_so_this_is_array_order_not_proven_travel_sequence",
+      "basis": "declared"
+    },
+    "rmf_path_point_count": {
+      "meaning": "rmf_path_point_count",
+      "unit": "how_many_waypoints_the_record_reported_zero_means_a_reported_empty_plan_not_an_absent_one_and_every_reported_point_gets_its_own_row",
+      "basis": "declared"
+    },
+    "rmf_map_name_hex": {
+      "meaning": "rmf_map_name_hex",
+      "unit": "utf8_hex_of_the_reported_level_or_map_name_an_opaque_navigation_graph_name_not_a_datum_a_frame_definition_or_a_verified_map",
+      "basis": "declared"
+    },
+    "rmf_map_x_m": {
+      "meaning": "rmf_map_x_m",
+      "unit": "m_reported_x_in_the_named_map_frame_the_unit_is_the_callers_declaration_because_the_pinned_message_states_none_never_a_global_or_geodetic_coordinate",
+      "basis": "declared"
+    },
+    "rmf_map_y_m": {
+      "meaning": "rmf_map_y_m",
+      "unit": "m_reported_y_in_the_named_map_frame_under_the_same_caller_declaration",
+      "basis": "declared"
+    },
+    "rmf_map_yaw_rad": {
+      "meaning": "rmf_map_yaw_rad",
+      "unit": "rad_reported_yaw_in_the_named_map_frame_under_the_callers_radian_declaration_not_a_true_north_heading",
+      "basis": "declared"
+    },
+    "rmf_position_basis": {
+      "meaning": "rmf_position_basis",
+      "unit": "CALLER_DECLARED_UNITS_IN_REPORTED_MAP_FRAME_NOT_GLOBAL_OR_GEODETIC_or_NOT_REPORTED_when_the_record_carried_no_location_the_pinned_message_gives_no_unit_for_x_y_or_yaw_so_the_declaration_is_the_callers_and_is_not_a_conformance_claim",
+      "basis": "declared"
+    },
+    "rmf_waypoint_index_text": {
+      "meaning": "rmf_waypoint_index_text",
+      "unit": "uint64_text_of_the_reported_waypoint_index_an_opaque_reference_the_pinned_message_gives_it_no_meaning_and_no_graph_is_resolved_here",
+      "basis": "declared"
+    },
+    "rmf_waypoint_time_us_reported": {
+      "meaning": "rmf_waypoint_time_us_reported",
+      "unit": "us_from_the_reported_per_waypoint_time_seconds_and_nanoseconds_a_reported_value_only_never_the_row_clock_and_never_merged_with_capture_time",
+      "basis": "declared"
+    },
+    "rmf_waypoint_time_basis": {
+      "meaning": "rmf_waypoint_time_basis",
+      "unit": "REPORTED_WAYPOINT_TIME_CLOCK_BASIS_NOT_ESTABLISHED_BY_THE_PIN_NOT_THE_ROW_CLOCK_the_pinned_writer_stamps_a_planned_waypoint_time_and_names_no_epoch_or_clock_source",
+      "basis": "declared"
+    },
+    "rmf_approach_speed_limit_m_s": {
+      "meaning": "rmf_approach_speed_limit_m_s",
+      "unit": "m_s_the_one_unit_the_pinned_message_states_for_the_lane_leading_to_this_waypoint_present_only_when_the_publisher_also_reported_that_the_limit_is_obeyed",
+      "basis": "declared"
+    },
+    "rmf_approach_speed_limit_disposition": {
+      "meaning": "rmf_approach_speed_limit_disposition",
+      "unit": "REPORTED_LANE_LIMIT_OBEYED_or_REPORTED_NOT_OBEYED_VALUE_RETAINED_IN_SOURCE_or_NOT_REPORTED_a_publisher_statement_about_a_lane_limit_not_a_measured_or_commanded_speed",
+      "basis": "declared"
+    },
+    "docker_value_basis": {
+      "meaning": "docker_value_basis",
+      "unit": "rounded_CLI_display_not_raw_measurement_blank_is_unavailable",
+      "basis": "declared"
+    },
+    "docker_id_hex": {
+      "meaning": "docker_id_hex",
+      "unit": "untrusted_possibly_truncated_container_ID_UTF8_hex",
+      "basis": "declared"
+    },
+    "docker_cpu_equivalents_reported": {
+      "meaning": "docker_cpu_equivalents_reported",
+      "unit": "one_CPU_equivalent_fraction_can_exceed_one_not_machine_fraction",
+      "basis": "declared"
+    },
+    "docker_memory_fraction_reported": {
+      "meaning": "docker_memory_fraction_reported",
+      "unit": "reported_used_excluding_inactive_file_cache_divided_by_limit",
+      "basis": "declared"
+    },
+    "docker_memory_used_approx_bytes": {
+      "meaning": "docker_memory_used_approx_bytes",
+      "unit": "bytes_approximation_of_displayed_Linux_usage_excluding_inactive_file_cache",
+      "basis": "declared"
+    },
+    "docker_memory_limit_approx_bytes": {
+      "meaning": "docker_memory_limit_approx_bytes",
+      "unit": "bytes_approximation_of_displayed_limit",
+      "basis": "declared"
+    },
+    "docker_network_rx_approx_bytes": {
+      "meaning": "docker_network_rx_approx_bytes",
+      "unit": "bytes_rounded_accumulated_RX_not_rate",
+      "basis": "declared"
+    },
+    "docker_network_tx_approx_bytes": {
+      "meaning": "docker_network_tx_approx_bytes",
+      "unit": "bytes_rounded_accumulated_TX_not_rate",
+      "basis": "declared"
+    },
+    "docker_block_read_approx_bytes": {
+      "meaning": "docker_block_read_approx_bytes",
+      "unit": "bytes_rounded_reported_block_read_not_rate",
+      "basis": "declared"
+    },
+    "docker_block_write_approx_bytes": {
+      "meaning": "docker_block_write_approx_bytes",
+      "unit": "bytes_rounded_reported_block_write_not_rate",
+      "basis": "declared"
+    },
+    "docker_pids_reported_text": {
+      "meaning": "docker_pids_reported_text",
+      "unit": "u64_text_or_UNAVAILABLE_not_liveness",
+      "basis": "declared"
+    },
+    "factsheet_basis": {
+      "meaning": "factsheet_basis",
+      "unit": "publisher_declaration_not_measurement_or_certified_capability",
+      "basis": "declared"
+    },
+    "declared_minimum_speed_m_s": {
+      "meaning": "declared_minimum_speed_m_s",
+      "unit": "m/s_declared_continuous_speed",
+      "basis": "declared"
+    },
+    "declared_maximum_speed_m_s": {
+      "meaning": "declared_maximum_speed_m_s",
+      "unit": "m/s_declared",
+      "basis": "declared"
+    },
+    "declared_minimum_angular_speed_rad_s": {
+      "meaning": "declared_minimum_angular_speed_rad_s",
+      "unit": "rad/s_declared_continuous_rotation",
+      "basis": "declared"
+    },
+    "declared_maximum_angular_speed_rad_s": {
+      "meaning": "declared_maximum_angular_speed_rad_s",
+      "unit": "rad/s_declared",
+      "basis": "declared"
+    },
+    "declared_maximum_acceleration_m_s2": {
+      "meaning": "declared_maximum_acceleration_m_s2",
+      "unit": "m/s2_declared_at_maximum_load",
+      "basis": "declared"
+    },
+    "declared_maximum_deceleration_m_s2": {
+      "meaning": "declared_maximum_deceleration_m_s2",
+      "unit": "m/s2_declared_at_maximum_load_source_sign_unchanged",
+      "basis": "declared"
+    },
+    "declared_minimum_height_m": {
+      "meaning": "declared_minimum_height_m",
+      "unit": "m_declared_not_altitude",
+      "basis": "declared"
+    },
+    "declared_maximum_height_m": {
+      "meaning": "declared_maximum_height_m",
+      "unit": "m_declared_not_altitude",
+      "basis": "declared"
+    },
+    "declared_width_m": {
+      "meaning": "declared_width_m",
+      "unit": "m_declared",
+      "basis": "declared"
+    },
+    "declared_length_m": {
+      "meaning": "declared_length_m",
+      "unit": "m_declared",
+      "basis": "declared"
+    },
+    "declared_maximum_load_mass_kg": {
+      "meaning": "declared_maximum_load_mass_kg",
+      "unit": "kg_declared_load_capacity_not_measured_mass",
+      "basis": "declared"
+    },
+    "vda_record_kind": {
+      "meaning": "vda_record_kind",
+      "unit": "which_row_this_is_SUMMARY_or_ACTION_or_ERROR_or_ERROR_REFERENCE_a_layout_label_for_one_source_record_never_an_independent_event_count",
+      "basis": "declared"
+    },
+    "vda_source_record_index": {
+      "meaning": "vda_source_record_index",
+      "unit": "zero_based_input_record_index",
+      "basis": "declared"
+    },
+    "vda_source_sha256": {
+      "meaning": "vda_source_sha256",
+      "unit": "SHA256_exact_UTF8_source_record_without_line_terminator",
+      "basis": "declared"
+    },
+    "vda_action_status_reported": {
+      "meaning": "vda_action_status_reported",
+      "unit": "publisher_report_not_execution_or_acceptance",
+      "basis": "declared"
+    },
+    "vda_action_index": {
+      "meaning": "vda_action_index",
+      "unit": "zero_based_actionStates_index_not_causal_order",
+      "basis": "declared"
+    },
+    "vda_selected_version_hex": {
+      "meaning": "vda_selected_version_hex",
+      "unit": "utf8_hex_of_the_version_string_the_publisher_sent_which_the_selector_matched_exactly_so_a_row_says_which_selected_version_semantics_produced_it_because_1_1_and_2_x_share_field_names_but_not_every_enum_spelling_a_declaration_not_a_certification",
+      "basis": "declared"
+    },
+    "vda_operating_mode_raw_hex": {
+      "meaning": "vda_operating_mode_raw_hex",
+      "unit": "utf8_hex_of_the_operating_mode_token_exactly_as_the_publisher_sent_it_so_a_value_mapped_to_UNKNOWN_is_still_readable_rather_than_reduced_to_that_label",
+      "basis": "declared"
+    },
+    "vda_driving_reported": {
+      "meaning": "vda_driving_reported",
+      "unit": "publisher_reported_driving_flag_as_1_or_0_blank_when_the_record_omitted_it_never_an_observed_motion",
+      "basis": "declared"
+    },
+    "vda_paused_reported": {
+      "meaning": "vda_paused_reported",
+      "unit": "publisher_reported_paused_flag_as_1_or_0_blank_when_the_record_omitted_it_never_an_observed_stop",
+      "basis": "declared"
+    },
+    "vda_emergency_stop_reported": {
+      "meaning": "vda_emergency_stop_reported",
+      "unit": "publisher_reported_emergency_stop_field_eStop_in_2_x_or_activeEmergencyStop_in_3_0_mapped_to_that_versions_enum_set_AUTOACK_exists_only_in_2_x_and_UNKNOWN_covers_any_other_value_this_is_a_report_not_a_safety_certification_or_a_command",
+      "basis": "declared"
+    },
+    "vda_emergency_stop_raw_hex": {
+      "meaning": "vda_emergency_stop_raw_hex",
+      "unit": "utf8_hex_of_the_emergency_stop_token_exactly_as_the_publisher_sent_it_so_a_value_mapped_to_UNKNOWN_is_still_readable",
+      "basis": "declared"
+    },
+    "vda_protective_field_violation_reported": {
+      "meaning": "vda_protective_field_violation_reported",
+      "unit": "publisher_reported_protective_field_violation_flag_as_1_or_0_blank_when_the_record_omitted_the_safety_state_never_an_independently_detected_intrusion_or_a_physical_fault",
+      "basis": "declared"
+    },
+    "vda_instance_manufacturer_hex": {
+      "meaning": "vda_instance_manufacturer_hex",
+      "unit": "utf8_hex_of_the_manufacturer_string_this_report_declared_it_names_the_instance_the_report_belongs_to_and_is_neither_authenticated_nor_a_global_identity",
+      "basis": "declared"
+    },
+    "vda_instance_serial_number_hex": {
+      "meaning": "vda_instance_serial_number_hex",
+      "unit": "utf8_hex_of_the_serialNumber_string_this_report_declared_paired_with_the_manufacturer_it_identifies_the_reporting_instance_only_and_is_not_authenticated",
+      "basis": "declared"
+    },
+    "vda_order_id_hex": {
+      "meaning": "vda_order_id_hex",
+      "unit": "utf8_hex_of_the_reported_orderId_a_reference_to_the_order_the_publisher_says_it_is_working_on_distinct_from_the_update_id_and_never_an_execution_receipt",
+      "basis": "declared"
+    },
+    "vda_order_update_id": {
+      "meaning": "vda_order_update_id",
+      "unit": "reported_orderUpdateId_integer_0_to_2_32_minus_1_a_version_counter_for_that_order_and_not_a_causal_or_authenticated_sequence",
+      "basis": "declared"
+    },
+    "vda_last_node_id_hex": {
+      "meaning": "vda_last_node_id_hex",
+      "unit": "utf8_hex_of_the_reported_lastNodeId_a_reference_to_a_node_in_that_order_not_a_position_measurement",
+      "basis": "declared"
+    },
+    "vda_last_node_sequence": {
+      "meaning": "vda_last_node_sequence",
+      "unit": "reported_lastNodeSequenceId_integer_the_publishers_own_sequence_for_that_node_not_a_global_order",
+      "basis": "declared"
+    },
+    "vda_action_id_hex": {
+      "meaning": "vda_action_id_hex",
+      "unit": "utf8_hex_of_the_reported_actionId_for_this_action_row_distinct_from_the_orderId_and_never_an_acceptance_or_completion_receipt",
+      "basis": "declared"
+    },
+    "vda_action_status_raw_hex": {
+      "meaning": "vda_action_status_raw_hex",
+      "unit": "utf8_hex_of_the_actionStatus_token_exactly_as_the_publisher_sent_it_kept_beside_the_mapped_label_so_an_unmapped_or_wrong_version_value_stays_readable",
+      "basis": "declared"
+    },
+    "vda_action_type_hex": {
+      "meaning": "vda_action_type_hex",
+      "unit": "utf8_hex_of_the_reported_actionType_the_publishers_own_label_for_what_the_action_is_not_interpreted_here",
+      "basis": "declared"
+    },
+    "vda_action_description_hex": {
+      "meaning": "vda_action_description_hex",
+      "unit": "utf8_hex_of_the_reported_action_description_actionDescription_in_2_x_and_actionDescriptor_in_3_0_blank_when_the_record_omitted_it",
+      "basis": "declared"
+    },
+    "vda_action_result_hex": {
+      "meaning": "vda_action_result_hex",
+      "unit": "utf8_hex_of_the_reported_action_result_resultDescription_in_2_x_and_actionResult_in_3_0_this_is_what_the_publisher_said_about_the_outcome_never_verified_mission_success_or_acceptance",
+      "basis": "declared"
+    },
+    "vda_error_index": {
+      "meaning": "vda_error_index",
+      "unit": "zero_based_errors_index_inside_the_one_source_record_preserving_the_order_the_publisher_listed_not_a_severity_ranking",
+      "basis": "declared"
+    },
+    "vda_error_type_hex": {
+      "meaning": "vda_error_type_hex",
+      "unit": "utf8_hex_of_the_reported_errorType_the_publishers_own_label_not_a_diagnosed_fault",
+      "basis": "declared"
+    },
+    "vda_error_level_reported": {
+      "meaning": "vda_error_level_reported",
+      "unit": "publisher_reported_errorLevel_mapped_to_the_enum_set_of_the_selected_version_2_1_defines_WARNING_and_FATAL_only_while_3_0_adds_URGENT_and_CRITICAL_and_UNKNOWN_covers_anything_else_never_a_musubi_severity_judgement_or_a_physical_fault",
+      "basis": "declared"
+    },
+    "vda_error_level_raw_hex": {
+      "meaning": "vda_error_level_raw_hex",
+      "unit": "utf8_hex_of_the_errorLevel_token_exactly_as_sent_so_a_level_that_version_does_not_define_stays_readable_rather_than_only_UNKNOWN",
+      "basis": "declared"
+    },
+    "vda_error_description_hex": {
+      "meaning": "vda_error_description_hex",
+      "unit": "utf8_hex_of_the_reported_errorDescription_publisher_text_not_parsed_or_interpreted_here_blank_when_omitted",
+      "basis": "declared"
+    },
+    "vda_error_hint_hex": {
+      "meaning": "vda_error_hint_hex",
+      "unit": "utf8_hex_of_the_reported_errorHint_publisher_text_blank_when_omitted_never_a_remedy_instruction_from_musubi",
+      "basis": "declared"
+    },
+    "vda_error_reference_count": {
+      "meaning": "vda_error_reference_count",
+      "unit": "how_many_errorReferences_this_error_listed_zero_means_an_explicitly_empty_list_while_blank_means_the_error_carried_no_errorReferences_property_at_all",
+      "basis": "declared"
+    },
+    "vda_error_reference_index": {
+      "meaning": "vda_error_reference_index",
+      "unit": "zero_based_index_of_this_reference_inside_its_error_row_preserving_source_order_the_owning_error_is_the_one_with_the_same_vda_error_index",
+      "basis": "declared"
+    },
+    "vda_error_reference_key_hex": {
+      "meaning": "vda_error_reference_key_hex",
+      "unit": "utf8_hex_of_the_reported_referenceKey_a_publisher_chosen_key_such_as_a_node_or_action_reference_which_musubi_does_not_resolve_into_a_link",
+      "basis": "declared"
+    },
+    "vda_error_reference_value_hex": {
+      "meaning": "vda_error_reference_value_hex",
+      "unit": "utf8_hex_of_the_reported_referenceValue_kept_as_text_beside_its_key_never_parsed_into_a_quantity_or_an_identity",
+      "basis": "declared"
+    },
+    "vda_map_x_m": {
+      "meaning": "vda_map_x_m",
+      "unit": "m_in_reported_map_not_geodetic",
+      "basis": "declared"
+    },
+    "vda_map_y_m": {
+      "meaning": "vda_map_y_m",
+      "unit": "m_in_reported_map_not_geodetic",
+      "basis": "declared"
+    },
+    "vda_map_theta_rad": {
+      "meaning": "vda_map_theta_rad",
+      "unit": "rad_in_reported_map_not_true_north",
+      "basis": "declared"
+    },
+    "vda_localization_score_reported": {
+      "meaning": "vda_localization_score_reported",
+      "unit": "reported_score_not_independent_confidence",
+      "basis": "declared"
+    },
+    "vda_deviation_range_m": {
+      "meaning": "vda_deviation_range_m",
+      "unit": "m_reported_deviation_not_verified_error_bound",
+      "basis": "declared"
+    },
+    "motion_source_role_configured": {
+      "meaning": "motion_source_role_configured",
+      "unit": "caller_declared_estimate_or_reference_not_attested",
+      "basis": "declared"
+    },
+    "motion_source_stamp_us": {
+      "meaning": "motion_source_stamp_us",
+      "unit": "reported_ROS_header_microseconds_not_capture_or_UTC_anchor",
+      "basis": "declared"
+    },
+    "joint_count": {
+      "meaning": "joint_count",
+      "unit": "how_many_joints_the_one_JointState_message_named_not_a_robot_joint_inventory",
+      "basis": "declared"
+    },
+    "joint_index": {
+      "meaning": "joint_index",
+      "unit": "zero_based_index_of_this_joint_inside_that_message_not_a_hardware_order_or_a_priority",
+      "basis": "declared"
+    },
+    "joint_name_hex": {
+      "meaning": "joint_name_hex",
+      "unit": "reported_joint_name_utf8_hex_this_is_the_only_joint_identity_and_it_is_not_authenticated",
+      "basis": "declared"
+    },
+    "joint_kind_configured": {
+      "meaning": "joint_kind_configured",
+      "unit": "operator_declared_angular_or_linear_reading_mode_for_this_joint_never_guessed_from_the_name_and_not_proved_hardware_configuration",
+      "basis": "declared"
+    },
+    "joint_source_stamp_us": {
+      "meaning": "joint_source_stamp_us",
+      "unit": "reported_JointState_header_microseconds_not_the_capture_clock_and_not_a_UTC_anchor",
+      "basis": "declared"
+    },
+    "joint_position_rad": {
+      "meaning": "joint_position_rad",
+      "unit": "rad_reported_under_the_declared_angular_mode_wheel_rotation_as_published_with_no_wheel_radius_or_gear_conversion_and_no_travelled_distance_implied",
+      "basis": "declared"
+    },
+    "joint_position_m": {
+      "meaning": "joint_position_m",
+      "unit": "m_reported_under_the_declared_linear_mode_not_a_converted_angular_reading",
+      "basis": "declared"
+    },
+    "joint_velocity_rad_s": {
+      "meaning": "joint_velocity_rad_s",
+      "unit": "rad_per_second_reported_under_the_declared_angular_mode_not_a_ground_speed",
+      "basis": "declared"
+    },
+    "joint_velocity_m_s": {
+      "meaning": "joint_velocity_m_s",
+      "unit": "m_per_second_reported_under_the_declared_linear_mode",
+      "basis": "declared"
+    },
+    "joint_effort_nm": {
+      "meaning": "joint_effort_nm",
+      "unit": "N_m_reported_under_the_declared_angular_mode_as_the_publisher_wrote_it_not_a_calibrated_or_verified_torque",
+      "basis": "declared"
+    },
+    "joint_effort_n": {
+      "meaning": "joint_effort_n",
+      "unit": "N_reported_under_the_declared_linear_mode_not_a_calibrated_force",
+      "basis": "declared"
+    },
+    "joint_position_status": {
+      "meaning": "joint_position_status",
+      "unit": "REPORTED_or_UNAVAILABLE_SOURCE_NAN_when_the_broadcaster_published_quiet_NaN_for_an_interface_it_does_not_provide_or_NOT_PROVIDED_when_the_array_was_empty_never_a_zero_standing_in_for_a_missing_reading",
+      "basis": "declared"
+    },
+    "joint_velocity_status": {
+      "meaning": "joint_velocity_status",
+      "unit": "same_three_dispositions_as_joint_position_status_for_the_velocity_interface",
+      "basis": "declared"
+    },
+    "joint_effort_status": {
+      "meaning": "joint_effort_status",
+      "unit": "same_three_dispositions_as_joint_position_status_for_the_effort_interface",
+      "basis": "declared"
+    },
+    "vehicle_report_stamp_us": {
+      "meaning": "vehicle_report_stamp_us",
+      "unit": "reported_vehicle_report_microseconds_from_the_reports_own_stamp_not_the_capture_clock_and_not_a_UTC_anchor",
+      "basis": "declared"
+    },
+    "vehicle_report_frame_hex": {
+      "meaning": "vehicle_report_frame_hex",
+      "unit": "reported_frame_id_utf8_hex_exactly_as_published_an_empty_value_means_the_publisher_declared_none_and_is_never_read_as_a_world_or_map_frame",
+      "basis": "declared"
+    },
+    "vehicle_steering_tire_angle_rad": {
+      "meaning": "vehicle_steering_tire_angle_rad",
+      "unit": "rad_reported_road_wheel_tire_angle_left_positive_as_the_selected_report_defines_it_this_is_not_a_steering_wheel_angle_not_a_commanded_target_and_not_a_measured_path_curvature",
+      "basis": "declared"
+    },
+    "vehicle_velocity_longitudinal_m_s": {
+      "meaning": "vehicle_velocity_longitudinal_m_s",
+      "unit": "m_per_second_reported_forward_positive_along_the_reported_frame_not_a_ground_truth_or_fused_speed",
+      "basis": "declared"
+    },
+    "vehicle_velocity_lateral_m_s": {
+      "meaning": "vehicle_velocity_lateral_m_s",
+      "unit": "m_per_second_reported_left_positive_in_the_reported_frame_absent_rather_than_zero_when_unreported",
+      "basis": "declared"
+    },
+    "vehicle_heading_rate_rad_s": {
+      "meaning": "vehicle_heading_rate_rad_s",
+      "unit": "rad_per_second_reported_counterclockwise_positive_about_the_reported_frames_vertical_axis_not_an_attitude_or_a_heading_value",
+      "basis": "declared"
+    },
+    "pose_position_m_x": {
+      "meaning": "pose_position_m_x",
+      "unit": "m_reported_in_the_parent_frame_named_by_pose_frame_hex_not_geodetic_and_not_rotated_to_ENU_or_ECEF",
+      "basis": "declared"
+    },
+    "pose_position_m_y": {
+      "meaning": "pose_position_m_y",
+      "unit": "m_reported_in_the_parent_frame_named_by_pose_frame_hex_not_geodetic_and_not_rotated_to_ENU_or_ECEF",
+      "basis": "declared"
+    },
+    "pose_position_m_z": {
+      "meaning": "pose_position_m_z",
+      "unit": "m_reported_in_the_parent_frame_named_by_pose_frame_hex_absent_rather_than_zero_when_the_source_did_not_supply_it",
+      "basis": "declared"
+    },
+    "pose_orientation_quaternion_x": {
+      "meaning": "pose_orientation_quaternion_x",
+      "unit": "unit_quaternion_component_reported_in_the_parent_frame_refused_unless_normalized_and_never_converted_to_Euler_angles_here",
+      "basis": "declared"
+    },
+    "pose_orientation_quaternion_y": {
+      "meaning": "pose_orientation_quaternion_y",
+      "unit": "unit_quaternion_component_reported_in_the_parent_frame_refused_unless_normalized_and_never_converted_to_Euler_angles_here",
+      "basis": "declared"
+    },
+    "pose_orientation_quaternion_z": {
+      "meaning": "pose_orientation_quaternion_z",
+      "unit": "unit_quaternion_component_reported_in_the_parent_frame_refused_unless_normalized_and_never_converted_to_Euler_angles_here",
+      "basis": "declared"
+    },
+    "pose_orientation_quaternion_w": {
+      "meaning": "pose_orientation_quaternion_w",
+      "unit": "unit_quaternion_component_reported_in_the_parent_frame_refused_unless_normalized_and_never_converted_to_Euler_angles_here",
+      "basis": "declared"
+    },
+    "twist_linear_m_s_x": {
+      "meaning": "twist_linear_m_s_x",
+      "unit": "m_per_second_reported_in_the_child_frame_named_by_twist_frame_hex_not_the_parent_frame_of_the_pose",
+      "basis": "declared"
+    },
+    "twist_linear_m_s_y": {
+      "meaning": "twist_linear_m_s_y",
+      "unit": "m_per_second_reported_in_the_child_frame_named_by_twist_frame_hex_not_the_parent_frame_of_the_pose",
+      "basis": "declared"
+    },
+    "twist_linear_m_s_z": {
+      "meaning": "twist_linear_m_s_z",
+      "unit": "m_per_second_reported_in_the_child_frame_absent_rather_than_zero_when_the_source_did_not_supply_it",
+      "basis": "declared"
+    },
+    "twist_angular_rad_s_x": {
+      "meaning": "twist_angular_rad_s_x",
+      "unit": "rad_per_second_reported_in_the_child_frame_named_by_twist_frame_hex",
+      "basis": "declared"
+    },
+    "twist_angular_rad_s_y": {
+      "meaning": "twist_angular_rad_s_y",
+      "unit": "rad_per_second_reported_in_the_child_frame_named_by_twist_frame_hex",
+      "basis": "declared"
+    },
+    "twist_angular_rad_s_z": {
+      "meaning": "twist_angular_rad_s_z",
+      "unit": "rad_per_second_reported_in_the_child_frame_named_by_twist_frame_hex",
+      "basis": "declared"
+    },
+    "pose_frame_hex": {
+      "meaning": "pose_frame_hex",
+      "unit": "reported_parent_frame_id_utf8_hex_that_the_pose_is_expressed_in_never_an_implicit_world_frame_and_never_a_platform_identity",
+      "basis": "declared"
+    },
+    "twist_frame_hex": {
+      "meaning": "twist_frame_hex",
+      "unit": "reported_child_frame_id_utf8_hex_that_the_twist_is_expressed_in_a_different_frame_from_the_pose_and_the_two_are_never_merged",
+      "basis": "declared"
+    },
+    "twist_covariance_status": {
+      "meaning": "twist_covariance_status",
+      "unit": "same_three_dispositions_as_pose_covariance_status_for_the_twist_covariance",
+      "basis": "declared"
+    },
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "reported_clock_us_truncated_from_source_not_boot_or_UTC_anchor",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact_UTF8_source_record_including_identity_and_clock",
+      "basis": "declared"
+    },
+    "diagnostic_entry_count": {
+      "meaning": "diagnostic_entry_count",
+      "unit": "how_many_status_entries_the_one_source_message_reported_zero_means_an_explicit_empty_report_not_a_healthy_device",
+      "basis": "declared"
+    },
+    "diagnostic_entry_index": {
+      "meaning": "diagnostic_entry_index",
+      "unit": "zero_based_index_of_this_entry_inside_that_message_not_a_severity_order_or_a_priority",
+      "basis": "declared"
+    },
+    "diagnostic_level_reported": {
+      "meaning": "diagnostic_level_reported",
+      "unit": "publisher_self_reported_level_name_ok_warn_error_stale_or_unknown_n_for_an_unmapped_code_or_empty_array_for_a_message_with_no_entries_never_a_musubi_diagnosis_or_an_overall_health_verdict",
+      "basis": "declared"
+    },
+    "diagnostic_level_code": {
+      "meaning": "diagnostic_level_code",
+      "unit": "original_numeric_level_byte_exactly_as_reported_blank_on_an_empty_array_row_and_never_defaulted_to_zero",
+      "basis": "declared"
+    },
+    "diagnostic_name_hex": {
+      "meaning": "diagnostic_name_hex",
+      "unit": "reported_component_name_utf8_hex_repeated_names_stay_separate_rows_and_are_not_collapsed",
+      "basis": "declared"
+    },
+    "diagnostic_message_hex": {
+      "meaning": "diagnostic_message_hex",
+      "unit": "reported_status_message_utf8_hex_publisher_text_not_parsed_or_interpreted_here",
+      "basis": "declared"
+    },
+    "diagnostic_hardware_id_hex": {
+      "meaning": "diagnostic_hardware_id_hex",
+      "unit": "reported_hardware_id_utf8_hex_not_an_authenticated_device_identity",
+      "basis": "declared"
+    },
+    "diagnostic_value_count": {
+      "meaning": "diagnostic_value_count",
+      "unit": "how_many_keyvalue_pairs_this_entry_reported_including_repeated_keys",
+      "basis": "declared"
+    },
+    "diagnostic_value_pairs_hex": {
+      "meaning": "diagnostic_value_pairs_hex",
+      "unit": "utf8_hex_of_a_json_array_of_two_element_key_value_arrays_in_source_order_duplicate_keys_preserved_never_a_dictionary_and_no_key_treated_as_a_unit_or_a_quantity",
+      "basis": "declared"
+    },
+    "battery_voltage_v": {
+      "meaning": "battery_voltage_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_current_a": {
+      "meaning": "battery_current_a",
+      "unit": "A_per_explicit_sign_basis_or_qualified_source_schema",
+      "basis": "declared"
+    },
+    "battery_consumed_ah": {
+      "meaning": "battery_consumed_ah",
+      "unit": "Ah_consumed_MAVSDK_other_selected_JSON_schemas_unavailable",
+      "basis": "declared"
+    },
+    "battery_consumed_j": {
+      "meaning": "battery_consumed_j",
+      "unit": "J_unavailable_in_selected_JSON_schemas",
+      "basis": "declared"
+    },
+    "battery_power_w": {
+      "meaning": "battery_power_w",
+      "unit": "W_voltage_times_reported_signed_current",
+      "basis": "declared"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "reported_fraction_may_be_coarse_20_or_80_percent_in_VDA",
+      "basis": "declared"
+    },
+    "battery_stored_charge_ah": {
+      "meaning": "battery_stored_charge_ah",
+      "unit": "Ah_stored_not_consumed_ROS_only",
+      "basis": "declared"
+    },
+    "battery_reported_charging_state": {
+      "meaning": "battery_reported_charging_state",
+      "unit": "reported_enum_not_physical_health",
+      "basis": "declared"
+    },
+    "battery_temperature_k": {
+      "meaning": "battery_temperature_k",
+      "unit": "K_converted_from_the_selected_sources_own_unit_when_that_source_reports_Celsius_and_otherwise_taken_as_reported_with_no_calibration_or_other_scaling_applied_and_no_measurement_location_claimed_here_see_battery_temperature_basis_for_why_a_cell_is_blank",
+      "basis": "declared"
+    },
+    "battery_full_charge_ah": {
+      "meaning": "battery_full_charge_ah",
+      "unit": "Ah_reported_full_charge_capacity_not_design_capacity",
+      "basis": "declared"
+    },
+    "battery_remaining_charge_ah": {
+      "meaning": "battery_remaining_charge_ah",
+      "unit": "Ah_reported_remaining_charge_not_consumed",
+      "basis": "declared"
+    },
+    "battery_cell_index": {
+      "meaning": "battery_cell_index",
+      "unit": "source_declared_cell_index_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "battery_cell_voltage_v": {
+      "meaning": "battery_cell_voltage_v",
+      "unit": "V_reported_selected_cell_not_pack",
+      "basis": "declared"
+    },
+    "sdk_component_index": {
+      "meaning": "sdk_component_index",
+      "unit": "declared_SDK_component_address_not_authenticated_battery_identity",
+      "basis": "declared"
+    },
+    "battery_time_remaining_s": {
+      "meaning": "battery_time_remaining_s",
+      "unit": "s_reported_estimate_not_operational_endurance",
+      "basis": "declared"
+    },
+    "battery_id_reported": {
+      "meaning": "battery_id_reported",
+      "unit": "untrusted_battery_instance_not_platform_identity",
+      "basis": "declared"
+    },
+    "attitude_roll_rad": {
+      "meaning": "attitude_roll_rad",
+      "unit": "rad_converted_once_from_the_degrees_the_pinned_producer_already_wrote_positive_is_banking_to_the_right_in_the_sources_own_words_it_is_a_reported_orientation_value_and_never_a_measured_verified_or_fused_attitude",
+      "basis": "declared"
+    },
+    "attitude_pitch_rad": {
+      "meaning": "attitude_pitch_rad",
+      "unit": "rad_under_the_same_single_conversion_positive_is_pitching_nose_up_in_the_sources_own_words",
+      "basis": "declared"
+    },
+    "attitude_yaw_rad": {
+      "meaning": "attitude_yaw_rad",
+      "unit": "rad_under_the_same_single_conversion_positive_is_clock_wise_seen_from_above_in_the_sources_own_words_it_is_not_a_heading_relative_to_north_or_to_any_named_frame_because_the_source_names_none",
+      "basis": "declared"
+    },
+    "attitude_device_time_us": {
+      "meaning": "attitude_device_time_us",
+      "unit": "us_the_timestamp_the_saved_message_carries_which_the_pinned_producer_builds_as_the_source_boot_relative_millisecond_tick_multiplied_by_1000_it_is_kept_beside_the_capture_clock_and_never_merged_with_it",
+      "basis": "declared"
+    },
+    "attitude_device_time_basis": {
+      "meaning": "attitude_device_time_basis",
+      "unit": "states_that_the_device_timestamp_is_boot_relative_not_utc_not_the_capture_clock_and_not_truly_microsecond_resolution_because_it_was_promoted_from_milliseconds_a_zero_is_also_not_distinguishable_from_an_absent_field_at_this_encoding",
+      "basis": "declared"
+    },
+    "protobuf_unknown_fields": {
+      "meaning": "protobuf_unknown_fields",
+      "unit": "how_many_unknown_wire_fields_the_decoder_found_in_the_selected_message_and_its_wrapper_they_are_counted_and_the_original_bytes_are_retained_rather_than_being_dropped_silently",
+      "basis": "declared"
+    },
+    "protobuf_value_basis": {
+      "meaning": "protobuf_value_basis",
+      "unit": "PROTO3_DECODED_NOT_SENSOR_VALIDATED_or_GRPC_MESSAGE_NOT_RPC_SUCCESS_a_statement_that_the_bytes_parsed_against_the_pinned_descriptor_never_that_a_device_measurement_or_a_remote_call_succeeded",
+      "basis": "declared"
+    },
+    "battery_voltage_disposition": {
+      "meaning": "battery_voltage_disposition",
+      "unit": "why_a_voltage_cell_is_blank_when_the_selected_source_reported_it_unavailable_rather_than_a_measured_zero_present_only_when_the_caller_allowed_missing_voltage",
+      "basis": "declared"
+    },
+    "map_resolution_m_per_cell": {
+      "meaning": "map_resolution_m_per_cell",
+      "unit": "m_per_cell_declared",
+      "basis": "declared"
+    },
+    "map_origin_x_m": {
+      "meaning": "map_origin_x_m",
+      "unit": "m_in_declared_map_frame",
+      "basis": "declared"
+    },
+    "map_origin_y_m": {
+      "meaning": "map_origin_y_m",
+      "unit": "m_in_declared_map_frame",
+      "basis": "declared"
+    },
+    "map_origin_yaw_rad": {
+      "meaning": "map_origin_yaw_rad",
+      "unit": "rad_in_declared_map_frame",
+      "basis": "declared"
+    },
+    "map_free_threshold": {
+      "meaning": "map_free_threshold",
+      "unit": "declared_occupancy_fraction_threshold_unused_in_raw_mode",
+      "basis": "declared"
+    },
+    "map_occupied_threshold": {
+      "meaning": "map_occupied_threshold",
+      "unit": "declared_occupancy_fraction_threshold_unused_in_raw_mode",
+      "basis": "declared"
+    },
+    "inav_gps_angle_basis": {
+      "meaning": "inav_gps_angle_basis",
+      "unit": "which_pinned_evidence_establishes_the_degree_unit_of_the_reported_pair_the_gps_tab_of_the_same_configurator_commit_labels_the_same_divided_expression_deg_and_this_is_not_a_datum_a_fix_validity_or_a_world_frame_claim",
+      "basis": "declared"
+    },
+    "inav_gps_coordinate_disposition": {
+      "meaning": "inav_gps_coordinate_disposition",
+      "unit": "whether_the_reported_pair_fell_inside_the_plus_minus_90_and_180_angle_domain_the_int32_scale_can_exceed_it_outside_values_are_withheld_not_clamped",
+      "basis": "declared"
+    },
+    "inav_gps_fix_code_reported": {
+      "meaning": "inav_gps_fix_code_reported",
+      "unit": "uint8_code_exactly_as_reported_the_pinned_source_defines_no_enum_for_it_so_no_fix_quality_validity_or_satellite_lock_is_established",
+      "basis": "declared"
+    },
+    "inav_gps_satellites_reported": {
+      "meaning": "inav_gps_satellites_reported",
+      "unit": "uint8_count_exactly_as_reported_not_a_fix_validity_statement",
+      "basis": "declared"
+    },
+    "inav_gps_altitude_code_reported": {
+      "meaning": "inav_gps_altitude_code_reported",
+      "unit": "int16_raw_carried_unconverted_the_gps_tab_of_the_same_pin_labels_this_value_m_on_screen_but_that_label_is_deliberately_not_adopted_here_and_no_datum_is_declared_anywhere_so_the_cell_is_not_referenced_to_ellipsoid_or_mean_sea_level",
+      "basis": "declared"
+    },
+    "inav_gps_speed_code_reported": {
+      "meaning": "inav_gps_speed_code_reported",
+      "unit": "uint16_raw_carried_unconverted_the_gps_tab_of_the_same_pin_labels_this_value_cm_per_s_on_screen_but_that_label_is_deliberately_not_adopted_here_so_no_speed_unit_is_applied_to_the_cell",
+      "basis": "declared"
+    },
+    "inav_gps_ground_course_code_reported": {
+      "meaning": "inav_gps_ground_course_code_reported",
+      "unit": "uint16_raw_the_pinned_source_displays_this_value_nowhere_and_declares_no_unit_for_it_so_neither_decidegree_nor_degree_is_established_and_no_heading_reference_is_implied",
+      "basis": "declared"
+    },
+    "sonar_reported_distance_m": {
+      "meaning": "sonar_reported_distance_m",
+      "unit": "m_reported_acoustic_return_not_depth_altitude_or_calibrated_truth",
+      "basis": "declared"
+    },
+    "sonar_confidence_code": {
+      "meaning": "sonar_confidence_code",
+      "unit": "original_reported_percent_integer",
+      "basis": "declared"
+    },
+    "sonar_reported_confidence_fraction": {
+      "meaning": "sonar_reported_confidence_fraction",
+      "unit": "uncalibrated_reported_fraction_not_independent_accuracy",
+      "basis": "declared"
+    },
+    "sonar_confidence_status": {
+      "meaning": "sonar_confidence_status",
+      "unit": "reported_percent_availability_not_distance_validity",
+      "basis": "declared"
+    },
+    "sonar_transmit_duration_s": {
+      "meaning": "sonar_transmit_duration_s",
+      "unit": "s_reported_pulse_duration_not_a_transmit_request",
+      "basis": "declared"
+    },
+    "sonar_scan_start_m": {
+      "meaning": "sonar_scan_start_m",
+      "unit": "m_reported_scan_region_start",
+      "basis": "declared"
+    },
+    "sonar_scan_length_m": {
+      "meaning": "sonar_scan_length_m",
+      "unit": "m_reported_scan_region_length",
+      "basis": "declared"
+    },
+    "sonar_ping_number_reported": {
+      "meaning": "sonar_ping_number_reported",
+      "unit": "reported_counter_not_a_unique_global_identity",
+      "basis": "declared"
+    },
+    "sonar_gain_code": {
+      "meaning": "sonar_gain_code",
+      "unit": "uninterpreted_device_gain_code",
+      "basis": "declared"
+    },
+    "farm_point_x_m": {
+      "meaning": "farm_point_x_m",
+      "unit": "m_saved_point_machine_axis_not_actual_vehicle_position",
+      "basis": "declared"
+    },
+    "farm_point_y_m": {
+      "meaning": "farm_point_y_m",
+      "unit": "m_saved_point_machine_axis_not_geodetic",
+      "basis": "declared"
+    },
+    "farm_point_z_m": {
+      "meaning": "farm_point_z_m",
+      "unit": "m_saved_point_machine_axis_not_altitude",
+      "basis": "declared"
+    },
+    "reported_rssi_dbm": {
+      "meaning": "reported_rssi_dbm",
+      "unit": "dBm_reported_possible_stale_if_no_link",
+      "basis": "declared"
+    },
+    "reported_rssi_fraction": {
+      "meaning": "reported_rssi_fraction",
+      "unit": "reported_RSSI_percent_as_fraction_not_dBm_and_not_packet_success",
+      "basis": "declared"
+    },
+    "reported_lq_fraction": {
+      "meaning": "reported_lq_fraction",
+      "unit": "reported_packet_success_fraction",
+      "basis": "declared"
+    },
+    "reported_snr_db": {
+      "meaning": "reported_snr_db",
+      "unit": "dB_reported_signed_not_a_link_quality_or_freshness_verdict",
+      "basis": "declared"
+    },
+    "reported_link_side": {
+      "meaning": "reported_link_side",
+      "unit": "frame_side_label_RX_or_TX_reported_not_authenticated_publisher_identity",
+      "basis": "declared"
+    },
+    "trt_layer_total_time_s": {
+      "meaning": "trt_layer_total_time_s",
+      "unit": "s_from_the_reported_timeMs_which_the_writer_sums_over_that_layers_recorded_invocations_it_is_not_one_iterations_duration_and_it_is_not_summable_with_other_layers_into_a_run_wall_clock",
+      "basis": "declared"
+    },
+    "trt_layer_average_time_s": {
+      "meaning": "trt_layer_average_time_s",
+      "unit": "s_from_the_reported_averageMs_which_the_writer_divides_by_that_layers_own_sample_count_a_number_the_file_never_carries_so_it_is_not_the_total_divided_by_the_reported_iteration_count_and_no_such_relation_is_checked_or_repaired",
+      "basis": "declared"
+    },
+    "trt_layer_median_time_s": {
+      "meaning": "trt_layer_median_time_s",
+      "unit": "s_from_the_reported_medianMs_the_median_of_that_layers_samples_with_an_even_sample_count_averaged_across_the_two_middle_values_by_the_writer",
+      "basis": "declared"
+    },
+    "trt_layer_reported_percentage": {
+      "meaning": "trt_layer_reported_percentage",
+      "unit": "the_percentage_the_writer_printed_for_this_layer_retained_unchanged_its_denominator_is_the_sum_of_every_layers_samples_so_it_is_a_share_of_summed_layer_time_and_never_a_share_of_a_measured_wall_clock",
+      "basis": "declared"
+    },
+    "trt_layer_time_share": {
+      "meaning": "trt_layer_time_share",
+      "unit": "the_same_reported_percentage_divided_by_one_hundred_present_only_when_the_reported_value_lies_between_zero_and_one_hundred_blank_is_a_withheld_share_and_never_zero",
+      "basis": "declared"
+    },
+    "trt_layer_share_disposition": {
+      "meaning": "trt_layer_share_disposition",
+      "unit": "REPORTED_SHARE_OF_SUMMED_LAYER_TIME_NOT_WALL_CLOCK_or_OUTSIDE_REPORTED_SHARE_RANGE_when_the_reported_percentage_left_the_range_so_the_share_is_withheld_while_the_reported_number_stays_in_the_row",
+      "basis": "declared"
+    },
+    "trt_profile_iteration_count_text": {
+      "meaning": "trt_profile_iteration_count_text",
+      "unit": "int32_text_of_the_count_the_writer_put_at_the_head_of_the_file_it_infers_iterations_from_repetition_of_the_first_layer_name_and_includes_warmup_iterations_because_the_profiler_is_never_reset_so_it_is_a_reported_count_and_not_a_qualified_measurement_window",
+      "basis": "declared"
+    },
+    "external_pressure_pa": {
+      "meaning": "external_pressure_pa",
+      "unit": "Pa_of_the_reported_fluid_pressure_exactly_as_the_pinned_humble_FluidPressure_interface_declares_it_with_no_second_scaling_and_no_altitude_or_depth_derived_from_it_here_the_converter_refuses_a_nonfinite_or_negative_value_rather_than_clamping_it",
+      "basis": "declared"
+    },
+    "illuminance_lux": {
+      "meaning": "illuminance_lux",
+      "unit": "lux_of_reported_illuminance_as_the_pinned_humble_Illuminance_interface_declares_it_a_reported_photometric_value_with_no_spectral_or_calibration_claim_and_negative_values_are_refused",
+      "basis": "declared"
+    },
+    "sensor_variance_status": {
+      "meaning": "sensor_variance_status",
+      "unit": "REPORTED_when_the_scalar_messages_variance_field_was_nonzero_or_UNKNOWN_when_it_was_exactly_zero_because_the_pinned_interfaces_use_zero_to_mean_unknown_variance_a_negative_variance_is_refused_and_the_bias_applied_to_reach_SI_never_changes_the_variance",
+      "basis": "declared"
+    },
+    "magnetic_field_tesla_x": {
+      "meaning": "magnetic_field_tesla_x",
+      "unit": "T_of_the_reported_magnetic_field_x_component_in_the_frame_named_by_sensor_frame_hex_exactly_as_the_pinned_humble_MagneticField_interface_declares_it_blank_when_that_axis_carried_the_interfaces_own_NaN_sentinel_and_never_zero_for_absent",
+      "basis": "declared"
+    },
+    "magnetic_field_tesla_y": {
+      "meaning": "magnetic_field_tesla_y",
+      "unit": "T_of_the_same_reported_field_y_component_under_the_same_frame_sentinel_and_absence_rule",
+      "basis": "declared"
+    },
+    "magnetic_field_tesla_z": {
+      "meaning": "magnetic_field_tesla_z",
+      "unit": "T_of_the_same_reported_field_z_component_under_the_same_frame_sentinel_and_absence_rule",
+      "basis": "declared"
+    },
+    "magnetic_field_x_status": {
+      "meaning": "magnetic_field_x_status",
+      "unit": "REPORTED_or_UNREPORTED_for_the_x_component_where_UNREPORTED_is_the_interfaces_per_axis_NaN_sentinel_and_is_distinct_from_a_reported_zero_field",
+      "basis": "declared"
+    },
+    "magnetic_field_y_status": {
+      "meaning": "magnetic_field_y_status",
+      "unit": "the_same_two_dispositions_for_the_y_component",
+      "basis": "declared"
+    },
+    "magnetic_field_z_status": {
+      "meaning": "magnetic_field_z_status",
+      "unit": "the_same_two_dispositions_for_the_z_component",
+      "basis": "declared"
+    },
+    "range_min_m": {
+      "meaning": "range_min_m",
+      "unit": "m_of_the_minimum_range_the_message_itself_declares_a_reported_sensor_limit_that_bounds_range_m_above_and_is_not_an_independently_verified_specification",
+      "basis": "declared"
+    },
+    "range_max_m": {
+      "meaning": "range_max_m",
+      "unit": "m_of_the_maximum_range_the_message_itself_declares_under_the_same_rule_when_it_equals_the_minimum_the_pinned_interface_treats_the_sensor_as_fixed_distance_and_only_an_infinity_report_is_accepted",
+      "basis": "declared"
+    },
+    "range_fov_rad": {
+      "meaning": "range_fov_rad",
+      "unit": "rad_of_the_reported_field_of_view_of_the_pinned_Range_interface_accepted_only_within_zero_to_two_pi_it_is_the_publishers_declared_beam_width_and_not_a_measured_angle_or_a_bearing_to_anything",
+      "basis": "declared"
+    },
+    "range_radiation_code": {
+      "meaning": "range_radiation_code",
+      "unit": "the_raw_reported_radiation_type_byte_of_the_pinned_Range_interface_kept_as_transmitted_so_an_unrecognised_code_survives_as_a_number",
+      "basis": "declared"
+    },
+    "range_radiation_reported": {
+      "meaning": "range_radiation_reported",
+      "unit": "ULTRASOUND_for_zero_INFRARED_for_one_as_the_pinned_interface_enumerates_them_and_UNKNOWN_followed_by_the_reported_code_for_any_other_value_which_is_retained_rather_than_guessed_into_one_of_the_two",
+      "basis": "declared"
+    },
+    "range_variance_m2": {
+      "meaning": "range_variance_m2",
+      "unit": "m2_of_the_reported_range_variance_present_only_in_the_newer_variance_bearing_schema_and_only_when_it_was_nonzero_blank_otherwise_because_the_interface_uses_zero_for_unknown",
+      "basis": "declared"
+    },
+    "range_variance_status": {
+      "meaning": "range_variance_status",
+      "unit": "NOT_PROVIDED_when_the_saved_schema_carried_no_variance_field_at_all_UNKNOWN_when_it_carried_exactly_zero_and_REPORTED_when_it_carried_a_positive_value_so_an_older_schema_is_distinguishable_from_a_publisher_declaring_its_variance_unknown",
+      "basis": "declared"
+    },
+    "container_status_reported": {
+      "meaning": "container_status_reported",
+      "unit": "the_reported_State_status_string_of_the_pinned_daemon_exactly_as_written_a_daemon_report_and_not_an_interpreted_lifecycle_verdict",
+      "basis": "declared"
+    },
+    "container_status_disposition": {
+      "meaning": "container_status_disposition",
+      "unit": "whether_the_reported_status_string_was_one_the_pinned_source_enumerates_or_is_retained_as_an_unknown_value_so_an_unrecognised_status_is_visible_instead_of_being_mapped_onto_a_known_one",
+      "basis": "declared"
+    },
+    "container_running_reported": {
+      "meaning": "container_running_reported",
+      "unit": "the_reported_Running_boolean_of_the_pinned_State_object_note_that_the_pinned_source_lets_Paused_and_Restarting_hold_while_Running_is_true_so_no_contradiction_is_invented_from_the_combination",
+      "basis": "declared"
+    },
+    "container_paused_reported": {
+      "meaning": "container_paused_reported",
+      "unit": "the_reported_Paused_boolean_which_may_coexist_with_Running_true_as_the_pinned_source_allows",
+      "basis": "declared"
+    },
+    "container_restarting_reported": {
+      "meaning": "container_restarting_reported",
+      "unit": "the_reported_Restarting_boolean_which_may_likewise_coexist_with_Running_true",
+      "basis": "declared"
+    },
+    "container_oom_killed_reported": {
+      "meaning": "container_oom_killed_reported",
+      "unit": "the_reported_OOMKilled_boolean_which_is_the_daemons_own_report_and_never_an_independent_diagnosis_of_memory_exhaustion_or_of_any_physical_cause",
+      "basis": "declared"
+    },
+    "container_dead_reported": {
+      "meaning": "container_dead_reported",
+      "unit": "the_reported_Dead_boolean_of_the_pinned_State_object_a_daemon_report_only",
+      "basis": "declared"
+    },
+    "container_exit_code_reported": {
+      "meaning": "container_exit_code_reported",
+      "unit": "the_reported_signed_ExitCode_of_the_pinned_State_object_an_integer_code_and_not_a_quantity_with_a_unit_and_a_zero_while_Running_is_true_is_not_evidence_of_a_completed_successful_run",
+      "basis": "declared"
+    },
+    "container_last_lifecycle_error_hex": {
+      "meaning": "container_last_lifecycle_error_hex",
+      "unit": "utf8_hex_of_the_reported_State_Error_text_which_the_pinned_source_sets_from_the_last_start_or_stop_or_remove_error_so_it_is_not_necessarily_the_programs_own_stderr_and_is_retained_verbatim_without_being_parsed",
+      "basis": "declared"
+    },
+    "container_health_reported": {
+      "meaning": "container_health_reported",
+      "unit": "the_reported_Health_status_string_when_the_saved_object_carried_a_healthcheck_result_a_publisher_report_and_not_a_verdict_of_this_reader",
+      "basis": "declared"
+    },
+    "container_health_disposition": {
+      "meaning": "container_health_disposition",
+      "unit": "whether_a_Health_object_was_present_at_all_and_whether_its_status_was_an_enumerated_value_because_a_MISSING_healthcheck_is_explicitly_NOT_healthy_and_must_not_be_read_as_one",
+      "basis": "declared"
+    },
+    "container_health_failing_streak_reported": {
+      "meaning": "container_health_failing_streak_reported",
+      "unit": "the_reported_FailingStreak_count_of_consecutive_failed_healthchecks_a_plain_count_with_no_unit_and_no_duration_implied",
+      "basis": "declared"
+    },
+    "runtime_overall_latency_s": {
+      "meaning": "runtime_overall_latency_s",
+      "unit": "s_of_the_reported_overall_latency_under_exactly_the_same_optional_nanosecond_source_conversion_mean_across_networks_and_non_timeline_rules",
+      "basis": "declared"
+    }
+  }
+}

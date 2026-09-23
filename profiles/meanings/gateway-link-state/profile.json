@@ -1,0 +1,135 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_caller_declared_capture_clock_that_orders_this_output_the_saved_document_carries_no_time_of_its_own_so_none_is_invented_and_no_device_UTC_is_implied",
+      "basis": "declared"
+    },
+    "link_ifindex": {
+      "meaning": "link_ifindex",
+      "unit": "the_reported_interface_index_the_writer_prints_as_ifindex_an_identifier_within_one_saved_document_not_an_authenticated_device_identity",
+      "basis": "declared"
+    },
+    "link_ifname_hex": {
+      "meaning": "link_ifname_hex",
+      "unit": "utf8_hex_of_the_reported_interface_name_a_label_the_writer_printed_not_a_verified_port_or_physical_position",
+      "basis": "declared"
+    },
+    "link_operstate": {
+      "meaning": "link_operstate",
+      "unit": "the_reported_operational_state_exactly_as_one_of_the_seven_spellings_the_writer_emits_UNKNOWN_NOTPRESENT_DOWN_LOWERLAYERDOWN_TESTING_DORMANT_UP_blank_when_the_writer_emitted_none",
+      "basis": "declared"
+    },
+    "link_operstate_index": {
+      "meaning": "link_operstate_index",
+      "unit": "the_raw_numeric_state_the_writer_emits_instead_of_a_name_when_the_kernel_value_is_outside_its_table_kept_so_an_unnamed_state_is_still_readable_rather_than_dropped",
+      "basis": "declared"
+    },
+    "link_state_basis": {
+      "meaning": "link_state_basis",
+      "unit": "states_that_the_operational_state_is_what_the_interface_reported_and_is_not_a_link_test_not_connectivity_and_not_routing_or_NAT_state",
+      "basis": "declared"
+    },
+    "link_mtu": {
+      "meaning": "link_mtu",
+      "unit": "the_reported_maximum_transmission_unit_the_writer_prints_as_mtu_an_integer_configuration_report_blank_when_absent_and_never_a_measured_frame_size",
+      "basis": "declared"
+    },
+    "link_flags_hex": {
+      "meaning": "link_flags_hex",
+      "unit": "utf8_hex_of_the_comma_joined_declared_flag_strings_the_writer_emitted_including_NO_CARRIER_when_present_retained_verbatim_and_never_reinterpreted_into_a_boolean",
+      "basis": "declared"
+    },
+    "link_type_hex": {
+      "meaning": "link_type_hex",
+      "unit": "utf8_hex_of_the_reported_link_type_string_the_writer_printed_a_declared_encapsulation_name_not_a_verified_medium",
+      "basis": "declared"
+    },
+    "link_stats_kind": {
+      "meaning": "link_stats_kind",
+      "unit": "which_statistics_object_the_writer_emitted_stats64_or_stats_carried_explicitly_because_they_are_different_quantities",
+      "basis": "declared"
+    },
+    "link_counter_basis": {
+      "meaning": "link_counter_basis",
+      "unit": "states_that_every_counter_is_a_reported_count_as_the_pinned_kernel_UAPI_defines_it_not_a_rate_not_a_delta_and_never_a_fault_diagnosis_and_that_neither_that_header_nor_the_kernel_statistics_document_states_a_cumulative_or_reset_basis_so_none_is_asserted",
+      "basis": "declared"
+    },
+    "link_rx_bytes": {
+      "meaning": "link_rx_bytes",
+      "unit": "bytes_the_pinned_UAPI_defines_rx_bytes_as_the_number_of_good_received_bytes_corresponding_to_rx_packets_so_the_unit_is_bytes_and_only_good_packets_are_counted",
+      "basis": "declared"
+    },
+    "link_rx_packets": {
+      "meaning": "link_rx_packets",
+      "unit": "the_number_of_good_packets_received_by_the_interface_as_the_pinned_UAPI_defines_rx_packets",
+      "basis": "declared"
+    },
+    "link_rx_errors": {
+      "meaning": "link_rx_errors",
+      "unit": "the_total_number_of_bad_packets_received_an_aggregate_the_pinned_UAPI_requires_to_include_the_named_detailed_receive_error_counters_never_a_diagnosed_cause",
+      "basis": "declared"
+    },
+    "link_rx_dropped": {
+      "meaning": "link_rx_dropped",
+      "unit": "the_number_of_packets_received_but_not_processed_as_the_pinned_UAPI_defines_rx_dropped_never_a_loss_rate",
+      "basis": "declared"
+    },
+    "link_rx_over_errors": {
+      "meaning": "link_rx_over_errors",
+      "unit": "the_receiver_FIFO_overflow_event_counter_as_the_pinned_UAPI_defines_rx_over_errors",
+      "basis": "declared"
+    },
+    "link_rx_multicast": {
+      "meaning": "link_rx_multicast",
+      "unit": "multicast_packets_received_which_the_pinned_UAPI_states_are_counted_at_the_device_level_unlike_rx_packets",
+      "basis": "declared"
+    },
+    "link_tx_bytes": {
+      "meaning": "link_tx_bytes",
+      "unit": "bytes_the_pinned_UAPI_defines_tx_bytes_as_the_number_of_good_transmitted_bytes_corresponding_to_tx_packets",
+      "basis": "declared"
+    },
+    "link_tx_packets": {
+      "meaning": "link_tx_packets",
+      "unit": "the_number_of_packets_successfully_transmitted_as_the_pinned_UAPI_defines_tx_packets",
+      "basis": "declared"
+    },
+    "link_tx_errors": {
+      "meaning": "link_tx_errors",
+      "unit": "the_total_number_of_transmit_problems_an_aggregate_the_pinned_UAPI_requires_to_include_the_named_detailed_transmit_error_counters_never_a_diagnosed_cause",
+      "basis": "declared"
+    },
+    "link_tx_dropped": {
+      "meaning": "link_tx_dropped",
+      "unit": "the_number_of_packets_dropped_on_their_way_to_transmission_as_the_pinned_UAPI_defines_tx_dropped",
+      "basis": "declared"
+    },
+    "link_tx_carrier_errors": {
+      "meaning": "link_tx_carrier_errors",
+      "unit": "the_number_of_frame_transmission_errors_due_to_loss_of_carrier_as_the_pinned_UAPI_defines_tx_carrier_errors_this_is_a_counter_and_not_a_carrier_state_because_this_writer_emits_no_carrier_key_at_all",
+      "basis": "declared"
+    },
+    "link_tx_collisions": {
+      "meaning": "link_tx_collisions",
+      "unit": "the_number_of_collisions_during_packet_transmissions_as_the_pinned_UAPI_defines_collisions",
+      "basis": "declared"
+    },
+    "source_index": {
+      "meaning": "source_index",
+      "unit": "zero_based_position_of_the_link_object_in_the_saved_array_document_order_is_not_time",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "sha256_of_the_exact_saved_document_these_rows_were_read_from_binding_not_authenticity",
+      "basis": "declared"
+    }
+  }
+}

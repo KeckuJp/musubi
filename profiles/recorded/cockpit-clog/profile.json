@@ -1,0 +1,59 @@
+{
+  "profile_id": "cockpit_clog_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_from_the_display_devices_own_unix_millisecond_epoch_at_the_moment_it_assembled_the_log_point_a_ground_side_record_time_not_the_vehicles_sampling_time_and_not_an_attested_or_synchronised_clock",
+    "cockpit_roll_rad": "rad_converted_from_the_reported_degree_display_string_the_writer_rounds_roll_to_one_decimal_before_writing_so_this_is_a_rounded_reported_attitude_and_not_raw_sensor_accuracy",
+    "cockpit_pitch_rad": "rad_from_the_same_one_decimal_degree_display_string_for_pitch_under_the_same_rounding",
+    "cockpit_heading_rad": "rad_from_the_same_one_decimal_degree_display_string_for_heading_the_source_names_no_reference_so_this_is_not_declared_true_or_magnetic",
+    "cockpit_depth_m": "m_from_the_reported_depth_display_string_present_only_when_the_operator_was_displaying_metres_the_writer_forms_it_as_the_negated_mean_sea_level_altitude_at_four_significant_digits_so_it_is_a_reported_display_depth_and_never_a_sounding",
+    "cockpit_depth_unit_token": "the_distance_unit_token_the_writer_appended_either_m_or_ft_which_are_the_only_two_the_pinned_unit_map_declares_it_records_which_display_preference_produced_the_number",
+    "cockpit_battery_voltage_v": "V_from_the_reported_two_decimal_voltage_display_string_a_rounded_reported_value_not_a_measurement_guarantee",
+    "cockpit_battery_current_a": "A_from_the_reported_two_decimal_current_display_string_under_the_same_rounding",
+    "cockpit_instantaneous_power_w": "W_from_the_reported_one_decimal_power_display_string_the_writer_appends_that_token_itself_while_the_adopted_engineering_unit_table_declares_no_watt_entry_so_this_column_belongs_to_this_case_alone",
+    "cockpit_latitude_deg": "deg_of_reported_latitude_kept_in_degrees_because_a_coordinate_is_not_an_angle_to_convert_written_at_six_decimals_and_carrying_no_datum_or_frame_because_the_writer_declares_none",
+    "cockpit_longitude_deg": "deg_of_reported_longitude_under_the_same_six_decimal_rounding_and_the_same_absence_of_a_declared_datum",
+    "cockpit_gps_satellites_reported": "the_reported_visible_satellite_count_a_plain_count_with_no_unit_present_only_when_the_writer_wrote_digits_rather_than_its_Unknown_literal_and_never_a_fix_quality_claim",
+    "cockpit_roll_status": "REPORTED_when_a_degree_token_was_parsed_REPORTED_UNAVAILABLE_TEXT_RETAINED_when_the_writer_emitted_its_own_undefined_or_NaN_text_NOT_REPORTED_when_the_variable_was_absent_and_REPORTED_UNIT_TOKEN_NOT_DECLARED_AT_THIS_PIN_TEXT_RETAINED_for_any_other_token",
+    "cockpit_pitch_status": "the_same_four_dispositions_for_pitch",
+    "cockpit_heading_status": "the_same_four_dispositions_for_heading",
+    "cockpit_depth_status": "the_same_dispositions_for_depth_plus_REPORTED_IN_FEET_WHOSE_DEFINITION_THIS_PIN_DOES_NOT_DECLARE_TEXT_RETAINED_when_the_operator_displayed_feet_in_which_case_no_metre_value_is_produced",
+    "cockpit_battery_voltage_status": "the_same_four_dispositions_for_the_reported_voltage",
+    "cockpit_battery_current_status": "the_same_four_dispositions_for_the_reported_current",
+    "cockpit_instantaneous_power_status": "the_same_four_dispositions_for_the_reported_power",
+    "cockpit_latitude_status": "the_same_four_dispositions_for_the_reported_latitude",
+    "cockpit_longitude_status": "the_same_four_dispositions_for_the_reported_longitude",
+    "cockpit_gps_satellites_status": "REPORTED_for_a_digit_string_REPORTED_UNAVAILABLE_TEXT_RETAINED_for_the_writers_Unknown_literal_and_NOT_REPORTED_when_absent",
+    "cockpit_mode_hex": "utf8_hex_of_the_reported_flight_mode_text_exactly_as_displayed_including_the_writers_Unknown_fallback_it_is_a_reported_label_and_not_a_qualified_mode_enumeration",
+    "cockpit_gps_status_hex": "utf8_hex_of_the_reported_gps_fix_status_text_retained_verbatim_without_being_mapped_to_any_fix_enumeration",
+    "cockpit_mission_name_hex": "utf8_hex_of_the_reported_mission_name_which_defaults_to_the_literal_Cockpit_when_none_is_set_a_reported_label_and_never_a_vehicle_identity",
+    "cockpit_reported_time_hex": "utf8_hex_of_the_writers_own_display_formatted_local_time_string_with_its_offset_token_retained_as_text_and_never_parsed_into_a_clock",
+    "cockpit_reported_date_hex": "utf8_hex_of_the_writers_own_display_formatted_date_string_retained_as_text_under_the_same_rule",
+    "cockpit_variable_count": "how_many_variables_the_log_point_carried_in_total_including_the_operators_own_ones",
+    "cockpit_selected_count": "how_many_of_those_are_members_of_the_pinned_standard_variable_set_that_this_case_reads",
+    "cockpit_retained_only_count": "how_many_were_operator_defined_or_data_lake_variables_that_are_retained_verbatim_in_the_source_record_and_deliberately_given_no_unit_or_meaning_here",
+    "cockpit_selected_max_stale_ms": "the_largest_difference_in_milliseconds_between_the_log_points_epoch_and_a_selected_variables_own_lastChanged_so_a_value_carried_over_from_an_earlier_tick_is_visible_a_negative_value_is_retained_rather_than_clamped",
+    "cockpit_reported_seconds_text": "int64_text_of_the_recording_offset_the_export_step_adds_to_each_point_present_only_when_the_saved_file_carried_it",
+    "cockpit_value_basis": "states_that_every_numeric_column_here_was_parsed_from_a_display_string_the_writer_had_already_rounded_that_the_unit_token_is_the_producers_own_and_that_the_original_precision_cannot_be_recovered",
+    "cockpit_depth_basis": "states_that_depth_is_the_writers_negated_mean_sea_level_altitude_expressed_in_whichever_display_unit_the_operator_had_selected_and_is_neither_a_measured_depth_nor_a_sounding",
+    "cockpit_clock_basis": "states_that_the_row_clock_is_the_display_devices_unix_millisecond_wall_clock_not_vehicle_time_and_not_attested",
+    "cockpit_seconds_basis": "states_that_the_reported_recording_offset_is_clamped_at_zero_by_the_writer_so_several_early_points_can_share_zero_and_the_epoch_is_the_authoritative_time",
+    "cockpit_identity_basis": "states_that_this_writer_declares_no_vehicle_identity_no_reference_frame_and_no_geodetic_datum_and_that_none_is_inferred_here",
+    "source_document_sha256": "sha256_of_the_exact_saved_log_document_this_row_came_from_binding_rows_to_their_source_and_never_authentication",
+    "source_point_index": "zero_based_position_of_this_log_point_in_the_saved_array_as_written_the_export_sorts_points_by_epoch_so_this_is_file_order",
+    "source_record_hex": "canonical_json_of_the_whole_log_point_including_every_variable_this_case_did_not_select_so_no_reported_value_is_dropped_it_is_not_the_original_file_whitespace"
+  }
+}

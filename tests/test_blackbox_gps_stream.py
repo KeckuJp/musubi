@@ -36,6 +36,71 @@ class BlackboxGpsStreamContract(unittest.TestCase):
         return (self.module.MAGIC + f"H Firmware revision:Betaflight {version} (authored) GENERIC\n".encode()
                 + self.module.END)
 
+    def motion_recording(self, *, gyro=True, acc=True):
+        header = b"H Firmware revision:Betaflight 4.2.0 (authored) GENERIC\n"
+        if gyro:
+            header += b"H gyro_scale:0x3f800000\n"
+        if acc:
+            header += b"H acc_1G:2048\n"
+        return self.module.MAGIC + header + self.module.END
+
+    def test_si_motion_export_is_opt_in_and_refuses_unguessable_scaling(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output, calls = self.run_stub(Path(tmp), mode="main",
+                                          recording=self.motion_recording())
+            self.assertNotIn("--unit-rotation", calls[0])
+            self.assertNotIn("--unit-acceleration", calls[0])
+            self.assertEqual(json.loads((output / "decode.json").read_text())["motion_units"],
+                             "native")
+        with tempfile.TemporaryDirectory() as tmp:
+            output, calls = self.run_stub(Path(tmp), mode="main",
+                                          recording=self.motion_recording(), motion="si")
+            self.assertEqual(calls[0][calls[0].index("--unit-rotation") + 1], "rad/s")
+            self.assertEqual(calls[0][calls[0].index("--unit-acceleration") + 1], "m/s/s")
+            decode = json.loads((output / "decode.json").read_text())
+            self.assertEqual(decode["motion_units"], "si")
+            self.assertEqual(decode["motion_scaling_headers"],
+                             {"gyro_scale": "0x3f800000", "acc_1G": "2048"})
+            self.assertEqual(decode["source_units"]["gyroADC[0]"], "rad/s")
+            self.assertEqual(decode["source_units"]["accSmooth[2]"], "m/s/s")
+            self.assertIn("no body frame is established", decode["motion_axis_basis"])
+        for missing, name in ((dict(acc=False), "acc_1G"), (dict(gyro=False), "gyro_scale")):
+            with self.subTest(name=name), self.assertRaises(ValueError) as refusal:
+                self.module.motion_scaling_headers(self.motion_recording(**missing))
+            self.assertIn(name, str(refusal.exception))
+        self.assertEqual(self.module.motion_scaling_headers(self.motion_recording()),
+                         {"gyro_scale": "0x3f800000", "acc_1G": "2048"})
+        header = b"H Firmware revision:Betaflight 4.2.0 (authored) GENERIC\n"
+        for body, why in (
+                (b"H gyro_scale:0x3f800000\nH acc_1G:2048bad\n", "trailing garbage after acc_1G"),
+                (b"H gyro_scale:0x3f800000\nH acc_1G:0\n", "zero acc_1G"),
+                (b"H gyro_scale:0x3f800000\nH acc_1G:70000\n", "acc_1G beyond the writer type"),
+                (b"H gyro_scale:anytext\nH acc_1G:2048\n", "gyro_scale that is not a float"),
+                (b"H gyro_scale:0x3f800001\nH acc_1G:2048\n", "a gyro_scale 4.2.0 never writes"),
+                (b"H gyro_scale:0x3f800000\nH gyro_scale:0x3f800000\nH acc_1G:2048\n",
+                 "a repeated required header"),
+                (b"H gyro_scale:0x3f800000\nH acc_1G:2048\nH acc_1G:1024\n",
+                 "contradictory repeated acc_1G"),
+                (b"I authored frame line\nH gyro_scale:0x3f800000\nH acc_1G:2048\n",
+                 "scaling lines only in the body")):
+            with self.subTest(why=why), self.assertRaises(ValueError):
+                self.module.motion_scaling_headers(
+                    self.module.MAGIC + header + body + self.module.END)
+        self.assertEqual(self.module.require_si_firmware("Betaflight 4.2.0 (authored) GENERIC"),
+                         "4.2.0")
+        for revision in ("Betaflight 4.2.11 (authored) GENERIC",
+                         "Betaflight 4.3.0 (authored) GENERIC", "Betaflight", ""):
+            with self.subTest(revision=revision), self.assertRaises(ValueError):
+                self.module.require_si_firmware(revision)
+        self.assertIn("4.2.11", self.module.inspect_recording(self.recording("4.2.11")))
+        with tempfile.TemporaryDirectory() as tmp:
+            recording = (self.module.MAGIC
+                         + b"H Firmware revision:Betaflight 4.2.11 (authored) GENERIC\n"
+                         + b"H gyro_scale:0x3f800000\nH acc_1G:2048\n" + self.module.END)
+            with self.assertRaises(ValueError) as refused:
+                self.run_stub(Path(tmp), mode="main", recording=recording, motion="si")
+            self.assertIn("qualified for Betaflight 4.2.0", str(refused.exception))
+
     def test_default_main_version_scope_is_unchanged(self):
         self.assertIn("4.2.0", self.module.inspect_recording(self.recording()))
         self.assertIn("4.2.11", self.module.inspect_recording(self.recording("4.2.11")))
@@ -83,7 +148,7 @@ class BlackboxGpsStreamContract(unittest.TestCase):
             with self.subTest(suffix=suffix), self.assertRaises(ValueError):
                 self.module.check_decoder_report(REPORT + suffix, stream="gps")
 
-    def run_stub(self, root, *, gps=GPS, report=REPORT, returncode=0, missing=False, mode="gps", recording=None, log_index=None):
+    def run_stub(self, root, *, gps=GPS, report=REPORT, returncode=0, missing=False, mode="gps", recording=None, log_index=None, motion=None):
         raw, decoder, output = root / "source.bfl", root / "decoder", root / "output"
         raw.write_bytes(recording if recording is not None else self.recording("4.3.0" if mode == "gps" else "4.2.0"))
         decoder.write_bytes(b"authored decoder placeholder; never executed")
@@ -118,6 +183,8 @@ class BlackboxGpsStreamContract(unittest.TestCase):
             args += ["--stream", "gps"]
         if log_index is not None:
             args += ["--log-index", str(log_index)]
+        if motion is not None:
+            args += ["--motion-units", motion]
         with patch.object(sys, "argv", args), patch.object(self.module.subprocess, "run", side_effect=decode):
             self.module.main()
         return output, calls
@@ -152,13 +219,45 @@ class BlackboxGpsStreamContract(unittest.TestCase):
         for malformed in (dump[:-1], dump + b"\xff", first + self.recording("4.4.0")):
             with tempfile.TemporaryDirectory() as tmp, self.assertRaises(ValueError):
                 self.run_stub(Path(tmp), mode="main", recording=malformed, log_index=2)
-        # Selecting a complete first log does not certify the incomplete unselected second one.
         self.assertEqual(self.module.select_recording(dump[:-1], 1)[0], first)
         with tempfile.TemporaryDirectory() as tmp:
             output, calls = self.run_stub(Path(tmp), recording=dump, log_index=2)
             self.assertEqual(Path(calls[0][-1]).read_bytes(), second)
             self.assertEqual((output / "decoded.csv").read_bytes(), GPS)
 
+    def test_selected_archived_recording_reaches_existing_common_output(self):
+        source = os.environ.get("MUSUBI_BLACKBOX_RECORDING")
+        decoder = os.environ.get("MUSUBI_BLACKBOX_DECODER")
+        reader = os.environ.get("MUSUBI_BLACKBOX_READER")
+        destination = os.environ.get("MUSUBI_BLACKBOX_SELECTION_OUTPUT")
+        if not all((source, decoder, reader, destination)):
+            self.skipTest("optional retained recording and installed tools not supplied")
+        root = Path(destination); root.mkdir()
+        original = Path(source).read_bytes()
+        self.module.inspect_recording(original)
+        dump = root / "constructed-two-log.bbl"; dump.write_bytes(original + original)
+        output = root / "selected-second"
+        with patch.object(sys, "argv", [str(SCRIPT), decoder, str(dump), str(output), "--log-index", "2"]):
+            self.module.main()
+        self.assertEqual((output / "selected.bfl").read_bytes(), original)
+        decoded = list(csv.DictReader(io.StringIO((output / "decoded.csv").read_text()), skipinitialspace=True))
+        result = subprocess.run([reader,
+            str(ROOT / "profiles/declared/betaflight-raw-main/profile.toml"),
+            str(output / "decoded.csv")], check=True, capture_output=True)
+        (root / "common-observations.json").write_bytes(result.stdout)
+        common = json.loads(result.stdout)
+        self.assertEqual(common["main_rows"], len(decoded))
+        self.assertEqual(common["platform_domain"], "Unknown")
+        onboard = [o for o in common["observations"] if o["channel"] == "onboard"]
+        self.assertEqual(len(onboard), len(decoded))
+        for index in (0, len(decoded) - 1):
+            self.assertEqual(onboard[index]["fields"]["time"], int(decoded[index]["time (us)"]))
+            self.assertEqual(onboard[index]["fields"]["vbatLatest"], int(decoded[index]["vbatLatest"]))
+        report = {"constructed_container_not_new_real_recording": True,
+                  "selected_bytes_equal_retained_recording": True,
+                  "main_rows": len(decoded), "observations": len(common["observations"]),
+                  "platform_domain": common["platform_domain"]}
+        (root / "selection-result.json").write_text(json.dumps(report, indent=2))
 
     def test_gps_mode_selects_separate_file_and_retains_sidecars(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,0 +1,105 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "logger_relative_time_us": {
+      "meaning": "logger_relative_time_us",
+      "unit": "us_reported_relative_to_logger_start_this_is_the_alog_records_own_offset_and_is_not_UTC_not_device_uptime_and_not_the_time_carried_inside_the_node_report",
+      "basis": "declared"
+    },
+    "node_report_form": {
+      "meaning": "node_report_form",
+      "unit": "which_serialisation_of_the_pinned_record_this_row_was_read_from_CSP_is_the_comma_separated_key_value_form_the_braced_JSON_form_the_same_pinned_parser_also_accepts_is_refused_by_name_rather_than_read_so_a_row_can_never_come_from_it",
+      "basis": "declared"
+    },
+    "node_name_hex": {
+      "meaning": "node_name_hex",
+      "unit": "utf8_hex_of_the_reported_vehicle_name_exactly_as_the_publisher_wrote_it_this_selector_requires_a_nonempty_one_because_a_report_with_no_identity_describes_no_platform_and_it_is_a_reported_label_never_an_authenticated_identity",
+      "basis": "declared"
+    },
+    "node_type_hex": {
+      "meaning": "node_type_hex",
+      "unit": "utf8_hex_of_the_reported_platform_type_string_an_uninterpreted_self_declaration_such_as_KAYAK_or_UUV_never_a_verified_hull_class_or_capability",
+      "basis": "declared"
+    },
+    "node_mode_hex": {
+      "meaning": "node_mode_hex",
+      "unit": "utf8_hex_of_the_reported_mode_string_the_publishers_own_word_for_what_it_was_doing_never_an_execution_or_autonomy_guarantee",
+      "basis": "declared"
+    },
+    "node_group_hex": {
+      "meaning": "node_group_hex",
+      "unit": "utf8_hex_of_the_reported_group_label_an_opaque_grouping_string_never_a_fleet_membership_or_authorisation_fact",
+      "basis": "declared"
+    },
+    "node_y_m": {
+      "meaning": "node_y_m",
+      "unit": "m_canonical_distance_from_the_cited_or_declared_unit_for_the_reported_Y_field_under_exactly_the_same_unresolved_frame",
+      "basis": "declared"
+    },
+    "node_depth_m": {
+      "meaning": "node_depth_m",
+      "unit": "m_canonical_distance_from_the_cited_or_declared_unit_for_the_reported_DEP_field_a_reported_depth_and_never_a_measured_or_verified_one_and_a_zero_is_a_reported_zero_not_a_surfaced_verdict",
+      "basis": "declared"
+    },
+    "node_reported_y": {
+      "meaning": "node_reported_y",
+      "unit": "the_reported_y_of_the_same_local_grid_position_under_exactly_the_same_undeclared_unit_and_unresolved_frame",
+      "basis": "declared"
+    },
+    "node_reported_lat": {
+      "meaning": "node_reported_lat",
+      "unit": "the_reported_latitude_number_exactly_as_published_with_no_unit_applied_or_named_because_the_pinned_record_declares_none_a_degree_reading_is_the_consumers_declaration_and_no_datum_is_established_here",
+      "basis": "declared"
+    },
+    "node_reported_lon": {
+      "meaning": "node_reported_lon",
+      "unit": "the_reported_longitude_number_under_exactly_the_same_undeclared_unit_and_undeclared_datum",
+      "basis": "declared"
+    },
+    "node_reported_dep": {
+      "meaning": "node_reported_dep",
+      "unit": "the_reported_depth_number_with_NO_unit_applied_or_named_because_the_pinned_record_declares_none_and_a_zero_here_is_a_reported_zero_and_never_a_surfaced_verdict",
+      "basis": "declared"
+    },
+    "node_reported_alt": {
+      "meaning": "node_reported_alt",
+      "unit": "the_reported_altitude_number_with_NO_unit_applied_or_named_for_the_same_reason_blank_when_the_report_did_not_carry_it",
+      "basis": "declared"
+    },
+    "node_unselected_key_count": {
+      "meaning": "node_unselected_key_count",
+      "unit": "how_many_keys_of_this_report_the_finite_selection_did_not_take_they_are_not_dropped_the_whole_composite_is_retained_verbatim_in_node_report_hex_so_a_reader_can_see_exactly_what_was_left",
+      "basis": "declared"
+    },
+    "node_report_hex": {
+      "meaning": "node_report_hex",
+      "unit": "utf8_hex_of_the_entire_reported_composite_exactly_as_it_appeared_after_the_string_marker_so_every_unselected_key_including_the_excluded_ones_survives_this_conversion",
+      "basis": "declared"
+    },
+    "source_line": {
+      "meaning": "source_line",
+      "unit": "one_based_line_number_of_the_alog_record_this_row_came_from_file_order_is_not_time",
+      "basis": "declared"
+    },
+    "source_variable": {
+      "meaning": "source_variable",
+      "unit": "the_exact_MOOS_variable_the_caller_selected_one_of_the_two_the_viewer_subscribes_to_by_default",
+      "basis": "declared"
+    },
+    "source_publisher": {
+      "meaning": "source_publisher",
+      "unit": "the_exact_publishing_process_name_the_caller_selected_a_reported_name_never_an_authenticated_process_identity",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "sha256_of_the_whole_saved_alog_input_binding_these_rows_to_their_source_not_authentication",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "profile_id": "voxl_px4_ulog_selected_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "fc",
+  "format": "px4_ulog",
+  "extensions": [
+    "ulg"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "timestamp"
+  },
+  "units": {
+    "sensor_combined.timestamp": "us_time_since_system_start_declared_by_the_source_not_UTC_and_not_a_named_clock_domain",
+    "sensor_combined.gyro_rad[0]": "rad_per_s_average_angular_rate_in_the_declared_FRD_body_frame_X_axis_over_the_last_gyro_sampling_period",
+    "sensor_combined.gyro_rad[1]": "rad_per_s_average_angular_rate_in_the_declared_FRD_body_frame_Y_axis_over_the_last_gyro_sampling_period",
+    "sensor_combined.gyro_rad[2]": "rad_per_s_average_angular_rate_in_the_declared_FRD_body_frame_Z_axis_over_the_last_gyro_sampling_period",
+    "sensor_combined.gyro_integral_dt": "us_gyro_measurement_sampling_period_declared_by_the_source",
+    "sensor_combined.accelerometer_m_s2[0]": "m_per_s2_average_acceleration_in_the_declared_FRD_body_frame_X_axis_over_the_last_accelerometer_sampling_period",
+    "sensor_combined.accelerometer_m_s2[1]": "m_per_s2_average_acceleration_in_the_declared_FRD_body_frame_Y_axis_over_the_last_accelerometer_sampling_period",
+    "sensor_combined.accelerometer_m_s2[2]": "m_per_s2_average_acceleration_in_the_declared_FRD_body_frame_Z_axis_over_the_last_accelerometer_sampling_period",
+    "sensor_combined.accelerometer_integral_dt": "us_accelerometer_measurement_sampling_period_declared_by_the_source",
+    "sensor_combined.accelerometer_timestamp_relative": "offset_added_to_the_record_timestamp_to_obtain_the_accelerometer_timestamp_the_source_states_the_relation_but_states_no_unit_on_that_line_so_none_is_asserted_and_the_value_2147483647_is_the_sources_own_RELATIVE_TIMESTAMP_INVALID_meaning_the_associated_sensor_values_are_invalid",
+    "sensor_combined.accelerometer_clipping": "per_axis_clipping_bitfield_declared_as_X_1_Y_2_Z_4_a_reported_saturation_indication_and_never_a_measurement",
+    "sensor_combined.gyro_clipping": "per_axis_clipping_bitfield_under_the_same_declared_axis_bits_never_a_measurement",
+    "sensor_combined.accel_calibration_count": "monotonic_counter_of_accelerometer_calibration_changes_not_a_measurement_and_not_a_time",
+    "sensor_combined.gyro_calibration_count": "monotonic_counter_of_rate_gyro_calibration_changes_not_a_measurement_and_not_a_time",
+    "vehicle_attitude.timestamp": "us_time_since_system_start_declared_by_the_source_not_UTC",
+    "vehicle_attitude.timestamp_sample": "us_the_timestamp_of_the_raw_data_declared_by_the_source_kept_beside_the_record_timestamp_and_never_merged_with_it",
+    "vehicle_attitude.q[0]": "dimensionless_quaternion_component_in_source_order_position_0_the_source_states_the_rotation_is_from_the_declared_FRD_body_frame_to_the_declared_NED_earth_frame_but_states_neither_the_component_order_nor_normalisation_so_neither_is_asserted",
+    "vehicle_attitude.q[1]": "dimensionless_quaternion_component_in_source_order_position_1_under_the_same_unresolved_component_order",
+    "vehicle_attitude.q[2]": "dimensionless_quaternion_component_in_source_order_position_2_under_the_same_unresolved_component_order",
+    "vehicle_attitude.q[3]": "dimensionless_quaternion_component_in_source_order_position_3_under_the_same_unresolved_component_order",
+    "vehicle_attitude.delta_q_reset[0]": "dimensionless_amount_by_which_the_quaternion_changed_during_the_last_reset_position_0_no_frame_or_component_order_is_stated_for_this_field_at_all",
+    "vehicle_attitude.delta_q_reset[1]": "dimensionless_reset_delta_component_position_1_under_the_same_absence_of_stated_metadata",
+    "vehicle_attitude.delta_q_reset[2]": "dimensionless_reset_delta_component_position_2_under_the_same_absence_of_stated_metadata",
+    "vehicle_attitude.delta_q_reset[3]": "dimensionless_reset_delta_component_position_3_under_the_same_absence_of_stated_metadata",
+    "vehicle_attitude.quat_reset_counter": "reported_quaternion_reset_counter_not_a_measurement_and_not_a_time"
+  }
+}

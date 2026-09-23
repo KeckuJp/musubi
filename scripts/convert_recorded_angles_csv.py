@@ -14,7 +14,16 @@ SCHEMAS = {
     "inav-decoder-1918-si-motion": ("time (us)",
         tuple(f"gyroADC[{i}] (rad/s)" for i in range(3)) +
         tuple(f"accSmooth[{i}] (m/s/s)" for i in range(3)), 1.0),
+    # Betaflight 4.2.0 through the pinned blackbox-tools f832acf9 asked for SI rotation and
+    # acceleration. The header shape matches the INAV row above, but that row is qualified for
+    # INAV's own decoder, so this is its own row rather than a borrowed qualification.
+    "betaflight-4.2.0-si-motion": ("time (us)",
+        tuple(f"gyroADC[{i}] (rad/s)" for i in range(3)) +
+        tuple(f"accSmooth[{i}] (m/s/s)" for i in range(3)), 1.0),
 }
+# Both rows are the same decoder family emitting %.2f SI, so they share the value rule and the
+# renamed output; only their firmware/decoder qualification differs.
+SI_MOTION_SCHEMAS = ("inav-decoder-1918-si-motion", "betaflight-4.2.0-si-motion")
 OUTPUT = ["record_time_us", "reported_roll_rad", "reported_pitch_rad", "reported_yaw_rad",
           "angle_schema", "source_header_hex", "source_record_hex"]
 
@@ -24,7 +33,7 @@ def convert(text, schema):
         raise ValueError("unsupported angle schema or CSV representation")
     time_field, angle_fields, scale = SCHEMAS[schema]
     output_fields = OUTPUT
-    if schema == "inav-decoder-1918-si-motion":
+    if schema in SI_MOTION_SCHEMAS:
         output_fields = ["record_time_us"] + [f"reported_angular_velocity_{axis}_rad_s" for axis in "xyz"] + [
             f"reported_acceleration_{axis}_m_s2" for axis in "xyz"] + [
             "motion_schema", "source_header_hex", "source_record_hex"]
@@ -53,7 +62,7 @@ def convert(text, schema):
         angles = []
         for field in angle_fields:
             token = values[field].strip()
-            if schema == "inav-decoder-1918-si-motion" and not re.fullmatch(r"-?[0-9]{1,20}\.[0-9]{2}", token):
+            if schema in SI_MOTION_SCHEMAS and not re.fullmatch(r"-?[0-9]{1,20}\.[0-9]{2}", token):
                 raise ValueError("fixed decoder SI output requires two decimal places")
             if schema == "inav-7.1.2-raw-attitude" and (not re.fullmatch(r"[+-]?[0-9]{1,6}", token)
                     or not -32768 <= int(token) <= 32767):

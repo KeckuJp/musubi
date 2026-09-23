@@ -1,0 +1,17 @@
+profile_id = "video_presence"
+version = "2026-08-21.1"
+family = "fpv"
+source_role = "video"
+format = "video_presence"
+extensions = ["mp4", "ts", "csv"]
+default_clock_basis = "unknown"
+channels = ["video"]
+
+[fields]
+time = "file_mtime"
+
+[[expectations]]
+id = "video_file_presence_1s"
+channel = "video"
+cadence_ms = 1000
+grace_k = 3

@@ -1,0 +1,60 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_of_the_first_observation_this_binding_covers_carried_from_the_bound_file_on_its_own_clock_never_converted_to_wall_time_it_orders_the_binding_rows_and_is_not_a_time_the_software_was_running",
+      "basis": "declared"
+    },
+    "identity_instance_hex": {
+      "meaning": "identity_instance_hex",
+      "unit": "utf8_hex_of_the_callers_label_for_which_instance_of_that_software_this_is_blank_when_none_was_given_two_equal_names_are_never_assumed_to_be_one_instance",
+      "basis": "declared"
+    },
+    "identity_collision": {
+      "meaning": "identity_collision",
+      "unit": "TWO_OR_MORE_DISTINCT_VALUES_IN_THE_BOUND_OBSERVATIONS_when_the_column_carried_more_than_one_value_in_which_case_every_value_has_its_own_row_and_none_is_chosen_blank_when_there_was_only_one",
+      "basis": "declared"
+    },
+    "identity_join_hex": {
+      "meaning": "identity_join_hex",
+      "unit": "utf8_hex_of_a_JSON_object_of_column_to_saved_value_which_together_with_bound_observations_sha256_is_the_reproducible_filter_that_selects_the_original_rows_this_identity_was_read_from_blank_for_a_caller_declaration_because_no_saved_row_carries_it",
+      "basis": "declared"
+    },
+    "identity_rows_carrying_value": {
+      "meaning": "identity_rows_carrying_value",
+      "unit": "how_many_of_the_bound_rows_carried_this_exact_value_or_this_exact_paired_tuple_a_count_within_this_file_only_and_never_a_measure_of_how_long_or_how_often_the_software_ran_blank_for_a_caller_declaration_which_no_row_carries",
+      "basis": "declared"
+    },
+    "bound_observations_sha256": {
+      "meaning": "bound_observations_sha256",
+      "unit": "SHA256_of_the_exact_observations_file_this_identity_is_bound_to_which_identifies_bytes_and_authenticates_nothing_it_is_what_makes_the_binding_checkable_rather_than_asserted",
+      "basis": "declared"
+    },
+    "bound_row_count": {
+      "meaning": "bound_row_count",
+      "unit": "how_many_observation_rows_that_file_held_stated_so_the_binding_names_a_concrete_set_rather_than_a_file_name",
+      "basis": "declared"
+    },
+    "bound_first_record_time_us": {
+      "meaning": "bound_first_record_time_us",
+      "unit": "us_of_the_first_bound_observation_on_the_bound_files_own_clock",
+      "basis": "declared"
+    },
+    "bound_last_record_time_us": {
+      "meaning": "bound_last_record_time_us",
+      "unit": "us_of_the_last_bound_observation_on_the_bound_files_own_clock_the_two_together_state_the_span_the_binding_covers_and_claim_nothing_outside_it",
+      "basis": "declared"
+    },
+    "bound_time_column_hex": {
+      "meaning": "bound_time_column_hex",
+      "unit": "utf8_hex_of_the_column_that_supplied_those_times_in_the_bound_file_because_the_bound_export_may_not_call_it_record_time_us",
+      "basis": "declared"
+    }
+  }
+}

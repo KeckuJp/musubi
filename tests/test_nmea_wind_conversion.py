@@ -6,6 +6,7 @@ import io
 import json
 import math
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -42,6 +43,45 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(rows[0], COLUMNS)
         return [dict(zip(COLUMNS, row)) for row in rows[1:]], report
 
+    def test_water_sentences_reuse_checksum_units_and_common_output(self):
+        import os
+        for temperature, depth, offset in ((-2., 12.5, -.7), (25., 0., 1.2)):
+            lines = [sentence(f"YXMTW,{temperature},C"), sentence(f"SDDPT,{depth},{offset},100"),
+                     sentence("SDDPT,,,"), sentence("YXMTW,,C"), sentence("XXABC,retained")]
+            text = "\n".join(lines) + "\n"
+            output, report = self.converter.convert(text, "water-dpt-mtw")
+            rows = list(csv.DictReader(io.StringIO(output)))
+            self.assertEqual(len(rows), 4)
+            self.assertAlmostEqual(float(rows[0]["water_temperature_k"]), temperature + 273.15)
+            self.assertEqual(float(rows[1]["depth_below_transducer_m"]), depth)
+            self.assertEqual(float(rows[1]["transducer_offset_m"]), offset)
+            self.assertEqual(rows[2]["measurement_disposition"], "UNAVAILABLE")
+            self.assertEqual(rows[2]["depth_below_transducer_m"], "")
+            self.assertEqual(report["water_measurements"], 2)
+            self.assertEqual(report["unsupported_records"], 1)
+            self.assertEqual(report["unsupported"][0]["raw"], lines[-1])
+            self.assertEqual(bytes.fromhex(rows[0]["source_sentence_hex"][4:]).decode(), lines[0])
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory); source = path / "water.txt"; source.write_text(text)
+                subprocess.run([sys.executable, str(SCRIPT), str(source), str(path / "out"),
+                    "--kind", "water-dpt-mtw"], cwd=ROOT, check=True, capture_output=True)
+                if os.environ.get("MUSUBI_TELEMETRY_READER"):
+                    observations = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                        str(ROOT / "profiles/declared/nmea-wind/profile.toml"),
+                        str(path / "out/converted.csv"), "--allow-equal-time"], check=True,
+                        capture_output=True).stdout)["observations"]
+                    self.assertEqual(len(observations), 4)
+                    self.assertAlmostEqual(observations[0]["fields"]["water_temperature_k"], temperature + 273.15)
+                    self.assertEqual(observations[1]["fields"]["depth_below_transducer_m"], depth)
+                    self.assertTrue(all(o["clock_basis"] == "Unknown" and o["anchor_unix_us"] is None for o in observations))
+        _, report = self.converter.convert(sentence("YXMTW,,C"), "water-dpt-mtw")
+        self.assertEqual(report["measurement_result"], "ONLY_WITHHELD_VALUES")
+        for payload in ("YXMTW,1,F", "YXMTW,-274,C", "YXMTW,NaN,C", "SDDPT,-1,0,100",
+                        "SDDPT,1,NaN,100", "SDDPT,1,0", "SDDPT,1,0,-1", "XXABC,no_selected"):
+            with self.assertRaises(ValueError):
+                self.converter.convert(sentence(payload), "water-dpt-mtw")
+        with self.assertRaises(ValueError):
+            self.converter.convert(sentence("YXMTW,1,C")[:-1] + "Z", "water-dpt-mtw")
 
     def test_units_references_and_signed_angle_boundaries(self):
         cases = [(0, "R", 10, "M", 0, 10), (180, "T", 36, "K", math.pi, 10),
@@ -120,6 +160,33 @@ class ConversionTests(unittest.TestCase):
             self.assertFalse(Path(command[-1]).exists())
 
 
+
+
+class DeclaredColumnMeanings(unittest.TestCase):
+    """Every column any selected kind writes must have a declared meaning in the profile.
+
+    The common reader does not enforce this: it passes an undeclared column straight through to
+    common output, where a reader then sees a value such as `REPORTED_BELOW_TRANSDUCER` with
+    nothing saying what it means. Two columns of the water path had reached common output that
+    way: `sentence_kind`, and `measurement_disposition`, which is what names the reference a
+    depth is measured from and records that a reading is not calibrated.
+
+    The key pattern below allows whitespace on either side of `=`, because TOML does and this
+    profile uses both spellings -- a stricter pattern reports a declared key as missing.
+
+    Checked against the converter's own column tuples, so this needs no decoder and no reader.
+    """
+
+    def test_every_written_column_is_declared(self):
+        module = load(SCRIPT)
+        declared = set(re.findall(
+            r"^\s*([A-Za-z_][\w.-]*)\s*=",
+            (ROOT / "profiles/declared/nmea-wind/profile.toml")
+            .read_text(encoding="utf-8").split("[units]")[1], re.M))
+        for kind, columns in (("wind", module.COLUMNS), ("ais-class-a", module.AIS_COLUMNS),
+                              ("water-dpt-mtw", module.WATER_COLUMNS)):
+            with self.subTest(kind=kind):
+                self.assertEqual(sorted(name for name in columns if name not in declared), [])
 
 
 if __name__ == "__main__":

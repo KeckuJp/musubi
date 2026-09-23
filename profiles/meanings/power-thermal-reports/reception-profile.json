@@ -1,0 +1,165 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_since_unix_epoch_utc_at_journald_reception_copied_not_reinterpreted",
+      "basis": "declared"
+    },
+    "record_time_basis": {
+      "meaning": "record_time_basis",
+      "unit": "HOST_RECEIVED",
+      "basis": "declared"
+    },
+    "clock_field_basis": {
+      "meaning": "clock_field_basis",
+      "unit": "which_documented_journal_timestamp_this_conversion_used",
+      "basis": "declared"
+    },
+    "journal_reception_realtime_us": {
+      "meaning": "journal_reception_realtime_us",
+      "unit": "us_since_unix_epoch_utc_the_journald_reception_address_field_of_this_entry",
+      "basis": "declared"
+    },
+    "journal_source_realtime_us": {
+      "meaning": "journal_source_realtime_us",
+      "unit": "us_since_unix_epoch_utc_the_earliest_trusted_source_time_blank_when_the_entry_carries_none",
+      "basis": "declared"
+    },
+    "source_time_status": {
+      "meaning": "source_time_status",
+      "unit": "whether_this_entry_carried_a_trusted_source_time_distinct_from_reception",
+      "basis": "declared"
+    },
+    "condition_domain": {
+      "meaning": "condition_domain",
+      "unit": "THERMAL_or_POWER_or_UNKNOWN_the_domain_the_pinned_producer_line_belongs_to_never_inferred_from_a_value",
+      "basis": "declared"
+    },
+    "reported_condition": {
+      "meaning": "reported_condition",
+      "unit": "the_pinned_condition_the_producer_asserted_one_of_critical_temperature_trip_reached_hardware_protection_shutdown_initiated_forced_poweroff_emergency_restart_undervoltage_condition_entered_or_cleared",
+      "basis": "declared"
+    },
+    "condition_transition": {
+      "meaning": "condition_transition",
+      "unit": "ENTERED_or_CLEARED_for_an_edge_reporting_producer_or_a_statement_that_this_producer_reports_an_action_rather_than_an_edge",
+      "basis": "declared"
+    },
+    "report_class": {
+      "meaning": "report_class",
+      "unit": "always_an_event_the_producer_itself_reported_this_converter_emits_no_other_class",
+      "basis": "declared"
+    },
+    "report_class_basis": {
+      "meaning": "report_class_basis",
+      "unit": "states_that_no_measurement_no_configured_limit_no_threshold_comparison_and_no_physical_causal_diagnosis_is_emitted_and_that_a_gap_in_observations_is_never_read_as_a_condition",
+      "basis": "declared"
+    },
+    "match_basis": {
+      "meaning": "match_basis",
+      "unit": "states_that_the_classification_is_a_pinned_format_string_text_match_on_an_entry_whose_trusted_transport_is_kernel_which_is_weaker_provenance_than_a_structured_message_id_and_is_not_proof_of_the_producers_version",
+      "basis": "declared"
+    },
+    "measured_value_status": {
+      "meaning": "measured_value_status",
+      "unit": "states_that_these_pinned_format_strings_print_no_temperature_and_no_voltage_so_none_is_emitted_and_no_limit_is_read_or_compared",
+      "basis": "declared"
+    },
+    "declared_producer": {
+      "meaning": "declared_producer",
+      "unit": "the_ups_producer_release_the_caller_declared_for_this_row_blank_for_a_kernel_producer_whose_text_is_fixed_in_source_because_a_ups_daemon_notify_text_is_an_administrator_replaceable_default",
+      "basis": "declared"
+    },
+    "reported_device_label_hex": {
+      "meaning": "reported_device_label_hex",
+      "unit": "hex_encoded_kernel_device_prefix_and_zone_label_exactly_as_written_retained_unparsed_blank_when_the_producer_writes_none",
+      "basis": "declared"
+    },
+    "device_label_basis": {
+      "meaning": "device_label_basis",
+      "unit": "states_that_the_label_is_kept_whole_because_splitting_it_into_an_identity_would_invent_a_structure_the_line_does_not_declare",
+      "basis": "declared"
+    },
+    "reported_shutdown_reason_hex": {
+      "meaning": "reported_shutdown_reason_hex",
+      "unit": "hex_encoded_reason_string_the_calling_subsystem_supplied_to_the_hardware_protection_shutdown_retained_verbatim_blank_on_other_rows",
+      "basis": "declared"
+    },
+    "shutdown_reason_basis": {
+      "meaning": "shutdown_reason_basis",
+      "unit": "states_that_only_the_exact_pinned_thermal_reason_binds_the_shutdown_to_the_thermal_domain_and_that_an_initiated_shutdown_is_not_a_completed_one",
+      "basis": "declared"
+    },
+    "original_report_hex": {
+      "meaning": "original_report_hex",
+      "unit": "hex_encoded_exact_original_message_the_producer_wrote_retained_whole_because_the_report_itself_is_the_evidence",
+      "basis": "declared"
+    },
+    "original_report_sha256": {
+      "meaning": "original_report_sha256",
+      "unit": "sha256_of_those_exact_message_bytes",
+      "basis": "declared"
+    },
+    "original_report_bytes": {
+      "meaning": "original_report_bytes",
+      "unit": "byte_length_of_the_original_message",
+      "basis": "declared"
+    },
+    "journal_trusted_transport": {
+      "meaning": "journal_trusted_transport",
+      "unit": "journald_trusted_transport_field_kernel_means_read_from_the_kernel_not_an_authenticated_producer",
+      "basis": "declared"
+    },
+    "journal_trusted_boot_id": {
+      "meaning": "journal_trusted_boot_id",
+      "unit": "journald_trusted_kernel_boot_id_an_identifier_and_never_an_event_no_unclean_shutdown_is_inferred_from_it_here",
+      "basis": "declared"
+    },
+    "journal_trusted_comm": {
+      "meaning": "journal_trusted_comm",
+      "unit": "journald_trusted_command_name_reported_context_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "journal_trusted_kernel_subsystem": {
+      "meaning": "journal_trusted_kernel_subsystem",
+      "unit": "journald_trusted_kernel_subsystem_when_the_entry_carries_one_reported_context_only",
+      "basis": "declared"
+    },
+    "client_reported_priority": {
+      "meaning": "client_reported_priority",
+      "unit": "client_visible_syslog_priority_reported_not_a_severity_judgement_made_here",
+      "basis": "declared"
+    },
+    "identity_encoding_notes": {
+      "meaning": "identity_encoding_notes",
+      "unit": "named_reason_when_a_field_value_used_a_documented_encoding_other_than_a_single_string_so_nothing_is_silently_erased",
+      "basis": "declared"
+    },
+    "identity_basis": {
+      "meaning": "identity_basis",
+      "unit": "journald_trusted_fields_reported_not_cryptographic_or_runtime_identity",
+      "basis": "declared"
+    },
+    "producer_pin": {
+      "meaning": "producer_pin",
+      "unit": "which_pinned_producer_source_defined_the_matched_format_string",
+      "basis": "declared"
+    },
+    "source_pin": {
+      "meaning": "source_pin",
+      "unit": "the_pinned_systemd_release_whose_export_shape_and_journal_fields_this_conversion_follows",
+      "basis": "declared"
+    },
+    "record_sha256": {
+      "meaning": "record_sha256",
+      "unit": "sha256_of_the_exact_saved_export_line_this_row_came_from",
+      "basis": "declared"
+    }
+  }
+}

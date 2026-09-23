@@ -1,0 +1,25 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_file_order_clock_unknown_not_utc",
+      "basis": "declared"
+    },
+    "depth_m": {
+      "meaning": "depth_m",
+      "unit": "m_below_surface_positive_down_not_altitude",
+      "basis": "declared"
+    },
+    "tether_tension_n": {
+      "meaning": "tether_tension_n",
+      "unit": "N_reported_not_calibrated",
+      "basis": "declared"
+    }
+  }
+}

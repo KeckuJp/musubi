@@ -1,0 +1,19 @@
+profile_id = "ardupilot_plane_recorded_mode_v1"
+version = "1"
+family = "fixed_wing"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "boot_relative"
+channels = ["onboard"]
+
+[fields]
+time = "TimeUS"
+
+[units]
+TimeUS = "us_since_boot"
+Mode = "reported_plane_mode_number"
+ModeNum = "alias_of_Mode"
+Rsn = "reported_mode_reason_code_not_verified_cause"
+reported_mode_name = "plane_mode_identifier_not_health_or_armed_state"
+reported_mode_known = "known_enum_not_build_capability"

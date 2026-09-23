@@ -4,8 +4,8 @@ use musubi_reference_readers::absence::GapBounds;
 use musubi_reference_readers::cause::negative_digest;
 use musubi_reference_readers::eval::{Metrics, top_candidate};
 use musubi_reference_types::{
-    CauseCandidate, CauseOutcome, ChannelId, ClockBasis, DigestRef, LogicConfidence, MarkStatus,
-    NegativeObservation,
+    CauseCandidate, CauseOutcome, ChannelId, ClockBasis, ClockRateOutcome, ClockRateReport,
+    DigestRef, LogicConfidence, MarkStatus, NegativeObservation,
 };
 
 use crate::timefmt::{iso_utc_ms, pm_s, rel_s};
@@ -108,7 +108,34 @@ pub fn source_clock_line(s: &SourceRun) -> String {
             }
         ));
     }
+    if let Some(r) = &s.clock_rate {
+        line.push_str(&clock_rate_clause(r));
+    }
     line
+}
+
+fn clock_rate_clause(r: &ClockRateReport) -> String {
+    match r.outcome {
+        ClockRateOutcome::Observed {
+            low_ppm,
+            high_ppm,
+            class,
+        } => format!(
+            "; relative clock rate {low_ppm}..{high_ppm} ppm of recorded device time, averaged \
+             first anchor to last (not per-interval stability) \
+             (positive = declared reference advanced more; relative variation, not attributed to \
+             either clock), {} vs declared ±{} ppm, {} anchors over {} s, declared pairing \
+             ±{} us (floor of what the field can resolve, not a bound on pairing latency)",
+            class.as_label(),
+            r.config.max_abs_rate_ppm,
+            r.anchors,
+            r.span_us / 1_000_000,
+            r.config.anchor_uncertainty_us
+        ),
+        ClockRateOutcome::InsufficientBasis(gap) => {
+            format!("; relative clock rate not examinable ({})", gap.as_label())
+        }
+    }
 }
 
 #[must_use]

@@ -1,0 +1,95 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "sha256_of_the_exact_saved_document_bytes_binding_not_authenticity_and_not_approval",
+      "basis": "declared"
+    },
+    "feature_index": {
+      "meaning": "feature_index",
+      "unit": "zero_based_position_of_this_feature_in_the_saved_features_array_a_join_key_in_document_order_and_never_an_inspection_order_a_route_order_or_a_severity_rank",
+      "basis": "declared"
+    },
+    "feature_id_hex": {
+      "meaning": "feature_id_hex",
+      "unit": "utf8_hex_of_the_items_own_identity_exactly_as_written_which_the_specification_says_is_either_a_string_or_a_number_it_is_the_documents_declaration_of_which_item_this_is_and_never_an_authenticated_asset_register_entry",
+      "basis": "declared"
+    },
+    "feature_identity_basis": {
+      "meaning": "feature_identity_basis",
+      "unit": "where_that_identity_came_from_the_features_own_id_member_or_a_property_key_the_CALLER_named_or_the_explicit_statement_that_NO_identity_was_written_and_none_is_invented",
+      "basis": "declared"
+    },
+    "geometry_type": {
+      "meaning": "geometry_type",
+      "unit": "the_geometry_type_string_the_specification_defines_one_of_seven_case_sensitive_words_or_UNLOCATED_NULL_GEOMETRY_when_the_feature_declared_the_null_geometry_the_specification_allows_for_an_unlocated_feature",
+      "basis": "declared"
+    },
+    "position_basis": {
+      "meaning": "position_basis",
+      "unit": "the_fixed_statement_that_a_position_is_emitted_ONLY_for_the_single_position_geometry_the_specification_defines_because_choosing_one_vertex_of_a_line_or_a_polygon_as_the_items_location_would_state_something_the_document_does_not",
+      "basis": "declared"
+    },
+    "longitude_deg": {
+      "meaning": "longitude_deg",
+      "unit": "decimal_degrees_of_longitude_which_the_specification_puts_FIRST_in_a_position_on_the_WGS_84_datum_blank_for_every_geometry_that_is_not_a_single_position",
+      "basis": "declared"
+    },
+    "latitude_deg": {
+      "meaning": "latitude_deg",
+      "unit": "decimal_degrees_of_latitude_which_the_specification_puts_second_on_the_same_datum_blank_under_the_same_condition",
+      "basis": "declared"
+    },
+    "declared_assertion_key_hex": {
+      "meaning": "declared_assertion_key_hex",
+      "unit": "utf8_hex_of_the_property_key_the_CALLER_named_as_carrying_the_documents_own_reported_assertion_it_is_a_caller_declaration_about_this_document_and_never_a_key_meaning_the_specification_defines",
+      "basis": "declared"
+    },
+    "reported_assertion_hex": {
+      "meaning": "reported_assertion_hex",
+      "unit": "utf8_hex_of_the_value_found_under_that_caller_named_key_exactly_as_written_read_assertion_basis_before_using_it_blank_when_the_feature_carried_no_such_key",
+      "basis": "declared"
+    },
+    "declared_quantity_key_hex": {
+      "meaning": "declared_quantity_key_hex",
+      "unit": "utf8_hex_of_the_property_key_the_CALLER_named_as_carrying_one_measured_quantity",
+      "basis": "declared"
+    },
+    "declared_quantity_unit": {
+      "meaning": "declared_quantity_unit",
+      "unit": "the_unit_the_CALLER_declared_for_that_key_which_must_be_one_the_shared_engineering_unit_table_converts_the_specification_states_no_unit_for_any_property_so_this_is_a_caller_declaration_and_never_a_unit_read_from_the_file_or_inferred_from_a_key_name",
+      "basis": "declared"
+    },
+    "reported_quantity_field": {
+      "meaning": "reported_quantity_field",
+      "unit": "which_canonical_engineering_field_the_shared_table_put_that_value_in_carried_so_the_quantity_is_never_read_as_a_different_kind_of_quantity",
+      "basis": "declared"
+    },
+    "quantity_basis": {
+      "meaning": "quantity_basis",
+      "unit": "the_fixed_statement_of_that_caller_declared_unit_and_of_the_shared_table_being_the_only_conversion_applied",
+      "basis": "declared"
+    },
+    "property_count": {
+      "meaning": "property_count",
+      "unit": "how_many_keys_the_features_properties_object_carried_blank_when_the_document_wrote_the_null_properties_value_the_specification_allows_every_key_name_is_listed_in_the_report_and_NONE_of_them_is_interpreted_here",
+      "basis": "declared"
+    },
+    "property_basis": {
+      "meaning": "property_basis",
+      "unit": "the_fixed_statement_of_that_retention_and_of_the_null_properties_case",
+      "basis": "declared"
+    },
+    "bbox_present": {
+      "meaning": "bbox_present",
+      "unit": "PRESENT_or_ABSENT_only_whether_the_feature_carried_a_bounding_box_member_at_all_its_values_are_NOT_decoded_here_and_no_extent_area_or_coverage_is_claimed",
+      "basis": "declared"
+    }
+  }
+}

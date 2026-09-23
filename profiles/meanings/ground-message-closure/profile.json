@@ -1,0 +1,205 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "reported_clock_us_truncated_from_source_not_boot_or_UTC_anchor",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact_source_record_including_identity_and_clock",
+      "basis": "declared"
+    },
+    "charging_source_stamp_us": {
+      "meaning": "charging_source_stamp_us",
+      "unit": "reported_ROS_header_microseconds_not_capture_or_UTC_anchor",
+      "basis": "declared"
+    },
+    "charging_frame_hex": {
+      "meaning": "charging_frame_hex",
+      "unit": "reported_header_frame_not_a_verified_mounting_or_world_frame",
+      "basis": "declared"
+    },
+    "charging_reported_flag": {
+      "meaning": "charging_reported_flag",
+      "unit": "publisher_inference_over_connection_input_and_thresholds_not_safe_charging",
+      "basis": "declared"
+    },
+    "charging_flag_basis": {
+      "meaning": "charging_flag_basis",
+      "unit": "false_can_also_mean_dual_battery_disagreement_not_only_not_charging",
+      "basis": "declared"
+    },
+    "charging_current_total_a": {
+      "meaning": "charging_current_total_a",
+      "unit": "A_reported_sum_of_supply_currents_not_calibrated_measurement",
+      "basis": "declared"
+    },
+    "charging_current_battery_1_a": {
+      "meaning": "charging_current_battery_1_a",
+      "unit": "A_reported_per_battery_supply_current",
+      "basis": "declared"
+    },
+    "charging_current_battery_2_a": {
+      "meaning": "charging_current_battery_2_a",
+      "unit": "A_reported_per_battery_supply_current_NaN_in_single_battery_configuration",
+      "basis": "declared"
+    },
+    "charging_current_total_status": {
+      "meaning": "charging_current_total_status",
+      "unit": "REPORTED_or_UNAVAILABLE_SOURCE_NAN_never_zero",
+      "basis": "declared"
+    },
+    "charging_current_battery_1_status": {
+      "meaning": "charging_current_battery_1_status",
+      "unit": "REPORTED_or_UNAVAILABLE_SOURCE_NAN_never_zero",
+      "basis": "declared"
+    },
+    "charging_current_battery_2_status": {
+      "meaning": "charging_current_battery_2_status",
+      "unit": "REPORTED_or_UNAVAILABLE_SOURCE_NAN_never_zero",
+      "basis": "declared"
+    },
+    "charging_charger_type_code": {
+      "meaning": "charging_charger_type_code",
+      "unit": "reported_uint8_retained_including_values_the_pin_never_writes",
+      "basis": "declared"
+    },
+    "charging_charger_type_reported": {
+      "meaning": "charging_charger_type_reported",
+      "unit": "UNKNOWN_WIRED_WIRELESS_or_UNKNOWN_CODE_RETAINED_not_a_connector_inspection",
+      "basis": "declared"
+    },
+    "charging_current_unit_basis": {
+      "meaning": "charging_current_unit_basis",
+      "unit": "amperes_declared_by_message_comment_only_publisher_scaling_uncommented",
+      "basis": "declared"
+    },
+    "dynamic_joint_count": {
+      "meaning": "dynamic_joint_count",
+      "unit": "reported_joint_names_length_zero_is_an_explicit_empty_report",
+      "basis": "declared"
+    },
+    "dynamic_joint_index": {
+      "meaning": "dynamic_joint_index",
+      "unit": "zero_based_source_order_not_causal_or_kinematic_order",
+      "basis": "declared"
+    },
+    "dynamic_joint_name_hex": {
+      "meaning": "dynamic_joint_name_hex",
+      "unit": "untrusted_reported_resource_name_UTF8_hex_not_an_authenticated_joint",
+      "basis": "declared"
+    },
+    "dynamic_interface_count": {
+      "meaning": "dynamic_interface_count",
+      "unit": "reported_interface_names_length_for_this_joint",
+      "basis": "declared"
+    },
+    "dynamic_interface_index": {
+      "meaning": "dynamic_interface_index",
+      "unit": "zero_based_source_order_within_the_joint",
+      "basis": "declared"
+    },
+    "dynamic_interface_name_hex": {
+      "meaning": "dynamic_interface_name_hex",
+      "unit": "untrusted_reported_interface_name_UTF8_hex_control_msgs_binds_no_unit_to_it",
+      "basis": "declared"
+    },
+    "dynamic_interface_kind_configured": {
+      "meaning": "dynamic_interface_kind_configured",
+      "unit": "caller_declared_axis_kind_and_quantity_never_inferred_from_the_name",
+      "basis": "declared"
+    },
+    "dynamic_interface_status": {
+      "meaning": "dynamic_interface_status",
+      "unit": "REPORTED_or_UNAVAILABLE_SOURCE_NAN_or_UNMAPPED_NO_CALLER_UNIT",
+      "basis": "declared"
+    },
+    "dynamic_interface_value_rad": {
+      "meaning": "dynamic_interface_value_rad",
+      "unit": "rad_under_the_caller_declaration_not_a_commanded_position",
+      "basis": "declared"
+    },
+    "dynamic_interface_value_rad_s": {
+      "meaning": "dynamic_interface_value_rad_s",
+      "unit": "rad_s_under_the_caller_declaration",
+      "basis": "declared"
+    },
+    "dynamic_interface_value_nm": {
+      "meaning": "dynamic_interface_value_nm",
+      "unit": "Nm_under_the_caller_declaration_not_calibrated_torque",
+      "basis": "declared"
+    },
+    "dynamic_interface_value_m": {
+      "meaning": "dynamic_interface_value_m",
+      "unit": "m_under_the_caller_declaration_not_a_commanded_position",
+      "basis": "declared"
+    },
+    "dynamic_interface_value_m_s": {
+      "meaning": "dynamic_interface_value_m_s",
+      "unit": "m_s_under_the_caller_declaration",
+      "basis": "declared"
+    },
+    "dynamic_interface_value_n": {
+      "meaning": "dynamic_interface_value_n",
+      "unit": "N_under_the_caller_declaration_not_calibrated_force",
+      "basis": "declared"
+    },
+    "dynamic_joint_source_stamp_us": {
+      "meaning": "dynamic_joint_source_stamp_us",
+      "unit": "reported_ROS_header_microseconds_not_capture_or_UTC_anchor",
+      "basis": "declared"
+    },
+    "autonomy_source_stamp_us": {
+      "meaning": "autonomy_source_stamp_us",
+      "unit": "reported_header_microseconds_of_the_OutdoorNav_autonomy_status_message_the_pinned_definition_declares_no_epoch_so_this_is_neither_UTC_nor_boot_relative_nor_an_attested_anchor",
+      "basis": "declared"
+    },
+    "autonomy_last_start_us": {
+      "meaning": "autonomy_last_start_us",
+      "unit": "the_last_start_time_the_same_message_reports_in_microseconds_also_without_a_declared_epoch_it_is_the_publishers_own_value_and_not_a_measured_mission_duration",
+      "basis": "declared"
+    },
+    "autonomy_time_basis": {
+      "meaning": "autonomy_time_basis",
+      "unit": "states_that_both_autonomy_stamps_are_reported_values_whose_epoch_the_producer_never_declares_so_no_UTC_or_boot_relative_meaning_is_assigned_here",
+      "basis": "declared"
+    },
+    "autonomy_frame_hex": {
+      "meaning": "autonomy_frame_hex",
+      "unit": "utf8_hex_of_the_reported_header_frame_id_retained_verbatim_and_never_resolved_against_a_transform_tree",
+      "basis": "declared"
+    },
+    "autonomy_state_code": {
+      "meaning": "autonomy_state_code",
+      "unit": "the_reported_uint8_autonomy_state_number_retained_even_when_it_matches_no_documented_constant",
+      "basis": "declared"
+    },
+    "autonomy_state_reported": {
+      "meaning": "autonomy_state_reported",
+      "unit": "the_documented_constant_name_for_that_number_IDLE_MISSION_MISSION_FROM_GOAL_GOTO_GOTO_POI_DOCKING_LOCAL_UNDOCKING_LOCAL_or_DOCKING_MAP_otherwise_UNKNOWN_CODE_RETAINED_a_reported_state_and_never_a_verified_activity",
+      "basis": "declared"
+    },
+    "autonomy_paused_reported": {
+      "meaning": "autonomy_paused_reported",
+      "unit": "the_boolean_the_publisher_reported_for_paused_true_or_false_it_is_a_publisher_statement_and_not_a_verified_stop_or_a_safety_state",
+      "basis": "declared"
+    },
+    "autonomy_goal_hex": {
+      "meaning": "autonomy_goal_hex",
+      "unit": "utf8_hex_of_the_reported_current_goal_string_an_opaque_reference_the_pinned_message_gives_no_meaning_so_it_is_never_resolved_to_a_place_a_mission_or_a_waypoint",
+      "basis": "declared"
+    },
+    "autonomy_status_basis": {
+      "meaning": "autonomy_status_basis",
+      "unit": "states_that_this_row_is_the_reported_autonomy_state_of_a_serial_number_namespaced_topic_not_a_verified_activity_not_a_safety_state_and_not_a_fault_report_the_product_documents_no_battery_or_health_topic_at_all",
+      "basis": "declared"
+    }
+  }
+}

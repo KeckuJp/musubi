@@ -4,7 +4,7 @@ use musubi_reference_readers::{
 
 fn profile() -> musubi_reference_readers::FamilyProfile {
     musubi_reference_readers::profile::parse_profile(
-        include_str!("fixtures/turtlebot3-trajectory--profile.toml"),
+        include_str!("fixtures/unknown-adapter--turtlebot3-trajectory--profile.toml"),
         "public",
     )
     .unwrap()

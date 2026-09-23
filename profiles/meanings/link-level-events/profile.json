@@ -1,0 +1,175 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_on_the_source_observation_axis_copied_not_reinterpreted_it_is_the_evaluation_anchor_and_never_the_onset_of_anything",
+      "basis": "declared"
+    },
+    "evaluation_anchor_basis": {
+      "meaning": "evaluation_anchor_basis",
+      "unit": "whether_the_anchor_is_the_callers_analysis_time_or_the_first_source_row_time_neither_of_which_is_an_event_onset",
+      "basis": "declared"
+    },
+    "source_observations_sha256": {
+      "meaning": "source_observations_sha256",
+      "unit": "sha256_of_the_normalized_link_observations_evaluated_binding_not_authenticity",
+      "basis": "declared"
+    },
+    "declared_limits_sha256": {
+      "meaning": "declared_limits_sha256",
+      "unit": "sha256_of_the_declared_level_document_binding_not_authenticity",
+      "basis": "declared"
+    },
+    "condition": {
+      "meaning": "condition",
+      "unit": "link_quality_below_declared_level_for_the_reported_packet_success_fraction_or_link_signal_below_declared_level_for_the_reported_dBm_the_two_are_separate_quantities_and_a_row_of_each_is_a_row_of_each_never_one_combined_link_finding",
+      "basis": "declared"
+    },
+    "condition_status": {
+      "meaning": "condition_status",
+      "unit": "observed_against_the_declared_level_only_DECLARED_LIMIT_CROSSED_AND_WINDOW_MET_or_CROSSED_LIMIT_NOT_SUSTAINED_or_NO_SAMPLE_CROSSED_LIMIT_or_UNKNOWN_INSUFFICIENT_EVIDENCE_and_none_of_them_is_a_radio_loss_a_fault_a_cause_or_a_severity",
+      "basis": "declared"
+    },
+    "unknown_reason": {
+      "meaning": "unknown_reason",
+      "unit": "why_no_comparison_could_be_made_named_rather_than_left_as_a_silent_absence_a_missing_reading_stays_UNKNOWN_and_is_never_read_as_zero_or_as_a_crossing",
+      "basis": "declared"
+    },
+    "quantity": {
+      "meaning": "quantity",
+      "unit": "link_quality_fraction_or_link_signal_dbm_the_declared_quantity_this_row_compared_which_is_what_keeps_a_link_row_from_being_read_as_an_electrical_one",
+      "basis": "declared"
+    },
+    "quantity_column": {
+      "meaning": "quantity_column",
+      "unit": "the_adopted_CRSF_link_converters_own_column_this_row_read_named_by_the_caller_when_it_is_not_the_default_and_never_resolved_by_an_alias_table",
+      "basis": "declared"
+    },
+    "declared_unit": {
+      "meaning": "declared_unit",
+      "unit": "the_unit_the_caller_declared_fraction_for_the_reported_packet_success_fraction_or_dBm_for_the_reported_signal_strength_matched_against_the_column_and_never_converted_so_a_percent_level_is_not_a_fraction_level",
+      "basis": "declared"
+    },
+    "declared_limit": {
+      "meaning": "declared_limit",
+      "unit": "the_level_the_engineer_or_operator_explicitly_declared_in_the_declared_unit_it_is_a_stated_value_of_interest_and_never_an_inferred_safety_threshold_a_certified_limit_or_a_specification_of_any_radio",
+      "basis": "declared"
+    },
+    "declared_comparison": {
+      "meaning": "declared_comparison",
+      "unit": "the_declared_boundary_which_for_a_link_level_is_below_or_at_or_below_because_both_conditions_are_entered_by_falling_a_contradicting_direction_is_refused_rather_than_corrected",
+      "basis": "declared"
+    },
+    "declared_release_limit": {
+      "meaning": "declared_release_limit",
+      "unit": "the_declared_hysteresis_release_value_blank_when_none_a_run_ends_when_the_reading_returns_past_it_and_it_must_sit_on_the_safe_side_of_the_level",
+      "basis": "declared"
+    },
+    "declared_window_kind": {
+      "meaning": "declared_window_kind",
+      "unit": "min_samples_count_or_min_duration_us_exactly_one_of_them_because_a_crossing_that_misses_the_declared_window_must_not_be_reported_as_the_event",
+      "basis": "declared"
+    },
+    "declared_window_value": {
+      "meaning": "declared_window_value",
+      "unit": "the_declared_window_length_in_samples_or_microseconds_according_to_the_window_kind",
+      "basis": "declared"
+    },
+    "declared_max_gap_us": {
+      "meaning": "declared_max_gap_us",
+      "unit": "us_gap_that_breaks_a_run_blank_when_undeclared_and_required_before_any_duration_claim_because_a_span_between_two_samples_says_nothing_about_the_time_between_them",
+      "basis": "declared"
+    },
+    "evaluated_sample_count": {
+      "meaning": "evaluated_sample_count",
+      "unit": "rows_belonging_to_this_instance_which_is_not_the_same_as_usable_evidence",
+      "basis": "declared"
+    },
+    "usable_sample_count": {
+      "meaning": "usable_sample_count",
+      "unit": "rows_carrying_a_reading_for_this_declared_quantity",
+      "basis": "declared"
+    },
+    "unusable_sample_count": {
+      "meaning": "unusable_sample_count",
+      "unit": "rows_that_carried_no_reading_for_it_counted_rather_than_dropped_a_blank_cell_and_a_value_outside_the_declared_fraction_range_stay_holes_and_never_become_zeros",
+      "basis": "declared"
+    },
+    "crossing_sample_count": {
+      "meaning": "crossing_sample_count",
+      "unit": "samples_past_the_declared_level_which_is_not_a_run_length_and_not_a_count_of_lost_packets",
+      "basis": "declared"
+    },
+    "run_sample_count": {
+      "meaning": "run_sample_count",
+      "unit": "length_of_the_longest_consecutive_crossing_run_a_hole_breaks_a_run_rather_than_being_closed_over",
+      "basis": "declared"
+    },
+    "run_start_time_us": {
+      "meaning": "run_start_time_us",
+      "unit": "us_of_the_first_sample_of_that_run_on_the_source_axis_never_extrapolated_before_the_capture",
+      "basis": "declared"
+    },
+    "run_end_time_us": {
+      "meaning": "run_end_time_us",
+      "unit": "us_of_the_last_sample_of_that_run_on_the_source_axis_never_extended_past_the_capture_and_never_the_end_of_the_recording",
+      "basis": "declared"
+    },
+    "run_span_us": {
+      "meaning": "run_span_us",
+      "unit": "us_between_the_first_and_last_sample_of_that_run_an_observed_span_only",
+      "basis": "declared"
+    },
+    "run_extreme_value": {
+      "meaning": "run_extreme_value",
+      "unit": "the_most_extreme_reading_inside_that_run_in_the_declared_unit_a_reported_value_and_not_a_worst_case_estimate",
+      "basis": "declared"
+    },
+    "source_clock_basis": {
+      "meaning": "source_clock_basis",
+      "unit": "the_clock_basis_the_caller_declared_for_the_source_observations_carried_over_unchanged_an_unknown_basis_forbids_any_duration_claim",
+      "basis": "declared"
+    },
+    "source_clock_order": {
+      "meaning": "source_clock_order",
+      "unit": "whether_the_source_times_were_strictly_increasing_or_carried_duplicates_or_went_backwards_which_is_why_a_duration_over_a_disordered_clock_is_refused_rather_than_measured",
+      "basis": "declared"
+    },
+    "duration_basis": {
+      "meaning": "duration_basis",
+      "unit": "which_axis_a_duration_was_measured_on_if_any_or_that_a_sample_count_needed_no_timebase",
+      "basis": "declared"
+    },
+    "transition_evidence": {
+      "meaning": "transition_evidence",
+      "unit": "blank_for_every_link_condition_because_neither_of_them_is_defined_as_a_transition_into_a_band_so_no_baseline_before_the_run_is_required_or_claimed",
+      "basis": "declared"
+    },
+    "threshold_declared_by": {
+      "meaning": "threshold_declared_by",
+      "unit": "hex_of_who_the_document_says_declared_the_level_a_retained_statement_and_not_an_authenticated_author",
+      "basis": "declared"
+    },
+    "threshold_declared_basis": {
+      "meaning": "threshold_declared_basis",
+      "unit": "hex_of_the_basis_the_document_states_for_the_level_retained_verbatim_and_never_verified_here",
+      "basis": "declared"
+    },
+    "threshold_authority": {
+      "meaning": "threshold_authority",
+      "unit": "OPERATOR_DECLARED_NOT_CERTIFIED_stated_on_every_row_because_the_level_is_a_declaration_and_the_document_must_acknowledge_it_is_not_a_certified_safe_limit_before_anything_is_read_from_it",
+      "basis": "declared"
+    },
+    "interpretation_basis": {
+      "meaning": "interpretation_basis",
+      "unit": "the_fixed_statement_that_the_row_is_a_reading_observed_against_a_declared_level_and_never_a_radio_loss_a_fault_a_cause_interference_obstruction_range_an_antenna_finding_or_a_network_outage",
+      "basis": "declared"
+    }
+  }
+}

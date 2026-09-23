@@ -1,0 +1,35 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "the_saved_exports_own_time_in_microseconds_on_whatever_clock_the_bound_file_carries_it_orders_the_rows_and_is_never_a_synchronised_or_authenticated_clock",
+      "basis": "declared"
+    },
+    "undetermined_cue_tests": {
+      "meaning": "undetermined_cue_tests",
+      "unit": "the_named_tests_in_the_adopted_evaluation_that_cannot_run_on_THIS_ROW_because_their_input_is_absent_here_joined_by_plus_a_test_that_cannot_run_is_neither_passed_nor_failed_and_is_reported_so_it_is_visible_rather_than_silently_reading_nothing",
+      "basis": "declared"
+    },
+    "declared_clock_basis": {
+      "meaning": "declared_clock_basis",
+      "unit": "what_the_caller_declared_about_the_saved_clock_carried_unchanged_and_never_inferred_from_the_data_a_duration_or_ordering_claim_made_elsewhere_on_an_unknown_basis_is_the_callers_and_not_this_files",
+      "basis": "declared"
+    },
+    "source_mapping_hex": {
+      "meaning": "source_mapping_hex",
+      "unit": "utf8_hex_of_a_JSON_object_of_target_field_name_to_the_saved_source_column_the_callers_declared_source_unit_and_the_named_scale_that_was_applied_so_every_carried_number_can_be_traced_back_to_the_exact_column_and_declaration_it_came_from",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "SHA256_of_the_exact_saved_observations_file_the_measurements_were_read_from_binding_the_bytes_and_authenticating_nothing",
+      "basis": "declared"
+    }
+  }
+}

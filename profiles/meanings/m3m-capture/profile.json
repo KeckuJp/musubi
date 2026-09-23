@@ -1,0 +1,335 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_the_caller_declared_clock_for_when_the_saved_export_was_taken_in_and_never_the_moment_any_photo_was_taken_which_is_carried_separately_in_the_writers_own_GPS_date_and_time_columns",
+      "basis": "declared"
+    },
+    "source_image_index": {
+      "meaning": "source_image_index",
+      "unit": "one_based_position_of_this_image_in_the_saved_export_a_join_key_in_document_order_and_never_a_capture_sequence_a_flight_order_or_a_count_of_anything",
+      "basis": "declared"
+    },
+    "export_sha256": {
+      "meaning": "export_sha256",
+      "unit": "sha256_of_the_exact_saved_export_text_binding_not_authenticity_and_never_a_digest_of_an_image",
+      "basis": "declared"
+    },
+    "exiftool_version_declared": {
+      "meaning": "exiftool_version_declared",
+      "unit": "the_exporter_release_the_export_declared_which_must_be_the_one_qualified_release_because_another_number_is_not_a_compatibility_claim",
+      "basis": "declared"
+    },
+    "image_source_hex": {
+      "meaning": "image_source_hex",
+      "unit": "utf8_hex_of_the_writers_declared_ImageSource_camera_type_string_a_declaration_by_the_writer_and_never_a_verified_or_authenticated_device",
+      "basis": "declared"
+    },
+    "band_name_status": {
+      "meaning": "band_name_status",
+      "unit": "whether_that_name_is_one_the_pinned_guide_lists_or_is_retained_unlisted_because_a_name_this_path_does_not_know_is_not_evidence_of_a_different_band",
+      "basis": "declared"
+    },
+    "sensor_index_code": {
+      "meaning": "sensor_index_code",
+      "unit": "the_reported_Sensorindex_integer_which_the_guide_defines_as_Green_1_Red_2_RedEdge_3_NIR_4",
+      "basis": "declared"
+    },
+    "sensor_index_band": {
+      "meaning": "sensor_index_band",
+      "unit": "the_band_that_index_names_in_the_pinned_guide_blank_when_no_index_was_written",
+      "basis": "declared"
+    },
+    "band_identity_agreement": {
+      "meaning": "band_identity_agreement",
+      "unit": "whether_the_written_band_name_and_the_written_sensor_index_name_the_same_band_a_disagreement_is_refused_outright_rather_than_resolved_in_favour_of_either",
+      "basis": "declared"
+    },
+    "band_freq_text_hex": {
+      "meaning": "band_freq_text_hex",
+      "unit": "utf8_hex_of_the_BandFreq_string_exactly_as_written_kept_beside_the_parsed_numbers_so_the_source_text_is_never_lost",
+      "basis": "declared"
+    },
+    "band_central_wavelength_nm": {
+      "meaning": "band_central_wavelength_nm",
+      "unit": "nanometres_the_central_wavelength_the_writer_reported_for_this_band_a_declared_optical_property_of_the_camera_and_not_a_measurement_made_here",
+      "basis": "declared"
+    },
+    "band_half_width_nm": {
+      "meaning": "band_half_width_nm",
+      "unit": "nanometres_the_HALF_width_at_half_maximum_the_writer_reported_because_the_guide_states_the_format_is_central_wavelength_plus_or_minus_HWHM_so_it_is_never_read_as_a_full_width_and_never_doubled_silently",
+      "basis": "declared"
+    },
+    "band_width_basis": {
+      "meaning": "band_width_basis",
+      "unit": "the_fixed_statement_of_that_HWHM_format_carried_so_a_consumer_cannot_mistake_the_half_width_for_a_full_width",
+      "basis": "declared"
+    },
+    "capture_latitude_deg": {
+      "meaning": "capture_latitude_deg",
+      "unit": "signed_degrees_of_the_latitude_the_writer_recorded_when_the_photo_was_taken_positive_north_the_writer_may_write_it_as_a_magnitude_with_a_hemisphere_letter_and_the_basis_column_says_which_form_arrived",
+      "basis": "declared"
+    },
+    "capture_longitude_deg": {
+      "meaning": "capture_longitude_deg",
+      "unit": "signed_degrees_of_the_longitude_the_writer_recorded_when_the_photo_was_taken_positive_east_under_the_same_two_written_forms",
+      "basis": "declared"
+    },
+    "capture_coordinate_basis": {
+      "meaning": "capture_coordinate_basis",
+      "unit": "which_written_form_the_coordinate_arrived_in_a_magnitude_with_a_hemisphere_letter_or_a_signed_number_recorded_because_the_two_are_read_differently_and_the_guide_types_the_field_float_while_its_own_example_carries_a_letter",
+      "basis": "declared"
+    },
+    "gps_status_reported": {
+      "meaning": "gps_status_reported",
+      "unit": "the_writers_GpsStatus_word_the_guide_lists_Normal_RTK_and_Invalid_retained_verbatim_or_as_utf8_hex_when_a_CSV_row_could_not_carry_the_written_text_and_never_turned_into_a_quality_score",
+      "basis": "declared"
+    },
+    "gps_status_listing": {
+      "meaning": "gps_status_listing",
+      "unit": "whether_that_word_is_one_the_pinned_guide_lists",
+      "basis": "declared"
+    },
+    "altitude_type_reported": {
+      "meaning": "altitude_type_reported",
+      "unit": "the_writers_AltitudeType_word_the_guide_lists_PressureAlt_GPSFusionAlt_and_RtkAlt_which_is_what_says_how_the_absolute_altitude_was_obtained_it_is_never_assumed_and_it_arrives_as_utf8_hex_when_a_CSV_row_could_not_carry_the_written_text",
+      "basis": "declared"
+    },
+    "altitude_type_listing": {
+      "meaning": "altitude_type_listing",
+      "unit": "whether_that_word_is_one_the_pinned_guide_lists",
+      "basis": "declared"
+    },
+    "absolute_altitude_m": {
+      "meaning": "absolute_altitude_m",
+      "unit": "metres_the_guide_calls_this_the_absolute_geodetic_altitude_when_the_photo_was_taken_and_names_NO_datum_for_it_so_no_datum_is_asserted_here_and_it_is_not_a_height_above_ground_or_above_a_terrain_model",
+      "basis": "declared"
+    },
+    "relative_altitude_m": {
+      "meaning": "relative_altitude_m",
+      "unit": "metres_relative_to_the_altitude_of_the_take_off_point_when_the_photo_was_taken_which_is_a_different_quantity_from_the_absolute_altitude_and_is_never_a_height_above_the_ground_below_the_aircraft",
+      "basis": "declared"
+    },
+    "altitude_basis": {
+      "meaning": "altitude_basis",
+      "unit": "the_fixed_statement_that_those_two_altitudes_are_different_quantities_that_no_datum_is_named_for_the_geodetic_one_and_that_neither_is_a_terrain_height",
+      "basis": "declared"
+    },
+    "gps_date_stamp_utc": {
+      "meaning": "gps_date_stamp_utc",
+      "unit": "the_writers_recorded_GPS_date_when_the_photo_was_taken_carried_in_its_own_written_form",
+      "basis": "declared"
+    },
+    "gps_time_of_day_utc": {
+      "meaning": "gps_time_of_day_utc",
+      "unit": "the_writers_recorded_GPS_time_of_day_when_the_photo_was_taken_carried_in_its_own_written_form_with_a_sixtieth_second_marked_lexically_rather_than_normalised_into_the_next_minute",
+      "basis": "declared"
+    },
+    "capture_clock_basis": {
+      "meaning": "capture_clock_basis",
+      "unit": "the_fixed_statement_that_this_pair_is_the_writers_own_capture_clock_and_is_not_the_callers_record_time_us_and_not_a_boot_or_uptime_axis",
+      "basis": "declared"
+    },
+    "rtk_flag_code": {
+      "meaning": "rtk_flag_code",
+      "unit": "the_reported_RtkFlag_integer_carried_as_written",
+      "basis": "declared"
+    },
+    "rtk_std_lat": {
+      "meaning": "rtk_std_lat",
+      "unit": "the_reported_RTK_standard_latitude_deviation_the_guide_states_NO_unit_for_it_so_none_is_asserted_and_it_is_a_reported_figure_rather_than_a_measured_error",
+      "basis": "declared"
+    },
+    "rtk_std_lon": {
+      "meaning": "rtk_std_lon",
+      "unit": "the_reported_RTK_standard_longitude_deviation_under_the_same_absence_of_a_stated_unit",
+      "basis": "declared"
+    },
+    "rtk_std_hgt": {
+      "meaning": "rtk_std_hgt",
+      "unit": "the_reported_RTK_standard_elevation_deviation_under_the_same_absence_of_a_stated_unit",
+      "basis": "declared"
+    },
+    "rtk_diff_age": {
+      "meaning": "rtk_diff_age",
+      "unit": "the_reported_RTK_difference_or_connection_age_the_guide_states_no_unit_for_it_so_none_is_asserted",
+      "basis": "declared"
+    },
+    "surveying_mode_code": {
+      "meaning": "surveying_mode_code",
+      "unit": "the_reported_SurveyingMode_integer_carried_as_written",
+      "basis": "declared"
+    },
+    "surveying_mode_reported": {
+      "meaning": "surveying_mode_reported",
+      "unit": "the_meaning_the_pinned_guide_gives_it_0_not_recommended_as_the_accuracy_cannot_be_guaranteed_1_recommended_as_the_accuracy_can_be_guaranteed_which_is_the_writers_own_recommendation_about_mapping_use_and_never_a_verdict_reached_here",
+      "basis": "declared"
+    },
+    "gimbal_roll_deg": {
+      "meaning": "gimbal_roll_deg",
+      "unit": "degrees_of_the_reported_gimbal_roll_when_the_photo_was_taken",
+      "basis": "declared"
+    },
+    "gimbal_yaw_deg": {
+      "meaning": "gimbal_yaw_deg",
+      "unit": "degrees_of_the_reported_gimbal_yaw_when_the_photo_was_taken",
+      "basis": "declared"
+    },
+    "gimbal_pitch_deg": {
+      "meaning": "gimbal_pitch_deg",
+      "unit": "degrees_of_the_reported_gimbal_pitch_when_the_photo_was_taken",
+      "basis": "declared"
+    },
+    "flight_roll_deg": {
+      "meaning": "flight_roll_deg",
+      "unit": "degrees_of_the_reported_aircraft_roll_when_the_photo_was_taken",
+      "basis": "declared"
+    },
+    "flight_yaw_deg": {
+      "meaning": "flight_yaw_deg",
+      "unit": "degrees_of_the_reported_aircraft_yaw_when_the_photo_was_taken",
+      "basis": "declared"
+    },
+    "flight_pitch_deg": {
+      "meaning": "flight_pitch_deg",
+      "unit": "degrees_of_the_reported_aircraft_pitch_when_the_photo_was_taken",
+      "basis": "declared"
+    },
+    "attitude_basis": {
+      "meaning": "attitude_basis",
+      "unit": "the_fixed_statement_that_all_six_angles_are_in_the_writers_declared_NED_coordinate_system_with_rotation_order_ZYX_at_the_moment_of_that_one_exposure_and_are_not_a_calibrated_or_verified_orientation",
+      "basis": "declared"
+    },
+    "flight_north_speed_m_s": {
+      "meaning": "flight_north_speed_m_s",
+      "unit": "metres_per_second_in_the_north_direction_as_the_writer_reported_it_when_the_photo_was_taken",
+      "basis": "declared"
+    },
+    "flight_east_speed_m_s": {
+      "meaning": "flight_east_speed_m_s",
+      "unit": "metres_per_second_in_the_east_direction_as_the_writer_reported_it_when_the_photo_was_taken",
+      "basis": "declared"
+    },
+    "flight_elevation_speed_m_s": {
+      "meaning": "flight_elevation_speed_m_s",
+      "unit": "metres_per_second_in_the_elevation_direction_as_the_writer_reported_it_when_the_photo_was_taken",
+      "basis": "declared"
+    },
+    "speed_basis": {
+      "meaning": "speed_basis",
+      "unit": "the_fixed_statement_that_these_three_are_one_reported_instant_attached_to_one_exposure_and_never_a_measured_ground_track_or_a_velocity_series",
+      "basis": "declared"
+    },
+    "irradiance_basis": {
+      "meaning": "irradiance_basis",
+      "unit": "the_fixed_statement_of_that_absent_unit_and_of_the_built_in_compensation_the_writer_already_applied_to_it",
+      "basis": "declared"
+    },
+    "sun_sensor_raw_red": {
+      "meaning": "sun_sensor_raw_red",
+      "unit": "the_second_of_those_four_documented_sun_sensor_raw_values",
+      "basis": "declared"
+    },
+    "sun_sensor_raw_red_edge": {
+      "meaning": "sun_sensor_raw_red_edge",
+      "unit": "the_third_of_those_four_documented_sun_sensor_raw_values",
+      "basis": "declared"
+    },
+    "sun_sensor_raw_nir": {
+      "meaning": "sun_sensor_raw_nir",
+      "unit": "the_fourth_of_those_four_documented_sun_sensor_raw_values",
+      "basis": "declared"
+    },
+    "sun_sensor_status_code": {
+      "meaning": "sun_sensor_status_code",
+      "unit": "the_reported_LS_status_integer_carried_as_written",
+      "basis": "declared"
+    },
+    "sun_sensor_status": {
+      "meaning": "sun_sensor_status",
+      "unit": "the_meaning_the_pinned_guide_gives_it_0_invalid_state_due_to_insertion_of_a_USB_dongle_1_valid_state_2_valid_and_compensating_state_which_is_what_says_whether_the_irradiance_beside_it_was_usable_at_all",
+      "basis": "declared"
+    },
+    "sun_sensor_type_code": {
+      "meaning": "sun_sensor_type_code",
+      "unit": "the_reported_LS_type_integer_which_the_guide_states_is_fixed_to_one",
+      "basis": "declared"
+    },
+    "sun_sensor_package_index": {
+      "meaning": "sun_sensor_package_index",
+      "unit": "the_reported_sequence_number_of_the_captured_sun_sensor_data_a_writer_side_sequence_and_never_a_time",
+      "basis": "declared"
+    },
+    "sun_sensor_config_count": {
+      "meaning": "sun_sensor_config_count",
+      "unit": "the_reported_Cfg_cnt_which_the_guide_describes_only_as_being_for_sun_sensor_calibration_usage_so_no_further_meaning_is_given_to_it_here",
+      "basis": "declared"
+    },
+    "sensor_gain": {
+      "meaning": "sensor_gain",
+      "unit": "the_reported_gain_coefficient_of_the_multispectral_image_sensor_a_recorded_input_that_is_carried_and_never_applied_here",
+      "basis": "declared"
+    },
+    "sensor_gain_adjustment": {
+      "meaning": "sensor_gain_adjustment",
+      "unit": "the_reported_gain_compensation_coefficient_of_this_sensor_relative_to_a_standard_NIR_module_a_second_recorded_input_that_is_likewise_carried_and_never_applied",
+      "basis": "declared"
+    },
+    "exposure_time_us": {
+      "meaning": "exposure_time_us",
+      "unit": "MICROSECONDS_of_exposure_of_the_multispectral_image_sensor_as_the_guides_own_unit_column_states_which_is_NOT_the_EXIF_exposure_time_that_is_a_duration_in_seconds_so_the_two_are_never_conflated",
+      "basis": "declared"
+    },
+    "black_level_code": {
+      "meaning": "black_level_code",
+      "unit": "the_reported_black_level_whose_documented_examples_are_3200_at_16_bit_and_12_at_8_bit_carried_as_written_and_subtracted_from_nothing_here",
+      "basis": "declared"
+    },
+    "bits_per_sample": {
+      "meaning": "bits_per_sample",
+      "unit": "the_EXIF_bits_per_sample_the_guide_documents_as_8_or_16_carried_beside_the_black_level_because_the_black_levels_documented_value_depends_on_which_one_it_is",
+      "basis": "declared"
+    },
+    "black_level_basis": {
+      "meaning": "black_level_basis",
+      "unit": "the_fixed_statement_of_that_dependence_and_that_no_subtraction_is_performed",
+      "basis": "declared"
+    },
+    "vignetting_flag_code": {
+      "meaning": "vignetting_flag_code",
+      "unit": "the_reported_VignettingFlag_integer_carried_as_written",
+      "basis": "declared"
+    },
+    "vignetting_coefficients_hex": {
+      "meaning": "vignetting_coefficients_hex",
+      "unit": "utf8_hex_of_the_reported_vignetting_compensation_coefficients_exactly_as_written_the_guide_writes_six_of_them_k0_to_k5_so_six_positions_are_required_each_is_checked_as_a_number_an_empty_position_is_refused_and_none_of_them_is_applied_to_anything_here",
+      "basis": "declared"
+    },
+    "dewarp_flag_code": {
+      "meaning": "dewarp_flag_code",
+      "unit": "the_reported_DewarpFlag_integer_carried_as_written",
+      "basis": "declared"
+    },
+    "telemetry_basis": {
+      "meaning": "telemetry_basis",
+      "unit": "the_fixed_statement_that_a_row_is_ONE_saved_exposure_and_never_a_vehicle_telemetry_series_that_nothing_is_interpolated_between_exposures_no_track_is_formed_and_every_attitude_and_speed_figure_belongs_to_the_instant_of_its_own_photo",
+      "basis": "declared"
+    },
+    "unknown_tag_count": {
+      "meaning": "unknown_tag_count",
+      "unit": "how_many_keys_of_this_export_record_this_path_did_not_interpret_each_named_individually_in_the_report_so_nothing_leaves_silently_and_nothing_is_guessed",
+      "basis": "declared"
+    },
+    "interpreted_tag_count": {
+      "meaning": "interpreted_tag_count",
+      "unit": "how_many_keys_this_path_actually_read_which_together_with_the_unknown_count_accounts_for_every_key_the_record_carried",
+      "basis": "declared"
+    }
+  }
+}

@@ -18,7 +18,7 @@ pub mod timefmt;
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use musubi_reference_readers::absence::{GapBounds, detect_absences_with_bounds};
+use musubi_reference_readers::absence::{GapBounds, detect_absences_in_declared_window};
 use musubi_reference_readers::catalog::load_catalog;
 use musubi_reference_readers::cause::{
     SourceInput, Window, build_claim, event_trigger_times, windows_from_triggers,
@@ -26,7 +26,7 @@ use musubi_reference_readers::cause::{
 use musubi_reference_readers::eval::{ClaimRecord, Incident, Metrics, NoticedAbsence, evaluate};
 use musubi_reference_readers::profile::load_profiles;
 use musubi_reference_readers::time_align::{
-    align_by_start, estimate_alignment, promote, to_wall_us,
+    align_by_start, estimate_alignment, estimate_relative_rate, promote, to_wall_us,
 };
 use musubi_reference_readers::{
     ClockBasis, FamilyProfile, NegativeObservation, Observation, reader_for,
@@ -73,6 +73,7 @@ pub struct SourceRun {
     pub negatives: Vec<NegativeObservation>,
     pub gap_bounds: Vec<GapBounds>,
     pub alignment: musubi_reference_types::TimeAlignment,
+    pub clock_rate: Option<musubi_reference_types::ClockRateReport>,
 }
 
 impl SourceRun {
@@ -218,7 +219,7 @@ fn profile_for<'a>(
     if matching.len() == 1
         || !matching
             .iter()
-            .any(|p| p.declared_platform_domain.is_some())
+            .any(|p| p.declared_platform_domain.is_some() || p.declared_sender.is_some())
     {
         return Ok(first);
     }
@@ -232,8 +233,8 @@ fn profile_for<'a>(
     let ids: Vec<&str> = matching.iter().map(|p| p.profile_id.as_str()).collect();
     Err(format!(
         "ambiguous profile binding for {}: {} profiles match and at least one declares a \
-         platform domain, so the source cannot be told apart by format, family and source \
-         role alone ({})",
+         platform domain or a selected sender, so the source cannot be told apart by format, \
+         family and source role alone ({})",
         describe(),
         matching.len(),
         ids.join(", ")
@@ -323,9 +324,40 @@ pub fn analyze(
                     wall_to_axis(&al, false, end_ms).map_or(last, |v| v.max(last)),
                 )
             };
-            let (negatives, gap_bounds) = detect_absences_with_bounds(&p, asset_id, &obs, ws, we)
-                .into_iter()
-                .unzip();
+            let declared = if p.expectations.iter().any(|e| e.declared_window_only) {
+                if matches!(p.default_clock_basis, ClockBasis::Unknown) {
+                    return Err(format!(
+                        "{} ({}): an expectation asks for the declared observation window, but \
+                         this record's clock basis is unknown, so a wall-clock window cannot be \
+                         placed on it; this feature does not give an unknown clock a duration it \
+                         does not have",
+                        p.profile_id, file_name
+                    ));
+                }
+                match (
+                    wall_to_axis(&al, host_axis, t0_ms),
+                    wall_to_axis(&al, host_axis, end_ms),
+                ) {
+                    (Some(a), Some(b)) => (a, b),
+                    _ => {
+                        return Err(format!(
+                            "{} ({}): an expectation asks for the declared observation window, but \
+                             no time offset could be established for this boot-relative record, so \
+                             the wall-clock window cannot be placed on its axis",
+                            p.profile_id, file_name
+                        ));
+                    }
+                }
+            } else {
+                (ws, we)
+            };
+            let (negatives, gap_bounds) =
+                detect_absences_in_declared_window(&p, asset_id, &obs, (ws, we), declared)
+                    .into_iter()
+                    .unzip();
+            let clock_rate = p
+                .declared_clock_rate
+                .map(|cfg| estimate_relative_rate(&obs, &al, &cfg));
             sources.push(SourceRun {
                 profile: p,
                 file_name,
@@ -333,6 +365,7 @@ pub fn analyze(
                 negatives,
                 gap_bounds,
                 alignment: al,
+                clock_rate,
             });
         }
         assets.push(AssetRun {

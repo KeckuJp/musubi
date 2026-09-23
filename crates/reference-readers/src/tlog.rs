@@ -9,6 +9,57 @@ pub struct TlogReader;
 const MAVLINK1_MAGIC: u8 = 0xFE;
 const MAVLINK2_MAGIC: u8 = 0xFD;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DefiningDialect {
+    Minimal,
+    Standard,
+    Common,
+    ArduPilotMega,
+}
+
+impl DefiningDialect {
+    #[must_use]
+    pub const fn file(self) -> &'static str {
+        match self {
+            Self::Minimal => "minimal.xml",
+            Self::Standard => "standard.xml",
+            Self::Common => "common.xml",
+            Self::ArduPilotMega => "ardupilotmega.xml",
+        }
+    }
+
+    #[must_use]
+    pub const fn inherited_from_common_chain(self) -> bool {
+        matches!(self, Self::Minimal | Self::Standard | Self::Common)
+    }
+
+    #[must_use]
+    pub const fn scope(self) -> &'static str {
+        if self.inherited_from_common_chain() {
+            "COMMON_INCLUDE_CHAIN_DEFINITION_INHERITED_UNCHANGED_BY_EVERY_DIALECT_THAT_INCLUDES_IT"
+        } else {
+            "VENDOR_DIALECT_DEFINITION_NOT_PRESENT_IN_THE_COMMON_INCLUDE_CHAIN"
+        }
+    }
+}
+
+pub const DIALECT_DEFINITION_PIN: &str = "mavlink/mavlink@3203f89c510337c0088244735c6a5056c52b5a28";
+
+pub const DIALECT_UNQUALIFIED: &str =
+    "UNQUALIFIED_MSGID_NOT_IN_THE_PINNED_TABLE_NO_DIALECT_CLAIMED";
+
+#[must_use]
+pub const fn defining_dialect(msgid: u32) -> Option<DefiningDialect> {
+    match msgid {
+        0 => Some(DefiningDialect::Minimal),
+        33 | 148 => Some(DefiningDialect::Standard),
+        1 | 2 | 24 | 26 | 29 | 30 | 32 | 42 | 46 | 65 | 109 | 116 | 129 | 132 | 137 | 143 | 147
+        | 253 | 262 | 270 => Some(DefiningDialect::Common),
+        193 => Some(DefiningDialect::ArduPilotMega),
+        _ => None,
+    }
+}
+
 #[must_use]
 pub const fn crc_extra(msgid: u32) -> Option<u8> {
     match msgid {
@@ -870,6 +921,7 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                 f("GPS_RAW_INT.lat", i32_at(p, 8)),
                 f("GPS_RAW_INT.lon", i32_at(p, 12)),
                 f("GPS_RAW_INT.eph", u16_at(p, 20)),
+                f("GPS_RAW_INT.vel", u16_at(p, 24)),
                 f("GPS_RAW_INT.fix_type", u8_at(p, 28)),
                 f("GPS_RAW_INT.satellites_visible", u8_at(p, 29)),
                 (
@@ -899,6 +951,14 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                     },
                 ),
                 (
+                    "gps_ground_speed_m_s_reported".into(),
+                    if u16_at(p, 24) == 65535 {
+                        FieldValue::Blank
+                    } else {
+                        FieldValue::F64(u16_at(p, 24) as f64 / 100.0)
+                    },
+                ),
+                (
                     "gps_hdop_reported".into(),
                     if u16_at(p, 20) == 65535 {
                         FieldValue::Blank
@@ -907,6 +967,47 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                     },
                 ),
             ];
+            for (name, value) in [
+                (
+                    "gps_rtk_status_basis",
+                    "REPORTED_FIX_TYPE_ONLY_CORRECTION_LINK_BASE_STATION_AND_AUTHENTICATION_ABSENT_FROM_THIS_MESSAGE_WHILE_UNCERTAINTY_EXTENSION_FIELDS_EXIST_BUT_ARE_NOT_DECODED_IN_THIS_PATH",
+                ),
+                (
+                    "gps_channel_basis",
+                    "SHARED_CHANNEL_NAME_ONLY_NOT_A_FUSED_OR_EKF_SOLUTION",
+                ),
+            ] {
+                d.fields.push((name.into(), FieldValue::Text(value.into())));
+            }
+            let latitude = i32_at(p, 8) as f64 / 1e7;
+            let longitude = i32_at(p, 12) as f64 / 1e7;
+            let latitude_in_domain = (-90.0..=90.0).contains(&latitude);
+            let longitude_in_domain = (-180.0..=180.0).contains(&longitude);
+            for (name, value, in_domain) in [
+                ("gps_latitude_deg_reported", latitude, latitude_in_domain),
+                ("gps_longitude_deg_reported", longitude, longitude_in_domain),
+            ] {
+                d.fields.push((
+                    name.into(),
+                    if in_domain {
+                        FieldValue::F64(value)
+                    } else {
+                        FieldValue::Blank
+                    },
+                ));
+            }
+            d.fields.push((
+                "gps_coordinate_domain_disposition".into(),
+                FieldValue::Text(
+                    match (latitude_in_domain, longitude_in_domain) {
+                        (true, true) => "WITHIN_DECLARED_DEGREE_DOMAIN",
+                        (false, true) => "LATITUDE_OUTSIDE_DEGREE_DOMAIN_DERIVED_VALUE_WITHHELD",
+                        (true, false) => "LONGITUDE_OUTSIDE_DEGREE_DOMAIN_DERIVED_VALUE_WITHHELD",
+                        (false, false) => "BOTH_OUTSIDE_DEGREE_DOMAIN_DERIVED_VALUES_WITHHELD",
+                    }
+                    .into(),
+                ),
+            ));
             if t < 1_000_000_000_000_000 {
                 d.t_boot_us = Some(t);
             }
@@ -939,8 +1040,10 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
             d.channel = ChannelId::LinkStats;
             d.fields = vec![
                 f("RADIO_STATUS.rxerrors", u16_at(p, 0)),
+                f("RADIO_STATUS.fixed", u16_at(p, 2)),
                 f("RADIO_STATUS.rssi", u8_at(p, 4)),
                 f("RADIO_STATUS.remrssi", u8_at(p, 5)),
+                f("RADIO_STATUS.txbuf", u8_at(p, 6)),
                 f("RADIO_STATUS.noise", u8_at(p, 7)),
                 f("RADIO_STATUS.remnoise", u8_at(p, 8)),
             ];
@@ -997,6 +1100,8 @@ impl ProfileReader for TlogReader {
         let mut out = Vec::new();
         let mut off = 0usize;
         let mut sequences = std::collections::BTreeMap::<(u8, u8, u8), (u8, usize)>::new();
+        let selected = profile.declared_sender;
+        let mut unselected_records = 0usize;
         while off < bytes.len() {
             let rest = &bytes[off..];
             if rest.len() < 8 + 6 {
@@ -1256,6 +1361,27 @@ impl ProfileReader for TlogReader {
                     FieldValue::I64(i64::from(crc_extra(msgid).is_some())),
                 ),
                 (
+                    "MAVLINK.defining_dialect".into(),
+                    FieldValue::Text(match defining_dialect(msgid) {
+                        Some(dialect) => dialect.file().into(),
+                        None => DIALECT_UNQUALIFIED.into(),
+                    }),
+                ),
+                (
+                    "MAVLINK.defining_dialect_pin".into(),
+                    FieldValue::Text(match defining_dialect(msgid) {
+                        Some(_) => DIALECT_DEFINITION_PIN.into(),
+                        None => DIALECT_UNQUALIFIED.into(),
+                    }),
+                ),
+                (
+                    "MAVLINK.defining_dialect_scope".into(),
+                    FieldValue::Text(match defining_dialect(msgid) {
+                        Some(dialect) => dialect.scope().into(),
+                        None => DIALECT_UNQUALIFIED.into(),
+                    }),
+                ),
+                (
                     "MAVLINK.signature".into(),
                     FieldValue::Text(
                         if signed {
@@ -1300,12 +1426,63 @@ impl ProfileReader for TlogReader {
                     ),
                 ));
             }
+            if let Some(want) = selected {
+                if source_key.0 == 0 || source_key.1 == 0 {
+                    return Err(ReadError::Malformed {
+                        offset: off + 8,
+                        what: "record reports no addressable sender while one sender is selected"
+                            .into(),
+                    });
+                }
+                if (source_key.0, source_key.1) != (want.system_id, want.component_id) {
+                    unselected_records += 1;
+                    off += 8 + total;
+                    continue;
+                }
+                d.fields.push((
+                    "MAVLINK.declared_sender_selection".into(),
+                    FieldValue::Text(format!(
+                        "SELECTED_DECLARED_SENDER_{}_{}_REPORTED_NOT_AUTHENTICATED_THIS_READ_IS_A_SUBSET_OF_THE_RECORDING",
+                        want.system_id, want.component_id
+                    )),
+                ));
+            }
             let t_ms = i64::try_from(host_us / 1000).unwrap_or(i64::MAX);
             let mut o = observation(profile, t_ms, d.channel, d.fields, d.stale);
             o.t_boot_us = d.t_boot_us;
             o.anchor_unix_us = if recorded { None } else { d.anchor_unix_us };
             out.push(o);
             off += 8 + total;
+        }
+        let emitted = out.len();
+        if let Some(want) = selected {
+            if let Some(first) = out.first_mut() {
+                first.fields.extend([
+                    (
+                        "MAVLINK.selected_sender_records".into(),
+                        FieldValue::I64(i64::try_from(emitted).unwrap_or(i64::MAX)),
+                    ),
+                    (
+                        "MAVLINK.unselected_sender_records".into(),
+                        FieldValue::I64(i64::try_from(unselected_records).unwrap_or(i64::MAX)),
+                    ),
+                    (
+                        "MAVLINK.selected_sender_record_scope".into(),
+                        FieldValue::Text(
+                            "WHOLE_RECORDING_COUNTS_ON_THE_FIRST_SELECTED_ROW_EVERY_VALIDATED_RECORD_INCLUDING_UNKNOWN_MESSAGE_TYPES_COUNTED_ONCE_THIS_READ_IS_A_SUBSET_OF_THE_RECORDING"
+                                .into(),
+                        ),
+                    ),
+                ]);
+                first.digest = crate::observation_digest(first.t_ms, first.channel, &first.fields);
+            }
+            if out.is_empty() {
+                return Err(ReadError::Profile(format!(
+                    "selected sender {}/{} reports no record in this recording ({unselected_records} \
+                     records report other senders)",
+                    want.system_id, want.component_id
+                )));
+            }
         }
         Ok(out)
     }
@@ -1327,6 +1504,104 @@ default_clock_basis = "host_received"
 [fields]
 time = "host_us"
 "#;
+
+    #[test]
+    fn every_supported_message_names_the_dialect_that_defines_it() {
+        for msgid in 0..=100_000_u32 {
+            assert_eq!(
+                crc_extra(msgid).is_some(),
+                defining_dialect(msgid).is_some(),
+                "msgid {msgid} is supported by one table and not the other"
+            );
+        }
+        assert_eq!(defining_dialect(0), Some(DefiningDialect::Minimal));
+        assert_eq!(defining_dialect(33), Some(DefiningDialect::Standard));
+        assert_eq!(defining_dialect(148), Some(DefiningDialect::Standard));
+        assert_eq!(defining_dialect(1), Some(DefiningDialect::Common));
+        assert_eq!(defining_dialect(270), Some(DefiningDialect::Common));
+        assert_eq!(defining_dialect(193), Some(DefiningDialect::ArduPilotMega));
+        assert!(!DefiningDialect::ArduPilotMega.inherited_from_common_chain());
+        for inherited in [
+            DefiningDialect::Minimal,
+            DefiningDialect::Standard,
+            DefiningDialect::Common,
+        ] {
+            assert!(inherited.inherited_from_common_chain());
+            assert_ne!(inherited.scope(), DefiningDialect::ArduPilotMega.scope());
+        }
+        assert_eq!(DefiningDialect::ArduPilotMega.file(), "ardupilotmega.xml");
+    }
+
+    #[test]
+    fn a_common_message_and_the_vendor_message_carry_their_own_defining_namespace() {
+        let profile = parse_profile(PROFILE, "public").unwrap();
+        let attitude = TlogReader
+            .read(&profile, &framed(30, &[0u8; 28], true))
+            .unwrap();
+        let fields = &attitude[0].fields;
+        assert!(fields.contains(&("MAVLINK.crc_verified".into(), FieldValue::I64(1))));
+        assert!(fields.contains(&(
+            "MAVLINK.defining_dialect".into(),
+            FieldValue::Text("common.xml".into())
+        )));
+        assert!(fields.contains(&(
+            "MAVLINK.defining_dialect_pin".into(),
+            FieldValue::Text(DIALECT_DEFINITION_PIN.into())
+        )));
+        assert!(fields.contains(&(
+            "MAVLINK.defining_dialect_scope".into(),
+            FieldValue::Text(DefiningDialect::Common.scope().into())
+        )));
+        let ekf = TlogReader
+            .read(&profile, &framed(193, &[0u8; 26], true))
+            .unwrap();
+        let fields = &ekf[0].fields;
+        assert!(fields.contains(&("MAVLINK.crc_verified".into(), FieldValue::I64(1))));
+        assert!(fields.contains(&(
+            "MAVLINK.defining_dialect".into(),
+            FieldValue::Text("ardupilotmega.xml".into())
+        )));
+        assert!(fields.contains(&(
+            "MAVLINK.defining_dialect_scope".into(),
+            FieldValue::Text(DefiningDialect::ArduPilotMega.scope().into())
+        )));
+        assert!(!fields.contains(&(
+            "MAVLINK.defining_dialect".into(),
+            FieldValue::Text("common.xml".into())
+        )));
+    }
+
+    #[test]
+    fn an_unqualified_message_is_named_nothing_and_stays_unverified() {
+        let profile = parse_profile(PROFILE, "public").unwrap();
+        let unknown = TlogReader
+            .read(&profile, &framed(11_000, &[1, 2, 3, 4], true))
+            .unwrap();
+        let fields = &unknown[0].fields;
+        assert!(fields.contains(&("MAVLINK.crc_verified".into(), FieldValue::I64(0))));
+        for key in [
+            "MAVLINK.defining_dialect",
+            "MAVLINK.defining_dialect_pin",
+            "MAVLINK.defining_dialect_scope",
+        ] {
+            assert!(
+                fields.contains(&(key.into(), FieldValue::Text(DIALECT_UNQUALIFIED.into()))),
+                "{key} must claim no dialect for an unsupported msgid"
+            );
+        }
+        for named in [
+            DefiningDialect::Minimal,
+            DefiningDialect::Standard,
+            DefiningDialect::Common,
+            DefiningDialect::ArduPilotMega,
+        ] {
+            assert!(!fields.contains(&(
+                "MAVLINK.defining_dialect".into(),
+                FieldValue::Text(named.file().into())
+            )));
+        }
+        assert!(fields.contains(&("MAVLINK.message_id".into(), FieldValue::I64(11_000))));
+    }
 
     #[test]
     fn truncated_record_is_malformed_not_silently_dropped() {
@@ -1419,6 +1694,260 @@ time = "host_us"
     }
 
     #[test]
+    fn reported_status_and_sensor_masks_carry_declared_meaning_without_a_health_verdict() {
+        const CASE_PROFILE: &str =
+            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+        let profile = parse_profile(CASE_PROFILE, "public").expect("case profile");
+        for key in [
+            "HEARTBEAT.reported_armed",
+            "HEARTBEAT.system_status",
+            "HEARTBEAT.type",
+            "HEARTBEAT.autopilot",
+            "HEARTBEAT.base_mode",
+            "HEARTBEAT.custom_mode",
+            "HEARTBEAT.mavlink_version",
+            "system_state_reported",
+            "SYS_STATUS.onboard_control_sensors_present",
+            "SYS_STATUS.onboard_control_sensors_enabled",
+            "SYS_STATUS.onboard_control_sensors_health",
+            "SYS_STATUS.extended_declared_reported",
+            "SYS_STATUS.extended_interpretation",
+            "SYS_STATUS.present_extended_raw",
+            "SYS_STATUS.healthy_extended_unknown_bits",
+            "SYS_STATUS.mainloop_load_fraction_reported",
+            "MAVLINK.recorded_sequence_relation",
+            "MAVLINK.recorded_sequence_step_mod256",
+            "MAVLINK.previous_packet_sequence",
+            "MAVLINK.previous_record_offset_bytes",
+        ] {
+            let unit = profile
+                .field_units
+                .get(key)
+                .unwrap_or_else(|| panic!("no declared meaning for {key}"));
+            assert!(!unit.is_empty(), "{key}");
+        }
+        let unit = |key: &str| profile.field_units.get(key).cloned().unwrap_or_default();
+        assert!(unit("HEARTBEAT.system_status").contains("not_an_observed_power_state"));
+        assert!(unit("HEARTBEAT.base_mode").contains("never_command_authority"));
+        assert!(unit("HEARTBEAT.type").contains("never_an_identified_or_verified_platform"));
+        assert!(
+            unit("SYS_STATUS.onboard_control_sensors_health").contains("never_read_as_all_healthy")
+        );
+        assert!(unit("SYS_STATUS.extended_interpretation").contains("blank_is_never_zero"));
+        assert!(
+            unit("MAVLINK.recorded_sequence_relation")
+                .contains("never_a_liveness_cadence_or_heartbeat_timeout_finding")
+        );
+        assert!(unit("MAVLINK.recorded_sequence_step_mod256").contains("not_a_packet_loss_count"));
+
+        let mut heartbeat = 7_u32.to_le_bytes().to_vec(); // custom_mode
+        heartbeat.extend_from_slice(&[2, 3, 128 | 1, 5, 3]); // type, autopilot, base_mode, state, ver
+        let observations = TlogReader
+            .read(&profile, &framed(0, &heartbeat, true))
+            .unwrap();
+        assert_eq!(observations.len(), 1);
+        let beat = &observations[0];
+        assert_eq!(beat.channel, ChannelId::Heartbeat);
+        assert_eq!(beat.clock_basis, crate::ClockBasis::HostReceived);
+        for (key, value) in [
+            ("HEARTBEAT.system_status", 5_i64),
+            ("HEARTBEAT.custom_mode", 7),
+            ("HEARTBEAT.type", 2),
+            ("HEARTBEAT.autopilot", 3),
+            ("HEARTBEAT.reported_armed", 1),
+            ("MAVLINK.system_id", 42),
+            ("MAVLINK.component_id", 3),
+        ] {
+            assert!(
+                beat.fields.contains(&(key.into(), FieldValue::I64(value))),
+                "{key} must reach the row"
+            );
+        }
+        assert!(beat.fields.contains(&(
+            "system_state_reported".into(),
+            FieldValue::Text("CRITICAL".into())
+        )));
+        heartbeat[7] = 200;
+        let unknown = TlogReader
+            .read(&profile, &framed(0, &heartbeat, true))
+            .unwrap();
+        assert!(unknown[0].fields.contains(&(
+            "system_state_reported".into(),
+            FieldValue::Text("UNKNOWN_200".into())
+        )));
+
+        let mut status = [0_u8; 31];
+        status[..4].copy_from_slice(&0b100_001_u32.to_le_bytes()); // gyro3d and gps present
+        status[4..8].copy_from_slice(&0b100_001_u32.to_le_bytes());
+        status[8..12].copy_from_slice(&0b000_001_u32.to_le_bytes()); // only gyro3d healthy
+        status[12..14].copy_from_slice(&250_u16.to_le_bytes());
+        let reported = TlogReader
+            .read(&profile, &framed(1, &status, false))
+            .unwrap();
+        let fields = &reported[0].fields;
+        for (key, value) in [
+            ("SYS_STATUS.gyro3d.present_reported", 1_i64),
+            ("SYS_STATUS.gyro3d.healthy_reported", 1),
+            ("SYS_STATUS.gps.present_reported", 1),
+            ("SYS_STATUS.gps.healthy_reported", 0),
+            ("SYS_STATUS.accel3d.present_reported", 0),
+            ("SYS_STATUS.accel3d.healthy_reported", 0),
+            ("SYS_STATUS.onboard_control_sensors_health", 0b000_001),
+            ("SYS_STATUS.extended_declared_reported", 0),
+        ] {
+            assert!(
+                fields.contains(&(key.into(), FieldValue::I64(value))),
+                "{key} must be reported exactly as the mask says"
+            );
+        }
+        assert!(fields.contains(&(
+            "SYS_STATUS.onboard_control_sensors_present".into(),
+            FieldValue::I64(0b100_001)
+        )));
+        assert!(fields.contains(&(
+            "SYS_STATUS.extended_interpretation".into(),
+            FieldValue::Text("NOT_DECLARED_OR_MAVLINK1".into())
+        )));
+        for key in [
+            "SYS_STATUS.present_extended_raw",
+            "SYS_STATUS.healthy_extended_raw",
+            "SYS_STATUS.healthy_extended_unknown_bits",
+        ] {
+            assert!(
+                fields.contains(&(key.into(), FieldValue::Blank)),
+                "{key} must be blank on MAVLink 1"
+            );
+        }
+        assert!(!fields.iter().any(|(key, _)| key.contains("timeout")
+            || key.contains("expected_interval")
+            || key.contains("liveness")
+            || key.contains("online")));
+    }
+
+    #[test]
+    fn mission_reports_carry_declared_meaning_identity_and_no_invented_progress() {
+        const CASE_PROFILE: &str =
+            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+        let profile = parse_profile(CASE_PROFILE, "public").expect("case profile");
+        assert_eq!(profile.default_clock_basis, crate::ClockBasis::HostReceived);
+        for key in [
+            "mission_current_sequence",
+            "mission_state_reported",
+            "mission_item_reached_sequence_reported",
+            "mission_reach_disposition",
+            "mission_total_items",
+            "mission_total_disposition",
+            "mission_mode_reported",
+            "mission_plan_id_reported",
+            "fence_plan_id_reported",
+            "rally_plan_id_reported",
+            "MISSION_CURRENT.seq",
+            "MISSION_CURRENT.total",
+            "MISSION_CURRENT.mission_state",
+            "MISSION_CURRENT.mission_mode",
+            "MISSION_ITEM_REACHED.seq",
+        ] {
+            let unit = profile
+                .field_units
+                .get(key)
+                .unwrap_or_else(|| panic!("no declared meaning for {key}"));
+            assert!(!unit.is_empty(), "{key}");
+        }
+        let unit = |key: &str| profile.field_units.get(key).cloned().unwrap_or_default();
+        assert!(unit("mission_total_items").contains("never_a_completion_percent_denominator"));
+        assert!(unit("mission_item_reached_sequence_reported").contains("not_physical_arrival"));
+        assert!(unit("mission_reach_disposition").contains("not_physical_verification"));
+        assert!(unit("mission_plan_id_reported").contains("not_an_authenticated_task_identity"));
+        assert!(unit("MISSION_CURRENT.total").contains("omitted_mav2_extension"));
+
+        let mut payload = 5_u16.to_le_bytes().to_vec();
+        payload.extend_from_slice(&11_u16.to_le_bytes());
+        payload.extend_from_slice(&[3, 1]);
+        payload.extend_from_slice(&7_u32.to_le_bytes());
+        payload.extend_from_slice(&8_u32.to_le_bytes());
+        payload.extend_from_slice(&9_u32.to_le_bytes());
+        let current = TlogReader
+            .read(&profile, &framed(42, &payload, true))
+            .unwrap();
+        let fields = &current[0].fields;
+        for (key, value) in [
+            ("mission_current_sequence", 5_i64),
+            ("mission_total_items", 11),
+            ("mission_plan_id_reported", 7),
+            ("fence_plan_id_reported", 8),
+            ("rally_plan_id_reported", 9),
+        ] {
+            assert!(
+                fields.contains(&(key.into(), FieldValue::I64(value))),
+                "{key} must come from its own offset"
+            );
+        }
+        assert!(fields.contains(&(
+            "mission_total_disposition".into(),
+            FieldValue::Text("REPORTED_EXCLUDING_HOME".into())
+        )));
+        assert!(fields.contains(&(
+            "mission_mode_reported".into(),
+            FieldValue::Text("MISSION_MODE_REPORTED".into())
+        )));
+        assert!(fields.contains(&(
+            "mission_state_reported".into(),
+            FieldValue::Text("ACTIVE".into())
+        )));
+        assert!(!fields.iter().any(|(key, _)| key.contains("percent")
+            || key.contains("progress")
+            || key.contains("fraction")
+            || key.contains("complete")));
+
+        let no_mission = TlogReader
+            .read(&profile, &framed(42, &[0, 0, 255, 255, 1, 0], true))
+            .unwrap();
+        let sentinel = &no_mission[0].fields;
+        assert!(sentinel.contains(&(
+            "mission_total_disposition".into(),
+            FieldValue::Text("NO_MISSION_REPORTED".into())
+        )));
+        assert!(sentinel.contains(&("mission_total_items".into(), FieldValue::Blank)));
+        assert!(sentinel.contains(&("mission_current_sequence".into(), FieldValue::I64(0))));
+        assert!(sentinel.contains(&(
+            "mission_state_reported".into(),
+            FieldValue::Text("NO_MISSION".into())
+        )));
+
+        let reached = TlogReader
+            .read(&profile, &framed(46, &0_u16.to_le_bytes(), true))
+            .unwrap();
+        let row = &reached[0];
+        assert_eq!(row.channel, crate::ChannelId::Event);
+        assert_eq!(row.clock_basis, crate::ClockBasis::HostReceived);
+        assert!(row.t_ms > 0, "the host receive clock reaches the row");
+        assert!(
+            row.fields
+                .contains(&("MISSION_ITEM_REACHED.seq".into(), FieldValue::I64(0)))
+        );
+        assert!(row.fields.contains(&(
+            "mission_item_reached_sequence_reported".into(),
+            FieldValue::I64(0)
+        )));
+        assert!(row.fields.contains(&(
+            "mission_reach_disposition".into(),
+            FieldValue::Text("REPORTED_NOT_PHYSICAL_VERIFICATION".into())
+        )));
+        for key in ["MAVLINK.system_id", "MAVLINK.component_id"] {
+            assert!(
+                row.fields.iter().any(|(name, _)| name == key),
+                "{key} must reach a reached-report row"
+            );
+        }
+        match TlogReader.read(&profile, &framed(42, &[0; 19], true)) {
+            Err(ReadError::Malformed { what, .. }) => {
+                assert_eq!(what, "overlong mission report payload");
+            }
+            other => panic!("expected a named refusal, got {other:?}"),
+        }
+    }
+
+    #[test]
     fn mavlink1_full_payload_is_read_but_truncation_is_not_zero_filled() {
         let p = parse_profile(PROFILE, "public").expect("profile");
         let mut bytes = 1_700_000_000_000_000_u64.to_be_bytes().to_vec();
@@ -1451,6 +1980,10 @@ time = "host_us"
     }
 
     fn framed(id: u32, payload: &[u8], v2: bool) -> Vec<u8> {
+        framed_from(id, payload, v2, 42, 3)
+    }
+
+    fn framed_from(id: u32, payload: &[u8], v2: bool, sysid: u8, compid: u8) -> Vec<u8> {
         let mut record = 1_700_000_000_123_456_u64.to_be_bytes().to_vec();
         let mut frame = if v2 {
             vec![
@@ -1459,14 +1992,14 @@ time = "host_us"
                 0,
                 0,
                 7,
-                42,
-                3,
+                sysid,
+                compid,
                 id as u8,
                 (id >> 8) as u8,
                 (id >> 16) as u8,
             ]
         } else {
-            vec![0xFE, payload.len() as u8, 7, 42, 3, id as u8]
+            vec![0xFE, payload.len() as u8, 7, sysid, compid, id as u8]
         };
         frame.extend_from_slice(payload);
         let crc = crc_x25(&[crc_extra(id).unwrap_or(0)], crc_x25(&frame[1..], 0xffff));
@@ -1570,6 +2103,273 @@ time = "host_us"
         {
             assert_eq!(relation(o), Some(FieldValue::Text(expected.into())));
             assert_eq!(o.clock_basis, crate::ClockBasis::Unknown);
+        }
+    }
+
+    #[test]
+    fn gps_reports_carry_usable_units_unknowns_and_declared_meaning() {
+        const CASE_PROFILE: &str =
+            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+        let profile = parse_profile(CASE_PROFILE, "public").expect("case profile");
+        for key in [
+            "GPS_RAW_INT.time_usec",
+            "GPS_RAW_INT.lat",
+            "GPS_RAW_INT.lon",
+            "GPS_RAW_INT.vel",
+            "GPS_RAW_INT.fix_type",
+            "GPS_RAW_INT.satellites_visible",
+            "gps_latitude_deg_reported",
+            "gps_longitude_deg_reported",
+            "gps_ground_speed_m_s_reported",
+            "gps_fix_type_reported",
+            "gps_satellites_visible_reported",
+            "gps_hdop_reported",
+            "gps_rtk_status_basis",
+            "gps_channel_basis",
+            "gps_coordinate_domain_disposition",
+        ] {
+            let unit = profile
+                .field_units
+                .get(key)
+                .unwrap_or_else(|| panic!("no declared meaning for {key}"));
+            assert!(!unit.is_empty(), "{key}");
+        }
+        let unit = |key: &str| profile.field_units.get(key).cloned().unwrap_or_default();
+        assert!(unit("gps_satellites_visible_reported").contains("visible_is_not_satellites_used"));
+        assert!(unit("gps_ground_speed_m_s_reported").contains("never_a_3d_air_commanded"));
+        assert!(
+            unit("gps_latitude_deg_reported")
+                .contains("nothing_projected_transformed_or_datum_shifted")
+        );
+        assert!(
+            unit("gps_rtk_status_basis").contains("authentication_are_absent_from_GPS_RAW_INT")
+        );
+        assert!(unit("gps_rtk_status_basis").contains("not_decoded_or_used_in_this_selected_path"));
+        assert!(unit("gps_rtk_status_basis").contains("h_acc_v_acc_vel_acc_hdg_acc"));
+        assert!(!unit("gps_rtk_status_basis").contains("no_accuracy_field"));
+        assert!(unit("gps_coordinate_domain_disposition").contains("is_not_a_no_fix"));
+        assert!(
+            unit("gps_latitude_deg_reported").contains("blank_when_the_scaled_value_falls_outside")
+        );
+        assert!(unit("GPS_RAW_INT.time_usec").contains("never_resolves_it_into_a_utc_claim"));
+        assert!(unit("gps_hdop_reported").contains("not_a_measured_error_bound"));
+
+        let mut payload = [0u8; 52];
+        payload[..8].copy_from_slice(&1_500_000u64.to_le_bytes()); // boot magnitude
+        payload[8..12].copy_from_slice(&356_812_345i32.to_le_bytes());
+        payload[12..16].copy_from_slice(&(-1_204_567_890i32).to_le_bytes());
+        payload[20..22].copy_from_slice(&120u16.to_le_bytes()); // eph hundredths
+        payload[24..26].copy_from_slice(&1234u16.to_le_bytes()); // vel cm/s
+        payload[28] = 5; // RTK_FLOAT - the value the adopted test does not carry
+        payload[29] = 19;
+        let rows = TlogReader
+            .read(&profile, &framed(24, &payload, true))
+            .unwrap();
+        let row = &rows[0];
+        assert_eq!(row.channel, ChannelId::GpsEkf);
+        assert_eq!(row.t_boot_us, Some(1_500_000));
+        assert!(row.anchor_unix_us.is_none());
+        for (key, value) in [
+            ("GPS_RAW_INT.lat", 356_812_345_i64),
+            ("GPS_RAW_INT.lon", -1_204_567_890),
+            ("GPS_RAW_INT.vel", 1234),
+            ("GPS_RAW_INT.fix_type", 5),
+            ("GPS_RAW_INT.satellites_visible", 19),
+            ("gps_satellites_visible_reported", 19),
+            ("MAVLINK.system_id", 42),
+            ("MAVLINK.component_id", 3),
+        ] {
+            assert_eq!(
+                crate::field(row, key),
+                Some(&FieldValue::I64(value)),
+                "{key} must reach the row"
+            );
+        }
+        for (key, value) in [
+            ("gps_latitude_deg_reported", 35.681_234_5),
+            ("gps_longitude_deg_reported", -120.456_789_0),
+            ("gps_ground_speed_m_s_reported", 12.34),
+            ("gps_hdop_reported", 1.2),
+        ] {
+            match crate::field(row, key) {
+                Some(FieldValue::F64(seen)) => {
+                    assert!((seen - value).abs() < 1e-9, "{key}: {seen} vs {value}");
+                }
+                other => panic!("{key} must be a number, got {other:?}"),
+            }
+        }
+        assert_eq!(
+            crate::field(row, "gps_fix_type_reported"),
+            Some(&FieldValue::Text("RTK_FLOAT".into()))
+        );
+        assert_eq!(
+            crate::field(row, "gps_rtk_status_basis"),
+            Some(&FieldValue::Text(
+                "REPORTED_FIX_TYPE_ONLY_CORRECTION_LINK_BASE_STATION_AND_AUTHENTICATION_ABSENT_FROM_THIS_MESSAGE_WHILE_UNCERTAINTY_EXTENSION_FIELDS_EXIST_BUT_ARE_NOT_DECODED_IN_THIS_PATH"
+                    .into()
+            ))
+        );
+        assert_eq!(
+            crate::field(row, "gps_coordinate_domain_disposition"),
+            Some(&FieldValue::Text("WITHIN_DECLARED_DEGREE_DOMAIN".into()))
+        );
+        assert_eq!(
+            crate::field(row, "gps_channel_basis"),
+            Some(&FieldValue::Text(
+                "SHARED_CHANNEL_NAME_ONLY_NOT_A_FUSED_OR_EKF_SOLUTION".into()
+            ))
+        );
+
+        payload[24..26].copy_from_slice(&65535u16.to_le_bytes());
+        payload[29] = 255;
+        payload[..8].copy_from_slice(&1_700_000_000_000_000u64.to_le_bytes()); // epoch magnitude
+        let unknown = TlogReader
+            .read(&profile, &framed(24, &payload, true))
+            .unwrap();
+        let blanked = &unknown[0];
+        assert!(blanked.t_boot_us.is_none());
+        assert!(blanked.anchor_unix_us.is_none());
+        for key in [
+            "gps_ground_speed_m_s_reported",
+            "gps_satellites_visible_reported",
+        ] {
+            assert_eq!(
+                crate::field(blanked, key),
+                Some(&FieldValue::Blank),
+                "{key} must stay blank on the pinned unknown"
+            );
+        }
+        assert_eq!(
+            crate::field(blanked, "GPS_RAW_INT.vel"),
+            Some(&FieldValue::I64(65535))
+        );
+        assert_eq!(
+            crate::field(blanked, "GPS_RAW_INT.satellites_visible"),
+            Some(&FieldValue::I64(255))
+        );
+        let mut second = [0u8; 52];
+        second[..8].copy_from_slice(&2_000_000u64.to_le_bytes());
+        second[8..12].copy_from_slice(&900_000_000i32.to_le_bytes()); // +90 exactly
+        second[12..16].copy_from_slice(&(-1_800_000_000i32).to_le_bytes()); // -180 exactly
+        second[20..22].copy_from_slice(&65535u16.to_le_bytes()); // eph unknown stays blank
+        second[24..26].copy_from_slice(&4567u16.to_le_bytes());
+        second[28] = 1; // NO_FIX: a boundary coordinate is still a reported value
+        second[29] = 0;
+        let endpoints = TlogReader
+            .read(&profile, &framed(24, &second, true))
+            .unwrap();
+        let endpoint = &endpoints[0];
+        match crate::field(endpoint, "gps_ground_speed_m_s_reported") {
+            Some(FieldValue::F64(seen)) => assert!((seen - 45.67).abs() < 1e-9, "{seen}"),
+            other => panic!("second speed must convert, got {other:?}"),
+        }
+        for (key, value) in [
+            ("gps_latitude_deg_reported", 90.0),
+            ("gps_longitude_deg_reported", -180.0),
+        ] {
+            assert_eq!(
+                crate::field(endpoint, key),
+                Some(&FieldValue::F64(value)),
+                "{key} at the domain endpoint must stay a reported value"
+            );
+        }
+        assert_eq!(
+            crate::field(endpoint, "gps_coordinate_domain_disposition"),
+            Some(&FieldValue::Text("WITHIN_DECLARED_DEGREE_DOMAIN".into()))
+        );
+        assert_eq!(
+            crate::field(endpoint, "gps_fix_type_reported"),
+            Some(&FieldValue::Text("NO_FIX".into()))
+        );
+        assert_eq!(
+            crate::field(endpoint, "gps_satellites_visible_reported"),
+            Some(&FieldValue::I64(0))
+        );
+        assert_eq!(
+            crate::field(endpoint, "gps_hdop_reported"),
+            Some(&FieldValue::Blank)
+        );
+        let mut origin = second;
+        origin[8..12].copy_from_slice(&0i32.to_le_bytes());
+        origin[12..16].copy_from_slice(&0i32.to_le_bytes());
+        let zeroed = TlogReader
+            .read(&profile, &framed(24, &origin, true))
+            .unwrap();
+        for key in ["gps_latitude_deg_reported", "gps_longitude_deg_reported"] {
+            assert_eq!(
+                crate::field(&zeroed[0], key),
+                Some(&FieldValue::F64(0.0)),
+                "{key} zero is a reported value"
+            );
+        }
+
+        for (lat, lon, disposition) in [
+            (
+                900_000_001i32,
+                0i32,
+                "LATITUDE_OUTSIDE_DEGREE_DOMAIN_DERIVED_VALUE_WITHHELD",
+            ),
+            (
+                0,
+                -1_800_000_001,
+                "LONGITUDE_OUTSIDE_DEGREE_DOMAIN_DERIVED_VALUE_WITHHELD",
+            ),
+            (
+                i32::MAX,
+                i32::MIN,
+                "BOTH_OUTSIDE_DEGREE_DOMAIN_DERIVED_VALUES_WITHHELD",
+            ),
+        ] {
+            let mut outside = second;
+            outside[8..12].copy_from_slice(&lat.to_le_bytes());
+            outside[12..16].copy_from_slice(&lon.to_le_bytes());
+            outside[28] = 6; // an RTK_FIXED claim does not make it a coordinate
+            let rows = TlogReader
+                .read(&profile, &framed(24, &outside, true))
+                .unwrap();
+            let refused = &rows[0];
+            assert_eq!(
+                crate::field(refused, "gps_coordinate_domain_disposition"),
+                Some(&FieldValue::Text(disposition.into())),
+                "{lat}/{lon}"
+            );
+            assert_eq!(
+                crate::field(refused, "GPS_RAW_INT.lat"),
+                Some(&FieldValue::I64(i64::from(lat)))
+            );
+            assert_eq!(
+                crate::field(refused, "GPS_RAW_INT.lon"),
+                Some(&FieldValue::I64(i64::from(lon)))
+            );
+            assert_eq!(
+                crate::field(refused, "gps_fix_type_reported"),
+                Some(&FieldValue::Text("RTK_FIXED".into()))
+            );
+            for (key, in_domain) in [
+                (
+                    "gps_latitude_deg_reported",
+                    (-900_000_000..=900_000_000).contains(&lat),
+                ),
+                (
+                    "gps_longitude_deg_reported",
+                    (-1_800_000_000..=1_800_000_000).contains(&lon),
+                ),
+            ] {
+                let seen = crate::field(refused, key);
+                if in_domain {
+                    assert!(matches!(seen, Some(FieldValue::F64(_))), "{key}");
+                } else {
+                    assert_eq!(seen, Some(&FieldValue::Blank), "{key} must be withheld");
+                }
+            }
+        }
+
+        for row in [row, blanked] {
+            assert!(!row.fields.iter().any(|(key, _)| key.contains("accuracy")
+                || key.contains("satellites_used")
+                || key.contains("correction")
+                || key.contains("authenticated")
+                || key.contains("altitude")));
         }
     }
 
@@ -1692,6 +2492,256 @@ time = "host_us"
     }
 
     #[test]
+    fn radio_status_carries_every_pinned_field_with_raw_values_and_named_unknowns() {
+        const CASE_PROFILE: &str =
+            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+        let profile = parse_profile(CASE_PROFILE, "public").expect("case profile");
+        let payload = [1u8, 2, 5, 4, 190, 185, 93, 40, 42];
+        for v2 in [false, true] {
+            let observations = TlogReader
+                .read(&profile, &framed(109, &payload, v2))
+                .expect("RADIO_STATUS decodes under both framings");
+            assert_eq!(observations.len(), 1);
+            let o = &observations[0];
+            assert_eq!(o.channel, ChannelId::LinkStats);
+            for (name, expected) in [
+                ("RADIO_STATUS.rxerrors", 513),
+                ("RADIO_STATUS.fixed", 1029),
+                ("RADIO_STATUS.rssi", 190),
+                ("RADIO_STATUS.remrssi", 185),
+                ("RADIO_STATUS.txbuf", 93),
+                ("RADIO_STATUS.noise", 40),
+                ("RADIO_STATUS.remnoise", 42),
+            ] {
+                assert_eq!(
+                    crate::field(o, name),
+                    Some(&FieldValue::I64(expected)),
+                    "{name} must decode at its pinned offset under v2={v2}"
+                );
+            }
+        }
+        let unknown = [0u8, 0, 0, 0, 255, 255, 0, 255, 255];
+        let observations = TlogReader
+            .read(&profile, &framed(109, &unknown, true))
+            .expect("a sentinel-bearing report is still a report");
+        let o = &observations[0];
+        for name in [
+            "RADIO_STATUS.rssi",
+            "RADIO_STATUS.remrssi",
+            "RADIO_STATUS.noise",
+            "RADIO_STATUS.remnoise",
+        ] {
+            assert_eq!(crate::field(o, name), Some(&FieldValue::I64(255)), "{name}");
+        }
+        assert!(
+            !o.stale,
+            "a device-dependent sentinel is not a staleness finding"
+        );
+        assert!(
+            TlogReader
+                .read(&profile, &framed(109, &payload[..8], false))
+                .is_err(),
+            "MAVLink1 must hold the exact pinned length"
+        );
+        let truncated = TlogReader
+            .read(&profile, &framed(109, &payload[..8], true))
+            .expect("MAVLink2 trailing-zero truncation is legal");
+        assert_eq!(
+            crate::field(&truncated[0], "RADIO_STATUS.remnoise"),
+            Some(&FieldValue::I64(0)),
+            "a truncated trailing byte is the zero it encodes"
+        );
+        assert_eq!(
+            crate::field(&truncated[0], "RADIO_STATUS.noise"),
+            Some(&FieldValue::I64(40))
+        );
+        let units = &profile.field_units;
+        for key in [
+            "RADIO_STATUS.rxerrors",
+            "RADIO_STATUS.fixed",
+            "RADIO_STATUS.rssi",
+            "RADIO_STATUS.remrssi",
+            "RADIO_STATUS.txbuf",
+            "RADIO_STATUS.noise",
+            "RADIO_STATUS.remnoise",
+        ] {
+            assert!(units.contains_key(key), "{key} must declare its meaning");
+        }
+        let fixed = &units["RADIO_STATUS.fixed"];
+        assert!(
+            fixed.contains("ERROR_CORRECTED"),
+            "fixed is corrected packets"
+        );
+        assert!(
+            fixed.contains("NOT_a_count_of_lost_dropped_or_failed_packets"),
+            "fixed must not be read as loss"
+        );
+        for key in ["RADIO_STATUS.rssi", "RADIO_STATUS.remrssi"] {
+            assert!(
+                units[key].contains("DEVICE_DEPENDENT") || units[key].contains("device_dependent")
+            );
+            assert!(units[key].contains("dBm"), "the dBm refusal must be stated");
+        }
+        assert!(units["RADIO_STATUS.txbuf"].contains("REMAINING_FREE"));
+        assert!(units["RADIO_STATUS.txbuf"].contains("never_a_throughput"));
+        assert!(units["RADIO_STATUS.noise"].contains("SIK_RADIOS_ONLY"));
+        assert!(units["RADIO_STATUS.noise"].contains("NOT_applied_as_a_conversion"));
+    }
+
+    #[test]
+    fn camera_and_stream_reports_carry_declared_meaning_and_named_unknowns() {
+        const CASE_PROFILE: &str =
+            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+        let profile = parse_profile(CASE_PROFILE, "public").expect("case profile");
+        for key in [
+            "camera_image_status_raw",
+            "camera_image_status_reported",
+            "camera_video_status_reported",
+            "camera_recording_time_status",
+            "camera_recording_time_s_reported",
+            "camera_available_capacity_mib_raw",
+            "camera_available_capacity_bytes_reported",
+            "camera_capacity_status",
+            "camera_image_count_raw",
+            "camera_image_count_status",
+            "camera_image_interval_s_reported",
+            "camera_id_basis",
+            "video_stream_flags_raw",
+            "video_stream_unknown_flag_bits",
+            "video_stream_running_reported",
+            "video_stream_thermal_reported",
+            "video_stream_thermal_range_capable_reported",
+            "video_stream_framerate_hz_reported",
+            "video_stream_bitrate_bits_s_reported",
+            "video_stream_width_pixels_reported",
+            "video_stream_height_pixels_reported",
+            "video_stream_rotation_clockwise_deg_reported",
+            "video_stream_hfov_deg_reported",
+            "video_stream_id_basis",
+            "video_stream_camera_id_basis",
+        ] {
+            let unit = profile
+                .field_units
+                .get(key)
+                .unwrap_or_else(|| panic!("no declared meaning for {key}"));
+            assert!(!unit.is_empty(), "{key}");
+        }
+        let unit = |key: &str| profile.field_units.get(key).cloned().unwrap_or_default();
+        assert!(unit("camera_recording_time_s_reported").contains("never_a_timestamp"));
+        assert!(unit("camera_image_count_status").contains("truncated_mav2_frame"));
+        assert!(
+            unit("camera_available_capacity_bytes_reported").contains("never_measured_free_space")
+        );
+        assert!(unit("camera_id_basis").contains("never_an_authenticated_camera"));
+        assert!(unit("video_stream_running_reported").contains("not_an_online_connection"));
+        assert!(
+            unit("video_stream_framerate_hz_reported").contains("evidence_about_dropped_frames")
+        );
+        assert!(
+            unit("video_stream_thermal_range_capable_reported")
+                .contains("VIDEO_STREAM_STATUS_FLAGS_THERMAL_RANGE_ENABLED")
+        );
+
+        let mut payload = [0u8; 23];
+        payload[..4].copy_from_slice(&7_000u32.to_le_bytes());
+        payload[4..8].copy_from_slice(&0.5f32.to_le_bytes());
+        payload[8..12].copy_from_slice(&0u32.to_le_bytes()); // the pinned zero sentinel
+        payload[12..16].copy_from_slice(&(-3.5f32).to_le_bytes());
+        payload[16] = 2; // interval set but idle
+        payload[17] = 0; // idle
+        payload[18..22].copy_from_slice(&0i32.to_le_bytes());
+        payload[22] = 5;
+        let rows = TlogReader
+            .read(&profile, &framed(262, &payload, true))
+            .unwrap();
+        let row = &rows[0];
+        assert_eq!(row.channel, ChannelId::Event);
+        assert_eq!(row.t_boot_us, Some(7_000_000));
+        assert!(row.anchor_unix_us.is_none());
+        for (key, value) in [
+            ("camera_image_status_reported", "INTERVAL_IDLE"),
+            ("camera_video_status_reported", "IDLE"),
+            ("camera_recording_time_status", "NOT_PROVIDED"),
+            ("camera_capacity_status", "UNQUALIFIED_NEGATIVE"),
+            ("camera_image_count_status", "ZERO_OR_EXTENSION_UNAVAILABLE"),
+            ("camera_id_basis", "ATTACHED_CAMERA_REPORTED"),
+        ] {
+            assert_eq!(
+                crate::field(row, key),
+                Some(&FieldValue::Text(value.into())),
+                "{key}"
+            );
+        }
+        assert_eq!(
+            crate::field(row, "camera_image_status_raw"),
+            Some(&FieldValue::I64(2))
+        );
+        for key in [
+            "camera_available_capacity_bytes_reported",
+            "camera_recording_time_s_reported",
+            "camera_image_count_reported",
+        ] {
+            assert!(crate::field(row, key).is_none(), "{key} must stay absent");
+        }
+        payload[16] = 9;
+        payload[17] = 4;
+        let unknown = TlogReader
+            .read(&profile, &framed(262, &payload, true))
+            .unwrap();
+        for key in [
+            "camera_image_status_reported",
+            "camera_video_status_reported",
+        ] {
+            assert_eq!(
+                crate::field(&unknown[0], key),
+                Some(&FieldValue::Text("UNKNOWN".into())),
+                "{key}"
+            );
+        }
+
+        let mut stream = [0u8; 20];
+        stream[..4].copy_from_slice(&25.0f32.to_le_bytes());
+        stream[4..8].copy_from_slice(&4_000_000u32.to_le_bytes());
+        stream[8..10].copy_from_slice(&0x0107u16.to_le_bytes()); // running+thermal+range, bit 8 unknown
+        stream[10..12].copy_from_slice(&1920u16.to_le_bytes());
+        stream[12..14].copy_from_slice(&1080u16.to_le_bytes());
+        stream[14..16].copy_from_slice(&90u16.to_le_bytes());
+        stream[16..18].copy_from_slice(&63u16.to_le_bytes());
+        stream[18] = 2;
+        stream[19] = 4;
+        let stream_rows = TlogReader
+            .read(&profile, &framed(270, &stream, true))
+            .unwrap();
+        let stream_row = &stream_rows[0];
+        assert_eq!(stream_row.channel, ChannelId::Event);
+        assert!(stream_row.t_boot_us.is_none()); // 270 carries no time field at all
+        for (key, value) in [
+            ("video_stream_width_pixels_reported", 1920_i64),
+            ("video_stream_height_pixels_reported", 1080),
+            ("video_stream_rotation_clockwise_deg_reported", 90),
+            ("video_stream_hfov_deg_reported", 63),
+            ("video_stream_running_reported", 1),
+            ("video_stream_thermal_reported", 1),
+            ("video_stream_thermal_range_capable_reported", 1),
+            ("video_stream_unknown_flag_bits", 0x0100),
+            ("video_stream_id_raw", 2),
+            ("video_stream_camera_id_raw", 4),
+        ] {
+            assert_eq!(
+                crate::field(stream_row, key),
+                Some(&FieldValue::I64(value)),
+                "{key}"
+            );
+        }
+        for row in [row, stream_row] {
+            assert!(!row.fields.iter().any(|(key, _)| key.contains("dropped")
+                || key.contains("delivered")
+                || key.contains("stored")
+                || key.contains("online")));
+        }
+    }
+
+    #[test]
     fn camera_reports_reuse_frame_clock_without_claiming_recording_success() {
         let mut profile = parse_profile(PROFILE, "test").unwrap();
         profile.fields.time = "host_recorded_us".into();
@@ -1786,7 +2836,11 @@ time = "host_us"
 
     #[test]
     fn mavproxy_tagged_clock_reuses_frames_without_treating_tag_as_time() {
-        let p = parse_profile(include_str!("fixtures/tlog-state.toml"), "test").unwrap();
+        let p = parse_profile(
+            include_str!("fixtures/unknown-adapter--tlog-state--mavproxy-recorded-profile.toml"),
+            "test",
+        )
+        .unwrap();
         for (v2, voltage) in [(false, 12300_u16), (true, 24600)] {
             let mut payload = [0_u8; 31];
             payload[14..16].copy_from_slice(&voltage.to_le_bytes());
@@ -2347,6 +3401,281 @@ time = "host_us"
         assert!(TlogReader.read(&profile, &corrupt).is_err());
     }
 
+    fn selecting(system_id: u8, component_id: u8) -> String {
+        format!(
+            "{PROFILE}[selected_sender]\nsystem_id = {system_id}\ncomponent_id = {component_id}\n"
+        )
+    }
+
+    fn heartbeat_payload() -> [u8; 9] {
+        let mut payload = [0; 9];
+        payload[6] = 128;
+        payload[7] = 4;
+        payload[8] = 3;
+        payload
+    }
+
+    fn senders_of(obs: &[Observation]) -> Vec<(i64, i64)> {
+        obs.iter()
+            .map(|o| {
+                let pick = |name| match crate::field(o, name) {
+                    Some(FieldValue::I64(v)) => *v,
+                    other => panic!("missing reported sender id: {other:?}"),
+                };
+                (pick("MAVLINK.system_id"), pick("MAVLINK.component_id"))
+            })
+            .collect()
+    }
+
+    fn frames_of(obs: &[Observation]) -> Vec<String> {
+        obs.iter()
+            .map(|o| match crate::field(o, "MAVLINK.raw_frame_hex") {
+                Some(FieldValue::Text(t)) => t.clone(),
+                other => panic!("missing retained frame: {other:?}"),
+            })
+            .collect()
+    }
+
+    #[test]
+    fn selected_sender_partitions_the_recording_without_dropping_records() {
+        let payload = heartbeat_payload();
+        let bytes = [
+            framed_from(0, &payload, false, 42, 3),
+            framed_from(0, &payload, true, 7, 190),
+            framed_from(0, &payload, false, 42, 190),
+            framed_from(0, &payload, true, 42, 3),
+            framed_from(511, &payload, true, 7, 190),
+        ]
+        .concat();
+        let unselected = TlogReader
+            .read(&parse_profile(PROFILE, "test").unwrap(), &bytes)
+            .unwrap();
+        assert_eq!(
+            senders_of(&unselected),
+            [(42, 3), (7, 190), (42, 190), (42, 3), (7, 190)]
+        );
+        assert_eq!(
+            unselected.iter().map(|o| o.channel).collect::<Vec<_>>(),
+            [
+                ChannelId::Heartbeat,
+                ChannelId::Heartbeat,
+                ChannelId::Heartbeat,
+                ChannelId::Heartbeat,
+                ChannelId::Tlog,
+            ]
+        );
+        for o in &unselected {
+            assert_eq!(o.source_role, crate::SourceRole::Gcs);
+            assert!(crate::field(o, "MAVLINK.declared_sender_selection").is_none());
+        }
+        let mut attributed: Vec<String> = Vec::new();
+        for (want, expected, relations) in [
+            (
+                (42u8, 3u8),
+                vec![(42, 3), (42, 3)],
+                vec!["FIRST", "SAME_COUNTER"],
+            ),
+            (
+                (7, 190),
+                vec![(7, 190), (7, 190)],
+                vec!["FIRST", "UNQUALIFIED_HEADER"],
+            ),
+            ((42, 190), vec![(42, 190)], vec!["FIRST"]),
+        ] {
+            let profile = parse_profile(&selecting(want.0, want.1), "test").unwrap();
+            let obs = TlogReader.read(&profile, &bytes).unwrap();
+            assert_eq!(senders_of(&obs), expected, "selected {want:?}");
+            for o in &obs {
+                let Some(FieldValue::Text(label)) =
+                    crate::field(o, "MAVLINK.declared_sender_selection")
+                else {
+                    panic!("selected read must state its selection");
+                };
+                assert_eq!(
+                    label,
+                    &format!(
+                        "SELECTED_DECLARED_SENDER_{}_{}_REPORTED_NOT_AUTHENTICATED_THIS_READ_IS_A_SUBSET_OF_THE_RECORDING",
+                        want.0, want.1
+                    )
+                );
+                assert_eq!(o.source_role, crate::SourceRole::Gcs);
+            }
+            for (o, expected) in obs.iter().zip(&relations) {
+                assert_eq!(
+                    crate::field(o, "MAVLINK.recorded_sequence_relation"),
+                    Some(&FieldValue::Text((*expected).into())),
+                    "selected {want:?}"
+                );
+            }
+            let count = |name: &str| match crate::field(&obs[0], name) {
+                Some(FieldValue::I64(v)) => *v,
+                other => panic!("missing selected-read count: {other:?}"),
+            };
+            assert_eq!(count("MAVLINK.selected_sender_records"), obs.len() as i64);
+            assert_eq!(
+                count("MAVLINK.selected_sender_records")
+                    + count("MAVLINK.unselected_sender_records"),
+                unselected.len() as i64,
+                "every validated record of the recording is accounted exactly once"
+            );
+            let Some(FieldValue::Text(scope)) =
+                crate::field(&obs[0], "MAVLINK.selected_sender_record_scope")
+            else {
+                panic!("the counts must state their scope");
+            };
+            assert!(scope.contains("WHOLE_RECORDING_COUNTS_ON_THE_FIRST_SELECTED_ROW"));
+            assert!(scope.contains("INCLUDING_UNKNOWN_MESSAGE_TYPES_COUNTED_ONCE"));
+            assert!(scope.contains("THIS_READ_IS_A_SUBSET_OF_THE_RECORDING"));
+            for later in &obs[1..] {
+                for name in [
+                    "MAVLINK.selected_sender_records",
+                    "MAVLINK.unselected_sender_records",
+                    "MAVLINK.selected_sender_record_scope",
+                ] {
+                    assert!(crate::field(later, name).is_none(), "{name} on a later row");
+                }
+            }
+            assert_eq!(
+                obs[0].digest,
+                crate::observation_digest(obs[0].t_ms, obs[0].channel, &obs[0].fields),
+                "the digest must cover the added accounting fields"
+            );
+            attributed.extend(frames_of(&obs));
+        }
+        let mut all = frames_of(&unselected);
+        all.sort();
+        attributed.sort();
+        assert_eq!(attributed, all);
+        assert_eq!(attributed.len(), 5);
+        for o in &unselected {
+            for name in [
+                "MAVLINK.selected_sender_records",
+                "MAVLINK.unselected_sender_records",
+                "MAVLINK.selected_sender_record_scope",
+            ] {
+                assert!(
+                    crate::field(o, name).is_none(),
+                    "{name} without a selection"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn selected_sender_declaration_fails_closed() {
+        let payload = heartbeat_payload();
+        let bytes = [
+            framed_from(0, &payload, false, 42, 3),
+            framed_from(0, &payload, true, 7, 190),
+        ]
+        .concat();
+        let profile = parse_profile(&selecting(9, 9), "test").unwrap();
+        let err = TlogReader.read(&profile, &bytes).unwrap_err();
+        assert!(
+            format!("{err}").contains("reports no record in this recording"),
+            "{err}"
+        );
+        let zero = [
+            framed_from(0, &payload, false, 42, 3),
+            framed_from(0, &payload, false, 0, 3),
+        ]
+        .concat();
+        let err = TlogReader
+            .read(&parse_profile(&selecting(42, 3), "test").unwrap(), &zero)
+            .unwrap_err();
+        assert!(
+            format!("{err}").contains("reports no addressable sender"),
+            "{err}"
+        );
+        assert_eq!(
+            TlogReader
+                .read(&parse_profile(PROFILE, "test").unwrap(), &zero)
+                .unwrap()
+                .len(),
+            2
+        );
+        let mut corrupt = bytes.clone();
+        *corrupt.last_mut().unwrap() ^= 1;
+        assert!(
+            TlogReader
+                .read(&parse_profile(&selecting(42, 3), "test").unwrap(), &corrupt)
+                .is_err()
+        );
+        for (why, toml) in [
+            ("zero system id", selecting(0, 3)),
+            ("zero component id", selecting(42, 0)),
+            (
+                "half declared",
+                format!("{PROFILE}[selected_sender]\nsystem_id = 42\n"),
+            ),
+            (
+                "unknown key",
+                format!("{PROFILE}[selected_sender]\nsystem_id = 42\ncomponent_id = 3\nlink = 1\n"),
+            ),
+            (
+                "out of range",
+                format!("{PROFILE}[selected_sender]\nsystem_id = 256\ncomponent_id = 3\n"),
+            ),
+        ] {
+            assert!(parse_profile(&toml, "test").is_err(), "{why}");
+        }
+    }
+
+    #[test]
+    fn two_senders_in_one_file_stay_separate_observations() {
+        let profile = parse_profile(PROFILE, "test").unwrap();
+        let mut heartbeat = [0; 9];
+        heartbeat[6] = 128;
+        heartbeat[7] = 4;
+        heartbeat[8] = 3;
+        let bytes = [
+            framed_from(0, &heartbeat, false, 42, 3),
+            framed_from(0, &heartbeat, true, 7, 190),
+        ]
+        .concat();
+        let obs = TlogReader.read(&profile, &bytes).unwrap();
+        assert_eq!(obs.len(), 2);
+        assert_eq!(
+            [
+                crate::field(&obs[0], "MAVLINK.system_id"),
+                crate::field(&obs[1], "MAVLINK.system_id"),
+            ],
+            [Some(&FieldValue::I64(42)), Some(&FieldValue::I64(7))]
+        );
+        assert_eq!(
+            [
+                crate::field(&obs[0], "MAVLINK.component_id"),
+                crate::field(&obs[1], "MAVLINK.component_id"),
+            ],
+            [Some(&FieldValue::I64(3)), Some(&FieldValue::I64(190))]
+        );
+        for o in &obs {
+            assert_eq!(o.source_role, crate::SourceRole::Gcs);
+            assert_eq!(o.channel, ChannelId::Heartbeat);
+        }
+    }
+
+    #[test]
+    fn leading_zero_identity_bytes_keep_their_width() {
+        let profile = parse_profile(PROFILE, "test").unwrap();
+        let mut payload = [0u8; 78];
+        payload[8..16].copy_from_slice(&0x0000_0000_0000_00ab_u64.to_le_bytes());
+        payload[36..44].copy_from_slice(&[0, 0, 0, 0, 0, 0, 0, 9]);
+        let rows = TlogReader
+            .read(&profile, &framed(148, &payload, true))
+            .unwrap();
+        for (key, value) in [
+            ("uid_hex", "00000000000000ab"),
+            ("flight_custom_bytes_hex", "0000000000000009"),
+            ("uid_preference_reported", "UID"),
+        ] {
+            assert_eq!(
+                crate::field(&rows[0], &format!("AUTOPILOT_VERSION.{key}")),
+                Some(&FieldValue::Text(value.into()))
+            );
+        }
+    }
+
     #[test]
     fn state_units_unknown_frames_and_sender_survive_the_same_reader() {
         let profile = parse_profile(PROFILE, "test").unwrap();
@@ -2511,6 +3840,50 @@ time = "host_us"
         let before = crate::value_digest(&values);
         values[0].1 = FieldValue::I64(2);
         assert_eq!(before, crate::value_digest(&values));
+    }
+
+    #[test]
+    fn reported_communication_drop_is_a_centipercent_report_not_a_measured_radio_loss() {
+        let profile = parse_profile(PROFILE, "test").unwrap();
+        for (raw, fraction) in [(250u16, 0.025), (10000u16, 1.0), (0u16, 0.0)] {
+            let mut payload = [0; 31];
+            payload[14..16].copy_from_slice(&24000u16.to_le_bytes());
+            payload[18..20].copy_from_slice(&raw.to_le_bytes());
+            payload[30] = 75;
+            let obs = TlogReader
+                .read(&profile, &framed(1, &payload, true))
+                .unwrap();
+            assert_eq!(
+                crate::field(&obs[0], "SYS_STATUS.drop_rate_comm"),
+                Some(&FieldValue::I64(raw as i64))
+            );
+            assert_eq!(
+                crate::field(&obs[0], "communication_drop_fraction"),
+                Some(&FieldValue::F64(fraction))
+            );
+            assert!(crate::field(&obs[0], "MAVLINK.system_id").is_some());
+            assert!(crate::field(&obs[0], "MAVLINK.component_id").is_some());
+            assert_eq!(obs[0].clock_basis, crate::ClockBasis::HostReceived);
+        }
+        let mut invalid = [0; 31];
+        invalid[14..16].copy_from_slice(&24000u16.to_le_bytes());
+        invalid[18..20].copy_from_slice(&10001u16.to_le_bytes());
+        invalid[30] = 75;
+        let refused = TlogReader.read(&profile, &framed(1, &invalid, true));
+        assert!(matches!(refused, Err(ReadError::Malformed { .. })));
+        const CASE_PROFILE: &str =
+            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+        let case = parse_profile(CASE_PROFILE, "public").expect("case profile");
+        let raw_meaning = case.field_units.get("SYS_STATUS.drop_rate_comm").unwrap();
+        assert!(raw_meaning.contains("centipercent"));
+        assert!(raw_meaning.contains("all_of_the_senders_links"));
+        assert!(raw_meaning.contains("corrupted_on_reception_on_the_MAV"));
+        assert!(raw_meaning.contains("not_a_radio_link_figure"));
+        let fraction_meaning = case.field_units.get("communication_drop_fraction").unwrap();
+        assert!(
+            fraction_meaning.contains("divided_by_10000_once_and_never_also_scaled_to_percent")
+        );
+        assert!(fraction_meaning.contains("not_an_independently_verified_loss_free_link"));
     }
 
     #[test]

@@ -1032,6 +1032,8 @@ fn collected_supporting_records_past_the_eighth_reach_the_full_export_columns() 
         expectations: vec![],
         default_clock_basis: ClockBasis::HostReceived,
         declared_platform_domain: None,
+        declared_clock_rate: None,
+        declared_sender: None,
         origin: "public".into(),
     };
     let neg = NegativeObservation {

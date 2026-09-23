@@ -1,0 +1,85 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "unix_microseconds_of_the_reported_request_start_the_saved_exporter_wrote_into_the_HAR_entry_never_a_measurement_never_the_response_end_and_never_a_synchronised_or_authenticated_clock",
+      "basis": "declared"
+    },
+    "har_entry_index": {
+      "meaning": "har_entry_index",
+      "unit": "zero_based_index_of_the_one_entry_the_caller_explicitly_selected_in_the_saved_file_the_converter_never_searches_a_capture_for_the_interesting_failure_so_this_row_says_nothing_about_the_other_entries",
+      "basis": "declared"
+    },
+    "har_source_sha256": {
+      "meaning": "har_source_sha256",
+      "unit": "SHA256_of_the_exact_saved_HAR_UTF8_bytes_binding_the_file_this_row_came_from_and_never_an_authentication_of_it",
+      "basis": "declared"
+    },
+    "har_clock_basis": {
+      "meaning": "har_clock_basis",
+      "unit": "REPORTED_REQUEST_START_NOT_MEASUREMENT_OR_RESPONSE_END_the_same_boundary_the_adopted_saved_HTTP_route_already_states",
+      "basis": "declared"
+    },
+    "oauth_endpoint_role": {
+      "meaning": "oauth_endpoint_role",
+      "unit": "AUTHORIZATION_SERVER_TOKEN_ENDPOINT_or_PROTECTED_RESOURCE_ENDPOINT_declared_by_the_caller_who_saved_the_file_never_sniffed_from_a_url_and_never_authenticated_it_selects_which_pinned_section_may_name_a_code",
+      "basis": "declared"
+    },
+    "http_status_reported": {
+      "meaning": "http_status_reported",
+      "unit": "the_reported_HTTP_status_of_the_saved_response_retained_as_written_and_never_by_itself_a_reason_a_cause_or_an_OAuth_rejection",
+      "basis": "declared"
+    },
+    "oauth_error_source": {
+      "meaning": "oauth_error_source",
+      "unit": "where_the_code_was_read_JSON_BODY_ERROR_MEMBER_RFC6749_5_2_or_BEARER_CHALLENGE_ERROR_ATTRIBUTE_RFC6750_3_or_NO_ERROR_REPORTED_a_statement_about_the_record_and_never_about_the_credential",
+      "basis": "declared"
+    },
+    "oauth_error_reported": {
+      "meaning": "oauth_error_reported",
+      "unit": "the_endpoints_own_error_code_exactly_as_it_wrote_it_retained_whether_or_not_the_pinned_sections_define_it_and_blank_only_when_no_code_was_reported_at_all",
+      "basis": "declared"
+    },
+    "oauth_error_description_disposition": {
+      "meaning": "oauth_error_description_disposition",
+      "unit": "ABSENT_or_REPORTED_BUT_DELIBERATELY_NOT_COPIED_OUT_OF_THE_RETAINED_ORIGINAL_the_human_readable_text_of_S5_2_may_carry_identifiers_or_secrets_so_only_its_presence_crosses_into_this_output",
+      "basis": "declared"
+    },
+    "oauth_error_uri_disposition": {
+      "meaning": "oauth_error_uri_disposition",
+      "unit": "ABSENT_or_REPORTED_BUT_DELIBERATELY_NOT_COPIED_OUT_OF_THE_RETAINED_ORIGINAL_the_URI_is_never_copied_and_is_never_fetched_resolved_or_followed",
+      "basis": "declared"
+    },
+    "oauth_scope_attribute_disposition": {
+      "meaning": "oauth_scope_attribute_disposition",
+      "unit": "ABSENT_or_REQUIRED_SCOPE_HINT_REPORTED_BUT_ITS_VALUE_IS_NOT_COPIED_for_the_optional_scope_attribute_of_the_Bearer_challenge_or_NOT_APPLICABLE_TO_A_TOKEN_ERROR_RESPONSE_the_hint_is_never_read_as_a_granted_scope_or_as_a_permission_decision",
+      "basis": "declared"
+    },
+    "oauth_error_body_sha256": {
+      "meaning": "oauth_error_body_sha256",
+      "unit": "SHA256_of_the_exact_decoded_JSON_error_body_binding_the_bytes_without_reproducing_them_or_BODY_NOT_READ_FOR_A_PROTECTED_RESOURCE_REJECTION_where_the_code_lives_in_the_challenge_header_instead",
+      "basis": "declared"
+    },
+    "oauth_challenge_scheme_reported": {
+      "meaning": "oauth_challenge_scheme_reported",
+      "unit": "BEARER_when_the_saved_response_carried_a_Bearer_challenge_or_NO_CHALLENGE_REPORTED_or_NOT_READ_FOR_A_TOKEN_ERROR_RESPONSE_only_the_scheme_name_crosses_over_and_the_realm_value_never_does",
+      "basis": "declared"
+    },
+    "oauth_rejection_basis": {
+      "meaning": "oauth_rejection_basis",
+      "unit": "fixed_sentence_repeating_that_the_row_is_the_endpoints_own_reported_protocol_rejection_and_never_proof_that_a_credential_token_account_or_permission_is_actually_bad_never_a_network_power_or_service_outage_and_never_a_decision_about_a_person",
+      "basis": "declared"
+    },
+    "oauth_identity_basis": {
+      "meaning": "oauth_identity_basis",
+      "unit": "fixed_sentence_repeating_that_the_endpoint_role_and_grant_context_are_caller_declared_not_authenticated_and_not_read_from_a_url_and_that_no_client_user_account_or_device_identity_is_resolved_here",
+      "basis": "declared"
+    }
+  }
+}

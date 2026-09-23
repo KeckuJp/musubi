@@ -1,0 +1,280 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "PCAP_capture_reported_microseconds_not_trusted_UTC_anchor",
+      "basis": "declared"
+    },
+    "pcap_clock_basis": {
+      "meaning": "pcap_clock_basis",
+      "unit": "packet_capture_reported_not_authentication_or_media_clock",
+      "basis": "declared"
+    },
+    "pcap_packet_index": {
+      "meaning": "pcap_packet_index",
+      "unit": "zero_based_original_capture_packet_index",
+      "basis": "declared"
+    },
+    "pcap_source_sha256": {
+      "meaning": "pcap_source_sha256",
+      "unit": "SHA256_original_capture_not_authentication",
+      "basis": "declared"
+    },
+    "rtp_source_address": {
+      "meaning": "rtp_source_address",
+      "unit": "reported_IPv4_source_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "rtp_source_port": {
+      "meaning": "rtp_source_port",
+      "unit": "reported_UDP_source_port",
+      "basis": "declared"
+    },
+    "rtp_destination_address": {
+      "meaning": "rtp_destination_address",
+      "unit": "reported_IPv4_destination_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "rtp_destination_port": {
+      "meaning": "rtp_destination_port",
+      "unit": "explicitly_selected_UDP_destination_port",
+      "basis": "declared"
+    },
+    "rtp_ssrc": {
+      "meaning": "rtp_ssrc",
+      "unit": "reported_RFC3550_synchronization_source_not_authenticated_device_and_not_declared_by_the_description",
+      "basis": "declared"
+    },
+    "rtp_payload_type": {
+      "meaning": "rtp_payload_type",
+      "unit": "reported_RFC3550_payload_type_number_in_the_packet_no_codec_claim",
+      "basis": "declared"
+    },
+    "rtp_marker": {
+      "meaning": "rtp_marker",
+      "unit": "reported_marker_bit_1_or_0_profile_defined_not_frame_boundary_proof",
+      "basis": "declared"
+    },
+    "rtp_sequence": {
+      "meaning": "rtp_sequence",
+      "unit": "reported_16bit_sequence_modulo_65536",
+      "basis": "declared"
+    },
+    "rtp_extended_sequence": {
+      "meaning": "rtp_extended_sequence",
+      "unit": "cycles_plus_sequence_withheld_when_discontinuity_unknown",
+      "basis": "declared"
+    },
+    "rtp_sequence_cycles": {
+      "meaning": "rtp_sequence_cycles",
+      "unit": "count_of_observed_65536_wraps_within_the_current_epoch",
+      "basis": "declared"
+    },
+    "rtp_sequence_epoch": {
+      "meaning": "rtp_sequence_epoch",
+      "unit": "zero_based_epoch_incremented_only_on_a_confirmed_source_restart",
+      "basis": "declared"
+    },
+    "rtp_sequence_step": {
+      "meaning": "rtp_sequence_step",
+      "unit": "recorded_sequence_difference_not_proven_packet_or_frame_loss",
+      "basis": "declared"
+    },
+    "rtp_order_state": {
+      "meaning": "rtp_order_state",
+      "unit": "first_in_order_duplicate_repeated_sequence_new_payload_reorder_restart_or_discontinuity_unknown",
+      "basis": "declared"
+    },
+    "rtp_timestamp": {
+      "meaning": "rtp_timestamp",
+      "unit": "reported_32bit_RTP_timestamp_modulo_2_32_sampling_units",
+      "basis": "declared"
+    },
+    "rtp_extended_timestamp": {
+      "meaning": "rtp_extended_timestamp",
+      "unit": "ticks_extended_only_within_the_declared_forward_bound",
+      "basis": "declared"
+    },
+    "rtp_timestamp_state": {
+      "meaning": "rtp_timestamp_state",
+      "unit": "first_forward_backward_same_timestamp_or_discontinuity_unknown",
+      "basis": "declared"
+    },
+    "rtp_source_relative_us": {
+      "meaning": "rtp_source_relative_us",
+      "unit": "microseconds_since_this_sources_first_tick_under_the_declared_clock_not_UTC_no_RTCP_sender_report_anchor",
+      "basis": "declared"
+    },
+    "rtp_clock_rate_hz": {
+      "meaning": "rtp_clock_rate_hz",
+      "unit": "Hz_the_adopted_converter_was_driven_with_here_always_the_SDP_declared_rate_never_inferred_from_packets",
+      "basis": "declared"
+    },
+    "rtp_clock_rate_basis": {
+      "meaning": "rtp_clock_rate_basis",
+      "unit": "how_the_rate_reached_the_converter_declared_by_this_caller_not_observed",
+      "basis": "declared"
+    },
+    "rtp_csrc_count": {
+      "meaning": "rtp_csrc_count",
+      "unit": "reported_contributing_source_count_0_to_15",
+      "basis": "declared"
+    },
+    "rtp_csrc_list": {
+      "meaning": "rtp_csrc_list",
+      "unit": "pipe_joined_reported_contributing_sources_hex",
+      "basis": "declared"
+    },
+    "rtp_extension_profile": {
+      "meaning": "rtp_extension_profile",
+      "unit": "reported_profile_defined_extension_identifier_hex_not_interpreted",
+      "basis": "declared"
+    },
+    "rtp_extension_hex": {
+      "meaning": "rtp_extension_hex",
+      "unit": "exact_retained_extension_bytes_not_interpreted",
+      "basis": "declared"
+    },
+    "rtp_padding_bytes": {
+      "meaning": "rtp_padding_bytes",
+      "unit": "octets_removed_per_RFC3550_padding_including_the_count_octet",
+      "basis": "declared"
+    },
+    "rtp_payload_bytes": {
+      "meaning": "rtp_payload_bytes",
+      "unit": "payload_octets_after_padding_removal_not_decoded",
+      "basis": "declared"
+    },
+    "rtp_payload_sha256": {
+      "meaning": "rtp_payload_sha256",
+      "unit": "SHA256_of_the_undecoded_payload_for_lossless_linking",
+      "basis": "declared"
+    },
+    "rtp_header_hex": {
+      "meaning": "rtp_header_hex",
+      "unit": "exact_RTP_header_octets_including_CSRC_and_extension",
+      "basis": "declared"
+    },
+    "rtp_packet_sha256": {
+      "meaning": "rtp_packet_sha256",
+      "unit": "SHA256_of_the_whole_selected_UDP_payload_packet_identity",
+      "basis": "declared"
+    },
+    "rtsp_source_sha256": {
+      "meaning": "rtsp_source_sha256",
+      "unit": "SHA256_of_the_saved_RTSP_response_bytes_a_source_reference_not_authentication_of_the_description",
+      "basis": "declared"
+    },
+    "rtsp_status_code": {
+      "meaning": "rtsp_status_code",
+      "unit": "reported_RTSP_status_of_the_saved_response_only_200_is_admitted_as_a_description_carrier",
+      "basis": "declared"
+    },
+    "rtsp_version": {
+      "meaning": "rtsp_version",
+      "unit": "RTSP_version_token_read_from_the_saved_status_line_only_RTSP_1_0_admitted_no_RTSP_2_0_RFC7826_support",
+      "basis": "declared"
+    },
+    "rtsp_pairing_basis": {
+      "meaning": "rtsp_pairing_basis",
+      "unit": "which_file_belongs_to_which_capture_is_a_caller_declaration_the_description_proves_no_pairing_with_these_packets",
+      "basis": "declared"
+    },
+    "sdp_session_id": {
+      "meaning": "sdp_session_id",
+      "unit": "reported_RFC4566_origin_session_id_an_opaque_declared_token_not_an_RTSP_session_which_only_SETUP_creates",
+      "basis": "declared"
+    },
+    "sdp_session_version": {
+      "meaning": "sdp_session_version",
+      "unit": "reported_RFC4566_origin_session_version_token_not_a_protocol_or_product_version",
+      "basis": "declared"
+    },
+    "sdp_media_index": {
+      "meaning": "sdp_media_index",
+      "unit": "zero_based_index_of_the_explicitly_selected_m_section_in_the_saved_description",
+      "basis": "declared"
+    },
+    "sdp_media_type": {
+      "meaning": "sdp_media_type",
+      "unit": "declared_RFC4566_media_type_token_of_the_selected_section_not_a_decoded_or_verified_medium",
+      "basis": "declared"
+    },
+    "sdp_media_proto": {
+      "meaning": "sdp_media_proto",
+      "unit": "declared_transport_protocol_of_the_selected_section_only_RTP_AVP_admitted_never_SRTP_and_nothing_is_decrypted",
+      "basis": "declared"
+    },
+    "sdp_media_port_declared": {
+      "meaning": "sdp_media_port_declared",
+      "unit": "port_declared_on_the_selected_m_line_zero_means_the_description_declared_no_port_and_it_is_never_used_as_one",
+      "basis": "declared"
+    },
+    "sdp_media_port_agreement": {
+      "meaning": "sdp_media_port_agreement",
+      "unit": "whether_the_caller_selected_UDP_destination_port_equals_the_declared_media_port_or_the_declaration_was_zero",
+      "basis": "declared"
+    },
+    "sdp_media_format_list": {
+      "meaning": "sdp_media_format_list",
+      "unit": "pipe_joined_declared_payload_type_numbers_of_the_selected_section_the_set_the_selection_had_to_come_from",
+      "basis": "declared"
+    },
+    "sdp_selected_payload_type": {
+      "meaning": "sdp_selected_payload_type",
+      "unit": "explicitly_selected_payload_type_number_it_must_appear_in_the_declared_format_list_and_it_filters_the_packets",
+      "basis": "declared"
+    },
+    "sdp_encoding_name": {
+      "meaning": "sdp_encoding_name",
+      "unit": "declared_RFC4566_rtpmap_encoding_name_a_sender_declaration_not_a_decoded_codec_or_a_verified_stream",
+      "basis": "declared"
+    },
+    "sdp_declared_clock_rate_hz": {
+      "meaning": "sdp_declared_clock_rate_hz",
+      "unit": "clock_rate_declared_by_that_rtpmap_line_the_exact_value_handed_to_the_adopted_RTP_conversion_never_inferred_from_packets",
+      "basis": "declared"
+    },
+    "sdp_encoding_parameters": {
+      "meaning": "sdp_encoding_parameters",
+      "unit": "declared_rtpmap_encoding_parameters_retained_verbatim_and_uninterpreted_blank_when_absent",
+      "basis": "declared"
+    },
+    "sdp_rtpmap_source_offset": {
+      "meaning": "sdp_rtpmap_source_offset",
+      "unit": "byte_offset_of_the_selected_rtpmap_line_inside_the_retained_original_saved_response",
+      "basis": "declared"
+    },
+    "sdp_rtpmap_line_sha256": {
+      "meaning": "sdp_rtpmap_line_sha256",
+      "unit": "SHA256_of_the_exact_selected_rtpmap_line_bytes_for_lossless_linking_back_to_the_retained_original",
+      "basis": "declared"
+    },
+    "sdp_media_control": {
+      "meaning": "sdp_media_control",
+      "unit": "redacted_media_control_scope_marker_a_control_value_may_carry_credentials_or_query_secrets_so_it_is_never_echoed_or_fetched",
+      "basis": "declared"
+    },
+    "sdp_media_control_reference": {
+      "meaning": "sdp_media_control_reference",
+      "unit": "private_source_reference_digest_at_byte_offset_plus_length_pointing_into_the_retained_original_not_the_value_itself",
+      "basis": "declared"
+    },
+    "sdp_session_control": {
+      "meaning": "sdp_session_control",
+      "unit": "redacted_session_level_control_scope_marker_asterisk_means_it_inherits_a_base_which_is_not_resolved_here",
+      "basis": "declared"
+    },
+    "rtp_clock_declaration_basis": {
+      "meaning": "rtp_clock_declaration_basis",
+      "unit": "the_rate_came_from_the_saved_description_rtpmap_it_is_not_evidence_that_these_packets_used_that_payload_type_or_clock",
+      "basis": "declared"
+    }
+  }
+}

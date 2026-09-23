@@ -1,0 +1,75 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "GPSTime": {
+      "meaning": "GPSTime",
+      "unit": "us",
+      "basis": "declared"
+    },
+    "easting": {
+      "meaning": "easting",
+      "unit": "m_local_enu_ref_east",
+      "basis": "declared"
+    },
+    "northing": {
+      "meaning": "northing",
+      "unit": "m_local_enu_ref_north",
+      "basis": "declared"
+    },
+    "altitude": {
+      "meaning": "altitude",
+      "unit": "m_local_enu_ref_up",
+      "basis": "declared"
+    },
+    "vel_east": {
+      "meaning": "vel_east",
+      "unit": "m_s_local_enu_ref_east",
+      "basis": "declared"
+    },
+    "vel_north": {
+      "meaning": "vel_north",
+      "unit": "m_s_local_enu_ref_north",
+      "basis": "declared"
+    },
+    "vel_up": {
+      "meaning": "vel_up",
+      "unit": "m_s_local_enu_ref_up",
+      "basis": "declared"
+    },
+    "roll": {
+      "meaning": "roll",
+      "unit": "rad_publisher_rpy_convention",
+      "basis": "declared"
+    },
+    "pitch": {
+      "meaning": "pitch",
+      "unit": "rad_publisher_rpy_convention",
+      "basis": "declared"
+    },
+    "heading": {
+      "meaning": "heading",
+      "unit": "rad_publisher_rpy_convention",
+      "basis": "declared"
+    },
+    "angvel_z": {
+      "meaning": "angvel_z",
+      "unit": "rad_s_sensor_z",
+      "basis": "declared"
+    },
+    "angvel_y": {
+      "meaning": "angvel_y",
+      "unit": "rad_s_sensor_y",
+      "basis": "declared"
+    },
+    "angvel_x": {
+      "meaning": "angvel_x",
+      "unit": "rad_s_sensor_x",
+      "basis": "declared"
+    }
+  }
+}

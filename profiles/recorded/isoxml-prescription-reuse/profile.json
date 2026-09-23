@@ -1,0 +1,60 @@
+{
+  "profile_id": "isoxml_declared_prescription_setpoints_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "caller_supplied_capture_microseconds_not_prescription_authoring_or_application_time",
+    "task_id_hex": "declared_TSK_id_UTF8_hex_not_an_authenticated_identity",
+    "task_designator_hex": "declared_task_name_UTF8_hex",
+    "grid_type": "declared_GRD_type_1_zone_codes_or_2_cell_values",
+    "grid_cell_index": "zero_based_position_in_the_grid_binary_file_order",
+    "grid_cell_count": "declared_columns_times_rows_every_cell_is_accounted",
+    "declared_grid_file_ref_hex": "declared_GRD_file_name_UTF8_hex_the_documents_own_reference_to_the_prescribed_map_not_a_global_id",
+    "grid_cell_row": "zero_based_row_northward_from_the_declared_minimum_corner_decoder_documented_order",
+    "grid_cell_column": "zero_based_column_eastward_from_the_declared_minimum_corner_decoder_documented_order",
+    "declared_cell_north_offset_deg": "deg_row_times_declared_cell_north_size_offset_from_declared_origin_not_a_fix",
+    "declared_cell_east_offset_deg": "deg_column_times_declared_cell_east_size_offset_from_declared_origin_not_a_fix",
+    "cell_position_basis": "grid_geometry_relative_to_the_declared_origin_never_an_absolute_position",
+    "treatment_zone_code": "declared_TZN_code_0_to_254_not_an_interpreted_meaning",
+    "treatment_zone_designator_hex": "declared_zone_name_UTF8_hex",
+    "treatment_zone_role": "DECLARED_ZONE_or_the_roles_the_task_attributes_assign_to_this_code",
+    "process_data_index": "zero_based_order_of_the_PDV_within_its_treatment_zone",
+    "source_ddi": "decimal_declared_DDI_not_device_identity",
+    "source_raw_value": "signed_integer_with_resolution_selected_by_source_ddi",
+    "source_cell_hex": "exact_source_bytes_that_produced_this_row",
+    "source_value_origin": "GRID_CELL_BINARY_or_TREATMENT_ZONE_DECLARATION_or_NOT_PROVIDED",
+    "setpoint_volume_rate_l_ha": "L/ha_intended_target_volume_per_area_never_applied_volume",
+    "setpoint_mass_rate_kg_m2": "kg/m2_intended_target_mass_per_area_never_applied_mass",
+    "setpoint_count_per_m2": "count/m2_intended_target_count_per_area_never_applied_count",
+    "prescription_value_status": "SETPOINT_DECLARED_UNKNOWN_DDI_NO_UNIT_ASSUMED_or_ZONE_DECLARES_NO_PROCESS_DATA",
+    "declared_product_ref_hex": "declared_PDT_reference_UTF8_hex_resolved_in_this_document_only",
+    "declared_device_element_ref_hex": "declared_DET_reference_UTF8_hex_not_a_reachable_device",
+    "declared_value_presentation_ref_hex": "declared_VPN_reference_UTF8_hex_retained_not_applied",
+    "value_presentation_disposition": "DECLARED_VALUE_PRESENTATION_NOT_APPLIED_or_NOT_PROVIDED",
+    "declared_grid_minimum_north_deg": "deg_declared_grid_minimum_north_datum_not_in_source_never_projected",
+    "declared_grid_minimum_east_deg": "deg_declared_grid_minimum_east_datum_not_in_source_never_projected",
+    "declared_grid_cell_north_size_deg": "deg_declared_cell_north_size_no_unit_object_in_source",
+    "declared_grid_cell_east_size_deg": "deg_declared_cell_east_size_no_unit_object_in_source",
+    "declared_grid_columns": "declared_GRD_column_count",
+    "declared_grid_rows": "declared_GRD_row_count",
+    "grid_cell_order_basis": "row_major_from_minimum_corner_as_the_pinned_decoder_example_documents_not_a_normative_clause",
+    "grid_coordinate_basis": "declared_degrees_no_datum_in_source_not_projected_or_transformed",
+    "grid_value_byte_order": "declared_source_of_the_cell_value_byte_order_not_a_specification_rule",
+    "device_description_sha256": "exact_input_TASKDATA_digest_not_authenticity",
+    "grid_sha256": "exact_input_grid_binary_digest_not_authenticity",
+    "applied_converter_id": "the_stable_identifier_this_converter_uses_for_itself_emitted_by_the_code_that_produced_this_row_it_names_the_adaptation_that_ran_and_is_never_the_writer_of_the_saved_source_data_nor_the_reference_specification_this_adaptation_was_written_against",
+    "applied_converter_revision": "the_reported_implementation_and_output_schema_revision_of_that_converter_maintained_in_its_own_source_by_its_owner_revision_1_is_the_first_revision_in_which_it_reports_its_own_identity_and_the_number_advances_when_the_output_schema_or_conversion_behaviour_changes_it_is_not_a_build_identifier_not_a_source_byte_or_installed_package_attestation_not_a_signature_or_receipt_and_not_a_statement_that_any_particular_file_on_disk_executed"
+  }
+}

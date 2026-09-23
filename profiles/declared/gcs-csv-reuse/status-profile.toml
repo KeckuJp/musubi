@@ -1,0 +1,25 @@
+profile_id = "mp_tlog_csv_sys_status_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "caller_declared_capture_microseconds_because_this_dialect_message_carries_no_time_field"
+record_time_basis = "CALLER_DECLARED_CAPTURE_MICROSECONDS_NOT_UTC"
+source_local_time_text = "exporter_lastlogread_text_local_time_millisecond_resolution_zone_not_recorded_never_converted_to_utc"
+source_msgid = "dialect_message_id_parsed_from_the_writers_hexadecimal_header_field"
+source_sysid = "reported_system_id_from_the_writers_hexadecimal_header_not_authenticated_identity"
+source_compid = "reported_component_id_from_the_writers_hexadecimal_header_not_authenticated_identity"
+source_row_hex = "hex_encoded_exact_bytes_of_this_one_exported_row_including_the_writers_header_and_tail_but_excluding_the_crlf_separator_not_whole_file_retention"
+selected_message = "declared_mavlink_struct_name_the_exporter_wrote_for_this_row"
+exporter_pin = "declared_missionplanner_release_that_wrote_this_export_1_3_81_2f3e02b2_or_1_3_82_ca3731f5_same_tlog_csv_handler_functions_at_both_pins"
+dialect_pin = "c_library_v2_a3661c0a_field_units"
+measurement_status = "REPORTED_or_UNAVAILABLE_NOT_SENT_BY_AUTOPILOT_for_the_dialects_documented_uint16max_and_minus_one_sentinels"
+electrical_voltage_v = "V_converted_from_the_dialects_mV_battery_voltage_uint16max_means_not_sent_and_is_withheld"
+electrical_current_a = "A_converted_from_the_dialects_cA_battery_current_minus_one_means_not_sent_and_is_withheld"
+battery_remaining_fraction = "fraction_converted_from_the_dialects_percent_remaining_minus_one_means_not_sent_and_is_withheld"

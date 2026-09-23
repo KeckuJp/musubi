@@ -170,6 +170,7 @@ pub struct FieldMapping {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReadProfile {
+    pub declared_sender: Option<SenderSelection>,
     pub profile_id: String,
     pub version: String,
     pub family: Family,
@@ -180,6 +181,11 @@ pub struct ReadProfile {
     pub field_units: std::collections::BTreeMap<String, String>,
     pub channels: Vec<ChannelId>,
     pub default_clock_basis: ClockBasis,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SenderSelection {
+    pub system_id: u8,
+    pub component_id: u8,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DigestRef(pub [u8; 32]);

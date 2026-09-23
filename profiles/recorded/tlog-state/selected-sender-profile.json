@@ -1,0 +1,28 @@
+{
+  "profile_id": "gcs_selected_sender_recorded_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "gcs",
+  "format": "mavlink_tlog",
+  "extensions": [
+    "tlog"
+  ],
+  "default_clock_basis": "unknown",
+  "selected_sender": {
+    "system_id": 42,
+    "component_id": 3
+  },
+  "fields": {
+    "time": "host_recorded_us"
+  },
+  "units": {
+    "MAVLINK.host_recorded_us": "reported_host_Unix_us_not_receipt_or_device_sample",
+    "MAVLINK.direction": "unknown_not_encoded_in_record",
+    "MAVLINK.system_id": "reported_sender_not_authenticated",
+    "MAVLINK.raw_frame_hex": "exact_frame_including_unknown_payload_and_signature",
+    "MAVLINK.declared_sender_selection": "caller_declared_selection_of_one_reported_sender_tuple_this_read_is_a_subset_of_the_recording_and_the_tuple_is_not_an_authenticated_device",
+    "MAVLINK.selected_sender_records": "how_many_records_of_the_whole_recording_this_selected_read_emitted_carried_once_on_the_first_selected_row_not_a_per_row_value",
+    "MAVLINK.unselected_sender_records": "how_many_validated_records_of_the_whole_recording_report_other_senders_and_were_not_emitted_by_this_read_unknown_message_types_included_carried_once_on_the_first_selected_row",
+    "MAVLINK.selected_sender_record_scope": "states_that_the_two_counts_are_whole_recording_counts_on_the_first_selected_row_that_every_validated_record_is_counted_exactly_once_including_unknown_message_types_and_that_this_read_is_a_subset_of_the_recording"
+  }
+}

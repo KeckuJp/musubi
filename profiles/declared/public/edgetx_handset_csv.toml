@@ -1,0 +1,21 @@
+profile_id = "edgetx_handset_csv"
+version = "2026-08-24.1"
+family = "fpv"
+source_role = "handset"
+format = "edgetx_csv"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["link_stats", "gps_ekf"]
+
+[fields]
+time = "Date,Time|Time|tmr10ms"
+link = ["1RSS(dB)", "RQly(%)", "RSNR(dB)", "TPWR(mW)"]
+battery = ["RxBt(V)"]
+gps = ["Sats", "GPS"]
+
+[[expectations]]
+id = "handset_row_1s"
+channel = "link_stats"
+cadence_ms = 1000
+grace_k = 3
+frozen_ms = 20000

@@ -1,0 +1,16 @@
+profile_id = "rov_underwater_undeclared_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+
+[fields]
+time = "record_time_us"
+
+[units]
+record_time_us = "us_file_order_clock_unknown_not_utc"
+depth_m = "m_below_surface_positive_down_not_altitude"
+tether_tension_n = "N_reported_not_calibrated"

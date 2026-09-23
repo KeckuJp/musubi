@@ -1,0 +1,34 @@
+profile_id = "saved_image_metadata_export_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["video"]
+
+[fields]
+time = "record_time_us"
+
+[units]
+record_time_us = "caller_read_clock_not_image_capture_time_not_utc"
+source_image_index = "one_based_export_order_not_capture_sequence"
+export_sha256 = "sha256_of_supplied_decoder_export_not_of_any_image"
+source_record_sha256 = "sha256_of_one_export_image_object"
+stored_width_px = "stored_image_pixels_as_declared_by_tag_in_stored_size_tag"
+stored_height_px = "stored_image_pixels_as_declared_by_tag_in_stored_size_tag"
+tiff_image_width_px = "tiff_tag_pixels_out_of_spec_inside_jpeg"
+tiff_image_height_px = "tiff_tag_pixels_out_of_spec_inside_jpeg"
+orientation_code = "exif_orientation_1_to_8_not_a_measured_attitude"
+orientation_swaps_display_axes = "1_when_display_width_height_swap_5_to_8"
+gps_latitude_deg = "deg_signed_by_explicit_ref_not_stored_signed"
+gps_longitude_deg = "deg_signed_by_explicit_ref_not_stored_signed"
+gps_altitude_m = "m_relative_to_reference_in_gps_altitude_reference_no_datum_defined"
+gps_altitude_ref_code = "exif_gps_altitude_ref_byte_0_above_1_below"
+gps_date_stamp_utc = "YYYY_MM_DD_utc_by_specification"
+gps_time_of_day_utc = "HH_MM_SS_fff_utc_by_specification_no_date_of_its_own"
+datetime_original_text = "local_wall_text_zone_unknown_never_converted_to_utc"
+datetime_original_zone_offset_text = "declared_offset_text_retained_not_applied"
+camera_make_hex = "declared_camera_string_not_a_platform_identity"
+camera_model_hex = "declared_camera_string_not_a_platform_identity"
+unknown_tag_count = "tags_named_and_digested_in_report_values_not_emitted"

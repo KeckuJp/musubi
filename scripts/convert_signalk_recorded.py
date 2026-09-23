@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Finite saved Signal K delta quantities; no server or transport."""
+"""Finite saved Signal K delta quantities, bare or inside a saved server log line container;
+no server, no transport, no subscription."""
 import argparse
 import csv
 import io
@@ -46,29 +47,71 @@ BATTERY_QUANTITIES = {"voltage": "battery_voltage_v", "current": "battery_curren
 FIELDS = ["record_time_us", "source_record_hex", "signalk_context_hex", "signalk_path_hex",
           "signalk_update_index", "signalk_value_index", "signalk_value_status", *QUANTITIES.values(),
           *BATTERY_QUANTITIES.values(), "battery_id_hex", "battery_current_sign_basis"]
+# The server writes `Date.now() + ';' + discriminator + ';' + payload` per line, so the container
+# columns are appended and delta-mode output stays byte-identical.
+CONTAINER_FIELDS = [*FIELDS, "signalk_log_time_us", "signalk_log_time_basis",
+                    "signalk_log_discriminator_hex"]
+CONTAINER_LINE = re.compile(r"(\d{1,15});([^;]*);(.*)", re.DOTALL)
+LOG_TIME_BASIS = ("HOST_WALL_CLOCK_WHEN_THE_SERVER_WROTE_THE_LINE_NOT_THE_OBSERVATION_TIME_NOT_"
+                  "AUTHENTICATED_AND_NOT_ASSERTED_MONOTONIC")
 
 
-def convert(text, context):
+def convert(text, context, *, server_log=False):
     if not isinstance(context, str) or not context.startswith("vessels.") or len(context) <= 8:
         raise ValueError("explicit vessel context required")
+    if type(server_log) is not bool:
+        raise ValueError("explicit container selection required")
     if not text or len(text.encode()) > LIMIT:
         raise ValueError("empty or oversized delta capture")
     output = io.StringIO(newline="")
-    writer = csv.DictWriter(output, FIELDS, lineterminator="\n")
+    writer = csv.DictWriter(output, CONTAINER_FIELDS if server_log else FIELDS, lineterminator="\n")
     writer.writeheader()
     report = {"source_records": 0, "source_values": 0, "output_records": 0,
               "unsupported_values": 0, "retained_records": [], "clock": "REPORTED_UTC_NOT_AUTHENTICATED"}
+    if server_log:
+        report.update(unselected_context_records=0, provider_text_records=0, opaque_object_records=0,
+            container="saved skserver-raw line container: host write time, provider discriminator, "
+                      "payload; the payload is a delta only when the server saw updates",
+            log_clock=LOG_TIME_BASIS)
     previous = None
     for line in text.splitlines():
         if not line.strip() or len(line.encode()) > 30000:
             raise ValueError("blank or oversized delta")
-        record = strict_json(line)
-        if not isinstance(record, dict) or record.get("context") != context or not isinstance(record.get("updates"), list):
-            raise ValueError("delta context or updates mismatch")
-        report["source_records"] += 1
-        # Retain every source record, including metadata-only updates and unknown paths.
+        # Retain every source line verbatim, including metadata-only updates and unknown paths.
         raw = "hex:" + line.encode().hex()
-        report["retained_records"].append(raw)
+        container = {}
+        if server_log:
+            shape = CONTAINER_LINE.fullmatch(line)
+            if not shape:
+                # Raw provider text holding a newline lands here; it is refused, not reassembled.
+                raise ValueError("saved server log line is not a complete host time, discriminator, payload line")
+            container = {"signalk_log_time_us": int(shape[1]) * 1000,
+                         "signalk_log_time_basis": LOG_TIME_BASIS,
+                         "signalk_log_discriminator_hex": "hex:" + shape[2].encode().hex()}
+            line = shape[3]
+            report["source_records"] += 1
+            report["retained_records"].append(raw)
+            if not line.startswith("{"):
+                # The server stringifies whatever it saw no updates on; never decoded here, and an
+                # object stringified this way has already lost its content at the source.
+                report["provider_text_records"] += 1
+                if line == "[object Object]":
+                    report["opaque_object_records"] += 1
+                continue
+            # A payload that claims to be a JSON object must parse and must be a delta: the pinned
+            # writer only serializes an object when it saw updates on it.
+            record = strict_json(line)
+            if not isinstance(record.get("updates"), list):
+                raise ValueError("saved server log JSON payload is not a delta carrying updates")
+            if record.get("context") != context:
+                report["unselected_context_records"] += 1
+                continue
+        else:
+            record = strict_json(line)
+            if not isinstance(record, dict) or record.get("context") != context or not isinstance(record.get("updates"), list):
+                raise ValueError("delta context or updates mismatch")
+            report["source_records"] += 1
+            report["retained_records"].append(raw)
         for update_index, update in enumerate(record["updates"]):
             if not isinstance(update, dict) or ("source" in update and "$source" in update):
                 raise ValueError("invalid delta update source")
@@ -107,7 +150,8 @@ def convert(text, context):
                     "signalk_value_status": "NOT_PROVIDED" if value is None else "REPORTED",
                     field: value,
                     "battery_id_hex": "hex:" + battery[1].encode().hex() if battery else "",
-                    "battery_current_sign_basis": "POSITIVE_OUT_OF_DEVICE" if field == "battery_current_a" else ""})
+                    "battery_current_sign_basis": "POSITIVE_OUT_OF_DEVICE" if field == "battery_current_a" else "",
+                    **container})
                 report["output_records"] += 1
                 if output.tell() > LIMIT:
                     raise ValueError("converted delta exceeds bound")
@@ -121,9 +165,12 @@ def main():
     parser.add_argument("input", type=Path)
     parser.add_argument("output_directory", type=Path)
     parser.add_argument("--context", required=True)
+    parser.add_argument("--server-log", action="store_true",
+                        help="input is a saved skserver-raw line container, not bare deltas")
     args = parser.parse_args()
     try:
-        output, report = convert(args.input.read_text(encoding="utf-8"), args.context)
+        output, report = convert(args.input.read_text(encoding="utf-8"), args.context,
+                                 server_log=args.server_log)
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report), encoding="utf-8")

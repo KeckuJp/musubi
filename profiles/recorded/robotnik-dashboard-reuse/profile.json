@@ -1,0 +1,35 @@
+{
+  "profile_id": "robotnik_dashboard_reported_state_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "caller_supplied_capture_microseconds_the_State_message_carries_no_stamp",
+    "source_record_index": "zero_based_line_order_in_the_saved_log",
+    "source_record_hex": "exact_saved_record_bytes_excluding_the_LF_or_CRLF_separator_whole_file_bytes_are_in_source_sha256",
+    "schema_commit": "qualified_robotnik_msgs_commit_engineer_declared_not_authenticated_firmware_identity",
+    "rcomponent_topic_hex": "declared_private_state_topic_UTF8_hex_not_an_authenticated_identity",
+    "reported_state_code": "int32_component_state_constant_as_published",
+    "reported_state_name": "INIT_STANDBY_READY_EMERGENCY_FAILURE_SHUTDOWN_UNKOWN_STATE_700_or_UNKNOWN_RETAINED",
+    "reported_state_description_hex": "exact_producer_text_UTF8_hex_never_repaired",
+    "state_description_convention": "SHORT_CPP_LONG_PYTHON_or_UNRECOGNISED_TEXT_decided_by_the_two_producer_tables",
+    "state_description_matches_code": "MATCHES_CODE_DISAGREES_WITH_CODE_or_NOT_A_PRODUCER_NAME_retained_never_corrected",
+    "dashboard_highlight": "what_the_pinned_dashboard_colours_this_text_not_a_severity_or_health_verdict",
+    "desired_loop_frequency_hz": "Hz_declared_control_loop_target_not_a_measurement",
+    "real_loop_frequency_hz": "Hz_component_self_measured_loop_rate_not_a_physical_or_health_diagnosis",
+    "real_loop_frequency_status": "REPORTED_or_NONPOSITIVE_RETAINED_never_sanitised",
+    "loop_frequency_basis": "component_reported_loop_rate_not_the_dashboard_measured_message_arrival_rate",
+    "state_time_basis": "caller_capture_clock_only_no_message_stamp_no_frame_no_UTC"
+  }
+}

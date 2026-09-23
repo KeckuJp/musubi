@@ -26,6 +26,37 @@ def sample(x=2., parent="world", child="robot"):
 
 
 class AmigaExportTests(unittest.TestCase):
+    def test_two_exports_reuse_motion_preserve_frames_unknowns_and_equal_times(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "input.jsonl"
+            examples = [sample(), sample(-7., "map", "tool")]
+            path.write_text("\n".join(map(json.dumps, examples)))
+            output, report = convert_amiga_filter_json(path)
+            rows = list(csv.DictReader(io.StringIO(output)))
+            self.assertEqual(report["source_messages"], 2)
+            self.assertEqual([float(r["pose_position_m_x"]) for r in rows], [2., -7.])
+            for row, original in zip(rows, examples):
+                self.assertEqual(row["record_time_us"], "1234567")
+                self.assertEqual(row["pose_covariance_status"], "NOT_PROVIDED")
+                self.assertEqual(row["pose_frame_hex"], "hex:" + original["message"]["pose"]["frame_a"].encode().hex())
+                self.assertEqual(row["twist_frame_hex"], "hex:" + original["message"]["pose"]["frame_b"].encode().hex())
+                self.assertEqual(json.loads(bytes.fromhex(row["source_record_hex"][4:])), original)
+            destination = Path(tmp) / "output"
+            subprocess.run([os.sys.executable, str(ROOT / "scripts/convert_rosbag_observations.py"),
+                str(path), str(destination), "--amiga-filter-json"], check=True, capture_output=True)
+            self.assertEqual((destination / "observations.csv").read_text(), output)
+            reader = os.environ.get("MUSUBI_TELEMETRY_READER", str(ROOT / "target/debug/examples/read_telemetry_csv"))
+            result = subprocess.run([reader,
+                str(ROOT / "profiles/declared/electrical-schema-reuse/json-profile.toml"), str(destination / "observations.csv"),
+                "--allow-equal-time"], check=True, capture_output=True, text=True)
+            common = json.loads(result.stdout)
+            self.assertEqual(common["main_rows"], 2)
+            for row, x in zip(common["observations"], [2., -7.]):
+                self.assertEqual(row["fields"]["pose_position_m_x"], x)
+                self.assertEqual(row["fields"]["twist_linear_m_s_x"], x)
+                self.assertEqual(row["fields"]["twist_angular_rad_s_y"], .5)
+                self.assertEqual(row["clock_basis"], "Unknown")
+                self.assertIsNone(row["anchor_unix_us"])
 
     def test_wrong_schema_unit_clock_quaternion_and_missing_fields_reject(self):
         cases = []

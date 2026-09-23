@@ -1,4 +1,4 @@
-"""Reuse state/BAT converters on a saved decoded JSONL observation report, offline."""
+"""Reuse adopted state/BAT converters on a saved read_mavlog_json report, offline."""
 import argparse
 import csv
 import hashlib

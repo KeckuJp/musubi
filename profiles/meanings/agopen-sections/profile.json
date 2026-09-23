@@ -1,0 +1,70 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_of_the_callers_own_declared_capture_clock_because_the_saved_sections_file_contains_no_timestamp_of_any_kind_so_this_is_neither_the_time_the_coverage_was_worked_nor_an_attested_clock",
+      "basis": "declared"
+    },
+    "agopen_northing_m_local": {
+      "meaning": "agopen_northing_m_local",
+      "unit": "the_northing_of_the_same_vertex_under_the_same_local_metre_plane_the_same_rounding_and_the_same_unresolved_origin",
+      "basis": "declared"
+    },
+    "agopen_vertex_third_field": {
+      "meaning": "agopen_vertex_third_field",
+      "unit": "the_third_number_of_the_saved_vertex_line_which_the_patch_builder_writes_as_a_literal_zero_for_every_coverage_vertex_so_it_is_not_a_heading_and_not_any_measured_quantity_it_is_retained_because_the_writer_wrote_it",
+      "basis": "declared"
+    },
+    "agopen_patch_colour_line_hex": {
+      "meaning": "agopen_patch_colour_line_hex",
+      "unit": "utf8_hex_of_the_exact_leading_vertex_line_of_this_patch_which_the_loader_documents_as_an_RGB_display_colour_kept_verbatim_beside_the_geometry_and_never_read_as_a_position_or_as_a_section_identifier",
+      "basis": "declared"
+    },
+    "patch_index": {
+      "meaning": "patch_index",
+      "unit": "zero_based_position_of_the_patch_in_the_saved_file_one_patch_is_one_mapping_on_to_mapping_off_interval",
+      "basis": "declared"
+    },
+    "vertex_index": {
+      "meaning": "vertex_index",
+      "unit": "zero_based_position_of_this_coordinate_vertex_within_its_patch_after_the_colour_vertex_has_been_separated_out",
+      "basis": "declared"
+    },
+    "patch_vertex_count": {
+      "meaning": "patch_vertex_count",
+      "unit": "how_many_coordinate_vertices_this_patch_carries_after_the_colour_vertex_is_excluded",
+      "basis": "declared"
+    },
+    "agopen_plane_basis": {
+      "meaning": "agopen_plane_basis",
+      "unit": "states_that_the_coordinates_are_local_metre_plane_offsets_per_LocalPlane_at_this_pin_that_the_origin_is_in_a_separate_field_file_this_path_does_not_read_and_that_nothing_geodetic_is_produced",
+      "basis": "declared"
+    },
+    "agopen_third_field_basis": {
+      "meaning": "agopen_third_field_basis",
+      "unit": "states_that_the_patch_builder_writes_a_literal_zero_into_the_vec3_third_component_for_every_coverage_vertex_so_that_field_is_neither_a_heading_nor_a_measurement",
+      "basis": "declared"
+    },
+    "agopen_identity_basis": {
+      "meaning": "agopen_identity_basis",
+      "unit": "states_that_no_section_index_field_or_vehicle_identity_is_written_and_that_the_leading_colour_vertex_is_a_display_attribute_not_a_section_identifier",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "sha256_of_the_exact_saved_sections_file_this_row_came_from_over_its_original_bytes_including_its_line_terminators_so_the_same_coverage_saved_with_crlf_and_with_lf_digests_differently_binding_rows_to_their_source_and_never_authentication",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "utf8_hex_of_the_saved_vertex_line_with_only_its_line_terminator_removed_so_the_three_saved_fields_keep_the_writers_own_decimal_formatting_and_their_precision_exactly_as_written_and_nothing_else_is_trimmed_or_reformatted",
+      "basis": "declared"
+    }
+  }
+}

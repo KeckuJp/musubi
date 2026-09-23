@@ -1,0 +1,40 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_file_order_clock_unknown_not_utc",
+      "basis": "declared"
+    },
+    "sog_m_s": {
+      "meaning": "sog_m_s",
+      "unit": "m/s_over_ground_reported_not_calibrated",
+      "basis": "declared"
+    },
+    "cog_rad": {
+      "meaning": "cog_rad",
+      "unit": "rad_course_over_ground_reported_not_heading",
+      "basis": "declared"
+    },
+    "heading_rad": {
+      "meaning": "heading_rad",
+      "unit": "rad_reported_frame_unqualified",
+      "basis": "declared"
+    },
+    "rudder_norm": {
+      "meaning": "rudder_norm",
+      "unit": "normalized_command_echo_not_measured_angle",
+      "basis": "declared"
+    },
+    "source_line": {
+      "meaning": "source_line",
+      "unit": "one_based_file_order_not_time",
+      "basis": "declared"
+    }
+  }
+}

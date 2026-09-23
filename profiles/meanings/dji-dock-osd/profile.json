@@ -1,0 +1,225 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_of_the_saved_mosquitto_envelope_capture_clock_of_the_broker_side_capture_not_the_docks_own_clock_and_not_an_attested_or_synchronised_time",
+      "basis": "declared"
+    },
+    "dock_mode_code": {
+      "meaning": "dock_mode_code",
+      "unit": "the_raw_reported_dock_state_code_of_the_pinned_dock_properties_page_retained_as_transmitted",
+      "basis": "declared"
+    },
+    "dock_mode_reported": {
+      "meaning": "dock_mode_reported",
+      "unit": "IDLE_for_0_ON_SITE_DEBUGGING_for_1_REMOTE_DEBUGGING_for_2_FIRMWARE_UPGRADE_IN_PROGRESS_for_3_IN_OPERATION_for_4_as_the_pinned_page_labels_them_and_UNKNOWN_CODE_RETAINED_for_any_other_code_it_is_a_reported_state_and_never_a_verified_activity",
+      "basis": "declared"
+    },
+    "dock_cover_state_code": {
+      "meaning": "dock_cover_state_code",
+      "unit": "the_raw_reported_cover_state_code_retained_as_transmitted",
+      "basis": "declared"
+    },
+    "dock_cover_state_reported": {
+      "meaning": "dock_cover_state_reported",
+      "unit": "DISABLE_for_0_ON_for_1_HALF_OPEN_for_2_COVER_STATE_ABNORMAL_for_3_as_the_pinned_page_labels_them_a_reported_state_and_not_a_mechanical_verification",
+      "basis": "declared"
+    },
+    "dock_putter_state_code": {
+      "meaning": "dock_putter_state_code",
+      "unit": "the_raw_reported_putter_state_code_retained_as_transmitted",
+      "basis": "declared"
+    },
+    "dock_putter_state_reported": {
+      "meaning": "dock_putter_state_reported",
+      "unit": "the_same_four_labels_the_pinned_page_gives_the_putter_DISABLE_ON_HALF_OPEN_and_PUTTER_STATE_ABNORMAL",
+      "basis": "declared"
+    },
+    "dock_supplement_light_state_code": {
+      "meaning": "dock_supplement_light_state_code",
+      "unit": "the_raw_reported_supplementary_light_state_code",
+      "basis": "declared"
+    },
+    "dock_supplement_light_state_reported": {
+      "meaning": "dock_supplement_light_state_reported",
+      "unit": "DISABLE_for_0_and_ON_for_1_a_reported_light_state_and_not_an_illumination_measurement",
+      "basis": "declared"
+    },
+    "dock_emergency_stop_state_code": {
+      "meaning": "dock_emergency_stop_state_code",
+      "unit": "the_raw_reported_emergency_stop_button_state_code",
+      "basis": "declared"
+    },
+    "dock_emergency_stop_state_reported": {
+      "meaning": "dock_emergency_stop_state_reported",
+      "unit": "DISABLE_for_0_and_ENABLE_for_1_the_reported_position_of_the_stations_own_button_and_never_a_command_or_a_safety_verdict",
+      "basis": "declared"
+    },
+    "dock_alarm_state_code": {
+      "meaning": "dock_alarm_state_code",
+      "unit": "the_raw_reported_sound_and_light_alarm_state_code",
+      "basis": "declared"
+    },
+    "dock_alarm_state_reported": {
+      "meaning": "dock_alarm_state_reported",
+      "unit": "DISABLE_for_0_and_ENABLE_for_1_a_reported_alarm_state_and_not_an_independent_hazard_assessment",
+      "basis": "declared"
+    },
+    "dock_rainfall_code": {
+      "meaning": "dock_rainfall_code",
+      "unit": "the_raw_reported_rainfall_code_retained_as_transmitted",
+      "basis": "declared"
+    },
+    "dock_rainfall_reported": {
+      "meaning": "dock_rainfall_reported",
+      "unit": "NO_RAIN_for_0_LIGHT_RAIN_for_1_MODERATE_RAIN_for_2_HEAVY_RAIN_for_3_as_the_pinned_page_labels_them_a_reported_category_and_never_a_calibrated_precipitation_rate",
+      "basis": "declared"
+    },
+    "dock_environment_temperature_k": {
+      "meaning": "dock_environment_temperature_k",
+      "unit": "K_converted_from_the_reported_environment_temperature_which_the_pinned_page_declares_in_Celsius_a_reported_station_reading_and_not_a_calibrated_meteorological_measurement",
+      "basis": "declared"
+    },
+    "dock_internal_temperature_k": {
+      "meaning": "dock_internal_temperature_k",
+      "unit": "K_converted_from_the_reported_temperature_the_pinned_page_names_inside_dock_temperature_in_Celsius_so_the_measured_body_is_the_dock_interior_as_the_source_states_and_not_the_environment",
+      "basis": "declared"
+    },
+    "dock_internal_humidity_percent_reported": {
+      "meaning": "dock_internal_humidity_percent_reported",
+      "unit": "the_reported_humidity_inside_the_dock_kept_as_the_percent_the_pinned_page_declares_with_the_label_relative_humidity_RH_no_fraction_is_derived_and_no_zero_to_one_hundred_bound_is_imposed_because_the_page_declares_neither",
+      "basis": "declared"
+    },
+    "dock_wind_speed_m_s": {
+      "meaning": "dock_wind_speed_m_s",
+      "unit": "m_s_of_the_reported_wind_speed_exactly_as_the_pinned_page_declares_the_unit_a_reported_station_reading_and_not_a_qualified_anemometer_measurement",
+      "basis": "declared"
+    },
+    "dock_network_type_code": {
+      "meaning": "dock_network_type_code",
+      "unit": "the_raw_reported_network_type_code_of_the_docks_own_link",
+      "basis": "declared"
+    },
+    "dock_network_type_reported": {
+      "meaning": "dock_network_type_reported",
+      "unit": "FOUR_G_for_1_and_ETHERNET_for_2_as_the_pinned_page_labels_them_this_is_the_stations_own_reported_link_type_and_not_a_reachability_or_throughput_claim",
+      "basis": "declared"
+    },
+    "dock_network_quality_code": {
+      "meaning": "dock_network_quality_code",
+      "unit": "the_raw_reported_network_quality_code_which_is_the_authoritative_value_because_the_pinned_table_labels_both_1_and_2_POOR_so_the_label_cannot_be_inverted_to_a_single_code",
+      "basis": "declared"
+    },
+    "dock_network_quality_reported": {
+      "meaning": "dock_network_quality_reported",
+      "unit": "NO_SIGNAL_for_0_POOR_for_1_POOR_for_2_MODERATE_for_3_BETTER_for_4_GOOD_for_5_exactly_as_the_pinned_page_labels_them_two_codes_deliberately_share_one_label_and_this_is_a_reported_grade_not_a_measured_signal_level",
+      "basis": "declared"
+    },
+    "dock_network_rate_kb_s_reported": {
+      "meaning": "dock_network_rate_kb_s_reported",
+      "unit": "the_reported_network_rate_kept_in_the_pinned_pages_own_declared_label_of_kilobytes_per_second_no_byte_base_is_documented_so_none_is_applied_and_it_is_not_converted_to_bytes_per_second_or_bits",
+      "basis": "declared"
+    },
+    "dock_aircraft_charge_state_code": {
+      "meaning": "dock_aircraft_charge_state_code",
+      "unit": "the_raw_reported_aircraft_charging_state_code_as_the_dock_reports_it",
+      "basis": "declared"
+    },
+    "dock_aircraft_charge_state_reported": {
+      "meaning": "dock_aircraft_charge_state_reported",
+      "unit": "IDLE_for_0_and_CHARGING_for_1_as_the_pinned_page_labels_them_this_is_the_DOCKS_report_about_the_aircraft_on_it_never_the_aircrafts_own_battery_telemetry_and_never_a_physical_verification_that_charging_occurred",
+      "basis": "declared"
+    },
+    "dock_sub_device_sn_hex": {
+      "meaning": "dock_sub_device_sn_hex",
+      "unit": "utf8_hex_of_the_reported_sub_device_serial_number_the_dock_says_is_on_it_retained_verbatim_as_a_reported_label_and_never_authenticated_or_physically_verified",
+      "basis": "declared"
+    },
+    "dock_sub_device_online_code": {
+      "meaning": "dock_sub_device_online_code",
+      "unit": "the_raw_reported_aircraft_power_on_state_code_of_the_sub_device",
+      "basis": "declared"
+    },
+    "dock_sub_device_online_reported": {
+      "meaning": "dock_sub_device_online_reported",
+      "unit": "POWER_OFF_for_0_and_POWER_ON_for_1_as_the_pinned_page_labels_them_a_reported_presence_and_power_state_and_not_a_verified_connection",
+      "basis": "declared"
+    },
+    "dock_sub_device_paired_code": {
+      "meaning": "dock_sub_device_paired_code",
+      "unit": "the_raw_reported_pairing_state_code_of_the_sub_device",
+      "basis": "declared"
+    },
+    "dock_sub_device_paired_reported": {
+      "meaning": "dock_sub_device_paired_reported",
+      "unit": "NOT_PAIRED_for_0_and_PAIRED_for_1_as_the_pinned_page_labels_them_a_reported_pairing_state_and_never_an_authenticated_binding",
+      "basis": "declared"
+    },
+    "dock_gateway_sn_hex": {
+      "meaning": "dock_gateway_sn_hex",
+      "unit": "utf8_hex_of_the_reported_gateway_serial_number_of_the_envelope_which_the_pinned_topic_definition_calls_the_serial_number_of_the_gateway_device_that_sent_the_message_a_reported_station_label_and_never_an_authenticated_identity",
+      "basis": "declared"
+    },
+    "dock_payload_timestamp_ms_reported": {
+      "meaning": "dock_payload_timestamp_ms_reported",
+      "unit": "the_reported_millisecond_timestamp_the_payload_carried_which_the_pinned_topic_definition_calls_the_time_the_message_was_sent_retained_as_an_integer_because_the_source_does_not_state_whose_clock_it_is",
+      "basis": "declared"
+    },
+    "dock_payload_clock_basis": {
+      "meaning": "dock_payload_clock_basis",
+      "unit": "states_that_the_payload_millisecond_timestamp_is_a_reported_send_time_whose_clock_the_pinned_source_does_not_name_and_that_it_is_never_used_as_the_row_clock",
+      "basis": "declared"
+    },
+    "dock_identity_basis": {
+      "meaning": "dock_identity_basis",
+      "unit": "states_that_the_gateway_and_sub_device_serial_numbers_are_reported_as_written_neither_authenticated_nor_physically_verified_and_that_no_platform_domain_follows_because_a_station_is_not_a_vehicle",
+      "basis": "declared"
+    },
+    "dock_enum_basis": {
+      "meaning": "dock_enum_basis",
+      "unit": "states_that_every_code_column_carries_the_pinned_pages_own_label_that_the_code_is_authoritative_because_the_network_quality_table_labels_both_1_and_2_POOR_and_that_an_unlisted_code_is_retained_rather_than_guessed",
+      "basis": "declared"
+    },
+    "mqtt_source_record_index": {
+      "meaning": "mqtt_source_record_index",
+      "unit": "zero_based_position_of_the_saved_envelope_this_row_came_from_in_the_capture_file_order_is_not_time",
+      "basis": "declared"
+    },
+    "mqtt_envelope_sha256": {
+      "meaning": "mqtt_envelope_sha256",
+      "unit": "sha256_of_the_exact_saved_envelope_line_binding_the_row_to_its_source_and_never_authentication",
+      "basis": "declared"
+    },
+    "mqtt_topic_hex": {
+      "meaning": "mqtt_topic_hex",
+      "unit": "utf8_hex_of_the_exact_subscribed_topic_the_dock_shares_the_aircraft_OSD_topic_shape_with_the_gateway_serial_number_in_it_so_the_topic_alone_never_establishes_which_producer_a_capture_holds",
+      "basis": "declared"
+    },
+    "mqtt_qos": {
+      "meaning": "mqtt_qos",
+      "unit": "the_reported_MQTT_quality_of_service_of_the_saved_message_which_does_not_imply_exactly_once_application_delivery",
+      "basis": "declared"
+    },
+    "mqtt_retain": {
+      "meaning": "mqtt_retain",
+      "unit": "the_reported_MQTT_retain_flag_preserved_without_guessing_the_freshness_of_a_retained_message",
+      "basis": "declared"
+    },
+    "mqtt_clock_basis": {
+      "meaning": "mqtt_clock_basis",
+      "unit": "CAPTURE_REPORTED_meaning_the_row_clock_is_the_saved_capture_time_of_the_broker_side_envelope_and_not_the_docks_own_clock",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "utf8_hex_of_the_exact_saved_envelope_line_including_every_unselected_dock_property_so_nothing_reported_is_dropped",
+      "basis": "declared"
+    }
+  }
+}

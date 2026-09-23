@@ -1,0 +1,30 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_caller_capture_not_device",
+      "basis": "declared"
+    },
+    "latitude_deg": {
+      "meaning": "latitude_deg",
+      "unit": "deg_WGS84",
+      "basis": "declared"
+    },
+    "longitude_deg": {
+      "meaning": "longitude_deg",
+      "unit": "deg_WGS84",
+      "basis": "declared"
+    },
+    "declared_altitude_m": {
+      "meaning": "declared_altitude_m",
+      "unit": "m_per_explicit_altitude_basis",
+      "basis": "declared"
+    }
+  }
+}

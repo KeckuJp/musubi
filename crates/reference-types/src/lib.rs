@@ -204,6 +204,14 @@ pub struct ExpectationModel {
     pub grace_k: u32,
     pub frozen_ms: Option<u64>,
     pub frozen_fields: Option<Vec<String>>,
+    pub required_fields: Option<Vec<String>>,
+    pub declared_window_only: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SenderSelection {
+    pub system_id: u8,
+    pub component_id: u8,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -220,6 +228,8 @@ pub struct FamilyProfile {
     pub expectations: Vec<ExpectationModel>,
     pub default_clock_basis: ClockBasis,
     pub declared_platform_domain: Option<musubi_types::PlatformDomain>,
+    pub declared_sender: Option<SenderSelection>,
+    pub declared_clock_rate: Option<ClockRateConfig>,
     pub origin: String,
 }
 
@@ -518,6 +528,77 @@ pub const fn order_with_bounds(
     } else {
         OrderRelation::OrderUnknown
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ClockRateConfig {
+    pub anchor_uncertainty_us: i64,
+    pub min_span_us: i64,
+    pub max_abs_rate_ppm: i64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ClockRateClass {
+    WithinDeclaredLimit,
+    OutsideDeclaredLimit,
+    Indeterminate,
+}
+
+impl ClockRateClass {
+    #[must_use]
+    pub const fn as_label(self) -> &'static str {
+        match self {
+            Self::WithinDeclaredLimit => "within-declared-limit",
+            Self::OutsideDeclaredLimit => "outside-declared-limit",
+            Self::Indeterminate => "indeterminate",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ClockRateGap {
+    FewerThanTwoAnchors,
+    SpanShorterThanDeclaredMinimum,
+    UncertaintyNotSmallerThanSpan,
+    OffsetDiscontinuity,
+    DeviceClockNotMonotonic,
+    OffsetSourceNotInLogAnchor,
+    ClockBasisNotDeviceClock,
+    OutOfRepresentableRange,
+}
+
+impl ClockRateGap {
+    #[must_use]
+    pub const fn as_label(self) -> &'static str {
+        match self {
+            Self::FewerThanTwoAnchors => "fewer-than-two-anchors",
+            Self::SpanShorterThanDeclaredMinimum => "span-shorter-than-declared-minimum",
+            Self::UncertaintyNotSmallerThanSpan => "uncertainty-not-smaller-than-span",
+            Self::OffsetDiscontinuity => "offset-discontinuity",
+            Self::DeviceClockNotMonotonic => "device-clock-not-monotonic",
+            Self::OffsetSourceNotInLogAnchor => "offset-source-not-in-log-anchor",
+            Self::ClockBasisNotDeviceClock => "clock-basis-not-device-clock",
+            Self::OutOfRepresentableRange => "out-of-representable-range",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ClockRateOutcome {
+    Observed {
+        low_ppm: i64,
+        high_ppm: i64,
+        class: ClockRateClass,
+    },
+    InsufficientBasis(ClockRateGap),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ClockRateReport {
+    pub outcome: ClockRateOutcome,
+    pub anchors: u32,
+    pub span_us: i64,
+    pub config: ClockRateConfig,
 }
 
 pub mod presence {

@@ -1,0 +1,35 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_local_capture_clock_not_file_content_time",
+      "basis": "declared"
+    },
+    "capture_clock_unix_ns": {
+      "meaning": "capture_clock_unix_ns",
+      "unit": "ns_local_system_reported",
+      "basis": "declared"
+    },
+    "regular_file_size_bytes": {
+      "meaning": "regular_file_size_bytes",
+      "unit": "bytes_only_for_regular_file",
+      "basis": "declared"
+    },
+    "filesystem_mtime_ns": {
+      "meaning": "filesystem_mtime_ns",
+      "unit": "ns_OS_reported_modification_not_capture_time",
+      "basis": "declared"
+    },
+    "filesystem_ctime_ns": {
+      "meaning": "filesystem_ctime_ns",
+      "unit": "ns_OS_reported_metadata_change_not_creation_time",
+      "basis": "declared"
+    }
+  }
+}

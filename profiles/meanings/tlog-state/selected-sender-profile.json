@@ -1,0 +1,50 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "MAVLINK.host_recorded_us": {
+      "meaning": "MAVLINK.host_recorded_us",
+      "unit": "reported_host_Unix_us_not_receipt_or_device_sample",
+      "basis": "declared"
+    },
+    "MAVLINK.direction": {
+      "meaning": "MAVLINK.direction",
+      "unit": "unknown_not_encoded_in_record",
+      "basis": "declared"
+    },
+    "MAVLINK.system_id": {
+      "meaning": "MAVLINK.system_id",
+      "unit": "reported_sender_not_authenticated",
+      "basis": "declared"
+    },
+    "MAVLINK.raw_frame_hex": {
+      "meaning": "MAVLINK.raw_frame_hex",
+      "unit": "exact_frame_including_unknown_payload_and_signature",
+      "basis": "declared"
+    },
+    "MAVLINK.declared_sender_selection": {
+      "meaning": "MAVLINK.declared_sender_selection",
+      "unit": "caller_declared_selection_of_one_reported_sender_tuple_this_read_is_a_subset_of_the_recording_and_the_tuple_is_not_an_authenticated_device",
+      "basis": "declared"
+    },
+    "MAVLINK.selected_sender_records": {
+      "meaning": "MAVLINK.selected_sender_records",
+      "unit": "how_many_records_of_the_whole_recording_this_selected_read_emitted_carried_once_on_the_first_selected_row_not_a_per_row_value",
+      "basis": "declared"
+    },
+    "MAVLINK.unselected_sender_records": {
+      "meaning": "MAVLINK.unselected_sender_records",
+      "unit": "how_many_validated_records_of_the_whole_recording_report_other_senders_and_were_not_emitted_by_this_read_unknown_message_types_included_carried_once_on_the_first_selected_row",
+      "basis": "declared"
+    },
+    "MAVLINK.selected_sender_record_scope": {
+      "meaning": "MAVLINK.selected_sender_record_scope",
+      "unit": "states_that_the_two_counts_are_whole_recording_counts_on_the_first_selected_row_that_every_validated_record_is_counted_exactly_once_including_unknown_message_types_and_that_this_read_is_a_subset_of_the_recording",
+      "basis": "declared"
+    }
+  }
+}

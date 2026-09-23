@@ -1,0 +1,60 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "unlocated_time_us": {
+      "meaning": "unlocated_time_us",
+      "unit": "zero_placeholder_not_event_time",
+      "basis": "declared"
+    },
+    "source_line": {
+      "meaning": "source_line",
+      "unit": "one_based_record_order_not_time",
+      "basis": "declared"
+    },
+    "agio_event_class": {
+      "meaning": "agio_event_class",
+      "unit": "literal_match_candidate_or_UNCLASSIFIED_RETAINED_not_device_state",
+      "basis": "declared"
+    },
+    "agio_event_class_basis": {
+      "meaning": "agio_event_class_basis",
+      "unit": "saved_line_category_under_delimiter_assumption_not_certified_boundary_or_observed_status",
+      "basis": "declared"
+    },
+    "agio_reported_clock_hhmmss": {
+      "meaning": "agio_reported_clock_hhmmss",
+      "unit": "local_wall_clock_text_no_date_zone_or_rollover",
+      "basis": "declared"
+    },
+    "agio_reported_clock_basis": {
+      "meaning": "agio_reported_clock_basis",
+      "unit": "reported_representation_not_a_locatable_instant",
+      "basis": "declared"
+    },
+    "agio_session_date_reported": {
+      "meaning": "agio_session_date_reported",
+      "unit": "program_start_or_exit_local_date_text_to_the_minute_only",
+      "basis": "declared"
+    },
+    "agio_event_detail_hex": {
+      "meaning": "agio_event_detail_hex",
+      "unit": "reversible_utf8_hex_remainder_not_parsed_identity_or_address",
+      "basis": "declared"
+    },
+    "agio_continuation_lines": {
+      "meaning": "agio_continuation_lines",
+      "unit": "count_of_untimestamped_lines_joined_into_this_record",
+      "basis": "declared"
+    },
+    "agio_record_hex": {
+      "meaning": "agio_record_hex",
+      "unit": "reversible_utf8_hex_of_the_whole_reconstructed_record",
+      "basis": "declared"
+    }
+  }
+}

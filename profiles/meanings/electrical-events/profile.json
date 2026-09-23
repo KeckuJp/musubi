@@ -1,0 +1,110 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_on_the_source_observation_axis_copied_not_reinterpreted",
+      "basis": "declared"
+    },
+    "source_observations_sha256": {
+      "meaning": "source_observations_sha256",
+      "unit": "sha256_of_the_normalized_observations_evaluated",
+      "basis": "declared"
+    },
+    "declared_limits_sha256": {
+      "meaning": "declared_limits_sha256",
+      "unit": "sha256_of_the_operator_declared_limit_document",
+      "basis": "declared"
+    },
+    "condition_status": {
+      "meaning": "condition_status",
+      "unit": "observed_against_declared_limit_not_a_cause_or_fault",
+      "basis": "declared"
+    },
+    "declared_limit": {
+      "meaning": "declared_limit",
+      "unit": "operator_declared_value_in_declared_unit_not_a_certified_safe_limit",
+      "basis": "declared"
+    },
+    "declared_comparison": {
+      "meaning": "declared_comparison",
+      "unit": "declared_boundary_below_at_or_below_above_at_or_above",
+      "basis": "declared"
+    },
+    "declared_release_limit": {
+      "meaning": "declared_release_limit",
+      "unit": "declared_hysteresis_release_value_blank_when_none",
+      "basis": "declared"
+    },
+    "declared_window_kind": {
+      "meaning": "declared_window_kind",
+      "unit": "min_samples_count_or_min_duration_us_exactly_one",
+      "basis": "declared"
+    },
+    "declared_max_gap_us": {
+      "meaning": "declared_max_gap_us",
+      "unit": "us_gap_that_breaks_a_run_blank_when_undeclared",
+      "basis": "declared"
+    },
+    "declared_sign_handling": {
+      "meaning": "declared_sign_handling",
+      "unit": "signed_as_recorded_or_magnitude_for_current_only",
+      "basis": "declared"
+    },
+    "declared_sign_basis": {
+      "meaning": "declared_sign_basis",
+      "unit": "operator_statement_of_what_the_recorded_current_sign_means_never_a_measurement",
+      "basis": "declared"
+    },
+    "observed_sign_basis": {
+      "meaning": "observed_sign_basis",
+      "unit": "declared_current_sign_basis_values_seen_plus_separated",
+      "basis": "declared"
+    },
+    "evaluated_sample_count": {
+      "meaning": "evaluated_sample_count",
+      "unit": "rows_belonging_to_this_instance_not_usable_evidence",
+      "basis": "declared"
+    },
+    "usable_sample_count": {
+      "meaning": "usable_sample_count",
+      "unit": "rows_carrying_a_reading_for_this_quantity",
+      "basis": "declared"
+    },
+    "crossing_sample_count": {
+      "meaning": "crossing_sample_count",
+      "unit": "samples_past_the_declared_limit_not_a_run_length",
+      "basis": "declared"
+    },
+    "run_sample_count": {
+      "meaning": "run_sample_count",
+      "unit": "longest_consecutive_crossing_run_length",
+      "basis": "declared"
+    },
+    "run_span_us": {
+      "meaning": "run_span_us",
+      "unit": "us_between_first_and_last_sample_of_that_run",
+      "basis": "declared"
+    },
+    "run_extreme_value": {
+      "meaning": "run_extreme_value",
+      "unit": "most_extreme_value_inside_that_run_in_the_declared_unit",
+      "basis": "declared"
+    },
+    "duration_basis": {
+      "meaning": "duration_basis",
+      "unit": "which_axis_a_duration_was_measured_on_if_any",
+      "basis": "declared"
+    },
+    "threshold_authority": {
+      "meaning": "threshold_authority",
+      "unit": "operator_declared_not_certified",
+      "basis": "declared"
+    }
+  }
+}

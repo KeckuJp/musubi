@@ -1,0 +1,65 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "capture_microseconds_unknown_basis",
+      "basis": "declared"
+    },
+    "voltage_v": {
+      "meaning": "voltage_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "current_a": {
+      "meaning": "current_a",
+      "unit": "A_source_sign_convention",
+      "basis": "declared"
+    },
+    "temperature_k": {
+      "meaning": "temperature_k",
+      "unit": "K",
+      "basis": "declared"
+    },
+    "distance_m": {
+      "meaning": "distance_m",
+      "unit": "m_no_coordinate_inference",
+      "basis": "declared"
+    },
+    "angular_speed_rad_s": {
+      "meaning": "angular_speed_rad_s",
+      "unit": "rad_per_second_no_axis_inference",
+      "basis": "declared"
+    },
+    "speed_m_s": {
+      "meaning": "speed_m_s",
+      "unit": "metres_per_second_source_role_and_sign_not_inferred",
+      "basis": "declared"
+    },
+    "angle_rad": {
+      "meaning": "angle_rad",
+      "unit": "rad_no_axis_or_reference_inference",
+      "basis": "declared"
+    },
+    "pressure_pa": {
+      "meaning": "pressure_pa",
+      "unit": "Pa_absolute_or_differential_not_inferred",
+      "basis": "declared"
+    },
+    "reported_ratio": {
+      "meaning": "reported_ratio",
+      "unit": "fraction_from_reported_percent_not_necessarily_SOC",
+      "basis": "declared"
+    },
+    "energy_j": {
+      "meaning": "energy_j",
+      "unit": "J_stored_consumed_or_remaining_role_not_inferred",
+      "basis": "declared"
+    }
+  }
+}
