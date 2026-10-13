@@ -11,7 +11,7 @@ original reported reason and explicit unknown accounting.
 What this path deliberately is NOT:
 
 * It is **not a cause classifier**. No crash, no root cause and no failure explanation is computed here.
-  `crates/predemo-readers/src/cause.rs` and every synthetic cause candidate are untouched and unused.
+  `crates/reference-readers/src/cause.rs` and every synthetic cause candidate are untouched and unused.
 * **A normal reboot is not a crash, and a missing heartbeat is not a watchdog.** No row is ever
   synthesised from an absence, a log restart, a gap or a silence: a row exists only where the producer
   wrote a record. `watchdog_reset` is reported only when the producer's own bit is set.
@@ -502,10 +502,62 @@ def decode_pm(data, row, report):
         row["pm_internal_error_count_field_source"] = COUNT_FIELD_SOURCES[counts[0]]
 
 
-def convert(raw):
+PLANE_PIN = "d6ebfc21844e2bc0ab28c8c688b8dae94abccf5a"
+PLANE_FIELDS = ["safety_reported_state", "safety_reported_kind", "safety_reported_reason",
+                "safety_producer_pin", "fence_breach_types_reported", "fence_unknown_bits_reported",
+                "battery_instance_reported"]
+PLANE_FENCE_TYPES = {1: "ALT_MAX", 2: "CIRCLE", 4: "POLYGON", 8: "ALT_MIN"}
+PLANE_BATTERY_TEXT = re.compile(
+    r"Battery ([1-9][0-9]*) is (low|critical) (?:-?[0-9]+\.[0-9]{2}|-?inf|nan)V used (?:-?[0-9]+|-?inf|nan) mAh")
+
+
+def plane_statement(record):
+    """Only Plane4.5.5 fence.cpp ERR and events.cpp exact saved statements.
+
+    GCS_Common.cpp send_textv logs first 50 bytes; incoming GCS text has a prefix
+    and is intentionally not matched. Caller selector is not authentication.
+    """
+    data = record["data"]
+    kind = record["meta"]["type"]
+    if kind == "ERR":
+        subsystem = integer(data.get("Subsys"), "ERR.Subsys", 255)
+        code = integer(data.get("ECode"), "ERR.ECode", 255)
+        if subsystem == 9:
+            return ("BREACH_REPORTED" if code else "BREACH_CLEARED_REPORTED",
+                    "GEOFENCE", "REPORTED_BREACH_TYPE_BITMASK" if code else "ERROR_RESOLVED")
+        return None
+    if kind != "MSG":
+        return None
+    text = data.get("Message")
+    if not isinstance(text, str) or len(text.encode("utf-8")) >= 50:
+        return None  # a cut/dynamic suffix cannot establish a complete statement
+    if "Seq" in data and integer(data["Seq"], "MSG.Seq", 255) != 0:
+        return None
+    exact = {
+        "RC Short Failsafe On": ("ACTIVE_REPORTED", "RC_SHORT", "RC_SHORT_FAILSAFE"),
+        "Short Failsafe Cleared": ("CLEARED_REPORTED", "RC_SHORT", "RC_SHORT_FAILSAFE"),
+        "GCS Failsafe Off": ("CLEARED_REPORTED", "GCS", "GCS_FAILSAFE"),
+        "RC Long Failsafe Cleared": ("CLEARED_REPORTED", "RC_LONG", "RC_LONG_FAILSAFE"),
+    }
+    if text in exact:
+        return exact[text]
+    battery = PLANE_BATTERY_TEXT.fullmatch(text)
+    if battery and 1 <= int(battery[1]) <= 16:
+        return "ACTIVE_REPORTED", "BATTERY", "BATTERY_" + battery[2].upper()
+    for prefix, label in (("RC Short Failsafe: switched to ", "RC_SHORT"),
+                          ("RC Long Failsafe On: ", "RC_LONG"),
+                          ("GCS Failsafe On: ", "GCS")):
+        if text.startswith(prefix) and re.fullmatch(r"[A-Za-z0-9_ ()/-]+", text[len(prefix):]):
+            return "ACTIVE_REPORTED", label, label + "_FAILSAFE"
+    return None
+
+
+def convert(raw, *, producer=None):
     """Selected ERR and PM records of a saved reader report; every other record type is counted."""
     if not isinstance(raw, bytes) or not raw or len(raw) > MAX_INPUT:
         raise ValueError("bounded nonempty saved reader report required")
+    if producer not in (None, "plane-4.5.5"):
+        raise ValueError("unsupported declared producer")
     document = json.loads(raw.decode("utf-8"), object_pairs_hook=unique_object,
                           parse_constant=reject_constant)
     if not isinstance(document, dict) or document.get("value_basis") != READER_BASIS:
@@ -528,7 +580,16 @@ def convert(raw):
               "clock_basis": CLOCK_BASIS, "actor_basis": ACTOR_BASIS, "reason_basis": REASON_BASIS,
               "scope": SCOPE_BASIS, "watchdog_basis": WATCHDOG_BASIS}
     output = io.StringIO(newline="")
-    writer = csv.DictWriter(output, FIELDS, lineterminator="\n")
+    fields = FIELDS + PLANE_FIELDS if producer else FIELDS
+    if producer:
+        report["declared_producer"] = producer
+        report["safety_producer_pin"] = PLANE_PIN
+        report["scope"] = "FIXED_PLANE_SAVED_FENCE_AND_RC_GCS_REPORTS_NOT_AUTHENTICATED_OR_PHYSICAL_CAUSE"
+        report.update(actor_basis="CALLER_DECLARED_PRODUCER_NOT_AUTHENTICATED_IDENTITY",
+                      reason_basis="PINNED_PLANE_WRITER_REPORTED_NOT_PHYSICAL_CAUSE",
+                      reboot="NOT_QUALIFIED_BY_PLANE_SELECTOR", watchdog_basis="NOT_QUALIFIED_BY_PLANE_SELECTOR",
+                      truncation="ONLY_COMPLETE_TEXT_LESS_THAN_50_BYTES", chunking="NO_CHUNK_REASSEMBLY")
+    writer = csv.DictWriter(output, fields, lineterminator="\n")
     writer.writeheader()
     previous = None
     for index, record in enumerate(records):
@@ -538,7 +599,12 @@ def convert(raw):
         kind = record["meta"].get("type")
         if not isinstance(kind, str) or not kind or len(kind) > 256:
             raise ValueError("invalid source record type")
-        if kind == "MSG":
+        statement = plane_statement(record) if producer else None
+        if producer:
+            if statement is None:
+                report["unselected_record_types"][kind] = report["unselected_record_types"].get(kind, 0) + 1
+                continue
+        elif kind == "MSG":
             text = record["data"].get("Message")
             if not isinstance(text, str) or not text.startswith(WATCHDOG_TEXT_PREFIX):
                 # A general MSG is not a controller health statement, so it is counted, never read.
@@ -555,7 +621,7 @@ def convert(raw):
         if previous is not None and timestamp < previous:
             raise ValueError("selected records must not go backwards in reported boot time")
         previous = timestamp
-        row = {name: "" for name in FIELDS}
+        row = {name: "" for name in fields}
         row.update(record_time_us=timestamp, source_report_record_index=index,
                    controller_clock_basis=CLOCK_BASIS, controller_actor_basis=ACTOR_BASIS,
                    controller_reason_basis=REASON_BASIS, controller_scope_basis=SCOPE_BASIS,
@@ -563,7 +629,29 @@ def convert(raw):
                    controller_truncation_basis=TRUNCATION_BASIS, controller_chunk_basis=CHUNK_BASIS,
                    source_record_hex=retained_hex(record),
                    source_document_sha256=digest)
-        if kind == "ERR":
+        if producer:
+            state, safety_kind, reason = statement
+            row.update(safety_reported_state=state, safety_reported_kind=safety_kind,
+                       safety_reported_reason=reason, safety_producer_pin=PLANE_PIN,
+                       controller_event_kind="REPORTED_SAFETY_STATEMENT",
+                       controller_actor_reported="DECLARED_PLANE_AUTOPILOT",
+                       controller_actor_basis="CALLER_DECLARED_PRODUCER_NOT_AUTHENTICATED_IDENTITY",
+                       controller_reason_basis="PINNED_PLANE_WRITER_REPORTED_NOT_PHYSICAL_CAUSE",
+                       controller_scope_basis=report["scope"], controller_watchdog_basis="",
+                       controller_reboot_basis="", controller_truncation_basis="",
+                       controller_chunk_basis="NO_CHUNK_REASSEMBLY")
+            if kind == "ERR":
+                named = [label for bit, label in PLANE_FENCE_TYPES.items() if data["ECode"] & bit]
+                unknown = data["ECode"] & ~15
+                reason = "|".join(named + ([f"UNKNOWN_BITS_{unknown}"] if unknown else [])) if data["ECode"] else "ERROR_RESOLVED"
+                row.update(err_subsystem_code=9, err_subsystem_name="FAILSAFE_FENCE",
+                           err_reported_code=data["ECode"], err_reported_code_name=reason,
+                           safety_reported_reason=reason, fence_breach_types_reported="|".join(named),
+                           fence_unknown_bits_reported=unknown,
+                           err_code_disposition="PINNED_PLANE_FENCE_WRITER_BITMASK_OR_CLEAR")
+            elif safety_kind == "BATTERY":
+                row["battery_instance_reported"] = int(PLANE_BATTERY_TEXT.fullmatch(data["Message"])[1])
+        elif kind == "ERR":
             decode_err(data, row, report)
         elif kind == "PM":
             decode_pm(data, row, report)
@@ -582,13 +670,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path, help="saved read_mavlog_json report already on disk")
     parser.add_argument("output_directory", type=Path)
+    parser.add_argument("--producer", choices=["plane-4.5.5"], default=None)
     args = parser.parse_args()
     try:
         size = args.input.stat().st_size
         if size > MAX_INPUT:
             raise ValueError(f"saved report is {size} bytes, past the {MAX_INPUT} byte input bound")
-        converted, report = convert(args.input.read_bytes())
+        raw = args.input.read_bytes()
+        converted, report = convert(raw, producer=args.producer)
         args.output_directory.mkdir()
+        if args.producer:
+            (args.output_directory / "source-report.json").write_bytes(raw)
         (args.output_directory / "observations.csv").write_text(converted, encoding="utf-8")
         (args.output_directory / "report.json").write_text(
             json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")

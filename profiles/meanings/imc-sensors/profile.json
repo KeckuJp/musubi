@@ -6,6 +6,151 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "estimated_origin_latitude_rad": {
+      "meaning": "estimated_origin_latitude_rad",
+      "unit": "rad_WGS84_origin_latitude_not_displaced_vehicle_position",
+      "basis": "declared"
+    },
+    "estimated_origin_longitude_rad": {
+      "meaning": "estimated_origin_longitude_rad",
+      "unit": "rad_WGS84_origin_longitude_not_displaced_vehicle_position",
+      "basis": "declared"
+    },
+    "estimated_origin_height_ellipsoid_m": {
+      "meaning": "estimated_origin_height_ellipsoid_m",
+      "unit": "m_WGS84_ellipsoid_origin_height_not_MSL_or_water_surface",
+      "basis": "declared"
+    },
+    "estimated_offset_north_m": {
+      "meaning": "estimated_offset_north_m",
+      "unit": "m_NED_north_offset_from_reported_WGS84_origin",
+      "basis": "declared"
+    },
+    "estimated_offset_east_m": {
+      "meaning": "estimated_offset_east_m",
+      "unit": "m_NED_east_offset_from_reported_WGS84_origin",
+      "basis": "declared"
+    },
+    "estimated_offset_down_m": {
+      "meaning": "estimated_offset_down_m",
+      "unit": "m_NED_down_offset_from_reported_WGS84_origin_not_surface_depth",
+      "basis": "declared"
+    },
+    "estimated_phi_rad": {
+      "meaning": "estimated_phi_rad",
+      "unit": "rad_reported_IMC350_phi_Euler_angle_no_rotation_or_order_inferred",
+      "basis": "declared"
+    },
+    "estimated_theta_rad": {
+      "meaning": "estimated_theta_rad",
+      "unit": "rad_reported_IMC350_theta_Euler_angle_no_rotation_or_order_inferred",
+      "basis": "declared"
+    },
+    "estimated_psi_rad": {
+      "meaning": "estimated_psi_rad",
+      "unit": "rad_reported_IMC350_psi_Euler_angle_no_rotation_or_order_inferred",
+      "basis": "declared"
+    },
+    "estimated_body_u_m_s": {
+      "meaning": "estimated_body_u_m_s",
+      "unit": "m/s_reported_body_x_velocity",
+      "basis": "declared"
+    },
+    "estimated_body_v_m_s": {
+      "meaning": "estimated_body_v_m_s",
+      "unit": "m/s_reported_body_y_velocity",
+      "basis": "declared"
+    },
+    "estimated_body_w_m_s": {
+      "meaning": "estimated_body_w_m_s",
+      "unit": "m/s_reported_body_z_velocity",
+      "basis": "declared"
+    },
+    "estimated_ground_north_m_s": {
+      "meaning": "estimated_ground_north_m_s",
+      "unit": "m/s_reported_ground_NED_north_velocity",
+      "basis": "declared"
+    },
+    "estimated_ground_east_m_s": {
+      "meaning": "estimated_ground_east_m_s",
+      "unit": "m/s_reported_ground_NED_east_velocity",
+      "basis": "declared"
+    },
+    "estimated_ground_down_m_s": {
+      "meaning": "estimated_ground_down_m_s",
+      "unit": "m/s_reported_ground_NED_down_velocity",
+      "basis": "declared"
+    },
+    "estimated_body_p_rad_s": {
+      "meaning": "estimated_body_p_rad_s",
+      "unit": "rad/s_reported_body_x_angular_velocity_not_Euler_derivative",
+      "basis": "declared"
+    },
+    "estimated_body_q_rad_s": {
+      "meaning": "estimated_body_q_rad_s",
+      "unit": "rad/s_reported_body_y_angular_velocity_not_Euler_derivative",
+      "basis": "declared"
+    },
+    "estimated_body_r_rad_s": {
+      "meaning": "estimated_body_r_rad_s",
+      "unit": "rad/s_reported_body_z_angular_velocity_not_Euler_derivative",
+      "basis": "declared"
+    },
+    "estimated_depth_m": {
+      "meaning": "estimated_depth_m",
+      "unit": "m_reported_nonnegative_depth_estimate_reference_not_further_specified",
+      "basis": "declared"
+    },
+    "estimated_altitude_m": {
+      "meaning": "estimated_altitude_m",
+      "unit": "m_reported_nonnegative_altitude_estimate_reference_not_further_specified",
+      "basis": "declared"
+    },
+    "estimated_depth_raw_m": {
+      "meaning": "estimated_depth_raw_m",
+      "unit": "m_original_depth_including_negative_invalid_sentinel",
+      "basis": "declared"
+    },
+    "estimated_altitude_raw_m": {
+      "meaning": "estimated_altitude_raw_m",
+      "unit": "m_original_altitude_including_negative_invalid_sentinel",
+      "basis": "declared"
+    },
+    "estimated_depth_disposition": {
+      "meaning": "estimated_depth_disposition",
+      "unit": "reported_estimate_or_withheld_negative_invalid_not_physical_quality",
+      "basis": "declared"
+    },
+    "estimated_altitude_disposition": {
+      "meaning": "estimated_altitude_disposition",
+      "unit": "reported_estimate_or_withheld_negative_invalid_not_physical_quality",
+      "basis": "declared"
+    },
+    "estimated_state_basis": {
+      "meaning": "estimated_state_basis",
+      "unit": "fixed_IMC350_reported_estimates_not_projection_surface_anchor_or_platform_identity",
+      "basis": "declared"
+    },
+    "udp_source_address": {
+      "meaning": "udp_source_address",
+      "unit": "reported_saved_IPv4_source_not_authenticated",
+      "basis": "declared"
+    },
+    "udp_source_port": {
+      "meaning": "udp_source_port",
+      "unit": "reported_saved_UDP_source_port",
+      "basis": "declared"
+    },
+    "udp_destination_address": {
+      "meaning": "udp_destination_address",
+      "unit": "reported_saved_IPv4_destination_not_authenticated",
+      "basis": "declared"
+    },
+    "udp_destination_port": {
+      "meaning": "udp_destination_port",
+      "unit": "reported_saved_UDP_destination_port",
+      "basis": "declared"
+    },
     "nmea_unlocated_time_us": {
       "meaning": "nmea_unlocated_time_us",
       "unit": "zero_placeholder_from_unlocated_sentence_not_event_clock",
@@ -146,6 +291,21 @@
       "unit": "exact_header_payload_crc",
       "basis": "declared"
     },
+    "source_file_sha256": {
+      "meaning": "source_file_sha256",
+      "unit": "SHA256_of_whole_original_saved_LSF_not_selected_bytes_or_authentication",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "zero_based_native_frame_index_in_original_LSF_including_unsupported_frames",
+      "basis": "declared"
+    },
+    "source_byte_offset": {
+      "meaning": "source_byte_offset",
+      "unit": "original_LSF_byte_offset_of_this_frame_header_not_selected_stream_offset",
+      "basis": "declared"
+    },
     "temperature_k": {
       "meaning": "temperature_k",
       "unit": "K",
@@ -159,6 +319,36 @@
     "depth_m": {
       "meaning": "depth_m",
       "unit": "m_source_depth_reference_not_geodetic_altitude",
+      "basis": "declared"
+    },
+    "depth_writer_basis": {
+      "meaning": "depth_writer_basis",
+      "unit": "optional_caller_asserted_fixed_writer_reference_not_actual_water_surface",
+      "basis": "declared"
+    },
+    "depth_reference_pressure_pa": {
+      "meaning": "depth_reference_pressure_pa",
+      "unit": "Pa_fixed_writer_standard_atmospheric_reference",
+      "basis": "declared"
+    },
+    "depth_reference_density_kg_m3": {
+      "meaning": "depth_reference_density_kg_m3",
+      "unit": "kg/m3_fixed_writer_conversion_constant_not_measured_water_density",
+      "basis": "declared"
+    },
+    "depth_positive_direction": {
+      "meaning": "depth_positive_direction",
+      "unit": "increasing_pressure_depth_m_already_converted_by_writer_no_second_conversion",
+      "basis": "declared"
+    },
+    "depth_writer_declaration_hex": {
+      "meaning": "depth_writer_declaration_hex",
+      "unit": "exact_caller_source_entity_session_pin_citation_declaration_not_authenticated",
+      "basis": "declared"
+    },
+    "depth_source_sha256": {
+      "meaning": "depth_source_sha256",
+      "unit": "complete_original_input_digest_not_source_authenticity",
       "basis": "declared"
     },
     "sound_speed_m_s": {
@@ -269,6 +459,36 @@
     "velocity_reference_basis": {
       "meaning": "velocity_reference_basis",
       "unit": "what_the_pinned_message_itself_states_the_velocity_is_relative_to_together_with_the_fact_that_it_states_no_axis_frame_nothing_here_is_rotated_fused_integrated_or_turned_into_geodetic_motion",
+      "basis": "declared"
+    },
+    "reported_water_velocity_x_m_s": {
+      "meaning": "reported_water_velocity_x_m_s",
+      "unit": "m/s_reported_X_velocity_relative_to_water_under_IMC260_only_when_VEL_X_is_set_axis_frame_unspecified_not_body_NED_world_ground_speed_or_calibrated_truth",
+      "basis": "declared"
+    },
+    "reported_water_velocity_y_m_s": {
+      "meaning": "reported_water_velocity_y_m_s",
+      "unit": "m/s_reported_Y_velocity_relative_to_water_only_when_VEL_Y_is_set_under_the_same_unspecified_axis_frame_condition",
+      "basis": "declared"
+    },
+    "reported_water_velocity_z_m_s": {
+      "meaning": "reported_water_velocity_z_m_s",
+      "unit": "m/s_reported_Z_velocity_relative_to_water_only_when_VEL_Z_is_set_not_a_depth_rate_or_vertical_axis_in_a_named_frame",
+      "basis": "declared"
+    },
+    "water_velocity_x_disposition": {
+      "meaning": "water_velocity_x_disposition",
+      "unit": "REPORTED_VALID_when_sender_VEL_X_is_set_else_WITHHELD_COMPONENT_NOT_REPORTED_VALID_blank_even_if_source_clear_wrote_zero_valid_reported_zero_remains_zero",
+      "basis": "declared"
+    },
+    "water_velocity_y_disposition": {
+      "meaning": "water_velocity_y_disposition",
+      "unit": "same_reported_validity_rule_for_VEL_Y_not_an_independent_sensor_quality_verdict",
+      "basis": "declared"
+    },
+    "water_velocity_z_disposition": {
+      "meaning": "water_velocity_z_disposition",
+      "unit": "same_reported_validity_rule_for_VEL_Z_not_an_independent_sensor_quality_verdict",
       "basis": "declared"
     }
   }

@@ -1,0 +1,75 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "zero_comparison_placeholder_not_message_time",
+      "basis": "declared"
+    },
+    "topic_hex": {
+      "meaning": "topic_hex",
+      "unit": "exact_saved_topic_name_utf8_hex",
+      "basis": "declared"
+    },
+    "disposition": {
+      "meaning": "disposition",
+      "unit": "saved_window_presence_not_physical_loss_or_payload_validity",
+      "basis": "declared"
+    },
+    "window_records": {
+      "meaning": "window_records",
+      "unit": "actual_records_of_expected_topic_inside_half_open_window",
+      "basis": "declared"
+    },
+    "start_ns": {
+      "meaning": "start_ns",
+      "unit": "inclusive_saved_bag_record_axis_ns_not_wall_clock_claim",
+      "basis": "declared"
+    },
+    "stop_ns": {
+      "meaning": "stop_ns",
+      "unit": "exclusive_saved_bag_record_axis_ns_not_wall_clock_claim",
+      "basis": "declared"
+    },
+    "record_axis": {
+      "meaning": "record_axis",
+      "unit": "caller_explicit_saved_record_timestamp_axis",
+      "basis": "declared"
+    },
+    "database_sha256": {
+      "meaning": "database_sha256",
+      "unit": "exact_snapshot_database_digest_not_authentication",
+      "basis": "declared"
+    },
+    "metadata_sha256": {
+      "meaning": "metadata_sha256",
+      "unit": "exact_metadata_digest_not_authentication",
+      "basis": "declared"
+    },
+    "expectation_sha256": {
+      "meaning": "expectation_sha256",
+      "unit": "exact_caller_expectation_digest_not_authentication",
+      "basis": "declared"
+    },
+    "parent_frame_hex": {
+      "meaning": "parent_frame_hex",
+      "unit": "exact_tf_parent_label_utf8_hex_no_coordinate_conversion",
+      "basis": "declared"
+    },
+    "child_frame_hex": {
+      "meaning": "child_frame_hex",
+      "unit": "exact_tf_child_label_utf8_hex_no_coordinate_conversion",
+      "basis": "declared"
+    },
+    "window_transforms": {
+      "meaning": "window_transforms",
+      "unit": "qualified_matching_direct_transforms_in_saved_window_not_unique_messages",
+      "basis": "declared"
+    }
+  }
+}

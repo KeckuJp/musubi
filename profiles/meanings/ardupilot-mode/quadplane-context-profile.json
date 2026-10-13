@@ -1,0 +1,115 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "TimeUS": {
+      "meaning": "TimeUS",
+      "unit": "us_since_boot_of_MODE_report_not_parameter_activation_time",
+      "basis": "declared"
+    },
+    "Mode": {
+      "meaning": "Mode",
+      "unit": "reported_number_with_explicit_plane_4_5_5_schema",
+      "basis": "declared"
+    },
+    "ModeNum": {
+      "meaning": "ModeNum",
+      "unit": "alias_of_Mode",
+      "basis": "declared"
+    },
+    "Rsn": {
+      "meaning": "Rsn",
+      "unit": "reported_reason_code_not_verified_cause",
+      "basis": "declared"
+    },
+    "reported_mode_name": {
+      "meaning": "reported_mode_name",
+      "unit": "declared_vehicle_mode_not_physical_VTOL_or_active_configuration",
+      "basis": "declared"
+    },
+    "reported_mode_known": {
+      "meaning": "reported_mode_known",
+      "unit": "known_schema_enum_not_enabled_build_feature",
+      "basis": "declared"
+    },
+    "reported_mode_schema": {
+      "meaning": "reported_mode_schema",
+      "unit": "caller_selected_finite_source_version_not_firmware_attestation",
+      "basis": "declared"
+    },
+    "source_report_record_index": {
+      "meaning": "source_report_record_index",
+      "unit": "zero_based_MODE_index_in_retained_source_report_records",
+      "basis": "declared"
+    },
+    "source_report_sha256": {
+      "meaning": "source_report_sha256",
+      "unit": "digest_of_exact_loaded_report_bytes_not_authentication",
+      "basis": "declared"
+    },
+    "quadplane_context_status": {
+      "meaning": "quadplane_context_status",
+      "unit": "latest_report_context_or_explicit_unknown_never_active_configuration",
+      "basis": "declared"
+    },
+    "quadplane_q_enable_reported": {
+      "meaning": "quadplane_q_enable_reported",
+      "unit": "latest_unambiguous_reported_value_not_enabled_boolean_or_applied_state",
+      "basis": "declared"
+    },
+    "quadplane_q_enable_setting_reported": {
+      "meaning": "quadplane_q_enable_setting_reported",
+      "unit": "fixed_parameter_enum_label_not_active_state_or_available_VTOL_capability",
+      "basis": "declared"
+    },
+    "quadplane_parameter_time_us": {
+      "meaning": "quadplane_parameter_time_us",
+      "unit": "PARM_boot_us_at_report_write_not_parameter_activation",
+      "basis": "declared"
+    },
+    "quadplane_parameter_record_indices_hex": {
+      "meaning": "quadplane_parameter_record_indices_hex",
+      "unit": "hex_UTF8_JSON_array_of_all_original_group_record_indices",
+      "basis": "declared"
+    },
+    "quadplane_parameter_records_hex": {
+      "meaning": "quadplane_parameter_records_hex",
+      "unit": "hex_UTF8_JSON_array_of_parsed_original_PARM_records_no_raw_BIN_claim",
+      "basis": "declared"
+    },
+    "quadplane_next_parameter_report_us": {
+      "meaning": "quadplane_next_parameter_report_us",
+      "unit": "next_recorded_Q_ENABLE_time_not_physical_validity_end_absent_is_unknown",
+      "basis": "declared"
+    },
+    "quadplane_source_input_sha256": {
+      "meaning": "quadplane_source_input_sha256",
+      "unit": "reported_reader_input_byte_digest_not_capture_authenticity",
+      "basis": "declared"
+    },
+    "quadplane_source_profile_sha256": {
+      "meaning": "quadplane_source_profile_sha256",
+      "unit": "reported_reader_profile_byte_digest_not_firmware_attestation",
+      "basis": "declared"
+    },
+    "quadplane_session_id_hex": {
+      "meaning": "quadplane_session_id_hex",
+      "unit": "caller_label_for_declared_single_boot_recording_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "quadplane_session_basis": {
+      "meaning": "quadplane_session_basis",
+      "unit": "caller_declared_same_boot_and_file_precondition_not_inferred_from_timestamp",
+      "basis": "declared"
+    },
+    "quadplane_context_basis": {
+      "meaning": "quadplane_context_basis",
+      "unit": "report_history_only_Q_ENABLE_reboot_required_by_fixed_source_no_applied_or_VTOL_claim",
+      "basis": "declared"
+    }
+  }
+}

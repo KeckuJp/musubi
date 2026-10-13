@@ -6,6 +6,56 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "ais_class_b_unit": {
+      "meaning": "ais_class_b_unit",
+      "unit": "reported_CS_or_SOTDMA_not_installed_hardware_verification",
+      "basis": "declared"
+    },
+    "ais_second_disposition": {
+      "meaning": "ais_second_disposition",
+      "unit": "reported_UTC_second_code0to59_not_absolute_time_60unavailable_61manual_62estimated_63inoperative",
+      "basis": "declared"
+    },
+    "ais_accuracy_flag_reported": {
+      "meaning": "ais_accuracy_flag_reported",
+      "unit": "reported_position_accuracy_bit_not_measured_error",
+      "basis": "declared"
+    },
+    "ais_radio_state_raw": {
+      "meaning": "ais_radio_state_raw",
+      "unit": "uninterpreted20bit_ClassB_communication_state_including_selector_no_transmission",
+      "basis": "declared"
+    },
+    "ais_reserved_1_raw": {
+      "meaning": "ais_reserved_1_raw",
+      "unit": "unqualified8reserved_bits_retained",
+      "basis": "declared"
+    },
+    "ais_reserved_2_raw": {
+      "meaning": "ais_reserved_2_raw",
+      "unit": "unqualified2reserved_bits_retained",
+      "basis": "declared"
+    },
+    "ais_rot_code": {
+      "meaning": "ais_rot_code",
+      "unit": "signed_8bit_reported_ROT_code_not_the_decoder_rounded_degrees_per_minute_minus128_is_no_information",
+      "basis": "declared"
+    },
+    "ais_rot_rad_s": {
+      "meaning": "ais_rot_rad_s",
+      "unit": "rad/s_signed_right_positive_left_negative_inverse_quantized_estimate_only_for_codes_minus125_through125_not_an_exact_sensor_or_physical_rate_zero_is_reported_quantized_zero",
+      "basis": "declared"
+    },
+    "ais_rot_disposition": {
+      "meaning": "ais_rot_disposition",
+      "unit": "INVERSE_QUANTIZED_ESTIMATE_or_RANGE_END_MAGNITUDE_UNRESOLVED_for_plus_minus126_or_NO_TURN_INDICATOR_for_plus_minus127_reporting_turn_over5deg_per30s_without_TI_or_NO_INFORMATION_for_minus128_or_NOT_IN_THIS_MESSAGE_for_type5",
+      "basis": "declared"
+    },
+    "ais_rot_direction": {
+      "meaning": "ais_rot_direction",
+      "unit": "RIGHT_or_LEFT_reported_turn_direction_ZERO_QUANTIZED_for_zero_UNKNOWN_for_unavailable_or_type5_not_a_COG_derivative_or_verified_manoeuvre",
+      "basis": "declared"
+    },
     "sentence_kind": {
       "meaning": "sentence_kind",
       "unit": "which_selected_water_sentence_produced_this_row_MTW_for_a_reported_water_temperature_or_DPT_for_a_reported_depth_below_transducer_the_two_are_never_merged_into_one_measurement",
@@ -264,6 +314,41 @@
     "ais_fragment_binding": {
       "meaning": "ais_fragment_binding",
       "unit": "which_two_saved_lines_sequential_id_and_channel_this_static_report_was_assembled_from_a_caller_declared_adjacent_pair_in_one_capture_not_a_globally_unique_message_identifier",
+      "basis": "declared"
+    },
+    "ais_b24_part": {
+      "meaning": "ais_b24_part",
+      "unit": "type24_part_A_name_or_B_static_ITU_R_M1371_5_tables78_79_each_part_is_its_own_row",
+      "basis": "declared"
+    },
+    "ais_vendor_manufacturer_reported": {
+      "meaning": "ais_vendor_manufacturer_reported",
+      "unit": "reported_three_character_manufacturer_mnemonic_table79A_not_authenticated_hardware",
+      "basis": "declared"
+    },
+    "ais_vendor_model_code": {
+      "meaning": "ais_vendor_model_code",
+      "unit": "reported_unit_model_code_4bit_table79A",
+      "basis": "declared"
+    },
+    "ais_vendor_serial_code": {
+      "meaning": "ais_vendor_serial_code",
+      "unit": "reported_unit_serial_20bit_manufacturer_defined_coding_not_identity",
+      "basis": "declared"
+    },
+    "ais_vendor_disposition": {
+      "meaning": "ais_vendor_disposition",
+      "unit": "NOT_AVAILABLE_DEFAULT_for_all_zero_vendor_field_otherwise_reported",
+      "basis": "declared"
+    },
+    "ais_b24_dimension_field_raw": {
+      "meaning": "ais_b24_dimension_field_raw",
+      "unit": "raw_30bit_dimension_reference_field_kept_because_the_pinned_decoder_reads_it_as_a_mothership_MMSI_for_98XXXYYYY_which_table79_does_not_define",
+      "basis": "declared"
+    },
+    "ais_b24_association": {
+      "meaning": "ais_b24_association",
+      "unit": "Part_A_and_Part_B_are_separate_messages_never_joined_a_shared_MMSI_is_not_proof_of_one_station_or_transmission",
       "basis": "declared"
     }
   }

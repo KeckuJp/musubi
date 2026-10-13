@@ -1,0 +1,43 @@
+{
+  "profile_id": "ardusub_4_5_3_or_4_5_7_underwater_position",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "fc",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_reported_boot_TimeUS_not_UTC",
+    "reported_target_vertical_rate_m_s": "m/s_reported_z_up_target_not_execution",
+    "reported_estimated_vertical_rate_m_s": "m/s_reported_z_up_retained_estimate_freshness_unknown",
+    "reported_target_z_up_m": "m_above_reported_EKF_origin_target_not_surface_depth",
+    "reported_estimated_z_up_m": "m_above_reported_EKF_origin_retained_estimate_not_surface_depth",
+    "position_basis": "reported_origin_not_verified_water_surface_no_origin_reset_tracking",
+    "domain_binding_basis": "fixed_Sub_source_and_same_report_build_MSG_not_BlueROV2_hardware_authentication",
+    "identity_record_indices": "colon_separated_original_report_indices",
+    "source_report_record_index": "zero_based_original_report_index",
+    "source_document_sha256": "sha256_original_report_bytes_retain_original",
+    "source_record_hex": "hex_canonical_selected_record_unknown_fields_preserved",
+    "declared_surface_target_depth_down_m": "m_positive_down_from_caller_declared_surface_target_not_execution",
+    "declared_surface_estimated_depth_down_m": "m_positive_down_from_caller_declared_surface_not_verified_physical_depth",
+    "depth_reference_basis": "conditional_declared_surface_not_datum_validation",
+    "anchor_declaration_sha256": "sha256_unchanged_caller_declaration_bytes",
+    "anchor_record_index": "zero_based_original_report_index",
+    "anchor_time_us": "us_same_report_boot_clock",
+    "anchor_z_up_m": "m_above_same_reported_EKF_origin",
+    "declared_source_id": "hex_UTF8_caller_source_label_not_authentication",
+    "declared_session_id": "hex_UTF8_caller_session_label_not_inferred",
+    "declared_origin_epoch_id": "hex_UTF8_caller_origin_epoch_label_not_inferred",
+    "anchor_valid_start_us": "us_inclusive_caller_origin_validity_start",
+    "anchor_valid_stop_us": "us_inclusive_caller_origin_validity_stop",
+    "anchor_citation_hex": "hex_UTF8_caller_evidence_citation_not_verified"
+  }
+}

@@ -26,6 +26,7 @@ pub mod profile;
 pub mod telemetry_csv;
 pub mod time_align;
 pub mod tlog;
+pub mod tlog_sender_batch;
 pub mod ulog;
 pub mod video;
 

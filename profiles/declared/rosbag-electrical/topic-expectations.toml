@@ -1,0 +1,26 @@
+profile_id = "saved_topic_expectations_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+
+[fields]
+time = "record_time_us"
+
+[units]
+record_time_us = "zero_comparison_placeholder_not_message_time"
+topic_hex = "exact_saved_topic_name_utf8_hex"
+disposition = "saved_window_presence_not_physical_loss_or_payload_validity"
+window_records = "actual_records_of_expected_topic_inside_half_open_window"
+start_ns = "inclusive_saved_bag_record_axis_ns_not_wall_clock_claim"
+stop_ns = "exclusive_saved_bag_record_axis_ns_not_wall_clock_claim"
+record_axis = "caller_explicit_saved_record_timestamp_axis"
+database_sha256 = "exact_snapshot_database_digest_not_authentication"
+metadata_sha256 = "exact_metadata_digest_not_authentication"
+expectation_sha256 = "exact_caller_expectation_digest_not_authentication"
+parent_frame_hex = "exact_tf_parent_label_utf8_hex_no_coordinate_conversion"
+child_frame_hex = "exact_tf_child_label_utf8_hex_no_coordinate_conversion"
+window_transforms = "qualified_matching_direct_transforms_in_saved_window_not_unique_messages"

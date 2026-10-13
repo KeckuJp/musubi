@@ -6,6 +6,76 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "control_selection_mode_code": {
+      "meaning": "control_selection_mode_code",
+      "unit": "reported_signed_int8_navigation_selection_mode_including_unknown_codes_not_a_command",
+      "basis": "declared"
+    },
+    "control_selection_mode_reported": {
+      "meaning": "control_selection_mode_reported",
+      "unit": "NEUTRAL_MANUAL_AUTONOMY_or_UNKNOWN_CODE_RETAINED_from_fixed_OutdoorNav_ControlMode_constants_not_verified_activity",
+      "basis": "declared"
+    },
+    "control_selection_autonomy_enabled_reported": {
+      "meaning": "control_selection_autonomy_enabled_reported",
+      "unit": "reported_boolean_enabled_true_or_false_required_by_fixed_ControlState_false_is_not_missing_not_control_authority",
+      "basis": "declared"
+    },
+    "control_selection_autonomy_paused_reported": {
+      "meaning": "control_selection_autonomy_paused_reported",
+      "unit": "reported_boolean_paused_true_or_false_independent_of_enabled_not_a_verified_stop_or_safety_state",
+      "basis": "declared"
+    },
+    "control_selection_time_basis": {
+      "meaning": "control_selection_time_basis",
+      "unit": "parent_and_nested_types_have_no_producer_stamp_or_frame_bag_capture_is_Unknown_not_UTC_or_boot_relative",
+      "basis": "declared"
+    },
+    "control_selection_basis": {
+      "meaning": "control_selection_basis",
+      "unit": "reported_selection_only_not_control_authority_not_verified_actuation_or_safety_schema_binding_is_not_hardware_authentication",
+      "basis": "declared"
+    },
+    "estop_reported_triggered": {
+      "meaning": "estop_reported_triggered",
+      "unit": "reported_boolean_true_is_E_stop_triggered_per_fixed_husarion_ugv_ros_641a08a0_GPIO_reset_pin_inactive_false_is_reported_not_triggered_not_a_safety_verification",
+      "basis": "declared"
+    },
+    "estop_report_basis": {
+      "meaning": "estop_report_basis",
+      "unit": "fixed_hardware_e_stop_topic_report_robot_or_simulation_publisher_not_distinguished_not_E_stop_operation",
+      "basis": "declared"
+    },
+    "estop_time_basis": {
+      "meaning": "estop_time_basis",
+      "unit": "Bool_has_no_producer_stamp_latched_value_sent_on_activation_and_on_change_capture_is_bag_receipt_not_change_time_a_change_can_go_unsent",
+      "basis": "declared"
+    },
+    "model_robot_name_reported": {
+      "meaning": "model_robot_name_reported",
+      "unit": "root_robot_name_attribute_of_the_same_bag_robot_description_URDF_a_configuration_declaration_not_authenticated_hardware",
+      "basis": "declared"
+    },
+    "model_hardware_plugins_reported": {
+      "meaning": "model_hardware_plugins_reported",
+      "unit": "semicolon_joined_ros2_control_hardware_plugin_names_declared_in_that_URDF",
+      "basis": "declared"
+    },
+    "model_runtime_declared": {
+      "meaning": "model_runtime_declared",
+      "unit": "ROBOT_HARDWARE_PLUGIN_DECLARED_or_SIMULATION_PLUGIN_DECLARED_or_NOT_ESTABLISHED_from_fixed_641a08a0_plugin_names_separate_from_platform_domain",
+      "basis": "declared"
+    },
+    "model_identity_basis": {
+      "meaning": "model_identity_basis",
+      "unit": "same_bag_URDF_root_name_and_ros2_control_plugin_declaration_not_authenticated",
+      "basis": "declared"
+    },
+    "model_source_cdr_sha256": {
+      "meaning": "model_source_cdr_sha256",
+      "unit": "sha256_of_the_exact_CDR_retained_once_in_report_model_sources",
+      "basis": "declared"
+    },
     "record_time_us": {
       "meaning": "record_time_us",
       "unit": "reported_clock_us_truncated_from_source_not_boot_or_UTC_anchor",

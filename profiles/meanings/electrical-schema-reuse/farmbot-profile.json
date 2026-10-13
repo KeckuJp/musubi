@@ -36,6 +36,31 @@
       "unit": "0_or_1_not_certified_physical_safe_state",
       "basis": "declared"
     },
+    "controller_uuid_hex": {
+      "meaning": "controller_uuid_hex",
+      "unit": "utf8_hex_of_reported_controller_uuid_not_authenticated_hardware_identity_or_software_NAME_or_automatic_instance_binding_blank_is_missing_or_null_hex_colon_alone_is_reported_empty",
+      "basis": "declared"
+    },
+    "controller_version_hex": {
+      "meaning": "controller_version_hex",
+      "unit": "utf8_hex_of_reported_controller_version_not_semver_order_or_compatibility_proof_pair_only_with_same_row_controller_commit_blank_is_missing_or_null_hex_colon_alone_is_reported_empty_not_installed_version",
+      "basis": "declared"
+    },
+    "controller_commit_hex": {
+      "meaning": "controller_commit_hex",
+      "unit": "utf8_hex_of_reported_controller_commit_token_not_build_number_image_digest_or_running_code_attestation_no_full_hash_assumption_blank_is_missing_or_null_hex_colon_alone_is_reported_empty_not_usable_pin",
+      "basis": "declared"
+    },
+    "firmware_version_hex": {
+      "meaning": "firmware_version_hex",
+      "unit": "utf8_hex_of_reported_firmware_version_separate_from_controller_version_not_compatibility_proof_pair_only_with_same_row_firmware_commit_blank_is_missing_or_null_hex_colon_alone_is_reported_empty_not_installed_version",
+      "basis": "declared"
+    },
+    "firmware_commit_hex": {
+      "meaning": "firmware_commit_hex",
+      "unit": "utf8_hex_of_reported_firmware_commit_token_separate_from_controller_commit_not_build_number_image_digest_or_running_code_attestation_no_full_hash_assumption_blank_is_missing_or_null_hex_colon_alone_is_reported_empty_not_usable_pin",
+      "basis": "declared"
+    },
     "farm_position_x_m": {
       "meaning": "farm_position_x_m",
       "unit": "m_reported_machine_axis_not_geodetic",

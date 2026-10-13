@@ -350,8 +350,24 @@ fn push_platform_domain(buf: &mut Vec<u8>, domain: PlatformDomain) {
         PlatformDomain::Surface => 0x01,
         PlatformDomain::Ground => 0x02,
         PlatformDomain::Unknown => 0x03,
+        PlatformDomain::Subsurface => 0x04,
     };
     buf.push(tag);
+}
+
+#[test]
+fn platform_domain_tags_preserve_existing_values_and_add_subsurface() {
+    let mut bytes = Vec::new();
+    for domain in [
+        PlatformDomain::Air,
+        PlatformDomain::Surface,
+        PlatformDomain::Ground,
+        PlatformDomain::Unknown,
+        PlatformDomain::Subsurface,
+    ] {
+        push_platform_domain(&mut bytes, domain);
+    }
+    assert_eq!(bytes, [0, 1, 2, 3, 4]);
 }
 
 fn push_host_counter(buf: &mut Vec<u8>, counter: &HostStateCounter) {
@@ -563,6 +579,7 @@ pub fn verify_digest(envelope: &EvidenceEnvelope) -> Mark {
 
 #[cfg(test)]
 mod mark_semantics {
+
     //! MARK status 意味論の決定論テスト（OK / DEGRADED の付与条件）。
     //! INVALID の発火は adapter 側（decode 失敗経路）でテストする。
 
@@ -668,6 +685,7 @@ mod mark_semantics {
 
 #[cfg(test)]
 mod canonical_digest {
+
     //! canonical bytes 決定論 ＋ content digest の oracle。
 
     use super::{canonical_bytes, seal_digest};
@@ -1012,6 +1030,7 @@ mod tests_golden {
 
 #[cfg(test)]
 mod ddil_integration {
+
     //! 統合: DDIL プロファイル → store-and-forward → drain → ORDER_UNKNOWN MARK レジャ。
     //!
     //! 3 モジュールを跨いで配線し、ORDER_UNKNOWN が **EvidenceEnvelope を変更せず**
@@ -1213,6 +1232,7 @@ mod ddil_integration {
 
 #[cfg(test)]
 mod deferred_trust {
+
     //! 「Unknown-as-test」を実体化する **xfail（`#[ignore]`）**。
     //!
     //! ## 何が済んでいて何が済んでいないか（honest bookkeeping）

@@ -30,18 +30,21 @@ import argparse
 import csv
 import decimal
 import hashlib
+import io
 import json
+import os
 from pathlib import Path
+import stat
 import sys
 
 try:
     from scripts.convert_declared_expectation_check import guarded, text
-    # The adopted producer's OWN strict object hook, imported rather than re-implemented, so this
-    # bridge enforces the same duplicate-key rule at its own entry instead of a similar one.
-    from scripts.convert_ardupilot_battery_csv import unique_object
+    from scripts.convert_ardupilot_battery_csv import unique_object, vda_reported_state, json_time, VDA_FIELDS
+    from scripts.convert_ardupilot_battery_csv import convert as convert_state
 except ModuleNotFoundError:  # running the file directly
     from convert_declared_expectation_check import guarded, text
-    from convert_ardupilot_battery_csv import unique_object
+    from convert_ardupilot_battery_csv import unique_object, vda_reported_state, json_time, VDA_FIELDS
+    from convert_ardupilot_battery_csv import convert as convert_state
 
 LIMIT = 16 * 1024 * 1024
 OUTPUT_LIMIT = 64 * 1024 * 1024
@@ -49,6 +52,11 @@ ROW_LIMIT = 200000
 COLUMN_LIMIT = 256
 LOAD_LIMIT = 64
 TIME_LIMIT = 2**63
+MAX_INPUT_BYTES = 2 * 1024**3
+MAX_RECORDS = 5_000_000
+MAX_RECORD_BYTES = 512 * 1024
+MAX_SELECTED_BYTES = LIMIT
+MAX_WINDOW_OUTPUT_BYTES = LIMIT
 # The two versions whose `json_schemas/state.schema` was actually read for the load semantics below.
 # Another version is refused at entry rather than read under these meanings.
 QUALIFIED_VERSIONS = ("2.1.0", "3.0.0")
@@ -115,6 +123,52 @@ FIELDS = ["record_time_us", "vda_record_kind", "load_report_state", "load_index"
 PASSTHROUGH = {"order_id_hex": "vda_order_id_hex", "order_update_id": "vda_order_update_id",
                "instance_manufacturer_hex": "vda_instance_manufacturer_hex",
                "instance_serial_number_hex": "vda_instance_serial_number_hex"}
+CONTEXT_FIELDS = ("vda_map_id_hex", "vda_map_x_m", "vda_map_y_m", "vda_map_theta_rad",
+                  "vda_position_initialized_reported", "vda_localized_reported",
+                  "vda_position_state", "vda_localization_score_reported", "vda_deviation_range_m",
+                  "vda_last_node_id_hex", "vda_last_node_sequence")
+CONTEXT_BASIS = ("SAME_STATE_REPORTED_ROBOT_MAP_POSE_NOT_LOAD_POSE_OR_PHYSICAL_MOVEMENT_"
+                 "NO_CROSS_RECORD_JOIN_OR_MAP_TRANSFORM_CLOCK_NOT_AUTHENTICATED")
+
+
+def state_context_columns(record, selected, cells, index, moment, occurrence):
+    """Check and carry this SUMMARY's context using the adopted position semantics.
+
+    The load parser keeps exact Decimal digits. Only the selected position scalars
+    cross into the existing float-based semantics, with a nonzero/finiteness check.
+    Unknown nested values are not converted, validated or newly interpreted here.
+    """
+    projected = {key: record[key] for key in ("version", "manufacturer", "serialNumber",
+                 "orderId", "orderUpdateId", "lastNodeId", "lastNodeSequenceId") if key in record}
+    if any(not isinstance(projected.get(key), str) for key in ("manufacturer", "serialNumber")):
+        raise ValueError("state context requires reported instance strings")
+    for key in ("agvPosition", "mobileRobotPosition"):
+        if key in record:
+            position = record[key]
+            if type(position) is dict:
+                position = dict(position)
+                for scalar in ("x", "y", "theta", "localizationScore", "deviationRange"):
+                    value = position.get(scalar)
+                    if isinstance(value, decimal.Decimal):
+                        position[scalar] = float(number(value, scalar, unit=""))
+            projected[key] = position
+    selector = "vda-state-" + selected.rsplit(".", 1)[0]
+    try:
+        context = dict(zip(VDA_FIELDS, vda_reported_state(projected, selector)))
+        if json_time(record, selector) != moment:
+            raise ValueError("state context timestamp contradicts the preserved state")
+    except (KeyError, TypeError) as failure:
+        raise ValueError("state context lacks the qualified producer fields") from failure
+    result = {"state_summary_index": occurrence, "state_context_basis": CONTEXT_BASIS}
+    for field in (*CONTEXT_FIELDS, *PASSTHROUGH.values()):
+        value = context[field]
+        expected = "" if value is None else str(value)
+        supplied = cells[index[field]]
+        if supplied != expected:
+            raise ValueError(f"state context {field} contradicts the preserved state")
+        if field in CONTEXT_FIELDS:
+            result[field] = supplied
+    return result
 
 
 def number(value, name, *, unit):
@@ -233,9 +287,14 @@ def read_rows(data, time_column, source_column):
 
 
 def convert(data, *, time_column="record_time_us", source_column="source_record_hex",
-            kind_column="vda_record_kind"):
+            kind_column="vda_record_kind", state_context=False):
     """One row per reported load, and exactly one row when a record reports none."""
+    if state_context and (time_column, source_column, kind_column) != (
+            "record_time_us", "source_record_hex", "vda_record_kind"):
+        raise ValueError("state context requires the canonical direct-state producer columns")
     header, index, rows = read_rows(data, time_column, source_column)
+    if state_context and not set(CONTEXT_FIELDS) <= set(header):
+        raise ValueError("state context requires all qualified producer context columns")
     digest = "sha256:" + hashlib.sha256(data).hexdigest()
     shared = {"action_type_authority": ACTION_AUTHORITY, "load_basis": LOAD_BASIS,
               "source_sha256": digest}
@@ -321,6 +380,9 @@ def convert(data, *, time_column="record_time_us", source_column="source_record_
                         bytes.fromhex(raw[4:])).hexdigest())
         for column, source in PASSTHROUGH.items():
             base[column] = cells[index[source]] if source in index else ""
+        if state_context:
+            base.update(state_context_columns(record, selected, cells, index, moment,
+                                             report["state_records_read"]))
         if "loads" in record and record["loads"] is None:
             # The pinned schema types `loads` as an array and permits no null. Optional means the
             # key may be left out, which is a different report -- so this is refused rather than
@@ -349,14 +411,142 @@ def convert(data, *, time_column="record_time_us", source_column="source_record_
             produced.append(dict(base, **row))
     if not produced:
         raise ValueError("no saved state summary row was selected; nothing is reported")
-    output = ",".join(FIELDS) + "\n"
-    output += "".join(",".join(str(line.get(name, "")) for name in FIELDS) + "\n"
+    fields = [*FIELDS, *CONTEXT_FIELDS, "state_summary_index", "state_context_basis"] if state_context else FIELDS
+    output = ",".join(fields) + "\n"
+    output += "".join(",".join(str(line.get(name, "")) for name in fields) + "\n"
                       for line in produced)
     encoded = len(output.encode("utf-8"))
     if encoded > OUTPUT_LIMIT:
         raise ValueError("expanded output exceeds bound")
     report["output_bytes"] = encoded
     report["rows"] = len(produced)
+    if state_context:
+        report["state_context_records"] = report["state_records_read"]
+        report["state_context_basis"] = CONTEXT_BASIS
+    return output, report
+
+
+def expected_snapshot(expected_size, expected_sha256):
+    """An optional paired assertion about supplied bytes, not producer authenticity."""
+    if expected_size is None and expected_sha256 is None:
+        return None
+    if (type(expected_size) is not int or not 0 <= expected_size <= MAX_INPUT_BYTES
+            or type(expected_sha256) is not str or len(expected_sha256) != 64
+            or any(c not in "0123456789abcdef" for c in expected_sha256)):
+        raise ValueError("expected size and lowercase SHA256 must be a valid pair")
+    return dict(expected_size_bytes=expected_size, expected_sha256=expected_sha256,
+                scope="READ_BYTES_MATCH_CALLER_EXPECTATION_NOT_AUTHENTICITY_OR_LATER_PATH_IMMUTABILITY")
+
+
+def read_jsonl_window(path, *, start_record, stop_record, expected_size=None, expected_sha256=None,
+                      allow_blank=False):
+    """Select bounded saved physical JSONL records; excluded JSON is not decoded."""
+    if type(allow_blank) is not bool:
+        raise ValueError("blank-line selector must be bool")
+    if (type(start_record) is not int or type(stop_record) is not int
+            or not 0 <= start_record < stop_record <= MAX_RECORDS):
+        raise ValueError("invalid native record interval")
+    expectation = expected_snapshot(expected_size, expected_sha256)
+    path = Path(path).resolve()
+    metadata = path.stat()
+    if (not stat.S_ISREG(metadata.st_mode)
+            or path.parts[1:2] in (("sys",), ("proc",), ("dev",))):
+        raise ValueError("saved regular input required")
+    if metadata.st_size > MAX_INPUT_BYTES:
+        raise ValueError("native input byte bound exceeded")
+    digest = hashlib.sha256()
+    selected, offsets = [], []
+    count = total_bytes = selected_bytes = 0
+
+    def signature(info):
+        return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+    with path.open("rb") as stream:
+        before = os.fstat(stream.fileno())
+        if signature(before) != signature(metadata):
+            raise ValueError("source changed before read")
+        while True:
+            raw = stream.readline(MAX_RECORD_BYTES + 3)
+            if not raw:
+                break
+            native = raw[:-1].removesuffix(b"\r") if raw.endswith(b"\n") else raw
+            if len(native) > MAX_RECORD_BYTES:
+                raise ValueError("native individual record byte bound exceeded")
+            offset = total_bytes
+            total_bytes += len(raw)
+            if total_bytes > MAX_INPUT_BYTES or count >= MAX_RECORDS:
+                raise ValueError("native input byte or record count bound exceeded")
+            digest.update(raw)
+            line = native.decode("utf-8")
+            if ((not line.strip() and not allow_blank) or "\0" in line
+                    or any(c in line for c in "\r\n\v\f\x1c\x1d\x1e\x85\u2028\u2029")):
+                raise ValueError("unsupported native JSONL record framing")
+            if start_record <= count < stop_record:
+                retained = line + "\n"
+                selected_bytes += len(retained.encode("utf-8"))
+                if selected_bytes > MAX_SELECTED_BYTES:
+                    raise ValueError("native selected source byte bound exceeded")
+                selected.append(retained)
+                offsets.append(offset)
+            count += 1
+        if (signature(before) != signature(os.fstat(stream.fileno()))
+                or signature(before) != signature(path.stat()) or total_bytes != before.st_size):
+            raise ValueError("source changed during read")
+    if expectation and (total_bytes != expected_size or digest.hexdigest() != expected_sha256):
+        raise ValueError("read snapshot differs from expected size or SHA256")
+    if stop_record > count:
+        raise ValueError("native record interval exceeds source records")
+    return selected, offsets, count, selected_bytes, digest.hexdigest()
+
+
+def convert_path(path, source_format, *, start_record, stop_record,
+                 expected_size=None, expected_sha256=None):
+    """Bounded original JSONL selection composed through both adopted resolvers.
+
+    Outside JSON and clocks are not decoded. The full-file hash and native
+    positions describe the supplied original, never the generated intermediate.
+    """
+    if source_format not in ("vda-state-2.1", "vda-state-3.0"):
+        raise ValueError("native window requires qualified VDA state format")
+    selected, offsets, count, selected_bytes, source_digest = read_jsonl_window(
+        path, start_record=start_record, stop_record=stop_record,
+        expected_size=expected_size, expected_sha256=expected_sha256)
+    intermediate = convert_state("".join(selected), source_format,
+                                 vda_actions=True, vda_errors=True).encode("utf-8")
+    previous_limit = csv.field_size_limit()
+    try:
+        csv.field_size_limit(max(previous_limit, 2 * MAX_RECORD_BYTES + 4))
+        output, report = convert(intermediate, state_context=True)
+        reader = csv.DictReader(io.StringIO(output))
+        fields, rows = reader.fieldnames, list(reader)
+    finally:
+        csv.field_size_limit(previous_limit)
+    result = io.StringIO(newline="")
+    writer = csv.DictWriter(result, [*fields, "source_file_sha256",
+        "source_record_index", "source_record_byte_offset"], lineterminator="\n")
+    writer.writeheader()
+    for row in rows:
+        local = int(row["state_summary_index"]) - 1
+        row.update(source_file_sha256="sha256:" + source_digest,
+                   source_record_index=start_record + local, source_record_byte_offset=offsets[local])
+        writer.writerow(row)
+        if result.tell() > MAX_WINDOW_OUTPUT_BYTES:
+            raise ValueError("native window expanded output bound exceeded")
+    output = result.getvalue()
+    report.update(output_bytes=len(output.encode("utf-8")),
+        output_sha256=hashlib.sha256(output.encode("utf-8")).hexdigest(),
+        generated_intermediate="ADOPTED_STATE_CSV_NOT_AN_ADDITIONAL_CAPTURE",
+        record_selection={"start_record": start_record, "stop_record_exclusive": stop_record,
+            "source_records": count, "selected_records": len(selected),
+            "excluded_records": count - len(selected), "source_sha256": source_digest,
+            "selected_source_bytes": selected_bytes, "outside_selection": "NOT_DECODED_OR_VALIDATED",
+            "clock_scope": "SELECTED_ONLY_NONDECREASING_REPORTED_TIME_NOT_AUTHENTICATED",
+            "bounds": {"max_input_bytes": MAX_INPUT_BYTES, "max_records": MAX_RECORDS,
+                "max_record_bytes": MAX_RECORD_BYTES, "max_selected_bytes": MAX_SELECTED_BYTES,
+                "max_intermediate_bytes": LIMIT, "max_output_bytes": MAX_WINDOW_OUTPUT_BYTES}})
+    expectation = expected_snapshot(expected_size, expected_sha256)
+    if expectation:
+        report["input_expectation"] = expectation
     return output, report
 
 
@@ -366,12 +556,31 @@ def main():
     parser.add_argument("output_directory", type=Path, help="new directory only")
     parser.add_argument("--time-column", default="record_time_us")
     parser.add_argument("--source-column", default="source_record_hex")
+    parser.add_argument("--with-state-context", action="store_true",
+                        help="carry checked robot map context from the same direct-state SUMMARY")
+    parser.add_argument("--source-format", choices=("vda-state-2.1", "vda-state-3.0"),
+                        help="opt in to a native direct-state JSONL record window")
+    parser.add_argument("--start-record", type=int)
+    parser.add_argument("--stop-record", type=int)
+    parser.add_argument("--expected-size", type=int)
+    parser.add_argument("--expected-sha256")
     args = parser.parse_args()
     try:
-        if args.input.stat().st_size > LIMIT:
-            raise ValueError("input exceeds bound")
-        output, report = convert(args.input.read_bytes(), time_column=args.time_column,
-                                 source_column=args.source_column)
+        window = (args.source_format, args.start_record, args.stop_record)
+        if any(value is not None for value in window):
+            if (any(value is None for value in window)
+                    or (args.time_column, args.source_column) != ("record_time_us", "source_record_hex")):
+                raise ValueError("native window requires format/start/stop and canonical columns")
+            output, report = convert_path(args.input, args.source_format,
+                                          start_record=args.start_record, stop_record=args.stop_record,
+                                          expected_size=args.expected_size, expected_sha256=args.expected_sha256)
+        else:
+            if args.expected_size is not None or args.expected_sha256 is not None:
+                raise ValueError("expected snapshot requires native JSONL window")
+            if args.input.stat().st_size > LIMIT:
+                raise ValueError("input exceeds bound")
+            output, report = convert(args.input.read_bytes(), time_column=args.time_column,
+                                     source_column=args.source_column, state_context=args.with_state_context)
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2),

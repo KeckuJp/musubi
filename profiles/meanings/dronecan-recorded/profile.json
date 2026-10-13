@@ -6,6 +6,36 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "j1939_destination_node_id": {
+      "meaning": "j1939_destination_node_id",
+      "unit": "caller_selected_recorded_J1939_receiver_address_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "transport_basis": {
+      "meaning": "transport_basis",
+      "unit": "complete_saved_RTS_CTS1_ACK_or_RTS_CTS_grants_ACK_exchange_as_named_paired_report_required_full_frames_and_grants_once_there_not_physical_delivery_or_live_bus_connection",
+      "basis": "declared"
+    },
+    "transport_packet_count": {
+      "meaning": "transport_packet_count",
+      "unit": "DT_packets_in_this_complete_saved_transfer_not_network_loss_or_DTC_count",
+      "basis": "declared"
+    },
+    "payload_completion_time_us": {
+      "meaning": "payload_completion_time_us",
+      "unit": "capture_microseconds_of_last_DT_not_fault_time_not_trusted_UTC",
+      "basis": "declared"
+    },
+    "source_transfer_index": {
+      "meaning": "source_transfer_index",
+      "unit": "zero_based_transfer_in_paired_RTS_accounting_report_full_source_frames_retained_once_there",
+      "basis": "declared"
+    },
+    "source_transfer_sha256": {
+      "meaning": "source_transfer_sha256",
+      "unit": "sha256_of_original_frame_array_UTF8_JSON_bytes_in_paired_RTS_accounting_report_not_authentication",
+      "basis": "declared"
+    },
     "record_time_us": {
       "meaning": "record_time_us",
       "unit": "capture_clock_us_at_transfer_completion_unknown_basis",
@@ -414,6 +444,156 @@
     "engine_instance_reported": {
       "meaning": "engine_instance_reported",
       "unit": "the_declared_engine_instance_name_when_the_reported_code_is_one_of_the_two_values_the_pinned_lookup_defines_otherwise_a_named_unknown_carrying_the_reported_code_it_is_a_reported_instance_label_not_an_authenticated_engine_identity_or_a_physical_position",
+      "basis": "declared"
+    },
+    "engine_oil_pressure_pa": {
+      "meaning": "engine_oil_pressure_pa",
+      "unit": "Pa_reported_engine_oil_pressure_not_a_fault_verdict",
+      "basis": "declared"
+    },
+    "engine_oil_temperature_k": {
+      "meaning": "engine_oil_temperature_k",
+      "unit": "K_reported_engine_oil_temperature",
+      "basis": "declared"
+    },
+    "engine_temperature_k": {
+      "meaning": "engine_temperature_k",
+      "unit": "K_reported_engine_temperature_source_does_not_name_coolant_or_reference_location",
+      "basis": "declared"
+    },
+    "engine_alternator_potential_v": {
+      "meaning": "engine_alternator_potential_v",
+      "unit": "V_reported_signed_alternator_potential",
+      "basis": "declared"
+    },
+    "engine_fuel_rate_l_h": {
+      "meaning": "engine_fuel_rate_l_h",
+      "unit": "litres_per_hour_reported_signed_fuel_rate_not_total_consumption",
+      "basis": "declared"
+    },
+    "engine_total_runtime_s": {
+      "meaning": "engine_total_runtime_s",
+      "unit": "seconds_reported_total_engine_runtime_not_capture_clock_or_UTC_despite_source_label_Total_Engine_hours",
+      "basis": "declared"
+    },
+    "engine_coolant_pressure_pa": {
+      "meaning": "engine_coolant_pressure_pa",
+      "unit": "Pa_reported_engine_coolant_pressure",
+      "basis": "declared"
+    },
+    "engine_fuel_pressure_pa": {
+      "meaning": "engine_fuel_pressure_pa",
+      "unit": "Pa_reported_engine_fuel_pressure",
+      "basis": "declared"
+    },
+    "engine_load_percent": {
+      "meaning": "engine_load_percent",
+      "unit": "percent_reported_signed_engine_load_at_decoder_established_scale_one_not_measured_thrust",
+      "basis": "declared"
+    },
+    "engine_torque_percent": {
+      "meaning": "engine_torque_percent",
+      "unit": "percent_reported_signed_engine_torque_at_decoder_established_scale_one_not_N_m",
+      "basis": "declared"
+    },
+    "engine_percent_scale_basis": {
+      "meaning": "engine_percent_scale_basis",
+      "unit": "same_pinned_decoder_established_percent_scale_as_engine_trim_scale_basis_not_a_documented_schema_default",
+      "basis": "declared"
+    },
+    "engine_discrete_status_1_code": {
+      "meaning": "engine_discrete_status_1_code",
+      "unit": "raw_reported_16_bit_BITLOOKUP_mask_any_combination_valid_no_NUMBER_sentinel_no_physical_fault_verdict",
+      "basis": "declared"
+    },
+    "engine_discrete_status_2_code": {
+      "meaning": "engine_discrete_status_2_code",
+      "unit": "raw_reported_16_bit_BITLOOKUP_mask_known_low_byte_and_uninterpreted_high_byte_no_NUMBER_sentinel",
+      "basis": "declared"
+    },
+    "engine_discrete_status_1_reported_hex": {
+      "meaning": "engine_discrete_status_1_reported_hex",
+      "unit": "hex_UTF8_JSON_array_of_pinned_reported_flag_names_empty_means_no_bits_set_not_healthy",
+      "basis": "declared"
+    },
+    "engine_discrete_status_2_reported_hex": {
+      "meaning": "engine_discrete_status_2_reported_hex",
+      "unit": "hex_UTF8_JSON_array_of_pinned_reported_flag_names_not_diagnosed_faults_or_actions",
+      "basis": "declared"
+    },
+    "engine_discrete_status_2_unknown_bits": {
+      "meaning": "engine_discrete_status_2_unknown_bits",
+      "unit": "reported_high_byte_mask_bits_8_to_15_no_meaning_in_pinned_lookup",
+      "basis": "declared"
+    },
+    "engine_oil_pressure_pa_status": {
+      "meaning": "engine_oil_pressure_pa_status",
+      "unit": "REPORTED_or_NOT_AVAILABLE_or_OUT_OF_RANGE_REPORTED_or_RESERVED_RANGE_REPORTED_withheld_quantities_blank_not_zero",
+      "basis": "declared"
+    },
+    "engine_oil_temperature_k_status": {
+      "meaning": "engine_oil_temperature_k_status",
+      "unit": "same_NUMBER_three_positive_top_codes_as_engine_oil_pressure_pa_status",
+      "basis": "declared"
+    },
+    "engine_temperature_k_status": {
+      "meaning": "engine_temperature_k_status",
+      "unit": "same_NUMBER_three_positive_top_codes_as_engine_oil_pressure_pa_status",
+      "basis": "declared"
+    },
+    "engine_alternator_potential_v_status": {
+      "meaning": "engine_alternator_potential_v_status",
+      "unit": "same_NUMBER_three_positive_top_codes_signed_all_ones_is_minus_one_not_missing",
+      "basis": "declared"
+    },
+    "engine_fuel_rate_l_h_status": {
+      "meaning": "engine_fuel_rate_l_h_status",
+      "unit": "same_NUMBER_three_positive_top_codes_signed_all_ones_is_minus_one_not_missing",
+      "basis": "declared"
+    },
+    "engine_total_runtime_s_status": {
+      "meaning": "engine_total_runtime_s_status",
+      "unit": "same_NUMBER_three_positive_top_codes_as_engine_oil_pressure_pa_status",
+      "basis": "declared"
+    },
+    "engine_coolant_pressure_pa_status": {
+      "meaning": "engine_coolant_pressure_pa_status",
+      "unit": "same_NUMBER_three_positive_top_codes_as_engine_oil_pressure_pa_status",
+      "basis": "declared"
+    },
+    "engine_fuel_pressure_pa_status": {
+      "meaning": "engine_fuel_pressure_pa_status",
+      "unit": "same_NUMBER_three_positive_top_codes_as_engine_oil_pressure_pa_status",
+      "basis": "declared"
+    },
+    "engine_load_percent_status": {
+      "meaning": "engine_load_percent_status",
+      "unit": "same_NUMBER_three_positive_top_codes_signed_all_ones_is_minus_one_not_missing",
+      "basis": "declared"
+    },
+    "engine_torque_percent_status": {
+      "meaning": "engine_torque_percent_status",
+      "unit": "same_NUMBER_three_positive_top_codes_signed_all_ones_is_minus_one_not_missing",
+      "basis": "declared"
+    },
+    "fast_packet_sequence": {
+      "meaning": "fast_packet_sequence",
+      "unit": "reported_three_bit_sequence_modulo_eight_not_global_order_or_identity",
+      "basis": "declared"
+    },
+    "packet_index": {
+      "meaning": "packet_index",
+      "unit": "zero_based_completion_order_inside_this_conversion_not_source_sampling_order",
+      "basis": "declared"
+    },
+    "packet_frame_count": {
+      "meaning": "packet_frame_count",
+      "unit": "four_original_frames_per_selected_26_byte_PGN127489_packet",
+      "basis": "declared"
+    },
+    "source_packet_hex": {
+      "meaning": "source_packet_hex",
+      "unit": "hex_reassembled_26_byte_PGN127489_payload_transport_headers_and_padding_retained_separately_in_source_frames_hex",
       "basis": "declared"
     },
     "reserved_field_code": {

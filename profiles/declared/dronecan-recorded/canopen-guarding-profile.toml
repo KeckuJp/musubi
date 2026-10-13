@@ -1,0 +1,19 @@
+profile_id = "canopennode_guarding_response_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "capture_microseconds_unknown_basis_not_guard_time_or_event_onset"
+source_node_id = "reported_default_CAN_address_not_authenticated_identity"
+node_reported_mode = "reported_NMT_state_not_physical_liveness_INITIALIZING_is_not_heartbeat_BOOT_UP"
+canopen_state_code = "reported_lower7bit_NMT_state_unknown_codes_retained_not_command"
+source_frames_hex = "hex_UTF8_JSON_original_four_column_DATA_capture_rows"
+canopen_guarding_source_basis = "caller_qualified_CANopenNode_v4.1_default_node_guarding_DATA_response_not_auto_detected_from_heartbeat_or_firmware_authenticated"
+canopen_guarding_toggle = "reported_bit7_0_or_1_not_loss_liveness_recovery_or_request_response_validation"
+canopen_guarding_raw_byte = "reported_entire_response_byte_including_toggle"

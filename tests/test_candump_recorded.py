@@ -14,6 +14,56 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SavedCandump(unittest.TestCase):
+    def test_large_saved_window_and_second_protocol_reuse(self):
+        from scripts.convert_candump_recorded import convert_path
+        import hashlib
+        self.assertIn("MUSUBI_TELEMETRY_READER", os.environ)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "capture.txt"
+            prefix = (b"outside semantics unqualified " + b"x" * 220 + b"\n") * 70000
+            selected = b"(1700000000.000000) can0 701#05\r\n(1700000000.000001) can0 702#04\r\n"
+            tail = b"(1700000000.000002) can0 18FECA80#1BE445232307FFFF\n"
+            raw = prefix + selected + tail; path.write_bytes(raw)
+            self.assertGreater(len(raw), 16*1024*1024)
+            for start, stop, extended, downstream, field, expected in (
+                    (70000, 70002, False, convert_canopen, "node_reported_mode", "OPERATIONAL"),
+                    (70002, 70003, True, convert_j1939, "spn_reported", 74565)):
+                capture, report = convert_path(path, "can0", start_line=start, stop_line=stop,
+                    extended=extended, expected_size=len(raw), expected_sha256=hashlib.sha256(raw).hexdigest())
+                self.assertEqual(report["source_window"]["total_physical_lines"], 70003)
+                self.assertEqual(report["records"][0]["original_line"], start+1)
+                self.assertEqual(report["records"][0]["original_byte_offset"], len(prefix) if not extended else len(prefix)+len(selected))
+                self.assertEqual(report["source_window"]["source_sha256"], "sha256:"+hashlib.sha256(raw).hexdigest())
+                output, _ = downstream(capture)
+                out = Path(directory) / "common.csv"; out.write_text(output)
+                common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                    str(ROOT / "profiles/declared/dronecan-recorded/profile.toml"),
+                    str(out)], check=True, capture_output=True).stdout)
+                self.assertEqual(common["observations"][0]["fields"][field], expected)
+                self.assertEqual(common["platform_domain"], "Unknown")
+
+    def test_window_framing_expectation_cli_and_default_parity(self):
+        from scripts.convert_candump_recorded import convert_path
+        import sys
+        good = "(1700000000.000000) can0 701#05\n"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)/"input"; path.write_text(good)
+            output, report = convert_path(path, "can0", start_line=0, stop_line=1)
+            old_output, old_report = convert(good, "can0")
+            self.assertEqual(output, old_output)
+            self.assertEqual({k:v for k,v in report.items() if k != "source_window" and k != "records"},
+                             {k:v for k,v in old_report.items() if k != "records"})
+            target = Path(directory)/"out"
+            subprocess.run([sys.executable, str(ROOT/"scripts/convert_candump_recorded.py"), str(path), str(target),
+                            "--interface", "can0", "--start-line", "0", "--stop-line", "1"], check=True, capture_output=True)
+            self.assertEqual((target/"capture.csv").read_text(), output)
+            for kwargs in ({"stop_line":2}, {"start_line":True}, {"expected_size":1},
+                           {"expected_size":len(good), "expected_sha256":"0"*64}):
+                with self.assertRaises(ValueError): convert_path(path,"can0",**({"start_line":0,"stop_line":1}|kwargs))
+            for bad in (good+"\n", "comment\n", good.replace("#05", "#0")):
+                path.write_text(bad)
+                with self.assertRaises(ValueError): convert_path(path,"can0",start_line=0,stop_line=1)
+
     def test_slcan_responses_reuse_two_protocols_and_common_meaning(self):
         cases = [(False, "t701105", convert_canopen, "node_reported_mode", "OPERATIONAL"),
                  (True, "T18FECA8081BE445232307FFFF", convert_j1939, "spn_reported", 74565)]
@@ -86,6 +136,23 @@ class SavedCandump(unittest.TestCase):
         self.assertEqual([row["reason"] for row in report["records"]][1:],
                          ["UNSELECTED_INTERFACE", "UNSELECTED_FRAME_KIND", "REMOTE_REQUEST", "CAN_FD", "ERROR_FRAME", "SOURCE_DROP_REPORT"])
         self.assertEqual(len(list(csv.DictReader(io.StringIO(output)))), 1)
+
+    def test_interleaved_interfaces_are_ordered_only_within_the_selected_one(self):
+        text = ("(1700000000.000001) can0 100#e803f602\n(1700000000.000005) can1 100#d0071402\n"
+                "(1700000000.000003) can0 100#d0071402\n(1700000000.000006) can1 101#00\n")
+        for interface, rows in (("can0", ["1700000000000001", "1700000000000003"]),
+                                ("can1", ["1700000000000005", "1700000000000006"])):
+            output, report = convert(text, interface)
+            self.assertEqual([r["time_us"] for r in csv.DictReader(io.StringIO(output))][:len(rows)], rows)
+            self.assertEqual(report["source_lines"], 4)
+            self.assertEqual(report["time_order_scope"],
+                             "SELECTED_INTERFACE_ONLY_OTHER_INTERFACES_RANGE_CHECKED_NOT_ORDERED")
+            self.assertEqual({r["reason"] for r in report["records"] if r["interface"] != interface},
+                             {"UNSELECTED_INTERFACE"})
+        with self.assertRaises(ValueError):  # a decrease inside the selected interface still refuses
+            convert(text + "(1700000000.000002) can1 100#00\n", "can1")
+        with self.assertRaises(ValueError):  # unselected lines keep their range check
+            convert(text + "(9999999999999999999.000000) can1 100#00\n", "can0")
 
     def test_important_format_time_and_selection_failures(self):
         good = "(1700000000.000000) can0 701#05"

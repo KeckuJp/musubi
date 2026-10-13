@@ -45,6 +45,95 @@ class VdaLoadReport(unittest.TestCase):
         output, report = convert(self.state(*records, version=version))
         return list(csv.DictReader(io.StringIO(output))), report, output
 
+    def test_context_is_opt_in_and_both_layouts_reach_common(self):
+        for version, key, flag in (("2.1.0", "agvPosition", "positionInitialized"),
+                                   ("3.0.0", "mobileRobotPosition", "localized")):
+            records = [self.record(version, loads=[PALLET], **{key: {
+                "mapId": name, "x": x, "y": -4.5, "theta": .25, flag: True}})
+                for name, x in (("map-A", 1.25), ("map-B", 8.75))]
+            source = self.state(*records, version=version)
+            baseline = convert(source)
+            self.assertEqual(baseline, convert(source, state_context=False))
+            output, report = convert(source, state_context=True)
+            rows = list(csv.DictReader(io.StringIO(output)))
+            self.assertEqual([r["state_summary_index"] for r in rows], ["1", "2"])
+            self.assertEqual([unhex(r["vda_map_id_hex"]) for r in rows], ["map-A", "map-B"])
+            self.assertEqual([float(r["vda_map_x_m"]) for r in rows], [1.25, 8.75])
+            self.assertEqual(report["state_records_read"], 2)
+            self.assertEqual(report["state_context_records"], 2)
+            self.assertNotIn("state_summary_index", baseline[0].splitlines()[0])
+            reader = os.environ.get("MUSUBI_TELEMETRY_READER")
+            if not reader:
+                self.skipTest("required CI supplies the built shared reader")
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "observations.csv"
+                path.write_text(output)
+                common = json.loads(subprocess.run([reader, str(PROFILE), str(path),
+                    "--allow-equal-time"], check=True, capture_output=True).stdout)
+            self.assertEqual(common["platform_domain"], "Unknown")
+            self.assertEqual(common["main_rows"], 2)
+            self.assertEqual(common["observations"][1]["fields"]["vda_map_x_m"], 8.75)
+            self.assertEqual(common["observations"][0]["fields"]["load_weight_kg"], 720)
+            for observation in common["observations"]:
+                self.assertEqual(observation["clock_basis"], "Unknown")
+                self.assertIsNone(observation["anchor_unix_us"])
+            self.assertIn("not_geodetic", common["profile_units"]["vda_map_x_m"])
+
+    def test_context_clock_selectors_and_unknown_source(self):
+        record = self.record(loads=[PALLET], unknown={"nested": ["kept", 23]})
+        source = self.state(record)
+        output, _ = convert(source, state_context=True)
+        self.assertEqual(next(csv.DictReader(io.StringIO(output)))["state_record_sha256"],
+                         next(csv.DictReader(io.StringIO(convert(source)[0])))["state_record_sha256"])
+        parsed = list(csv.reader(io.StringIO(source.decode())))
+        parsed[1][0] = str(int(parsed[1][0]) + 1)
+        modified = io.StringIO(); csv.writer(modified).writerows(parsed)
+        with self.assertRaises(ValueError):
+            convert(modified.getvalue().encode(), state_context=True)
+        for key in ("source_column", "time_column", "kind_column"):
+            with self.assertRaises(ValueError):
+                convert(source, state_context=True, **{key: "caller_other_column"})
+
+    def test_context_cli_matches_api(self):
+        source = self.state(self.record(loads=[]))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "state.csv"; path.write_bytes(source)
+            out = Path(directory) / "out"
+            subprocess.run([sys.executable, "-m", "scripts.convert_vda_load_report",
+                str(path), str(out), "--with-state-context"], cwd=ROOT,
+                check=True, capture_output=True)
+            self.assertEqual((out / "observations.csv").read_text(),
+                             convert(source, state_context=True)[0])
+
+    def test_context_preserves_occurrences_load_multiplicity_and_absence(self):
+        record = self.record(loads=[PALLET, {"loadId": "other"}])
+        source = self.state(record, record, self.record(loads=[]), self.record())
+        output, report = convert(source, state_context=True)
+        rows = list(csv.DictReader(io.StringIO(output)))
+        self.assertEqual([r["state_summary_index"] for r in rows], ["1", "1", "2", "2", "3", "4"])
+        self.assertEqual([r["load_index"] for r in rows], ["0", "1", "0", "1", "", ""])
+        self.assertEqual(rows[0]["state_record_sha256"], rows[2]["state_record_sha256"])
+        self.assertEqual(report["state_context_records"], 4)
+        self.assertEqual(report["loads_reported"], 4)
+        self.assertNotEqual(rows[-1]["load_report_state"], rows[-2]["load_report_state"])
+        for row in rows:
+            self.assertEqual(row["vda_position_state"], "NOT_REPORTED")
+            for field in ("vda_map_x_m", "vda_map_y_m", "vda_map_theta_rad",
+                          "vda_localization_score_reported", "vda_deviation_range_m"):
+                self.assertEqual(row[field], "")
+
+    def test_context_does_not_convert_nonzero_source_quantity_to_zero(self):
+        record = self.record(loads=[], mobileRobotPosition={"mapId": "local", "localized": True,
+                                                          "x": 0, "y": 1, "theta": 0})
+        raw = json.dumps(record).replace('"x": 0', '"x": 1e-400')
+        source = adopted.convert(raw, "vda-state-3.0", vda_actions=True).encode()
+        with self.assertRaisesRegex(ValueError, "underflows"):
+            convert(source, state_context=True)
+        raw = json.dumps(record)[:-1] + ', "unknown": 1e999}'
+        source = adopted.convert(raw, "vda-state-3.0", vda_actions=True).encode()
+        rows = list(csv.DictReader(io.StringIO(convert(source, state_context=True)[0])))
+        self.assertEqual(float(rows[0]["vda_map_x_m"]), 0)
+
     def test_the_three_reported_load_states_the_pinned_schema_defines_stay_apart(self):
         rows, report, _ = self.rows(self.record(loads=[PALLET]),
                                     self.record(loads=[]),

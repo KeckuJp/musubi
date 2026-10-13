@@ -1,0 +1,23 @@
+profile_id = "copter455_reported_navigation_message"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "boot_relative"
+channels = ["onboard"]
+[fields]
+time = "TimeUS"
+[units]
+TimeUS = "us_since_boot"
+Lat = "deg_reported_latitude"
+Lng = "deg_reported_longitude"
+Alt = "m_reported_MSL_no_datum_conversion"
+Spd = "m_s_reported_ground_speed"
+GCrs = "degree_reported_ground_course_not_body_heading"
+VZ = "m_s_reported_velocity_z_no_frame_rotation_or_sign_inference"
+Status = "reported_GPS_fix_enum_not_independent_validity"
+message_utf8_hex = "hex_encoded_reported_UTF8_log_text_not_authenticated_build_identity"
+original_record_index = "zero_based_original_decoder_record_index"
+original_offset = "original_byte_offset"
+original_length = "original_record_bytes"

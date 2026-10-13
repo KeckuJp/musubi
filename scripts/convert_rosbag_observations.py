@@ -3,6 +3,7 @@
 import argparse
 import csv
 import hashlib
+import heapq
 from dataclasses import fields, is_dataclass
 import io
 import json
@@ -15,6 +16,7 @@ import numpy as np
 from rosbags.rosbag2 import Reader
 from rosbags.rosbag1 import Reader as Reader1
 from rosbags.rosbag1.reader import decompressors as ROS1_DECOMPRESSORS
+from rosbags.rosbag1.reader import Header as ROS1Header, RecordType as ROS1RecordType
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg, get_types_from_idl
 from rosbags.typesys.msg import normalize_msgtype
 from rosbags.interfaces import MessageDefinitionFormat
@@ -35,6 +37,12 @@ ROS1_HASHES = {"sensor_msgs/msg/BatteryState": "4ddae7f048e32fda22cac764685e3974
                "sensor_msgs/msg/Imu": "6a62c6daae103f4ff57a132d6f95cec2"}
 VELOCITY_REPORT = "autoware_vehicle_msgs/msg/VelocityReport"
 STEERING_REPORT = "autoware_vehicle_msgs/msg/SteeringReport"
+GEAR_REPORT = "autoware_vehicle_msgs/msg/GearReport"
+GEAR_HASH = "RIHS01_4d14bc3f186c1a6af6a732bb5ebd540cdd742a56770012f4c3cb9e762de8f391"
+GEAR_NAMES = ("NONE", "NEUTRAL", "DRIVE") + tuple(f"DRIVE_{n}" for n in range(2, 19)) + (
+    "REVERSE", "REVERSE_2", "PARK", "LOW", "LOW_2")
+GEAR_FIELDS = ["vehicle_gear_code", "vehicle_gear_name", "vehicle_gear_disposition"]
+STORE.register(get_types_from_msg("builtin_interfaces/Time stamp\nuint8 report\n", GEAR_REPORT))
 # Functional field layouts at autoware_msgs bb8e7bf, with existing Humble dependencies.
 VEHICLE_DEFINITIONS = {
     VELOCITY_REPORT: "std_msgs/Header header\nfloat32 longitudinal_velocity\nfloat32 lateral_velocity\nfloat32 heading_rate\n",
@@ -50,19 +58,22 @@ NAV2_DEFINITIONS = {
         "geometry_msgs/PoseStamped current_pose\nbuiltin_interfaces/Duration navigation_time\n"
         "builtin_interfaces/Duration estimated_time_remaining\nint16 number_of_recoveries\nfloat32 distance_remaining\n",
     NAV2_FEEDBACK: "unique_identifier_msgs/UUID goal_id\nnav2_msgs/action/NavigateToPose_Feedback feedback\n"}
+NAV2_THROUGH = "nav2_msgs/action/NavigateThroughPoses_FeedbackMessage"
+NAV2_THROUGH_CHILD = "nav2_msgs/action/NavigateThroughPoses_Feedback"
+NAV2_DEFINITIONS.update({
+    NAV2_THROUGH_CHILD: NAV2_DEFINITIONS["nav2_msgs/action/NavigateToPose_Feedback"] + "int16 number_of_poses_remaining\n",
+    NAV2_THROUGH: "unique_identifier_msgs/UUID goal_id\nnav2_msgs/action/NavigateThroughPoses_Feedback feedback\n"})
+NAV2_THROUGH_HASH = "RIHS01_073962415ad2a226b3de7245b142aeb414268a4d35ef1321ff2a484e2130e2b1"
+NAV2_THROUGH_FIELDS = ["nav2_number_of_poses_remaining", "nav2_poses_remaining_disposition", "nav2_feedback_source_basis"]
 for _typename, _definition in NAV2_DEFINITIONS.items():
     STORE.register(get_types_from_msg(_definition, _typename))
 RANGE_STORE = get_typestore(Stores.ROS2_IRON)
 RANGE = "sensor_msgs/msg/Range"
 RANGE_VARIANCE_HASH = "RIHS01_b42b62562e93cbfe9d42b82fe5994dfa3d63d7d5c90a317981703f7388adff3a"
 BATTERY = "sensor_msgs/msg/BatteryState"
-# A legacy rosbag2 SQLite3 bag at storage schema 1 or 2 carries no type hash and no embedded
-# definition: pinned rosbags 0.11.5 builds those connections with an empty digest and
-# MessageDefinitionFormat.NONE, so the bag offers only a type *name*. A name is never compatibility
-# evidence, so the guard is not relaxed - it is replaced, only on explicit request, by this fixed
-# selection of the definition this file already qualifies. The producer and its binary stay
-# unverified and every row says so.
-LEGACY_SCHEMA_CHOICES = {"battery-humble-equivalent": BATTERY}
+LEGACY_SCHEMA_CHOICES = {"battery-humble-equivalent": BATTERY,
+    "laserscan-humble-equivalent": "sensor_msgs/msg/LaserScan",
+    "pointcloud2-humble-equivalent": "sensor_msgs/msg/PointCloud2"}
 LEGACY_SCHEMA_BASIS = ("TYPE_HASH_ABSENT_NOT_VERIFIED_DECODED_WITH_A_CALLER_SELECTED_LOCAL_DEFINITION_"
                        "PRODUCER_AND_ITS_BINARY_UNVERIFIED")
 IMU = "sensor_msgs/msg/Imu"
@@ -173,6 +184,109 @@ AUTONOMY_FIELDS = ["autonomy_source_stamp_us", "autonomy_last_start_us", "autono
 AUTONOMY_TIME_BASIS = "REPORTED_STAMPS_WITH_NO_EPOCH_DECLARED_BY_THE_PRODUCER_NOT_UTC_OR_BOOT_RELATIVE"
 AUTONOMY_BASIS = ("REPORTED_AUTONOMY_STATE_OF_THE_SERIAL_NAMESPACED_TOPIC_NOT_VERIFIED_ACTIVITY_"
                   "NOT_A_SAFETY_STATE_AND_NOT_A_FAULT_REPORT")
+CONTROL_SELECTION = "clearpath_control_selection_msgs/msg/ControlSelectionState"
+CONTROL_SELECTION_DEFINITIONS = {
+    "clearpath_control_selection_msgs/msg/ControlState": "bool enabled\nbool paused\n",
+    "clearpath_control_selection_msgs/msg/ControlMode":
+        "int8 NEUTRAL=0\nint8 MANUAL=1\nint8 AUTONOMY=2\nint8 mode\n",
+    CONTROL_SELECTION: "ControlState autonomy\nControlMode mode\n"}
+for _typename, _definition in CONTROL_SELECTION_DEFINITIONS.items():
+    STORE.register(get_types_from_msg(_definition, _typename))
+CONTROL_SELECTION_HASH = "RIHS01_ff1ac5f75b32bdf967356148a79b5aa522a534ed33e8bb20826bab6295ecb904"
+ESTOP = "std_msgs/msg/Bool"
+ESTOP_HASH = "RIHS01_feb91e995ff9ebd09c0cb3d2aed18b11077585839fb5db80193b62d74528f6c9"
+ESTOP_FIELDS = ["estop_reported_triggered", "estop_report_basis", "estop_time_basis"]
+
+
+def husarion_estop_topic(topic):
+    return topic == "/hardware/e_stop" or topic.endswith("/hardware/e_stop")
+
+
+MODEL = "std_msgs/msg/String"
+MODEL_HASH = "RIHS01_df668c740482bbd48fb39d76a70dfd4bd59db1288021743503259e948f6b1a18"
+MODEL_RAW_LIMIT = 1024 * 1024
+MODEL_FIELDS = ["model_robot_name_reported", "model_hardware_plugins_reported",
+                "model_runtime_declared", "model_identity_basis", "model_source_cdr_sha256"]
+MODEL_PLUGINS = {"husarion_ugv_hardware_interfaces/PantherSystem": "ROBOT_HARDWARE_PLUGIN_DECLARED",
+                 "husarion_ugv_gazebo/EStopSystem": "SIMULATION_PLUGIN_DECLARED"}
+
+
+def husarion_model_topic(topic):
+    return topic == "/robot_description" or topic.endswith("/robot_description")
+
+
+PANTHER_TOPICS = frozenset((
+    "battery/battery_status", "battery/charging_status", "cmd_vel", "diagnostics",
+    "dynamic_joint_states", "gps/time_reference", "gps/vel", "hardware/e_stop", "hardware/io_state",
+    "hardware/robot_driver_state", "imu/data", "joint_states", "lights/channel_1_frame",
+    "lights/channel_2_frame", "localization/set_pose", "odometry/filtered", "odometry/wheels",
+    "robot_description", "system_status", "tf", "tf_static", "_battery/battery_1_status_raw",
+    "_battery/battery_2_status_raw", "_gps/heading"))
+
+
+def model_ground_decision(models, decoded_topics):
+    """models: (namespace, name, runtime) per selected description. Returns domain, basis, extras."""
+    names = {name for _, name, _ in models}
+    if len(names) > 1:
+        raise ValueError("conflicting same-bag robot descriptions")
+    namespaces = {namespace for namespace, _, _ in models}
+    runtimes = {runtime for _, _, runtime in models}
+    if names != {"panther"}:
+        return "Unknown", "no_selected_same_bag_panther_robot_description", {}
+    if len(namespaces) != 1:
+        return "Unknown", "several_robot_description_namespaces_not_a_single_producer", {}
+    if len(runtimes) != 1 or runtimes & {"NOT_ESTABLISHED"}:
+        return "Unknown", "robot_description_without_one_recognized_pinned_control_plugin", {}
+    namespace = next(iter(namespaces))
+    unbound = sorted(topic for topic in decoded_topics
+                     if not topic.startswith(namespace + "/")
+                     or topic[len(namespace) + 1:] not in PANTHER_TOPICS)
+    extras = {"model_namespace": namespace or "/"}
+    if unbound:
+        extras.update(model_unbound_selected_topics=unbound[:32], model_unbound_selected_topic_count=len(unbound))
+        return "Unknown", "selected_observations_outside_the_description_namespace_or_pinned_topic_set", extras
+    return ("Ground", "single_namespace_panther_description_with_pinned_plugin_and_every_selected_topic_"
+            "in_that_namespace_and_pinned_set_declaration_not_authenticated_robot_or_simulation_separate", extras)
+
+
+def model_quantities(record, digest):
+    """Root robot name and declared ros2_control plugins; not a URDF engine or a robot proof."""
+    import xml.etree.ElementTree as ElementTree
+    text = record["data"]
+    if not isinstance(text, str) or "<!DOCTYPE" in text or "<!ENTITY" in text:
+        raise ValueError("robot description must be plain XML without DTD declarations")
+    try:
+        root = ElementTree.fromstring(text)
+    except ElementTree.ParseError as error:
+        raise ValueError("robot description is not well-formed XML") from error
+    name = root.get("name")
+    if root.tag != "robot" or not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9_\-]{1,64}", name):
+        raise ValueError("robot description root must be <robot> with a simple name")
+    plugins = [(node.text or "").strip() for control in root.iter("ros2_control")
+               for hardware in control.findall("hardware") for node in hardware.findall("plugin")]
+    if len(plugins) > 16 or any(not re.fullmatch(r"[A-Za-z0-9_/:]{1,128}", item) for item in plugins):
+        raise ValueError("declared ros2_control plugins outside the finite form")
+    declared = {MODEL_PLUGINS[item] for item in plugins if item in MODEL_PLUGINS}
+    return {"model_robot_name_reported": name,
+            "model_hardware_plugins_reported": ";".join(plugins),
+            "model_runtime_declared": declared.pop() if len(declared) == 1 else "NOT_ESTABLISHED",
+            "model_identity_basis": "SAME_BAG_URDF_ROOT_NAME_AND_ROS2_CONTROL_PLUGIN_DECLARATION_NOT_AUTHENTICATED",
+            "model_source_cdr_sha256": "sha256:" + digest}
+
+
+def qualified_ground_profile(report):
+    """Generated declaration only when every selected same-bag robot_description names panther."""
+    if report.get("model_domain") != "Ground":
+        return None
+    base = (Path(__file__).resolve().parents[1] /
+            "profiles/declared/ground-message-closure/profile.toml").read_text()
+    if (not re.search(r'(?m)^family = "unknown"$', base)
+            or re.search(r"(?m)^\s*platform_domain\s*=", base)):
+        raise ValueError("unexpected ground message profile")
+    return ('platform_domain = "ground"\n' + base).encode()
+CONTROL_SELECTION_FIELDS = ["control_selection_mode_code", "control_selection_mode_reported",
+    "control_selection_autonomy_enabled_reported", "control_selection_autonomy_paused_reported",
+    "control_selection_time_basis", "control_selection_basis"]
 # Every setter read at the pin writes UNKNOWN; WIRED/WIRELESS are accepted, not claimed to occur.
 CHARGER_TYPES = {0: "UNKNOWN", 1: "WIRED", 2: "WIRELESS"}
 CHARGING_CURRENTS = (("total", "current"), ("battery_1", "current_battery_1"),
@@ -194,6 +308,9 @@ DYNAMIC_FIELDS += ["dynamic_interface_value_" + unit for unit in dict.fromkeys(I
 HASHES[TF] = "RIHS01_e369d0f05a23ae52508854b66f6aa0437f3449d652e8cbf22d5abe85d020f087"
 TF_FIELDS = ["tf_entry_count", "tf_entry_index", "tf_parent_frame_hex", "tf_child_frame_hex", "tf_source_stamp_us"]
 TF_FIELDS += ["tf_translation_m_" + a for a in "xyz"] + ["tf_rotation_xyzw_" + a for a in "xyzw"]
+TF_RELATION_FIELDS = ["tf_topic_hex", "tf_relation_kind", "tf_relation_basis"]
+TF_LISTENER_TOPICS = {"/tf": "TIME_VARYING_PER_TF2_LISTENER", "/tf_static": "STATIC_PER_TF2_LISTENER"}
+TF_LISTENER_BASIS = "RECORDED_TOPIC_MATCHES_TF2_ROS_HUMBLE_0_25_24_LISTENER_SUBSCRIPTION_NOT_PRODUCER_INTENT"
 # ros2/rcl_interfaces 7aa3caf43377ea6ad615bc1040832e2c7566bfbe (jazzy, packages 2.0.4):
 # GetParameters.srv request "string[] names" / response "ParameterValue[] values", and the
 # build-time generated <srv>_Event shape fixed by rosidl_parser/definition.py. ParameterValue
@@ -303,12 +420,19 @@ SENSOR_FIELDS += ["range_m", "range_status", "range_min_m", "range_max_m", "rang
 SCAN_FIELDS = ["scan_ray_count", "scan_ray_index", "scan_angle_rad", "scan_first_stamp_us",
                "scan_ray_offset_s", "scan_period_s", "scan_intensity_device_units", "scan_intensity_status"]
 LIMIT = 16 * 1024 * 1024
+ROS1_CHUNK_LIMIT = LIMIT
+ROS1_METADATA_LIMIT = LIMIT
+ROS1_INDEX_LIMIT = 1_000_000
+ROS1_SELECTED_READ_LIMIT = 128 * 1024 * 1024
 BASE = ["record_time_us", "source_record_hex", *JSON_ELECTRICAL_FIELDS, *BATTERY_TEMPERATURE_FIELDS]
 GROUPS = (("orientation", "xyzw", "orientation_quaternion"),
           ("angular_velocity", "xyz", "angular_velocity_rad_s"),
           ("linear_acceleration", "xyz", "linear_acceleration_m_s2"))
 IMU_FIELDS = [f"{prefix}_{axis}" for _, axes, prefix in GROUPS for axis in axes]
 IMU_FIELDS += [f"{name}_covariance_status" for name, _, _ in GROUPS]
+IMU_COVARIANCE_UNITS = {"orientation": "rad2", "angular_velocity": "rad2_s2", "linear_acceleration": "m2_s4"}
+IMU_COVARIANCE_FIELDS = [f"{name}_covariance_{index}_{unit}"
+                         for name, unit in IMU_COVARIANCE_UNITS.items() for index in range(9)]
 DIAG_FIELDS = ["diagnostic_entry_count", "diagnostic_entry_index", "diagnostic_level_reported",
                "diagnostic_level_code", "diagnostic_name_hex", "diagnostic_message_hex", "diagnostic_hardware_id_hex",
                "diagnostic_value_count", "diagnostic_value_pairs_hex"]
@@ -592,6 +716,32 @@ def sqlite_storage_schemas(reader):
     return () if not versions or any(not isinstance(v, int) or v < 1 for v in versions) else tuple(versions)
 
 
+def qualify_connection(connection, qualified_hashes, *, ros1=False):
+    """Shared fixed schema qualification; unknown types remain the caller's policy."""
+    allowed_hashes = (qualified_hashes.get(connection.msgtype),)
+    if not ros1 and connection.msgtype == RANGE:
+        allowed_hashes += (RANGE_VARIANCE_HASH,)
+    if connection.msgtype in qualified_hashes and (
+            connection.digest not in allowed_hashes
+            or (not ros1 and connection.ext.serialization_format != "cdr")):
+        raise ValueError("selected ROS schema hash or serialization mismatch")
+    if connection.msgtype in qualified_hashes:
+        definition = connection.msgdef
+        if len(definition.data.encode()) > 256000:
+            raise ValueError("embedded ROS definition exceeds bound")
+        declared = get_typestore(Stores.EMPTY)
+        if definition.format == MessageDefinitionFormat.MSG:
+            declared.register(get_types_from_msg(definition.data, connection.msgtype))
+        elif definition.format == MessageDefinitionFormat.IDL:
+            declared.register(get_types_from_idl(definition.data))
+        else:
+            raise ValueError("selected ROS definition is missing")
+        declared_hash = (declared.generate_msgdef(connection.msgtype)[1] if ros1
+                         else declared.hash_rihs01(normalize_msgtype(connection.msgtype)))
+        if declared_hash != connection.digest:
+            raise ValueError("embedded ROS definition does not match selected schema")
+
+
 def decode(raw, typename, store=STORE, *, ros1=False):
     if ros1:
         definition = ROS1_STORE.get_msgdef(typename)
@@ -611,7 +761,7 @@ def decode(raw, typename, store=STORE, *, ros1=False):
     return plain(message)
 
 
-def imu_quantities(record):
+def imu_quantities(record, *, reported_covariance=False):
     result = {}
     for name, axes, prefix in GROUPS:
         covariance = record[f"{name}_covariance"]
@@ -622,6 +772,11 @@ def imu_quantities(record):
             raise ValueError("invalid covariance")
         result[f"{name}_covariance_status"] = "ABSENT" if absent else (
             "UNKNOWN" if not any(covariance) else "REPORTED")
+        if reported_covariance:
+            unit = IMU_COVARIANCE_UNITS[name]
+            qualified = not absent and any(covariance)
+            for index, value in enumerate(covariance):
+                result[f"{name}_covariance_{index}_{unit}"] = value if qualified else None
         for axis in axes:
             value = record[name][axis]
             if not absent and (type(value) not in (int, float) or not math.isfinite(value)):
@@ -765,6 +920,24 @@ def nav2_feedback_quantities(record):
     return row
 
 
+def nav2_through_quantities(record):
+    """Fixed1.1.20 server: empty goals publish all-default feedback before assignments."""
+    count = record["feedback"]["number_of_poses_remaining"]
+    if type(count) is not int or not -32768 <= count <= 32767:
+        raise ValueError("reported remaining poses must be signed16")
+    row = nav2_feedback_quantities(record)  # Same validation/quantity rules; no new math.
+    if count <= 0:
+        row = {"action_uuid_hex": row["action_uuid_hex"],
+               "nav2_pose_disposition": "WITHHELD_NONPOSITIVE_REMAINING_COUNT"}
+    row.update(nav2_number_of_poses_remaining=count,
+               nav2_poses_remaining_disposition=("REPORTED_SIGNED16_COUNT_NOT_COMPLETION" if count > 0
+                   else "ZERO_OR_EMPTY_GOALS_DEFAULT_FEEDBACK" if count == 0
+                   else "NEGATIVE_REPORTED_REPRESENTATION_NOT_PHYSICAL_COUNT"),
+               nav2_feedback_source_basis=("NAV2_1_1_20_a0970867_GOALS_BLACKBOARD_SIZE_ASSIGNED_TO_INT16_"
+                   "EMPTY_GOALS_PUBLISH_DEFAULTS_NO_STATUS_INFERRED_UUID_IS_STRUCTURAL_NOT_AUTHENTICATION"))
+    return row
+
+
 def navsat_quantities(record):
     status = record["status"]["status"]
     covariance_type = record["position_covariance_type"]
@@ -822,10 +995,29 @@ def vehicle_report_quantities(record, typename):
             "vehicle_heading_rate_rad_s": finite(record["heading_rate"])}
 
 
-def transform_quantities(record):
+def gear_quantities(record):
+    code = record["report"]
+    if type(code) is not int or not 0 <= code <= 255:
+        raise ValueError("gear report requires uint8")
+    return {"vehicle_report_stamp_us": json_time({"header": {"stamp": record["stamp"], "frame_id": ""}}, "ros-battery-json"),
+            "vehicle_gear_code": code, "vehicle_gear_name": GEAR_NAMES[code] if code < len(GEAR_NAMES) else None,
+            "vehicle_gear_disposition": "NONE_REPORTED_NOT_GEAR_SELECTION" if code == 0 else
+                "DEFINED_GEAR_REPORTED_NOT_VERIFIED_ENGAGEMENT" if code < len(GEAR_NAMES) else "UNKNOWN_ENUM_RETAINED"}
+
+
+def transform_relation(topic):
+    kind = TF_LISTENER_TOPICS.get(topic)
+    return {"tf_topic_hex": text_hex(topic),
+            "tf_relation_kind": kind or "UNDETERMINED_TOPIC_NOT_A_TF2_LISTENER_TOPIC",
+            "tf_relation_basis": TF_LISTENER_BASIS if kind else
+                "RECORDED_TOPIC_DIFFERS_FROM_TF2_LISTENER_TOPICS_REMAP_OR_NAMESPACE_NOT_INFERRED"}
+
+
+def transform_quantities(record, topic=None):
+    relation = {} if topic is None else transform_relation(topic)
     entries = record["transforms"]
     if not entries:
-        return [{"tf_entry_count": 0}]
+        return [{"tf_entry_count": 0, **relation}]
     result = []
     for index, entry in enumerate(entries):
         stamp = json_time(entry, "ros-battery-json")
@@ -834,7 +1026,7 @@ def transform_quantities(record):
             raise ValueError("distinct nonempty TF frame labels required")
         row = {"tf_entry_count": len(entries), "tf_entry_index": index,
                "tf_parent_frame_hex": text_hex(parent), "tf_child_frame_hex": text_hex(child),
-               "tf_source_stamp_us": stamp}
+               "tf_source_stamp_us": stamp, **relation}
         for group, axes, prefix in [("translation", "xyz", "tf_translation_m_"),
                                     ("rotation", "xyzw", "tf_rotation_xyzw_")]:
             for axis in axes:
@@ -1016,6 +1208,30 @@ def charging_quantities(record):
     return row
 
 
+def estop_quantities(record):
+    """Reported E-stop state; neither a safety verification nor the time of a change."""
+    if type(record["data"]) is not bool:
+        raise ValueError("E-stop report must be a boolean")
+    return {"estop_reported_triggered": "true" if record["data"] else "false",
+            "estop_report_basis": "HUSARION_641A08A0_TRUE_IS_REPORTED_TRIGGERED_NOT_SAFETY_VERIFICATION_NOR_ROBOT_VS_SIM",
+            "estop_time_basis": "NO_PRODUCER_STAMP_LATCHED_SENT_ON_ACTIVATION_AND_CHANGE_CAPTURE_IS_RECEIPT_A_CHANGE_CAN_BE_UNSENT"}
+
+
+def control_selection_quantities(record):
+    autonomy, mode = record.get("autonomy"), record.get("mode")
+    if (not isinstance(autonomy, dict) or not isinstance(mode, dict)
+            or type(autonomy.get("enabled")) is not bool or type(autonomy.get("paused")) is not bool
+            or type(mode.get("mode")) is not int or not -128 <= mode["mode"] <= 127):
+        raise ValueError("invalid reported control selection")
+    code = mode["mode"]
+    return {"control_selection_mode_code": code,
+        "control_selection_mode_reported": {0: "NEUTRAL", 1: "MANUAL", 2: "AUTONOMY"}.get(code, "UNKNOWN_CODE_RETAINED"),
+        "control_selection_autonomy_enabled_reported": str(autonomy["enabled"]).lower(),
+        "control_selection_autonomy_paused_reported": str(autonomy["paused"]).lower(),
+        "control_selection_time_basis": "NO_PRODUCER_TIMESTAMP_OR_FRAME_IN_THIS_TYPE_BAG_CAPTURE_UNKNOWN",
+        "control_selection_basis": "REPORTED_SELECTION_NOT_CONTROL_AUTHORITY_NOT_VERIFIED_ACTUATION_OR_SAFETY"}
+
+
 def autonomy_status_quantities(record):
     """One reported OutdoorNav autonomy state, with nothing about it resolved or rated.
 
@@ -1100,13 +1316,27 @@ def dynamic_joint_quantities(record, kinds, allow_missing_joint_values=False, us
     return rows
 
 
-def cloud_quantities(record, unit, compact=False):
+def cloud_window(count, compact, point_window):
+    if point_window is None:
+        if count > (100000 if compact else 256):
+            raise ValueError("point layout outside finite scope")
+        return 0, count
+    if (not compact or not isinstance(point_window, tuple) or len(point_window) != 2
+            or any(type(n) is not int for n in point_window)
+            or not 0 <= point_window[0] < point_window[1] <= count <= 1000000
+            or point_window[1] - point_window[0] > 100000):
+        raise ValueError("point window must select at most100000 existing points in compact mode")
+    return point_window
+
+
+def cloud_quantities(record, unit, compact=False, point_window=None):
     if unit != "m" or not record["header"]["frame_id"]:
         raise ValueError("point cloud requires explicit metre units and frame")
     width, height, step, stride = [record[key] for key in ("width", "height", "point_step", "row_step")]
     if any(type(n) is not int or n < 0 for n in (width, height, step, stride)):
         raise ValueError("invalid point dimensions")
-    if width * height > (100000 if compact else 256) or step > 64 or stride < width * step:
+    start, stop = cloud_window(width * height, compact, point_window)
+    if step > 64 or stride < width * step:
         raise ValueError("point layout outside finite scope")
     data = record["data"]
     if (not isinstance(data, list) or len(data) != stride * height
@@ -1140,7 +1370,7 @@ def cloud_quantities(record, unit, compact=False):
             raise ValueError("overlapping point xyz")
         selected.append(span)
     rows = []
-    for index in range(width * height):
+    for index in range(start, stop):
         row, column = divmod(index, width)
         values = {}
         for axis in ("x", "y", "z"):
@@ -1339,10 +1569,20 @@ def mcap_file_preflight(stream, data_start, summary_start, data_end, start_ns, s
                 check_single_zstd_frame(compressed, parameters.has_checksum)
             except zstandard.ZstdError as error:
                 raise ValueError("invalid compressed MCAP chunk frame") from error
-            if (parameters.content_size == zstandard.CONTENTSIZE_UNKNOWN
-                    or parameters.content_size != uncompressed_size
-                    or parameters.window_size > LIMIT):
+            if (parameters.window_size > LIMIT or (
+                    parameters.content_size != zstandard.CONTENTSIZE_UNKNOWN
+                    and parameters.content_size != uncompressed_size)):
                 raise ValueError("compressed MCAP chunk frame disagrees with its declared size")
+            if parameters.content_size == zstandard.CONTENTSIZE_UNKNOWN:
+                if not uncompressed_size:
+                    raise ValueError("unknown-size MCAP frame requires positive declared expanded size")
+                try:
+                    expanded_bytes = zstandard.ZstdDecompressor().decompress(
+                        compressed, max_output_size=uncompressed_size, allow_extra_data=False)
+                except zstandard.ZstdError as error:
+                    raise ValueError("invalid MCAP zstd frame or expanded size exceeds its declared cap") from error
+                if len(expanded_bytes) != uncompressed_size:
+                    raise ValueError("MCAP zstd actual expanded size disagrees with its declaration")
         elif compression == "lz4":
             # Same decision point as zstd, and the same already-bounded sizes. The difference is
             # the reader: rosbags passes uncompressed_size to zstd as max_output_size but drops it
@@ -1444,10 +1684,197 @@ def convert_file_compressed(path, metadata, names, joint_kinds, stamped_motion_r
         return output, report
 
 
-def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=None, pointcloud_compact=False, scan_compact=False, list_compact=None, *, start_ns=None, stop_ns=None, topics=None, allow_missing_voltage=False, allow_missing_joint_values=False, ros1=False, scan_unavailable_infinity=False, interface_kinds=None, legacy_schema=None):
-    if type(ros1) is not bool or (ros1 and (joint_kinds or stamped_motion_role or pointcloud_unit or pointcloud_compact or scan_compact or list_compact or start_ns is not None or stop_ns is not None or topics is not None or allow_missing_joint_values or interface_kinds)):
+def ros1_preflight(path):
+    """Bound Reader1's eager indexes and whole-chunk allocations before it opens.
+
+    Walk only native metadata, not unselected payloads. This qualifies the indexed,
+    uncompressed layout used by the pinned reader; it is not another message decoder.
+    Saved input must remain unchanged between this check and conversion.
+    """
+    size = path.stat().st_size
+    metadata_bytes = 0
+    index_entries = 0
+    with path.open("rb") as stream:
+        def exact(count):
+            if count < 0 or stream.tell() + count > size:
+                raise ValueError("ROS1 record length outside file bound")
+            data = stream.read(count)
+            if len(data) != count:
+                raise ValueError("ROS1 truncated record")
+            return data
+
+        def uint32():
+            return struct.unpack("<I", exact(4))[0]
+
+        def account(count):
+            nonlocal metadata_bytes
+            metadata_bytes += count
+            if metadata_bytes > ROS1_METADATA_LIMIT:
+                raise ValueError("ROS1 metadata exceeds bound")
+
+        def header(expected=None):
+            length = uint32()
+            if length > 65536:
+                raise ValueError("ROS1 header exceeds bound")
+            account(4 + length)
+            value = ROS1Header.read(io.BytesIO(struct.pack("<I", length) + exact(length)), expected)
+            return value, length
+
+        def timestamp(value, name):
+            sec, ns = struct.unpack("<II", value[name])
+            if ns >= 1_000_000_000:
+                raise ValueError("ROS1 invalid nanosecond field")
+            return sec * 1_000_000_000 + ns
+
+        if exact(13) != b"#ROSBAG V2.0\n":
+            raise ValueError("ROS1 indexed version 2.0 required")
+        bag, _ = header(ROS1RecordType.BAGHEADER)
+        index_pos = bag.get_uint64("index_pos")
+        connection_count, chunk_count = bag.get_uint32("conn_count"), bag.get_uint32("chunk_count")
+        if not 0 < connection_count <= 4096 or not 0 < chunk_count <= 65536:
+            raise ValueError("ROS1 connection or chunk count outside bound")
+        if bag.get("encryptor", b""):
+            raise ValueError("ROS1 encryption is outside bounded scope")
+        padding = uint32()
+        if padding > 65536:
+            raise ValueError("ROS1 bag header padding exceeds bound")
+        account(4 + padding)
+        exact(padding)
+        chunk_start = stream.tell()
+        if not chunk_start <= index_pos < size:
+            raise ValueError("ROS1 index pointer outside file bound")
+        stream.seek(index_pos)
+        connection_ids = set()
+        for _ in range(connection_count):
+            connection, _ = header(ROS1RecordType.CONNECTION)
+            cid = connection.get_uint32("conn")
+            if cid in connection_ids:
+                raise ValueError("ROS1 duplicate connection identity")
+            connection_ids.add(cid)
+            header()  # Embedded connection declaration is a length-prefixed header.
+        chunks = []
+        for _ in range(chunk_count):
+            info, _ = header(ROS1RecordType.CHUNK_INFO)
+            count = info.get_uint32("count")
+            if info.get_uint32("ver") != 1 or count > connection_count:
+                raise ValueError("ROS1 chunk-info version or count outside bound")
+            data_length = uint32()
+            if data_length != count * 8:
+                raise ValueError("ROS1 chunk-info length mismatch")
+            account(4 + data_length)
+            pairs = list(struct.iter_unpack("<II", exact(data_length)))
+            counts = dict(pairs)
+            if len(counts) != count or set(counts) - connection_ids or any(n == 0 for n in counts.values()):
+                raise ValueError("ROS1 invalid chunk connection counts")
+            first, last = timestamp(info, "start_time"), timestamp(info, "end_time")
+            if first > last:
+                raise ValueError("ROS1 chunk time order is invalid")
+            chunks.append((info.get_uint64("chunk_pos"), counts, first, last))
+        if stream.tell() != size:
+            raise ValueError("ROS1 trailing data outside indexed scope")
+        previous_end = chunk_start
+        index_layout = None
+        for position, counts, first, last in sorted(chunks):
+            if not previous_end <= position < index_pos:
+                raise ValueError("ROS1 overlapping or invalid chunk pointer")
+            stream.seek(position)
+            chunk, _ = header(ROS1RecordType.CHUNK)
+            data_length = uint32()
+            if chunk.get_string("compression") != "none":
+                raise ValueError("ROS1 compressed chunks are outside this bounded input scope")
+            if data_length != chunk.get_uint32("size") or data_length > ROS1_CHUNK_LIMIT:
+                raise ValueError("ROS1 chunk size exceeds bound or disagrees with declaration")
+            if stream.tell() + data_length > index_pos:
+                raise ValueError("ROS1 chunk payload outside file bound")
+            stream.seek(data_length, 1)  # No payload read or decode for preflight.
+            seen = set()
+            for _ in counts:
+                index, length = header(ROS1RecordType.IDXDATA)
+                layout = tuple(index)
+                if (length != 47 or set(layout) != {"op", "ver", "conn", "count"}
+                        or layout[0] != "op" or index.get_uint32("ver") != 1
+                        or index_layout is not None and layout != index_layout):
+                    raise ValueError("ROS1 index header outside pinned reader layout")
+                index_layout = layout
+                cid, count = index.get_uint32("conn"), index.get_uint32("count")
+                if cid in seen or counts.get(cid) != count:
+                    raise ValueError("ROS1 index and chunk count mismatch")
+                seen.add(cid)
+                index_entries += count
+                if index_entries > ROS1_INDEX_LIMIT:
+                    raise ValueError("ROS1 index entries exceed bound")
+                length = uint32()
+                if length != count * 12:
+                    raise ValueError("ROS1 index length mismatch")
+                account(4 + length)
+                for sec, ns, offset in struct.iter_unpack("<III", exact(length)):
+                    if ns >= 1_000_000_000 or not first <= sec * 1_000_000_000 + ns <= last or offset >= data_length:
+                        raise ValueError("ROS1 index timestamp or offset outside chunk bound")
+            previous_end = stream.tell()
+            if previous_end > index_pos:
+                raise ValueError("ROS1 chunk index overlaps connection declarations")
+    return dict(max_chunk_bytes=ROS1_CHUNK_LIMIT, max_metadata_bytes=ROS1_METADATA_LIMIT,
+                max_index_entries=ROS1_INDEX_LIMIT, max_selected_chunk_read_bytes=ROS1_SELECTED_READ_LIMIT,
+                metadata_bytes=metadata_bytes, index_entries=index_entries,
+                unselected_payloads="NOT_DECODED_OR_VALIDATED")
+
+
+def ros1_selected_read_bound(reader, connections, start_ns, stop_ns):
+    """Count the pinned reader's actual chunk reload order before reading payloads."""
+    volume, count, previous = 0, 0, None
+    for entry in heapq.merge(*(reader.indexes[c.id] for c in connections)):
+        if start_ns is not None and entry.time < start_ns:
+            continue
+        if stop_ns is not None and entry.time >= stop_ns:
+            break
+        if entry.chunk_pos != previous:
+            volume += reader.chunks[entry.chunk_pos].datasize
+            if volume > ROS1_SELECTED_READ_LIMIT:
+                raise ValueError("ROS1 selected chunk read volume exceeds bound; narrow the interval")
+            previous = entry.chunk_pos
+        count += 1
+    return dict(selected_chunk_read_bytes=volume, index_selected_messages=count)
+
+
+def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=None, pointcloud_compact=False, scan_compact=False, list_compact=None, *, start_ns=None, stop_ns=None, topics=None, allow_missing_voltage=False, allow_missing_joint_values=False, ros1=False, scan_unavailable_infinity=False, interface_kinds=None, legacy_schema=None, nav2_through_poses=False, outdoornav_control_state=False, autoware_gear=False, imu_reported_covariance=False, point_window=None, tf_relation=False, husarion_estop=False, husarion_model=False):
+    if type(husarion_model) is not bool or (husarion_model and
+            (ros1 or pointcloud_compact or scan_compact or list_compact or legacy_schema)):
+        raise ValueError("robot description requires explicit noncompact qualified ROS2 messages")
+    if type(husarion_estop) is not bool or (husarion_estop and
+            (ros1 or pointcloud_compact or scan_compact or list_compact or legacy_schema)):
+        raise ValueError("E-stop reports require explicit noncompact qualified ROS2 messages")
+    if type(tf_relation) is not bool or (tf_relation and (ros1 or legacy_schema or pointcloud_compact or scan_compact or list_compact)):
+        raise ValueError("TF relation columns require noncompact qualified ROS2 messages")
+    if point_window is not None and (not pointcloud_compact or ros1 or legacy_schema):
+        raise ValueError("point-index window requires compact qualified ROS2 point clouds")
+    if type(imu_reported_covariance) is not bool or (imu_reported_covariance and
+            (ros1 or legacy_schema or pointcloud_compact or scan_compact or list_compact)):
+        raise ValueError("IMU covariance requires noncompact qualified ROS2 messages")
+    if type(autoware_gear) is not bool or (autoware_gear and
+            (ros1 or pointcloud_compact or scan_compact or list_compact or legacy_schema)):
+        raise ValueError("gear reports require explicit noncompact qualified ROS2 messages")
+    if type(outdoornav_control_state) is not bool or (outdoornav_control_state and
+            (ros1 or pointcloud_compact or scan_compact or list_compact or legacy_schema)):
+        raise ValueError("control selection requires explicit noncompact qualified ROS2 messages")
+    if type(nav2_through_poses) is not bool or (nav2_through_poses and
+            (ros1 or pointcloud_compact or scan_compact or list_compact or legacy_schema)):
+        raise ValueError("multi-pose feedback requires explicit noncompact qualified ROS2 messages")
+    if type(ros1) is not bool or (ros1 and (joint_kinds or stamped_motion_role or pointcloud_unit or pointcloud_compact or scan_compact or list_compact or allow_missing_joint_values or interface_kinds)):
         raise ValueError("ROS1 selection accepts only the fixed battery and IMU record scope")
     qualified_hashes = ROS1_HASHES if ros1 else HASHES
+    if autoware_gear:
+        qualified_hashes = dict(qualified_hashes, **{GEAR_REPORT: GEAR_HASH})
+    if nav2_through_poses:
+        qualified_hashes = dict(qualified_hashes, **{NAV2_THROUGH: NAV2_THROUGH_HASH})
+    if outdoornav_control_state:
+        qualified_hashes = dict(qualified_hashes, **{CONTROL_SELECTION: CONTROL_SELECTION_HASH})
+    if husarion_estop:
+        qualified_hashes = dict(qualified_hashes, **{ESTOP: ESTOP_HASH})
+    if husarion_model:
+        qualified_hashes = dict(qualified_hashes, **{MODEL: MODEL_HASH})
+    estop_unselected = set()
+    model_names = []
+    decoded_topics = set()
     if legacy_schema is not None and (ros1 or legacy_schema not in LEGACY_SCHEMA_CHOICES):
         # A fixed enumeration, not free text, and not available for the ROS1 path.
         raise ValueError("legacy schema selection must name one supported ROS2 schema contract")
@@ -1485,11 +1912,13 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
         raise ValueError("joint interface configuration cannot use compact selection")
     if type(allow_missing_voltage) is not bool or allow_missing_voltage and compact:
         raise ValueError("battery missing-voltage policy cannot use other compact selection")
-    if legacy_type is not None and compact:
-        # Another compact selection would silently exclude the named legacy type; refuse instead.
-        raise ValueError("legacy schema selection cannot use another compact selection")
     selected_type = ({"actions": ACTION_STATUS, "parameters": PARAMETER_EVENT}[list_compact]
         if list_compact else POINT_CLOUD if pointcloud_compact else "sensor_msgs/msg/LaserScan")
+    if legacy_type is not None:
+        if compact and legacy_type != selected_type:
+            raise ValueError("legacy schema selection cannot use another compact selection")
+        if legacy_type != BATTERY and not compact:
+            raise ValueError("legacy schema selection requires its matching compact sensor selection")
     source_key = "list_sources" if list_compact else "pointcloud_sources" if pointcloud_compact else "scan_sources"
     if compact and (joint_kinds or stamped_motion_role):
         raise ValueError("compact selection cannot silently ignore other message configuration")
@@ -1503,12 +1932,13 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
     paths = list(path.rglob("*")) if path.is_dir() else [path]
     if path.is_symlink() or any(p.is_symlink() for p in paths):
         raise ValueError("symlink bag not supported")
-    if windowed and not path.is_dir():
+    if windowed and not ros1 and not path.is_dir():
         raise ValueError("window selection requires an uncompressed sqlite3 or indexed MCAP bag directory")
-    if topics is not None and not path.is_dir():
+    if topics is not None and not ros1 and not path.is_dir():
         raise ValueError("topic selection requires a sqlite3 or MCAP bag directory without external compression")
     if sum(p.stat().st_size for p in paths if p.is_file()) > (2 * 1024**3 if windowed else LIMIT):
         raise ValueError("bag too large; select a finite recording segment")
+    ros1_bounds = ros1_preflight(path) if ros1 else None
     if path.is_dir():
         with (path / "metadata.yaml").open("rb") as stream:
             metadata_raw = stream.read(256001 if windowed else LIMIT + 1)
@@ -1530,7 +1960,21 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
         if legacy_type is not None and metadata["rosbag2_bagfile_information"].get("compression_mode", "") != "":
             # The compressed route has no legacy selection; refuse rather than ignore the request.
             raise ValueError("legacy schema selection requires an uncompressed sqlite3 bag")
+        if imu_reported_covariance and metadata["rosbag2_bagfile_information"].get("compression_mode", ""):
+            raise ValueError("IMU covariance selection requires uncompressed input")
         if metadata["rosbag2_bagfile_information"].get("compression_mode", "").lower() == "file":
+            if point_window is not None:
+                raise ValueError("point-index window requires uncompressed storage files")
+            if autoware_gear:
+                raise ValueError("gear report file compression is not qualified")
+            if outdoornav_control_state:
+                raise ValueError("control selection file compression is not qualified")
+            if husarion_estop:
+                raise ValueError("E-stop report file compression is not qualified")
+            if husarion_model:
+                raise ValueError("robot description file compression is not qualified")
+            if nav2_through_poses:
+                raise ValueError("multi-pose feedback file compression is not qualified")
             return convert_file_compressed(path, metadata, names, joint_kinds, stamped_motion_role, pointcloud_unit, pointcloud_compact, scan_compact, list_compact, allow_missing_voltage, allow_missing_joint_values, scan_unavailable_infinity, interface_kinds)
         if windowed and storage == "mcap":
             # The MCAP reader trusts declared chunk bounds and skips a chunk whose
@@ -1539,6 +1983,20 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
     output = io.StringIO(newline="")
     output_fields = BASE + IMU_FIELDS + DIAG_FIELDS + MOTION_FIELDS + SENSOR_FIELDS + TF_FIELDS + SCAN_FIELDS + JOINT_FIELDS + ACTION_FIELDS + CLOUD_FIELDS + NAVSAT_FIELDS + PARAMETER_FIELDS
     output_fields += NAV2_FIELDS + VEHICLE_FIELDS + PX4_BATTERY_FIELDS + SERVICE_FIELDS + CHARGING_FIELDS + DYNAMIC_FIELDS + AUTONOMY_FIELDS
+    if imu_reported_covariance:
+        output_fields += IMU_COVARIANCE_FIELDS
+    if tf_relation:
+        output_fields += TF_RELATION_FIELDS
+    if autoware_gear:
+        output_fields += GEAR_FIELDS
+    if nav2_through_poses:
+        output_fields += NAV2_THROUGH_FIELDS
+    if outdoornav_control_state:
+        output_fields += CONTROL_SELECTION_FIELDS
+    if husarion_estop:
+        output_fields += ESTOP_FIELDS
+    if husarion_model:
+        output_fields += MODEL_FIELDS
     if allow_missing_voltage:
         output_fields += ["battery_voltage_disposition"]
     if pointcloud_compact:
@@ -1556,6 +2014,8 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
     service_events = []
     consumed_interfaces = set()
     report["service_sources"] = []
+    if husarion_model:
+        report["model_sources"] = []
     if scan_unavailable_infinity:
         report["scan_infinity_policy"] = "UNAVAILABLE_RETURN_REPORTED"
     if allow_missing_voltage:
@@ -1582,12 +2042,14 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
                 excluded_topics=[dict(topic=c.topic, type=c.msgtype, declared_messages=c.msgcount)
                                  for c in reader.connections if c.topic not in topics],
                 outside_selection=("NOT_DECODED_OR_VALIDATED"
-                    if metadata["rosbag2_bagfile_information"]["storage_identifier"] == "mcap"
+                    if ros1 or metadata["rosbag2_bagfile_information"]["storage_identifier"] == "mcap"
                     else "NOT_READ_OR_VALIDATED"),
                 source_message_index_basis="selected topics and interval; not global bag index")
             if len(json.dumps(report).encode()) > LIMIT:
                 raise ValueError("topic declaration report exceeds bound")
         declared_selected = sum(c.msgcount for c in connections)
+        if ros1:
+            report["ros1_bounds"] = dict(ros1_bounds, **ros1_selected_read_bound(reader, connections, start_ns, stop_ns))
         if windowed:
             report["capture_window"] = dict(start_ns=start_ns, stop_ns_exclusive=stop_ns,
                 declared_bag_messages=declared_total, outside_window="NOT_DECODED_OR_VALIDATED",
@@ -1599,8 +2061,8 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
             storage_start = None if start_ns == 0 else start_ns - 1
             report["capture_window"]["mcap"] = dict(mcap_window,
                 storage_request_start_ns=storage_start, boundary_filtered_records=0,
-                accepted_contract="uncompressed, zstd or lz4 chunks, other names refused; a zstd chunk must be one complete frame whose declared content size equals the chunk uncompressed_size, window within bound; an lz4 chunk must be one complete frame that expands to exactly the chunk uncompressed_size under that cap, with no trailing frame and block size within bound, and any content size it stores must agree; summary schemas, chunk index and message index; no bag compression",
-                verified="magic, bounded header, footer, bounded summary walk, chunk record against its index entry including its compression name, declared uncompressed and compressed volume bounds, zstd frame framing and declared content size, lz4 frame header and a capped expansion to exactly the declared size with no trailing data, selected message index entries, read count against index declaration",
+                accepted_contract="uncompressed, zstd or lz4 chunks, other names refused; a zstd chunk must be one complete frame with window within bound and declared content size equal to chunk uncompressed_size, or absent frame content size with positive bounded MCAP declaration and capped expansion to exactly that size; an lz4 chunk must be one complete frame that expands to exactly the chunk uncompressed_size under that cap, with no trailing frame and block size within bound, and any content size it stores must agree; summary schemas, chunk index and message index; no bag compression",
+                verified="magic, bounded header, footer, bounded summary walk, chunk record against its index entry including its compression name, declared uncompressed and compressed volume bounds, zstd frame framing and declared content size or size-absent capped exact expansion, lz4 frame header and a capped expansion to exactly the declared size with no trailing data, selected message index entries, read count against index declaration",
                 not_verified="chunk CRC, message payload bytes, chunks outside the selected interval")
         storage_schemas = sqlite_storage_schemas(reader) if not ros1 else ()
         legacy_connections = set()
@@ -1630,28 +2092,13 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
                 # not evidence, so it is retained and accounted without being decoded.
                 (legacy_connections if connection.msgtype == legacy_type else legacy_unselected).add(connection.id)
                 continue
-            allowed_hashes = (qualified_hashes.get(connection.msgtype),)
-            if not ros1 and connection.msgtype == RANGE:
-                allowed_hashes += (RANGE_VARIANCE_HASH,)
-            if connection.msgtype in qualified_hashes and (
-                    connection.digest not in allowed_hashes
-                    or (not ros1 and connection.ext.serialization_format != "cdr")):
-                raise ValueError("selected ROS schema hash or serialization mismatch")
-            if connection.msgtype in qualified_hashes:
-                definition = connection.msgdef
-                if len(definition.data.encode()) > 256000:
-                    raise ValueError("embedded ROS definition exceeds bound")
-                declared = get_typestore(Stores.EMPTY)
-                if definition.format == MessageDefinitionFormat.MSG:
-                    declared.register(get_types_from_msg(definition.data, connection.msgtype))
-                elif definition.format == MessageDefinitionFormat.IDL:
-                    declared.register(get_types_from_idl(definition.data))
-                else:
-                    raise ValueError("selected ROS definition is missing")
-                declared_hash = (declared.generate_msgdef(connection.msgtype)[1] if ros1
-                                 else declared.hash_rihs01(normalize_msgtype(connection.msgtype)))
-                if declared_hash != connection.digest:
-                    raise ValueError("embedded ROS definition does not match selected schema")
+            if husarion_model and connection.msgtype == MODEL and not husarion_model_topic(connection.topic):
+                estop_unselected.add(connection.id)
+                continue
+            if husarion_estop and connection.msgtype == ESTOP and not husarion_estop_topic(connection.topic):
+                estop_unselected.add(connection.id)
+                continue
+            qualify_connection(connection, qualified_hashes, ros1=ros1)
         if legacy_unselected:
             report["legacy_schema_selection"]["unselected_legacy_connections"] = [
                 dict(topic=c.topic, type=c.msgtype, declared_messages=c.msgcount,
@@ -1670,7 +2117,8 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
             report["source_messages"] += 1
             if windowed and not start_ns <= timestamp < stop_ns:
                 raise ValueError("storage yielded a record outside selected interval")
-            raw_limit = 8 * 1024 * 1024 if compact else 12000
+            model = husarion_model and connection.msgtype == MODEL and connection.id not in estop_unselected
+            raw_limit = 8 * 1024 * 1024 if compact else MODEL_RAW_LIMIT if model else 12000
             if not 0 <= timestamp <= 2**63 - 1 or len(raw) > raw_limit:
                 raise ValueError("record timestamp or size outside finite scope")
             source = {"topic": connection.topic, "type": connection.msgtype,
@@ -1683,7 +2131,7 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
                               local_definition_hash=qualified_hashes[connection.msgtype],
                               storage_schema=storage_schema)
             if (connection.msgtype not in qualified_hashes or connection.id in legacy_unselected
-                    or (compact and connection.msgtype != selected_type)):
+                    or connection.id in estop_unselected or (compact and connection.msgtype != selected_type)):
                 if connection.id in legacy_unselected:
                     source["legacy_disposition"] = "TYPE_NOT_SELECTED_NO_HASH_PRESENT_NOT_DECODED"
                 if compact:
@@ -1695,14 +2143,36 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
                 continue
             store = (SERVICE_STORE if connection.msgtype == GET_PARAMETERS_EVENT else
                      RANGE_STORE if connection.msgtype == RANGE and connection.digest == RANGE_VARIANCE_HASH else STORE)
+            if connection.msgtype == ESTOP and (len(raw) < 5 or raw[4] not in (0, 1)):
+                raise ValueError("invalid E-stop boolean encoding")
+            if connection.msgtype == CONTROL_SELECTION and (len(raw) < 7 or raw[4] not in (0, 1) or raw[5] not in (0, 1)):
+                raise ValueError("invalid control selection boolean encoding")
             record = decode(raw, normalize_msgtype(connection.msgtype), store, ros1=ros1)
-            # Validate header stamp/frame, without promoting it to capture/UTC time.
-            if connection.msgtype not in (TF, ACTION_STATUS, PARAMETER_EVENT, NAV2_FEEDBACK,
-                                         STEERING_REPORT, PX4_BATTERY, GET_PARAMETERS_EVENT):
+            if connection.msgtype not in (TF, ACTION_STATUS, PARAMETER_EVENT, NAV2_FEEDBACK, NAV2_THROUGH,
+                                         STEERING_REPORT, GEAR_REPORT, PX4_BATTERY, GET_PARAMETERS_EVENT, CONTROL_SELECTION, ESTOP, MODEL):
                 json_time(record, "ros-battery-json")
-            source["decoded"] = record if not compact else {k: v for k, v in record.items()
+            if model:
+                source["decoded"] = {"data_bytes": len(record["data"].encode()),
+                                     "data_sha256": hashlib.sha256(record["data"].encode()).hexdigest()}
+            else:
+                source["decoded"] = record if not compact else {k: v for k, v in record.items()
                 if k not in (("status_list", "new_parameters", "changed_parameters", "deleted_parameters")
                     if list_compact else ("data",) if pointcloud_compact else ("ranges", "intensities"))}
+            if point_window is not None and connection.msgtype == POINT_CLOUD:
+                total_points = record["width"] * record["height"]
+                point_start, point_stop = cloud_window(total_points, pointcloud_compact, point_window)
+                source["point_index_window"] = dict(start=point_start, stop_exclusive=point_stop,
+                    original_points=total_points, selected_points=point_stop - point_start,
+                    outside_points=total_points - (point_stop - point_start),
+                    outside_coordinate_meaning="NOT_DECODED_OR_VALIDATED")
+            if model:
+                model_digest = hashlib.sha256(raw).hexdigest()
+                report["model_sources"].append(dict(source, source_cdr_sha256=model_digest))
+                report_bytes += len(json.dumps(report["model_sources"][-1]).encode())
+                if report_bytes > LIMIT or len(report["model_sources"]) > 16:
+                    raise ValueError("retained robot description report exceeds bound")
+                source = {k: source[k] for k in ("topic", "type", "type_hash", "capture_ns")}
+                source.update(source_cdr_sha256=model_digest, retained_in="report.model_sources")
             retained = json.dumps(source, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
             if len(retained.encode()) > (LIMIT if compact else 30000):
                 raise ValueError("retained source record exceeds bound")
@@ -1719,6 +2189,11 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
                     raise ValueError("compact source report exceeds bound")
                 report[source_key].append(source)
                 descriptor = {k: source[k] for k in ("topic", "type", "type_hash", "capture_ns")}
+                if "point_index_window" in source:
+                    descriptor["point_index_window_basis"] = "SOURCE_MESSAGE_INDEX_IN_PAIRED_REPORT"
+                if connection.id in legacy_connections:
+                    descriptor.update({k: source[k] for k in
+                        ("type_hash_basis", "selected_schema", "local_definition_hash", "storage_schema")})
                 row.update(source_record_hex="hex:" + json.dumps(descriptor, separators=(",", ":")).encode().hex(),
                            source_message_index=message_index, source_cdr_sha256="sha256:" + digest)
             if connection.msgtype == GET_PARAMETERS_EVENT:
@@ -1734,6 +2209,8 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
                 report["service_sources"].append(source)
                 service_events.append((row, connection.topic, record, index, timestamp))
                 report["decoded_messages"] += 1
+                if husarion_model:
+                    decoded_topics.add(connection.topic)
                 continue
             if connection.msgtype == BATTERY:
                 fields = BASE[2:] + (["battery_voltage_disposition"] if allow_missing_voltage else [])
@@ -1743,26 +2220,39 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
                 quantities = [px4_battery_quantities(record)]
             elif connection.msgtype == NAV2_FEEDBACK:
                 quantities = [nav2_feedback_quantities(record)]
+            elif connection.msgtype == NAV2_THROUGH:
+                quantities = [nav2_through_quantities(record)]
             elif connection.msgtype in VEHICLE_DEFINITIONS:
                 quantities = [vehicle_report_quantities(record, connection.msgtype)]
+            elif connection.msgtype == GEAR_REPORT:
+                quantities = [gear_quantities(record)]
             elif connection.msgtype == POINT_CLOUD:
-                quantities = cloud_quantities(record, pointcloud_unit, pointcloud_compact)
+                quantities = cloud_quantities(record, pointcloud_unit, pointcloud_compact, point_window)
             elif connection.msgtype == NAVSAT:
                 quantities = [navsat_quantities(record)]
             elif connection.msgtype == IMU:
-                quantities = [imu_quantities(record)]
+                quantities = [imu_quantities(record, reported_covariance=imu_reported_covariance)]
             elif connection.msgtype == DIAGNOSTIC:
                 quantities = diagnostic_quantities(record)
             elif connection.msgtype == ODOMETRY:
                 quantities = [motion_quantities(record)]
             elif connection.msgtype == TF:
-                quantities = transform_quantities(record)
+                quantities = transform_quantities(record, connection.topic if tf_relation else None)
             elif connection.msgtype == JOINT:
                 quantities = joint_quantities(record, joint_kinds, allow_missing_joint_values)
             elif connection.msgtype == CHARGING:
                 quantities = [charging_quantities(record)]
             elif connection.msgtype == AUTONOMY:
                 quantities = [autonomy_status_quantities(record)]
+            elif connection.msgtype == CONTROL_SELECTION:
+                quantities = [control_selection_quantities(record)]
+            elif connection.msgtype == ESTOP:
+                quantities = [estop_quantities(record)]
+            elif model:
+                quantities = [model_quantities(record, model_digest)]
+                model_names.append((connection.topic[:-len("/robot_description")],
+                                    quantities[0]["model_robot_name_reported"],
+                                    quantities[0]["model_runtime_declared"]))
             elif connection.msgtype == DYNAMIC_JOINT:
                 quantities = dynamic_joint_quantities(record, interface_kinds,
                                                       allow_missing_joint_values, consumed_interfaces)
@@ -1784,6 +2274,8 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
                 if output.tell() > (128 * 1024 * 1024 if compact else LIMIT):
                     raise ValueError("converted CSV exceeds bound")
             report["decoded_messages"] += 1
+            if husarion_model:
+                decoded_topics.add(connection.topic)
         if service_events:
             paired, transactions = service_transaction_rows(service_events)
             for row, values in paired:
@@ -1800,16 +2292,24 @@ def convert(path, joint_kinds=None, stamped_motion_role=None, pointcloud_unit=No
             report.pop("service_sources")
         if not windowed and report["source_messages"] != declared_selected:
             raise ValueError("bag message count mismatch")
+        if ros1 and report["source_messages"] != report["ros1_bounds"]["index_selected_messages"]:
+            raise ValueError("read messages differ from the ROS1 index declaration")
         if windowed:
             if report["source_messages"] > declared_selected:
                 raise ValueError("selected messages exceed declared bag count")
             report["capture_window"]["selected_messages"] = report["source_messages"]
+            if ros1:
+                report["capture_window"]["outside_window_messages"] = declared_selected - report["source_messages"]
             if mcap_window is not None and report["source_messages"] != mcap_window["index_declared_selected_messages"]:
                 raise ValueError("read messages differ from the MCAP index declaration for this interval")
         if topics is not None:
             report["topic_selection"]["read_messages"] = report["source_messages"]
     if not report["decoded_messages"]:
         raise ValueError("no supported messages")
+    if husarion_model:
+        model_topics = {namespace + "/robot_description" for namespace, _, _ in model_names}
+        domain, basis, extras = model_ground_decision(model_names, decoded_topics - model_topics)
+        report.update(model_domain=domain, model_domain_basis=basis, **extras)
     if consumed_interfaces != set(interface_kinds):
         # A configuration no selected record consumed is a caller error, whether the pair was
         # absent from a decoded message or no DynamicJointState was selected at all. It is
@@ -2035,7 +2535,8 @@ def round_half_even(value):
     return round(value)
 
 
-def iter_occupancy_runs(width, height, samples, mode, negate, free, occupied):
+def iter_occupancy_runs(width, height, samples, mode, negate, free, occupied,
+                        start_cell=0, stop_cell=None):
     """Yield grid-order runs of equal occupancy, holding no more than one run at a time.
 
     Grid row 0 is the image's **last** row: Nav2 stores `data[width * (height - y - 1) + x]`, so
@@ -2048,29 +2549,32 @@ def iter_occupancy_runs(width, height, samples, mode, negate, free, occupied):
     table = [occupancy_of(v, mode, negate, free, occupied) for v in range(256)]
     start = length = 0
     current = None
-    index = 0
-    for row in range(height):
-        base = (height - 1 - row) * width
-        for column in range(width):
-            value = table[samples[base + column]]
-            if current is not None and value == current:
-                length += 1
-            else:
-                if current is not None:
-                    yield start, length, current, start // width, start % width
-                start, length, current = index, 1, value
-            index += 1
+    for index in range(start_cell, width * height if stop_cell is None else stop_cell):
+        row, column = divmod(index, width)
+        value = table[samples[(height - 1 - row) * width + column]]
+        if current is not None and value == current:
+            length += 1
+        else:
+            if current is not None:
+                yield start, length, current, start // width, start % width
+            start, length, current = index, 1, value
     if current is not None:
         yield start, length, current, start // width, start % width
 
 
-def convert_map_metadata(path, capture_time_us, image_path=None, image_sha256=None):
+def convert_map_metadata(path, capture_time_us, image_path=None, image_sha256=None,
+                         start_cell=None, stop_cell=None):
     """Nav2 1.1.20 saved map declaration.
 
     The referenced image is **never** resolved or opened from the YAML. Occupancy cells are
     produced only when the caller supplies both the image path and the digest it must have.
     """
     from ruamel.yaml.nodes import MappingNode, ScalarNode, SequenceNode
+    selected = start_cell is not None or stop_cell is not None
+    if selected and (type(start_cell) is not int or type(stop_cell) is not int
+                     or not 0 <= start_cell < stop_cell <= MAP_CELL_LIMIT
+                     or stop_cell - start_cell > 65536 or image_path is None):
+        raise ValueError("cell window requires image and integer bounds selecting 1..65536 cells")
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
         raise ValueError("explicit capture time required")
     with Path(path).open("rb") as stream:
@@ -2143,9 +2647,12 @@ def convert_map_metadata(path, capture_time_us, image_path=None, image_sha256=No
             raise ValueError("map image digest does not match the one the caller declared")
         width, height, samples = read_pgm_p5(pixels)
         total = width * height
+        if selected and stop_cell > total:
+            raise ValueError("cell window exceeds original map cells")
 
         def walk():
-            return iter_occupancy_runs(width, height, samples, mode, bool(negate), free, occupied)
+            return iter_occupancy_runs(width, height, samples, mode, bool(negate), free, occupied,
+                                      start_cell if selected else 0, stop_cell if selected else None)
 
         # First bounded pass: the declaration row needs the run count and the accounted total, and
         # neither the runs nor their rows may be kept. Counting costs one integer pair.
@@ -2153,7 +2660,7 @@ def convert_map_metadata(path, capture_time_us, image_path=None, image_sha256=No
         for _, length, _, _, _ in walk():
             runs += 1
             accounted += length
-        if accounted != total:
+        if accounted != (stop_cell - start_cell if selected else total):
             raise ValueError("occupancy runs do not account for every cell")
         declared_name = image.rsplit("/", 1)[-1]
         row.update(map_declaration_disposition="DECLARED_AND_CALLER_SUPPLIED_IMAGE_READ",
@@ -2165,9 +2672,16 @@ def convert_map_metadata(path, capture_time_us, image_path=None, image_sha256=No
             map_cell_accounted=accounted, map_cell_run_count=runs,
             map_cell_order_basis="ROW_MAJOR_FROM_BOTTOM_LEFT_CELL_0_AT_DECLARED_ORIGIN",
             map_cell_occupancy_basis="NAV2_1_1_20_PERCENT_0_TO_100_OR_MINUS_1_UNKNOWN_NOT_OBSTACLE_TRUTH")
+        if selected:
+            row.update(map_cell_selection_start=start_cell, map_cell_selection_stop_exclusive=stop_cell,
+                map_cell_selected_count=accounted, map_cell_excluded_count=total - accounted,
+                map_cell_selection_scope="ONLY_SELECTED_CELL_MEANINGS_DECODED_OR_ACCOUNTED")
         row.update({key: "" for key in cell_fields})
         scope = ("map YAML declaration plus the caller-supplied image decoded by the pinned "
                  "Nav2 1.1.20 rule; frame identity, physical map and obstacle truth not verified")
+        if selected:
+            scope = ("selected original map cell interval only; full image bytes hashed and shape "
+                     "validated, excluded cell meanings not decoded; physical map not verified")
     output = io.StringIO(newline="")
     writer = csv.DictWriter(output, fieldnames=list(row), lineterminator="\n", restval="")
 
@@ -2410,9 +2924,16 @@ def convert_rqt_console(path, capture_time_us):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--tf-relation", action="store_true", help="add recorded TF topic and static/time-varying kind only for exact tf2_ros listener topics")
+    parser.add_argument("--imu-reported-covariance", action="store_true", help="fixed ROS2 IMU row-major covariance values; unknown/absent remain unqualified")
+    parser.add_argument("--autoware-gear", action="store_true", help="fixed Autoware GearReport saved schema and enum; no physical engagement inference")
     parser.add_argument("input", type=Path)
     parser.add_argument("output_directory", type=Path)
     parser.add_argument("--ros1-noetic", action="store_true", help="saved uncompressed ROSbag1: fixed BatteryState/Imu, retain original Header.seq")
+    parser.add_argument("--nav2-through-poses", action="store_true", help="fixed Nav2 1.1.20 multi-pose feedback; empty/default progress withheld")
+    parser.add_argument("--husarion-model", action="store_true", help="fixed husarion_ugv_ros 641a08a0 robot_description root name/plugins; Ground only for a same-bag panther declaration")
+    parser.add_argument("--husarion-estop", action="store_true", help="fixed husarion_ugv_ros 641a08a0 hardware/e_stop Bool report; no safety verification or E-stop operation")
+    parser.add_argument("--outdoornav-control-state", action="store_true", help="fixed saved OutdoorNav control-selection report; no control authority or execution")
     parser.add_argument("--joint-kind", action="append", default=[], metavar="NAME=angular|linear")
     parser.add_argument("--interface-kind", action="append", default=[],
                         metavar="JOINT.INTERFACE=angular_position|angular_velocity|angular_effort|linear_position|linear_velocity|linear_effort",
@@ -2425,15 +2946,17 @@ def main():
     parser.add_argument("--map-metadata-only", action="store_true", help="read Nav2 1.1.20 map YAML declaration without opening its image")
     parser.add_argument("--map-image", type=Path, help="caller-associated Nav2 map image to decode; the YAML's own image reference is never followed")
     parser.add_argument("--map-image-sha256", help="digest the caller states the map image must have; a mismatch is refused")
+    parser.add_argument("--map-start-cell", type=int, help="first original row-major cell, inclusive")
+    parser.add_argument("--map-stop-cell", type=int, help="exclusive original cell bound, max65536 per selection")
     parser.add_argument("--capture-time-us", type=int, help="explicit capture clock for parameter/map YAML or saved rqt logs")
     parser.add_argument("--pointcloud-unit", choices=("m",), help="explicit xyz coordinate units for selected PointCloud2")
     parser.add_argument("--pointcloud-compact", action="store_true", help="select point clouds; retain original CDR once in report.json")
     parser.add_argument("--scan-compact", action="store_true", help="select LaserScan; retain original CDR once in report.json")
     parser.add_argument("--list-compact", choices=("actions", "parameters"),
                         help="select existing action/parameter lists; retain CDR once in report.json")
-    parser.add_argument("--start-ns", type=int, help="inclusive capture timestamp; requires --stop-ns, uncompressed sqlite3 or indexed MCAP")
+    parser.add_argument("--start-ns", type=int, help="inclusive capture timestamp; requires --stop-ns, uncompressed sqlite3, indexed MCAP or selected uncompressed ROS1")
     parser.add_argument("--stop-ns", type=int, help="exclusive capture timestamp; requires --start-ns")
-    parser.add_argument("--topic", action="append", help="exact topic selection; repeat up to32, sqlite3/MCAP without external compression")
+    parser.add_argument("--topic", action="append", help="exact topic selection; repeat up to32, sqlite3/MCAP without external compression or selected uncompressed ROS1")
     parser.add_argument("--allow-missing-voltage", action="store_true",
                         help="qualified BatteryState publisher NaN voltage is unavailable, not zero")
     parser.add_argument("--allow-missing-joint-values", action="store_true",
@@ -2444,9 +2967,29 @@ def main():
                         help="legacy sqlite3 bag without a type hash: decode the named type with this repo's fixed local definition; the producer schema stays UNVERIFIED")
     args = parser.parse_args()
     try:
-        # Rejected before any route is chosen, so no earlier branch can ignore a map image the
-        # caller supplied and still look like it succeeded.
-        if (args.map_image is not None or args.map_image_sha256 is not None) and not args.map_metadata_only:
+        if args.tf_relation and (args.metadata_only or args.parameters_only or args.map_metadata_only
+                or args.amiga_filter_json or args.rqt_console_csv):
+            raise ValueError("TF relation requires ROS2 message input")
+        if args.imu_reported_covariance and (args.metadata_only or args.parameters_only or args.map_metadata_only
+                or args.amiga_filter_json or args.rqt_console_csv):
+            raise ValueError("IMU covariance requires ROS2 message input")
+        if args.autoware_gear and (args.metadata_only or args.parameters_only or args.map_metadata_only
+                or args.amiga_filter_json or args.rqt_console_csv):
+            raise ValueError("gear selection requires ROS2 message input")
+        if args.outdoornav_control_state and (args.metadata_only or args.parameters_only or args.map_metadata_only
+                or args.amiga_filter_json or args.rqt_console_csv):
+            raise ValueError("control selection requires ROS2 message input")
+        if args.husarion_model and (args.metadata_only or args.parameters_only or args.map_metadata_only
+                or args.amiga_filter_json or args.rqt_console_csv):
+            raise ValueError("robot description selection requires ROS2 message input")
+        if args.husarion_estop and (args.metadata_only or args.parameters_only or args.map_metadata_only
+                or args.amiga_filter_json or args.rqt_console_csv):
+            raise ValueError("E-stop selection requires ROS2 message input")
+        if args.nav2_through_poses and (args.metadata_only or args.parameters_only or args.map_metadata_only
+                or args.amiga_filter_json or args.rqt_console_csv):
+            raise ValueError("multi-pose feedback selection requires ROS2 message input")
+        if (args.map_image is not None or args.map_image_sha256 is not None
+                or args.map_start_cell is not None or args.map_stop_cell is not None) and not args.map_metadata_only:
             raise ValueError("a map image belongs to the map YAML declaration route")
         if args.scan_unavailable_infinity and (not args.scan_compact or args.metadata_only or args.parameters_only
                 or args.map_metadata_only or args.amiga_filter_json or args.ros1_noetic):
@@ -2488,7 +3031,8 @@ def main():
                 output, report = convert_parameter_yaml(args.input, args.capture_time_us)
             else:
                 output, report = convert_map_metadata(args.input, args.capture_time_us,
-                                                      args.map_image, args.map_image_sha256)
+                                                      args.map_image, args.map_image_sha256,
+                                                      args.map_start_cell, args.map_stop_cell)
         elif args.capture_time_us is not None:
             raise ValueError("capture clock requires a parameter or map YAML declaration")
         elif args.metadata_only:
@@ -2501,11 +3045,20 @@ def main():
                                      allow_missing_voltage=args.allow_missing_voltage,
                                      allow_missing_joint_values=args.allow_missing_joint_values, ros1=args.ros1_noetic,
                                      scan_unavailable_infinity=args.scan_unavailable_infinity,
-                                     interface_kinds=interfaces, legacy_schema=args.legacy_schema)
+                                     interface_kinds=interfaces, legacy_schema=args.legacy_schema,
+                                     nav2_through_poses=args.nav2_through_poses,
+                                     outdoornav_control_state=args.outdoornav_control_state,
+                                     husarion_estop=args.husarion_estop, husarion_model=args.husarion_model,
+                                     autoware_gear=args.autoware_gear,
+                                     imu_reported_covariance=args.imu_reported_covariance,
+                                     tf_relation=args.tf_relation)
         args.output_directory.mkdir()  # Refuse existing output/evidence, including input equality.
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         report_text = json.dumps(report, separators=(",", ":")) if args.pointcloud_compact or args.scan_compact or args.list_compact else json.dumps(report, indent=2)
         (args.output_directory / "report.json").write_text(report_text, encoding="utf-8")
+        profile = qualified_ground_profile(report) if args.husarion_model else None
+        if profile is not None:
+            (args.output_directory / "ground.profile.toml").write_bytes(profile)
     except Exception:
         parser.exit(2, "ROS record conversion failed; no successful conversion claim\n")
 

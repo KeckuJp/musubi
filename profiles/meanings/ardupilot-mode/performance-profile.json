@@ -1,0 +1,135 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "TimeUS": {
+      "meaning": "TimeUS",
+      "unit": "us_since_system_startup_not_UTC",
+      "basis": "declared"
+    },
+    "LR": {
+      "meaning": "LR",
+      "unit": "Hz_rounded_filtered_main_loop_rate_not_configured_rate_or_CPU_speed",
+      "basis": "declared"
+    },
+    "NLon": {
+      "meaning": "NLon",
+      "unit": "reported_long_loop_count_in_reset_interval_not_lifetime_total",
+      "basis": "declared"
+    },
+    "NL": {
+      "meaning": "NL",
+      "unit": "reported_loop_count_in_reset_interval_can_include_timing_ignored_loops",
+      "basis": "declared"
+    },
+    "MaxT": {
+      "meaning": "MaxT",
+      "unit": "us_maximum_reported_loop_time_in_reset_interval_not_deadline_or_physical_latency",
+      "basis": "declared"
+    },
+    "Mem": {
+      "meaning": "Mem",
+      "unit": "bytes_reported_free_memory_not_total_memory",
+      "basis": "declared"
+    },
+    "Load": {
+      "meaning": "Load",
+      "unit": "scheduler_load_fraction_times1000_not_physical_CPU_percent",
+      "basis": "declared"
+    },
+    "Ex": {
+      "meaning": "Ex",
+      "unit": "us_reported_extra_loop_budget_not_a_measured_delay",
+      "basis": "declared"
+    },
+    "ErrL": {
+      "meaning": "ErrL",
+      "unit": "reported_internal_error_source_line_uint16_not_a_root_cause",
+      "basis": "declared"
+    },
+    "IntE": {
+      "meaning": "IntE",
+      "unit": "reported_internal_error_mask_uint32_uninterpreted_here",
+      "basis": "declared"
+    },
+    "ErrC": {
+      "meaning": "ErrC",
+      "unit": "reported_internal_error_count_uint32_not_fault_count_in_this_interval",
+      "basis": "declared"
+    },
+    "SPIC": {
+      "meaning": "SPIC",
+      "unit": "reported_SPI_transaction_count_uint32",
+      "basis": "declared"
+    },
+    "I2CC": {
+      "meaning": "I2CC",
+      "unit": "reported_I2C_transaction_count_uint32",
+      "basis": "declared"
+    },
+    "I2CI": {
+      "meaning": "I2CI",
+      "unit": "reported_I2C_interrupt_count_uint32",
+      "basis": "declared"
+    },
+    "reported_pm_schema": {
+      "meaning": "reported_pm_schema",
+      "unit": "caller_selected_exact_mapping_pm-copter-4.5.5_means_Copter_142aece2da56146d94dcad0f6b539af6960538f6_and_pm-rover-4.5.5_means_Rover_9064e22695992593b12e71a2b2ad25faba2f7277_PM_writer_schema_only_not_running_binary_attestation_or_cross_vehicle_identity",
+      "basis": "declared"
+    },
+    "reported_pm_long_loops": {
+      "meaning": "reported_pm_long_loops",
+      "unit": "count_reported_above_source_120percent_loop_period_threshold_in_reset_interval_not_lifetime_total",
+      "basis": "declared"
+    },
+    "reported_pm_loops": {
+      "meaning": "reported_pm_loops",
+      "unit": "count_reported_in_reset_interval_can_include_timing_ignored_loops",
+      "basis": "declared"
+    },
+    "reported_pm_loop_rate_hz": {
+      "meaning": "reported_pm_loop_rate_hz",
+      "unit": "Hz_rounded_filtered_main_loop_rate_not_CPU_speed",
+      "basis": "declared"
+    },
+    "reported_pm_max_loop_s": {
+      "meaning": "reported_pm_max_loop_s",
+      "unit": "s_reported_maximum_loop_time_converted_once_from_microseconds",
+      "basis": "declared"
+    },
+    "reported_pm_memory_bytes": {
+      "meaning": "reported_pm_memory_bytes",
+      "unit": "bytes_reported_free_memory",
+      "basis": "declared"
+    },
+    "reported_pm_scheduler_load": {
+      "meaning": "reported_pm_scheduler_load",
+      "unit": "fraction_reported_scheduler_load_one_can_mean_filtered_rate_below95percent_configured_rate_otherwise_spare_time_formula_not_physical_CPU_utilization",
+      "basis": "declared"
+    },
+    "reported_pm_extra_loop_s": {
+      "meaning": "reported_pm_extra_loop_s",
+      "unit": "s_reported_extra_loop_budget_converted_once_from_microseconds_not_measured_delay",
+      "basis": "declared"
+    },
+    "reported_pm_load_basis": {
+      "meaning": "reported_pm_load_basis",
+      "unit": "source_load_formula_declaration_not_a_verified_performance_or_safety_claim",
+      "basis": "declared"
+    },
+    "source_report_record_index": {
+      "meaning": "source_report_record_index",
+      "unit": "zero_based_index_in_paired_source_report_source_records_array_not_global_wire_sequence",
+      "basis": "declared"
+    },
+    "source_report_sha256": {
+      "meaning": "source_report_sha256",
+      "unit": "sha256_of_paired_unchanged_source_report_not_authentication_retain_source_report_for_all_unknown_fields",
+      "basis": "declared"
+    }
+  }
+}

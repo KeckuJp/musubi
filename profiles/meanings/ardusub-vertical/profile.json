@@ -1,0 +1,55 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_since_startup_reported_TimeUS_not_UTC_or_synchronization",
+      "basis": "declared"
+    },
+    "source_report_record_index": {
+      "meaning": "source_report_record_index",
+      "unit": "zero_based_source_records_index_not_sequence_loss_or_physical_instance",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "sha256_of_unchanged_paired_source_report_not_authentication_retain_source_report_once",
+      "basis": "declared"
+    },
+    "source_version": {
+      "meaning": "source_version",
+      "unit": "caller_declared_ArduSub4.5.7_30257f01185471ab4c1ac544e47d1b4437e44c98_CTUN_not_verified_installed_firmware",
+      "basis": "declared"
+    },
+    "reported_target_vertical_rate_m_s": {
+      "meaning": "reported_target_vertical_rate_m_s",
+      "unit": "m/s_reported_z_up_target_DCRt_signed16_h_n_B_scaled_once_from_cm/s_not_command_execution_or_unnarrowed_internal_value",
+      "basis": "declared"
+    },
+    "reported_estimated_vertical_rate_m_s": {
+      "meaning": "reported_estimated_vertical_rate_m_s",
+      "unit": "m/s_reported_z_up_CRt_signed16_h_n_B_scaled_once_from_cm/s_retained_estimate_read_inertia_may_return_before_refresh_not_physical_velocity_or_freshness_proof",
+      "basis": "declared"
+    },
+    "vertical_rate_basis": {
+      "meaning": "vertical_rate_basis",
+      "unit": "same_CTUN_target_and_retained_estimate_only_no_tracking_success_error_cause_depth_datum_or_actuation_inference",
+      "basis": "declared"
+    },
+    "vertical_rate_freshness": {
+      "meaning": "vertical_rate_freshness",
+      "unit": "UNKNOWN_CTUN_has_no_validity_or_sample_age_zero_and_nonzero_do_not_establish_freshness_or_absence",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "UTF8_hex_canonical_complete_selected_record_including_unknown_fields_original_bytes_in_paired_source_report",
+      "basis": "declared"
+    }
+  }
+}

@@ -1060,7 +1060,7 @@ class ConversionTests(unittest.TestCase):
 class CopterConfigurationIsNotDistinguished(unittest.TestCase):
     """The `copter-*` pin names a firmware family and release, never an airframe.
 
-    A family label can group helicopter and multirotor configurations. The pinned
+    SDC08-A01-UAV-01-U002 is titled "Copter / helicopter", which reads as one entry. The pinned
     ArduCopter source builds **two** configurations out of one vehicle directory, selected at compile
     time: `#if FRAME_CONFIG == HELI_FRAME` appears three times in `ArduCopter/mode.h` at the archived
     Copter-4.5.0 pin (68 981 B, sha256 b9ca890b…72263c), giving `ModeStabilize_Heli`, `ModeAcro_Heli`
@@ -1083,6 +1083,29 @@ class CopterConfigurationIsNotDistinguished(unittest.TestCase):
     def rows(self, mode_number, vehicle="copter-4.5.3"):
         text = "TimeUS,Mode,ModeNum,Rsn\n100,%d,%d,1\n" % (mode_number, mode_number)
         return list(csv.DictReader(io.StringIO(self.converter.convert(text, vehicle, "mode"))))
+
+    def test_fixed_455_ver_reports_family_and_release_not_airframe(self):
+        """Copter 4.5.5 142aece2 VER writer blobs equal the qualified Plane 4.5.5 ones;
+        version.h declares "ArduCopter V4.5.5". BU is a build-directory code for both builds."""
+        header = "TimeUS,BT,BST,Maj,Min,Pat,FWT,GH,FWS,APJ,BU\n"
+        text = (header + "10,9,21,4,5,5,3,0,ArduCopter V4.5.5,1054,4\n"
+                "10,9,21,4,5,5,3,123,ArduCopter V4.5.5 (142aece2),140,4\n")
+        rows = list(csv.DictReader(io.StringIO(self.converter.convert(text, "copter-4.5.5", "ver"))))
+        self.assertEqual([(r["reported_firmware_family"], r["reported_firmware_version"],
+                           r["declared_vehicle_agreement"]) for r in rows],
+                         [("ArduCopter", "4.5.5", "AGREES_WITH_DECLARED_RELEASE"),
+                          ("ArduCopter", "4.5.5", "AGREES_WITH_DECLARED_RELEASE_BUILD_COMMIT_NOT_CHECKED")])
+        self.assertFalse([key for key in rows[0] if "frame" in key.lower() or "heli" in key.lower()])
+        for wrong in ("ArduPlane V4.5.5", "ArduCopter V4.5.4"):
+            with self.assertRaises(ValueError):
+                self.converter.convert(header + f"10,9,21,4,5,5,3,0,{wrong},1054,4\n", "copter-4.5.5", "ver")
+        if os.environ.get("MUSUBI_TELEMETRY_READER"):
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "ver.csv"
+                path.write_text(self.converter.convert(text, "copter-4.5.5", "ver"))
+                common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"], str(self.PROFILE),
+                    str(path), "--allow-equal-time"], check=True, capture_output=True).stdout)
+            self.assertEqual((common["main_rows"], common["platform_domain"]), (2, "Unknown"))
 
     def test_the_declaration_says_the_pin_is_not_a_frame_configuration(self):
         declared = self.PROFILE.read_text(encoding="utf-8")

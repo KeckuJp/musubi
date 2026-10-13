@@ -58,6 +58,9 @@ jobs:
           MUSUBI_PUBLIC_REPLAY_ROOT: ${{ github.workspace }}
           MUSUBI_RECORDED_OBSERVATIONS_BIN: ${{ github.workspace }}/target/debug/examples/ingest_recorded_observations
           MUSUBI_TELEMETRY_READER: ${{ github.workspace }}/target/debug/examples/read_telemetry_csv
+          MUSUBI_MAVLOG_READER: ${{ github.workspace }}/target/debug/examples/read_mavlog_json
+          MUSUBI_BLACKBOX_READER: ${{ github.workspace }}/target/debug/examples/read_blackbox_csv
+          MUSUBI_RECORDED_CSV_INGEST: ${{ github.workspace }}/target/debug/examples/ingest_recorded_csv
           MUSUBI_REFERENCE_VIEWER_BIN: ${{ github.workspace }}/target/debug/musubi-reference-viewer
         run: python -m unittest discover -s tests -p 'test_*.py'
       - name: Clippy, advisory

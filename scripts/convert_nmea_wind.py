@@ -27,6 +27,31 @@ AIS_COLUMNS = ("unlocated_time_us", "source_line", "ais_sentence_role", "ais_mes
 WATER_COLUMNS = ("unlocated_time_us", "source_line", "talker", "sentence_kind",
     "water_temperature_k", "depth_below_transducer_m", "transducer_offset_m",
     "measurement_disposition", "source_sentence_hex")
+AIS_ROT_COLUMNS = ("ais_rot_code", "ais_rot_rad_s", "ais_rot_disposition", "ais_rot_direction")
+AIS_B_COLUMNS = ("ais_class_b_unit", "ais_display_reported", "ais_dsc_reported", "ais_band_reported",
+    "ais_message22_reported", "ais_assigned_reported", "ais_raim_reported", "ais_accuracy_flag_reported",
+    "ais_reserved_1_raw", "ais_reserved_2_raw", "ais_radio_state_raw", "ais_repeat_raw", "ais_second_disposition")
+AIS_B24_COLUMNS = ("ais_b24_part", "ais_vendor_manufacturer_reported", "ais_vendor_model_code",
+    "ais_vendor_serial_code", "ais_vendor_disposition", "ais_b24_dimension_field_raw", "ais_b24_association")
+B24_ASSOCIATION = "SEPARATE_PART_NOT_JOINED_SAME_MMSI_IS_NOT_PROOF_OF_ONE_STATION_OR_TRANSMISSION"
+
+
+def ais_rot_quantities(line):
+    """ITU-R M.1371-5 raw ROT: do not reuse pyais's rounded deg/min attribute."""
+    from pyais.messages import NMEASentenceFactory
+    raw = NMEASentenceFactory.produce(line.encode("ascii")).bv.get(42, 8)
+    code = raw - 256 if raw >= 128 else raw
+    direction = "UNKNOWN" if code == -128 else "ZERO_QUANTIZED" if code == 0 else "RIGHT" if code > 0 else "LEFT"
+    if code == -128:
+        return [code, None, "NO_INFORMATION", direction]
+    if abs(code) == 127:
+        return [code, None, "NO_TURN_INDICATOR", direction]
+    if abs(code) == 126:
+        return [code, None, "RANGE_END_MAGNITUDE_UNRESOLVED", direction]
+    rate = math.radians(math.copysign((abs(code) / 4.733) ** 2, code)) / 60
+    if not math.isfinite(rate):
+        raise ValueError("finite inverse-quantized ROT required")
+    return [code, rate, "INVERSE_QUANTIZED_ESTIMATE", direction]
 
 
 def water_quantities(fields):
@@ -55,14 +80,15 @@ def water_quantities(fields):
     return [None, depth, offset, "REPORTED_BELOW_TRANSDUCER" if depth is not None else "UNAVAILABLE"]
 
 
-def ais_quantities(line, fields):
+def ais_quantities(line, fields, class_b=False):
     from pyais import decode
     if (len(fields) != 7 or fields[1:3] != ["1", "1"] or fields[4] not in ("A", "B")
             or not re.fullmatch(r"[0-9]?", fields[3]) or fields[6] != "0"
             or not re.fullmatch(r"[0-W`-w]{28}", fields[5])):
-        raise ValueError("fixed AIS Class A report requires one complete 168-bit sentence")
+        raise ValueError("fixed AIS Class A report requires one complete 168-bit sentence" if not class_b
+                         else "fixed AIS Class B18 requires one complete 168-bit sentence")
     data = decode(line.encode("ascii"))
-    if data.msg_type not in (1, 2, 3) or not 0 <= data.mmsi <= 999999999:
+    if data.msg_type not in ((18,) if class_b else (1, 2, 3)) or not 0 <= data.mmsi <= 999999999:
         raise ValueError("invalid selected AIS identity or type")
     lon, lat, speed, course, heading = data.lon, data.lat, data.speed, data.course, data.heading
     if ((lon != 181 and not -180 <= lon <= 180) or (lat != 91 and not -90 <= lat <= 90)
@@ -70,14 +96,24 @@ def ais_quantities(line, fields):
             or (heading != 511 and not 0 <= heading <= 359)):
         raise ValueError("reserved or invalid AIS reported quantity")
     missing_position = lon == 181 or lat == 91
-    return ["OWN_VESSEL_REPORTED" if fields[0] == "AIVDO" else "RECEIVED_REPORT",
-        data.msg_type, data.mmsi, int(data.status), None if lon == 181 else lon, None if lat == 91 else lat,
+    values = ["OWN_VESSEL_REPORTED" if fields[0] == "AIVDO" else "RECEIVED_REPORT",
+        data.msg_type, data.mmsi, None if class_b else int(data.status), None if lon == 181 else lon, None if lat == 91 else lat,
         "INCOMPLETE_REPORTED_POSITION" if missing_position else "REPORTED_NOT_AUTHENTICATED",
         speed * 1852 / 3600 if speed < 102.2 else None,
         speed * 1852 / 3600 if speed == 102.2 else None,
         "UNAVAILABLE" if speed == 102.3 else "AT_LEAST" if speed == 102.2 else "REPORTED",
         None if course == 360 else math.radians(course),
         None if heading == 511 else math.radians(heading), data.second]
+    if class_b:
+        if data.cs and data.second > 60:
+            raise ValueError("Class B CS does not qualify timestamp codes 61..63")
+        second = "REPORTED_UTC_SECOND_NOT_ABSOLUTE_TIME" if data.second < 60 else (
+            "UNAVAILABLE", "MANUAL_POSITION_INPUT_REPORTED", "ESTIMATED_POSITION_REPORTED",
+            "POSITIONING_SYSTEM_INOPERATIVE_REPORTED")[data.second - 60]
+        values += ["CS_REPORTED" if data.cs else "SOTDMA_REPORTED", int(data.display), int(data.dsc),
+                   int(data.band), int(data.msg22), int(data.assigned), int(data.raim), int(data.accuracy),
+                   data.reserved_1, data.reserved_2, data.radio, data.repeat, second]
+    return values
 
 
 def ais_static_quantities(first, second, first_fields, second_fields):
@@ -176,6 +212,69 @@ def ais_static_quantities(first, second, first_fields, second_fields):
         *text(data.destination), "NOT_AVAILABLE" if data.dte else "AVAILABLE", int(data.ais_version)]
 
 
+def ais_b24_quantities(line, fields):
+    """One saved type 24 part. TABLE 78: Part A is exactly 160 bits (27 characters, 2 fill bits);
+    TABLE 79: Part B is exactly 168 bits (28 characters, no fill).
+
+    The pinned pyais 3.2.2 models Part A with an extra 8-bit spare, folds Part B's 4-bit type of
+    electronic position fixing device into a 6-bit spare, and reads the 30-bit dimension field as a
+    mothership MMSI for 98XXXYYYY identities, which TABLE 79 does not define. Every Part B field is
+    therefore read from the decoder's own bit vector at the TABLE 79 offsets; no second decoder.
+    """
+    from pyais.messages import NMEASentenceFactory
+    shapes = {"0": (27, "2"), "1": (28, "0")}
+    if len(fields) != 7 or fields[1:3] != ["1", "1"] or fields[4] not in ("A", "B") \
+            or not re.fullmatch(r"[0-9]?", fields[3]) or not re.fullmatch(r"[0-W`-w]+", fields[5]):
+        raise ValueError("fixed AIS type 24 requires one complete single sentence")
+    bv = NMEASentenceFactory.produce(line.encode("ascii")).bv
+    if len(bv) < 40 or bv.get(0, 6) != 24:
+        raise ValueError("invalid selected AIS identity or type")
+    part = str(bv.get(38, 2))
+    if part not in shapes or (len(fields[5]), fields[6]) != shapes[part]:
+        raise ValueError("saved AIS type 24 part must be exactly 160 (A) or 168 (B) bits")
+    mmsi = bv.get(8, 30)
+    if not 0 <= mmsi <= 999999999:
+        raise ValueError("invalid selected AIS identity or type")
+    def text(start, chars):
+        value = "".join(chr(code + 64 if code < 32 else code)
+                        for code in (bv.get(start + 6 * i, 6) for i in range(chars)))
+        value = value.split("@", 1)[0].rstrip(" ")
+        return [value, "REPORTED" if value else "NOT_AVAILABLE_OR_BLANK"]
+    absent = "NOT_IN_THIS_PART"
+    position = [None, None, None, "STATIC_REPORT_CARRIES_NO_POSITION", None, None, "NOT_IN_THIS_MESSAGE",
+                None, None, None]
+    static = dict(imo=[None, "NOT_IN_THIS_MESSAGE"], name=[None, absent], call=[None, absent],
+                  ship=[None, absent], epfd=[None, absent], dims=[None] * 4 + [absent])
+    vendor = [None, None, None, absent, None]
+    if part == "0":
+        static["name"] = text(40, 20)
+    else:
+        ship = bv.get(40, 8)
+        static["ship"] = [ship, "NOT_AVAILABLE_OR_NO_SHIP" if ship == 0 else
+                          "REPORTED_CODE_IN_BASE_RANGE" if ship <= 99 else
+                          "RESERVED_FOR_REGIONAL_USE" if ship <= 199 else "RESERVED_FOR_FUTURE_USE"]
+        manufacturer = text(48, 3)[0]
+        model, serial = bv.get(66, 4), bv.get(70, 20)
+        vendor = [manufacturer, model, serial,
+                  "NOT_AVAILABLE_DEFAULT" if bv.get(48, 42) == 0 else
+                  "REPORTED_SERIAL_CODING_MANUFACTURER_DEFINED", None]
+        static["call"] = text(90, 7)
+        raw = bv.get(132, 30)
+        bow, stern, port, starboard = bv.get(132, 9), bv.get(141, 9), bv.get(150, 6), bv.get(156, 6)
+        static["dims"] = [bow, stern, port, starboard,
+                          "DEFAULT_ALL_ZERO_NOT_AVAILABLE" if raw == 0 else "REPORTED_REFERENCE_POINT_DIMENSIONS"]
+        vendor[4] = raw
+        epfd = bv.get(162, 4)
+        static["epfd"] = [epfd, "UNDEFINED_DEFAULT" if epfd == 0 else
+                          "REPORTED_DEFINED_CODE" if epfd <= 8 or epfd == 15 else "NOT_USED_BY_THE_REFERENCE"]
+    row = ["OWN_VESSEL_REPORTED" if fields[0] == "AIVDO" else "RECEIVED_REPORT", 24, mmsi, *position,
+           *static["imo"], *static["name"], *static["call"], *static["ship"], *static["epfd"],
+           *static["dims"], None, None, "NOT_IN_THIS_MESSAGE", None, None, None, None,
+           "NOT_IN_THIS_MESSAGE", None, "NOT_IN_THIS_MESSAGE", None, None, None]
+    b_fields = [None] * (len(AIS_B_COLUMNS) - 2) + [bv.get(6, 2), "NOT_IN_THIS_MESSAGE"]
+    return row, b_fields, ["A" if part == "0" else "B", *vendor, B24_ASSOCIATION]
+
+
 def quantity(raw, maximum=None):
     if raw == "":
         return None
@@ -190,12 +289,13 @@ def quantity(raw, maximum=None):
     return value
 
 
-def convert_mixed(text, *, allow_no_selected=False, static_pairs=False):
+def convert_mixed(text, *, allow_no_selected=False, static_pairs=False, ais_rot=False):
     if len(text) > 16 * 1024 * 1024:
         raise ValueError("mixed NMEA input exceeds bound")
     rows, selected, reports = [], set(), {}
     for selector in ("wind", "ais-class-a", "water-dpt-mtw"):
-        output, report = convert(text, selector, allow_no_selected=True, static_pairs=static_pairs)
+        output, report = convert(text, selector, allow_no_selected=True, static_pairs=static_pairs,
+                                 ais_rot=ais_rot and selector == "ais-class-a")
         reports[selector] = report
         for row in csv.DictReader(io.StringIO(output)):
             index = int(row["source_line"])
@@ -207,6 +307,8 @@ def convert_mixed(text, *, allow_no_selected=False, static_pairs=False):
     if not rows and not allow_no_selected:
         raise ValueError("no selected mixed NMEA records")
     columns = list(dict.fromkeys((*COLUMNS, *AIS_COLUMNS, *WATER_COLUMNS, "selected_kind")))
+    if ais_rot:
+        columns.extend(AIS_ROT_COLUMNS)
     output = io.StringIO(newline="")
     writer = csv.DictWriter(output, columns, lineterminator="\n")
     writer.writeheader()
@@ -228,7 +330,8 @@ def convert_mixed(text, *, allow_no_selected=False, static_pairs=False):
         qualification="SELECTED_REPORTED_MEANINGS_NOT_SENSOR_FUSION")
 
 
-def convert(text: str, kind="wind", *, allow_no_selected=False, static_pairs=False) -> tuple[str, dict]:
+def convert(text: str, kind="wind", *, allow_no_selected=False, static_pairs=False,
+            ais_rot=False, class_b_static=False) -> tuple[str, dict]:
     """`static_pairs` is the caller's explicit opt-in to the adjacent type 5 pair contract.
 
     Adjacency plus a shared channel and sequential id does not prove two fragments came from one
@@ -236,11 +339,19 @@ def convert(text: str, kind="wind", *, allow_no_selected=False, static_pairs=Fal
     """
     if type(static_pairs) is not bool:
         raise ValueError("explicit static pair selection required")
+    if type(class_b_static) is not bool or (class_b_static and kind != "ais-class-b18"):
+        raise ValueError("Class B static reports require explicit Class B18 selection")
+    if kind == "ais-class-b18" and static_pairs:
+        raise ValueError("Class B18 does not select static fragment pairs")
+    if type(ais_rot) is not bool or (ais_rot and kind not in ("ais-class-a", "marine-mixed")):
+        raise ValueError("AIS ROT requires explicit AIS or mixed selection")
     if kind == "marine-mixed":
-        return convert_mixed(text, allow_no_selected=allow_no_selected, static_pairs=static_pairs)
-    if kind not in ("wind", "ais-class-a", "water-dpt-mtw"):
+        return convert_mixed(text, allow_no_selected=allow_no_selected, static_pairs=static_pairs,
+                             ais_rot=ais_rot)
+    if kind not in ("wind", "ais-class-a", "ais-class-b18", "water-dpt-mtw"):
         raise ValueError("unknown NMEA selection")
-    ais = kind == "ais-class-a"
+    ais = kind in ("ais-class-a", "ais-class-b18")
+    class_b = kind == "ais-class-b18"
     water = kind == "water-dpt-mtw"
     if (ais or water) and len(text) > 16 * 1024 * 1024:
         raise ValueError("AIS input exceeds bound")
@@ -255,7 +366,8 @@ def convert(text: str, kind="wind", *, allow_no_selected=False, static_pairs=Fal
         raise ValueError("empty capture or blank record")
     stream = io.StringIO(newline="")
     writer = csv.writer(stream, lineterminator="\n")
-    writer.writerow(AIS_COLUMNS if ais else WATER_COLUMNS if water else COLUMNS)
+    writer.writerow(AIS_COLUMNS + (AIS_ROT_COLUMNS if ais_rot else ()) + (AIS_B_COLUMNS if class_b else ())
+                    + (AIS_B24_COLUMNS if class_b_static else ()) if ais else WATER_COLUMNS if water else COLUMNS)
     report = dict(input_records=len(lines), mwv_records=0, valid_with_measurement=0,
                   invalid_status_records=0, unsupported_records=0, unsupported=[], blank_lines=0)
     if ais:
@@ -265,12 +377,27 @@ def convert(text: str, kind="wind", *, allow_no_selected=False, static_pairs=Fal
                       reused_sequential_id_pairs=0,
                       static_binding="ADJACENT_PAIR_DECLARED_BY_THE_CALLER_NOT_GLOBALLY_UNIQUE",
                       eta_basis="REPORTED_ESTIMATE_WITHOUT_A_YEAR_NEVER_AN_ARRIVAL_OR_OBSERVATION_TIME")
+        if ais_rot:
+            report["rot_basis"] = "RAW_SIGNED_CODE_INVERSE_QUANTIZED_ESTIMATE_NOT_PHYSICAL_RATE_END_CODES_WITHHELD"
+        if class_b:
+            report["semantics"] = "ITU-R-M.1371-5-Table70-Class-B18_ONLY_REPORTED_NOT_AUTHENTICATED"
+            report["static_binding"] = "NOT_SELECTED"
+        if class_b_static:
+            report.update(semantics="ITU-R-M.1371-5-Table70-Class-B18-and-Tables78-79-type24_ONLY_REPORTED_NOT_AUTHENTICATED",
+                          ais_b24_part_a=0, ais_b24_part_b=0, b24_association=B24_ASSOCIATION)
     pending = None
 
-    def write_ais_row(row, retained):
+    def write_ais_row(row, retained, rot=None, b_fields=None, b24=None):
         if len(row) != len(AIS_COLUMNS) - 1:
             raise ValueError("AIS row width does not match the declared columns")
-        writer.writerow([*row, "hex:" + retained.encode("ascii").hex()])
+        extra = (rot if rot is not None else [None, None, "NOT_IN_THIS_MESSAGE", "UNKNOWN"]) if ais_rot else []
+        if class_b:
+            if b_fields is None or len(b_fields) != len(AIS_B_COLUMNS):
+                raise ValueError("Class B fields required")
+            extra += b_fields
+        if class_b_static:
+            extra += b24 if b24 is not None else [None, None, None, None, "NOT_IN_THIS_MESSAGE", None, None]
+        writer.writerow([*row, "hex:" + retained.encode("ascii").hex(), *extra])
     if water:
         report.update(water_records=0, water_measurements=0, clock="Unknown",
                       time_basis="UNLOCATED_ZERO_NOT_EVENT_TIME", semantics="gpsd-e128-DPT-MTW-fields-not-offset-correction")
@@ -308,7 +435,9 @@ def convert(text: str, kind="wind", *, allow_no_selected=False, static_pairs=Fal
             # A continuation fragment carries arbitrary payload characters, so it must never be
             # classified by its own first character the way a single sentence is.
             single = (identifier in ("AIVDM", "AIVDO") and len(fields) > 5
-                      and fields[1:2] == ["1"] and fields[5][:1] in ("1", "2", "3"))
+                      and fields[1:2] == ["1"] and fields[5][:1] in (("B",) if class_b else ("1", "2", "3")))
+            b24 = (class_b_static and identifier in ("AIVDM", "AIVDO") and len(fields) > 5
+                   and fields[1:2] == ["1"] and fields[5][:1] == "H")
             # Without the opt-in nothing is assembled, and a multipart sentence stays unsupported
             # exactly as it was before this contract existed - a capture whose useful wind or
             # position records sit beside multipart traffic must keep converting. The one legacy
@@ -316,18 +445,25 @@ def convert(text: str, kind="wind", *, allow_no_selected=False, static_pairs=Fal
             # that is a malformed selected report, and the adopted gate still says so. A
             # continuation fragment carries no type character, so it is never read as one.
             malformed_selected = (not static_pairs and multipart and fields[2:3] == ["1"]
-                                  and fields[5][:1] in ("1", "2", "3"))
+                                  and fields[5][:1] in (("B",) if class_b else ("1", "2", "3")))
             if pending is not None and not (multipart and fields[2:3] == ["2"]):
                 # Adjacency is the caller's declared grouping; anything between the fragments means
                 # the pair was interleaved, reordered or left incomplete.
                 raise ValueError("saved AIS type 5 pair requires two matching adjacent fragments")
-            if single or malformed_selected:
+            if b24:
                 if line[0] != "!":
                     raise ValueError("AIS delimiter required")
-                # The adopted gate refuses the fragmented case by name; only a single complete
-                # sentence reaches a row.
-                values = ais_quantities(line, fields)
-                write_ais_row([0, index, *values, *[""] * (len(AIS_COLUMNS) - 16)], line)
+                row, b_fields, b24_fields = ais_b24_quantities(line, fields)
+                write_ais_row([0, index, *row], line, None, b_fields, b24_fields)
+                report["ais_records"] += 1
+                report["ais_b24_part_a" if b24_fields[0] == "A" else "ais_b24_part_b"] += 1
+            elif single or malformed_selected:
+                if line[0] != "!":
+                    raise ValueError("AIS delimiter required")
+                values = ais_quantities(line, fields, class_b)
+                write_ais_row([0, index, *values[:13], *[""] * (len(AIS_COLUMNS) - 16)], line,
+                              ais_rot_quantities(line) if ais_rot else None,
+                              values[13:] if class_b else None)
                 report["ais_records"] += 1
             elif multipart and not static_pairs:
                 # No assembly without the caller's explicit selection: accounted, not refused and
@@ -403,13 +539,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("output_directory", type=Path)
-    parser.add_argument("--kind", choices=("wind", "ais-class-a", "water-dpt-mtw", "marine-mixed"), default="wind")
+    parser.add_argument("--kind", choices=("wind", "ais-class-a", "ais-class-b18", "water-dpt-mtw", "marine-mixed"), default="wind")
+    parser.add_argument("--ais-class-b-static", action="store_true",
+                        help="with --kind ais-class-b18: also read single-sentence type 24 Part A/B as separate rows")
     parser.add_argument("--ais-static-pairs", action="store_true",
                         help="explicitly select the adjacent saved type 5 fragment pair contract")
+    parser.add_argument("--ais-rot", action="store_true",
+                        help="interpret Class A reported ROT codes; no physical turn or clock inference")
     args = parser.parse_args()
     try:
         converted, report = convert(args.input.read_text(encoding="ascii"), args.kind,
-                                    static_pairs=args.ais_static_pairs)
+                                    static_pairs=args.ais_static_pairs, ais_rot=args.ais_rot,
+                                    class_b_static=args.ais_class_b_static)
         args.output_directory.mkdir()
         (args.output_directory / "converted.csv").write_text(converted, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

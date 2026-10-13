@@ -23,6 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .iter()
         .any(|a| a == "--preserve-nonfinite-as-text");
     let options = musubi_decoded_csv::ParseOptions {
+        allow_empty_rows: false,
         allow_equal_time: allow_equal,
         preserve_nonfinite_as_text: preserve_nonfinite,
     };

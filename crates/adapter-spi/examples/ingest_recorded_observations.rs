@@ -33,6 +33,7 @@ fn run() -> Result<(), ()> {
         &a[4],
         a[5].parse().map_err(|_| ())?,
         ParseOptions {
+            allow_empty_rows: false,
             allow_equal_time: a[6..].iter().any(|s| s == "--allow-equal-time"),
             preserve_nonfinite_as_text: a[6..].iter().any(|s| s == "--preserve-nonfinite-as-text"),
         },

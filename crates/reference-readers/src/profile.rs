@@ -330,6 +330,7 @@ fn declared_domain(
     match label {
         "air" => Ok(Some(PlatformDomain::Air)),
         "surface" => Ok(Some(PlatformDomain::Surface)),
+        "subsurface" => Ok(Some(PlatformDomain::Subsurface)),
         "ground" => Ok(Some(PlatformDomain::Ground)),
         "unknown" => Ok(Some(PlatformDomain::Unknown)),
         other => Err(bad("platform_domain", other)),

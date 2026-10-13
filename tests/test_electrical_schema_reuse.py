@@ -235,8 +235,7 @@ class ElectricalReuseTests(unittest.TestCase):
                           attitude[0]["inav_gps_ground_course_code_reported"]], ["12", "0", "270"])
         self.assertEqual(attitude[0]["inav_gps_angle_basis"], module.INAV_ANGLE_BASIS)
         self.assertIn("NO_UNIT_APPLIED_HERE", attitude[0]["inav_gps_unscaled_basis"])
-        # The screen labels that do exist for altitude and speed are named, not adopted.
-        self.assertIn("UNADOPTED", attitude[0]["inav_gps_unscaled_basis"])
+        self.assertIn("QUALIFIED_SEPARATELY", attitude[0]["inav_gps_unscaled_basis"])
 
         # A second, differently laid out authored file: GPS group alone, other values, negative
         # coordinates and a negative raw altitude.
@@ -2113,7 +2112,7 @@ class ElectricalReuseTests(unittest.TestCase):
                         {**error, "errorReferences": [{}]},
                         {**error, "errorReferences": [{"referenceKey": "x", "referenceValue": 1}]}):
             with self.assertRaises(ValueError): rows({**record, "errors": [invalid]})
-        with self.assertRaises(ValueError): module.convert(json.dumps(vda("2.0.0")), "vda-state-2.0", vda_errors=True)
+        with self.assertRaises(ValueError): module.convert(json.dumps(vda("1.1.0")), "vda-state-1.1", vda_errors=True)
 
     def test_individual_vda_actions_reuse_and_common_output(self):
         import hashlib

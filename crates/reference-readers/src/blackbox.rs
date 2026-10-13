@@ -5,6 +5,31 @@ use crate::{FieldValue, Observation, ProfileReader, ReadError, observation};
 #[derive(Debug, Clone, Copy, Default)]
 pub struct BlackboxCsvReader;
 
+impl BlackboxCsvReader {
+    pub fn read_allow_equal_time(
+        &self,
+        profile: &FamilyProfile,
+        bytes: &[u8],
+    ) -> Result<Vec<Observation>, ReadError> {
+        if profile.format != "blackbox_decoded_csv" {
+            return Err(ReadError::Profile("expected decoded CSV profile".into()));
+        }
+        let table = musubi_decoded_csv::parse_with_options(
+            bytes,
+            &profile.fields.time,
+            musubi_decoded_csv::ParseOptions {
+                allow_equal_time: true,
+                ..Default::default()
+            },
+        )
+        .map_err(|error| ReadError::Malformed {
+            offset: error.line,
+            what: error.reason.into(),
+        })?;
+        observations_from_table(profile, &table)
+    }
+}
+
 impl ProfileReader for BlackboxCsvReader {
     fn format_id(&self) -> &'static str {
         "blackbox_decoded_csv"

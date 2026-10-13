@@ -80,6 +80,101 @@
       "meaning": "reported_arm_schema",
       "unit": "explicit_vehicle_and_finite_source_version_of_the_arm_layout_absent_on_the_legacy_plane_route",
       "basis": "declared"
+    },
+    "Maj": {
+      "meaning": "Maj",
+      "unit": "reported_firmware_major",
+      "basis": "declared"
+    },
+    "Min": {
+      "meaning": "Min",
+      "unit": "reported_firmware_minor",
+      "basis": "declared"
+    },
+    "Pat": {
+      "meaning": "Pat",
+      "unit": "reported_firmware_patch",
+      "basis": "declared"
+    },
+    "FWS": {
+      "meaning": "FWS",
+      "unit": "reported_firmware_string_from_fw_string_custom_or_THISFIRMWARE",
+      "basis": "declared"
+    },
+    "FWT": {
+      "meaning": "FWT",
+      "unit": "reported_firmware_version_type_byte_exactly_as_the_writer_stored_fw_type",
+      "basis": "declared"
+    },
+    "GH": {
+      "meaning": "GH",
+      "unit": "truncated_uint32_git_hash_of_the_source_commit_this_is_neither_a_build_number_nor_a_full_image_hash_and_is_not_resolved_here",
+      "basis": "declared"
+    },
+    "APJ": {
+      "meaning": "APJ",
+      "unit": "reported_APJ_BOARD_ID_exactly_as_stored_including_a_raw_zero_whose_cause_the_record_does_not_carry",
+      "basis": "declared"
+    },
+    "BT": {
+      "meaning": "BT",
+      "unit": "compile_time_board_type_code_a_board_class_not_a_hardware_revision_and_not_decoded_here",
+      "basis": "declared"
+    },
+    "BST": {
+      "meaning": "BST",
+      "unit": "compile_time_board_subtype_code_a_board_class_not_a_hardware_revision_and_not_decoded_here",
+      "basis": "declared"
+    },
+    "BU": {
+      "meaning": "BU",
+      "unit": "build_directory_code_preserved_not_decoded_not_MAV_TYPE_frame_or_product",
+      "basis": "declared"
+    },
+    "reported_firmware_family": {
+      "meaning": "reported_firmware_family",
+      "unit": "logged_upstream_firmware_family_or_retained_unknown_family_not_product_vendor_frame_or_operating_domain",
+      "basis": "declared"
+    },
+    "reported_firmware_version": {
+      "meaning": "reported_firmware_version",
+      "unit": "reported_firmware_version_not_installed_device_proof",
+      "basis": "declared"
+    },
+    "reported_firmware_suffix": {
+      "meaning": "reported_firmware_suffix",
+      "unit": "prerelease_suffix_preserved_means_not_the_pinned_stable_release",
+      "basis": "declared"
+    },
+    "reported_firmware_build_annotation": {
+      "meaning": "reported_firmware_build_annotation",
+      "unit": "git_version_appended_by_the_build_commit_not_resolved_here",
+      "basis": "declared"
+    },
+    "reported_vehicle_identity_basis": {
+      "meaning": "reported_vehicle_identity_basis",
+      "unit": "firmware_family_only_or_custom_string_with_no_family_never_product_or_vendor_identity",
+      "basis": "declared"
+    },
+    "declared_vehicle_agreement": {
+      "meaning": "declared_vehicle_agreement",
+      "unit": "caller_declaration_checked_against_the_logged_family_and_exact_release_selector_not_trusted_alone",
+      "basis": "declared"
+    },
+    "reported_release_channel": {
+      "meaning": "reported_release_channel",
+      "unit": "named_FIRMWARE_VERSION_TYPE_DEV_ALPHA_BETA_RC_OFFICIAL_or_UNKNOWN_with_raw_number_the_publishers_build_declaration_never_a_certification",
+      "basis": "declared"
+    },
+    "reported_release_channel_code": {
+      "meaning": "reported_release_channel_code",
+      "unit": "original_FWT_byte_blank_when_the_writer_layout_declared_no_such_column",
+      "basis": "declared"
+    },
+    "reported_board_target_id": {
+      "meaning": "reported_board_target_id",
+      "unit": "declared_APJ_build_target_ZERO_OR_NOT_PROVIDED_for_zero_blank_when_absent_not_a_hardware_revision_or_authenticated_board",
+      "basis": "declared"
     }
   }
 }

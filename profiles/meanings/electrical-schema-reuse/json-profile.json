@@ -6,6 +6,216 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "propulsion_revolutions_hz": {
+      "meaning": "propulsion_revolutions_hz",
+      "unit": "Hz",
+      "basis": "declared"
+    },
+    "propulsion_temperature_k": {
+      "meaning": "propulsion_temperature_k",
+      "unit": "K",
+      "basis": "declared"
+    },
+    "propulsion_oil_pressure_pa": {
+      "meaning": "propulsion_oil_pressure_pa",
+      "unit": "Pa",
+      "basis": "declared"
+    },
+    "propulsion_coolant_temperature_k": {
+      "meaning": "propulsion_coolant_temperature_k",
+      "unit": "K",
+      "basis": "declared"
+    },
+    "propulsion_boost_pressure_pa": {
+      "meaning": "propulsion_boost_pressure_pa",
+      "unit": "Pa",
+      "basis": "declared"
+    },
+    "propulsion_run_time_s": {
+      "meaning": "propulsion_run_time_s",
+      "unit": "s",
+      "basis": "declared"
+    },
+    "propulsion_load_ratio": {
+      "meaning": "propulsion_load_ratio",
+      "unit": "ratio",
+      "basis": "declared"
+    },
+    "propulsion_torque_ratio": {
+      "meaning": "propulsion_torque_ratio",
+      "unit": "ratio",
+      "basis": "declared"
+    },
+    "propulsion_fuel_rate_m3_s": {
+      "meaning": "propulsion_fuel_rate_m3_s",
+      "unit": "m3/s",
+      "basis": "declared"
+    },
+    "propulsion_id_hex": {
+      "meaning": "propulsion_id_hex",
+      "unit": "reported_vessel_local_propulsion_instance_not_authenticated",
+      "basis": "declared"
+    },
+    "reported_velocity_north_m_s": {
+      "meaning": "reported_velocity_north_m_s",
+      "unit": "m/s_reported_MAVSDK_NED_north_not_physically_verified",
+      "basis": "declared"
+    },
+    "reported_velocity_east_m_s": {
+      "meaning": "reported_velocity_east_m_s",
+      "unit": "m/s_reported_MAVSDK_NED_east_not_physically_verified",
+      "basis": "declared"
+    },
+    "reported_velocity_down_m_s": {
+      "meaning": "reported_velocity_down_m_s",
+      "unit": "m/s_reported_MAVSDK_NED_down_not_physically_verified",
+      "basis": "declared"
+    },
+    "velocity_ned_basis": {
+      "meaning": "velocity_ned_basis",
+      "unit": "declared_NED_velocity_no_coordinate_transform_no_message_clock",
+      "basis": "declared"
+    },
+    "orientation_covariance_0_rad2": {
+      "meaning": "orientation_covariance_0_rad2",
+      "unit": "rad2_reported_row_major_xyz_row0_column0_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "orientation_covariance_1_rad2": {
+      "meaning": "orientation_covariance_1_rad2",
+      "unit": "rad2_reported_row_major_xyz_row0_column1_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "orientation_covariance_2_rad2": {
+      "meaning": "orientation_covariance_2_rad2",
+      "unit": "rad2_reported_row_major_xyz_row0_column2_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "orientation_covariance_3_rad2": {
+      "meaning": "orientation_covariance_3_rad2",
+      "unit": "rad2_reported_row_major_xyz_row1_column0_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "orientation_covariance_4_rad2": {
+      "meaning": "orientation_covariance_4_rad2",
+      "unit": "rad2_reported_row_major_xyz_row1_column1_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "orientation_covariance_5_rad2": {
+      "meaning": "orientation_covariance_5_rad2",
+      "unit": "rad2_reported_row_major_xyz_row1_column2_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "orientation_covariance_6_rad2": {
+      "meaning": "orientation_covariance_6_rad2",
+      "unit": "rad2_reported_row_major_xyz_row2_column0_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "orientation_covariance_7_rad2": {
+      "meaning": "orientation_covariance_7_rad2",
+      "unit": "rad2_reported_row_major_xyz_row2_column1_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "orientation_covariance_8_rad2": {
+      "meaning": "orientation_covariance_8_rad2",
+      "unit": "rad2_reported_row_major_xyz_row2_column2_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "angular_velocity_covariance_0_rad2_s2": {
+      "meaning": "angular_velocity_covariance_0_rad2_s2",
+      "unit": "rad2_s2_reported_row_major_xyz_row0_column0_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "angular_velocity_covariance_1_rad2_s2": {
+      "meaning": "angular_velocity_covariance_1_rad2_s2",
+      "unit": "rad2_s2_reported_row_major_xyz_row0_column1_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "angular_velocity_covariance_2_rad2_s2": {
+      "meaning": "angular_velocity_covariance_2_rad2_s2",
+      "unit": "rad2_s2_reported_row_major_xyz_row0_column2_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "angular_velocity_covariance_3_rad2_s2": {
+      "meaning": "angular_velocity_covariance_3_rad2_s2",
+      "unit": "rad2_s2_reported_row_major_xyz_row1_column0_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "angular_velocity_covariance_4_rad2_s2": {
+      "meaning": "angular_velocity_covariance_4_rad2_s2",
+      "unit": "rad2_s2_reported_row_major_xyz_row1_column1_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "angular_velocity_covariance_5_rad2_s2": {
+      "meaning": "angular_velocity_covariance_5_rad2_s2",
+      "unit": "rad2_s2_reported_row_major_xyz_row1_column2_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "angular_velocity_covariance_6_rad2_s2": {
+      "meaning": "angular_velocity_covariance_6_rad2_s2",
+      "unit": "rad2_s2_reported_row_major_xyz_row2_column0_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "angular_velocity_covariance_7_rad2_s2": {
+      "meaning": "angular_velocity_covariance_7_rad2_s2",
+      "unit": "rad2_s2_reported_row_major_xyz_row2_column1_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "angular_velocity_covariance_8_rad2_s2": {
+      "meaning": "angular_velocity_covariance_8_rad2_s2",
+      "unit": "rad2_s2_reported_row_major_xyz_row2_column2_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "linear_acceleration_covariance_0_m2_s4": {
+      "meaning": "linear_acceleration_covariance_0_m2_s4",
+      "unit": "m2_s4_reported_row_major_xyz_row0_column0_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "linear_acceleration_covariance_1_m2_s4": {
+      "meaning": "linear_acceleration_covariance_1_m2_s4",
+      "unit": "m2_s4_reported_row_major_xyz_row0_column1_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "linear_acceleration_covariance_2_m2_s4": {
+      "meaning": "linear_acceleration_covariance_2_m2_s4",
+      "unit": "m2_s4_reported_row_major_xyz_row0_column2_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "linear_acceleration_covariance_3_m2_s4": {
+      "meaning": "linear_acceleration_covariance_3_m2_s4",
+      "unit": "m2_s4_reported_row_major_xyz_row1_column0_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "linear_acceleration_covariance_4_m2_s4": {
+      "meaning": "linear_acceleration_covariance_4_m2_s4",
+      "unit": "m2_s4_reported_row_major_xyz_row1_column1_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "linear_acceleration_covariance_5_m2_s4": {
+      "meaning": "linear_acceleration_covariance_5_m2_s4",
+      "unit": "m2_s4_reported_row_major_xyz_row1_column2_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "linear_acceleration_covariance_6_m2_s4": {
+      "meaning": "linear_acceleration_covariance_6_m2_s4",
+      "unit": "m2_s4_reported_row_major_xyz_row2_column0_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "linear_acceleration_covariance_7_m2_s4": {
+      "meaning": "linear_acceleration_covariance_7_m2_s4",
+      "unit": "m2_s4_reported_row_major_xyz_row2_column1_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "linear_acceleration_covariance_8_m2_s4": {
+      "meaning": "linear_acceleration_covariance_8_m2_s4",
+      "unit": "m2_s4_reported_row_major_xyz_row2_column2_fixed_source_frame_no_rotation_no_PSD_certificate_blank_if_ABSENT_or_UNKNOWN",
+      "basis": "declared"
+    },
+    "metadata_version": {
+      "meaning": "metadata_version",
+      "unit": "integer_declared_rosbag2_metadata_schema_version_9_not_ROS_protocol_distribution_firmware_application_or_exporter_version_not_authentication_or_clock_basis",
+      "basis": "declared"
+    },
     "mqtt_payload_bytes_reported": {
       "meaning": "mqtt_payload_bytes_reported",
       "unit": "the_payloadlen_the_publisher_client_reported_for_the_original_wire_payload_in_bytes_reported_only_and_never_compared_with_the_embedded_value_because_a_reserialized_payload_would_make_such_a_check_false",
@@ -64,6 +274,31 @@
     "tegrastats_reported_power_average_w": {
       "meaning": "tegrastats_reported_power_average_w",
       "unit": "W_from_the_reported_milliwatt_average_power_consumption_of_the_same_rail_the_averaging_window_is_not_documented_so_it_is_not_an_interval_qualified_mean",
+      "basis": "declared"
+    },
+    "nvdla_instance_index": {
+      "meaning": "nvdla_instance_index",
+      "unit": "reported_NVDLA0_or_NVDLA1_suffix_not_discovery_count_or_hardware_identity_absent_instance_not_zero_or_disabled",
+      "basis": "declared"
+    },
+    "nvdla_utilization_fraction": {
+      "meaning": "nvdla_utilization_fraction",
+      "unit": "fraction_from_reported_NVDLA_percent_no_period_or_model_identity_documented_not_inference_correctness_or_performance_blank_when_only_frequency_reported",
+      "basis": "declared"
+    },
+    "nvdla_frequency_hz": {
+      "meaning": "nvdla_frequency_hz",
+      "unit": "Hz_from_reported_NVDLA_MHz_times_one_million_exact_integer_zero_is_reported_zero_blank_when_only_utilization_reported_not_clock_alignment_or_execution_proof",
+      "basis": "declared"
+    },
+    "nvdla_field_presence": {
+      "meaning": "nvdla_field_presence",
+      "unit": "UTILIZATION_ONLY_FREQUENCY_ONLY_or_UTILIZATION_AND_FREQUENCY_distinguishes_missing_half_from_reported_zero_no_inferred_instance",
+      "basis": "declared"
+    },
+    "nvdla_basis": {
+      "meaning": "nvdla_basis",
+      "unit": "reported_accelerator_quantity_basis_NOT_PERFORMANCE_no_physical_execution_or_model_claim_capture_clock_stays_Unknown",
       "basis": "declared"
     },
     "trt_host_enqueue_start_offset_s": {
@@ -344,6 +579,146 @@
     "factsheet_basis": {
       "meaning": "factsheet_basis",
       "unit": "publisher_declaration_not_measurement_or_certified_capability",
+      "basis": "declared"
+    },
+    "geometry_row_kind": {
+      "meaning": "geometry_row_kind",
+      "unit": "SUMMARY_WHEEL_ENVELOPE2D_or_VERTEX_not_independent_event_count",
+      "basis": "declared"
+    },
+    "geometry_source_record_index": {
+      "meaning": "geometry_source_record_index",
+      "unit": "zero_based_saved_factsheet_record_index",
+      "basis": "declared"
+    },
+    "geometry_source_sha256": {
+      "meaning": "geometry_source_sha256",
+      "unit": "SHA256_exact_UTF8_record_without_line_terminator_source_record_hex_is_on_SUMMARY",
+      "basis": "declared"
+    },
+    "geometry_status": {
+      "meaning": "geometry_status",
+      "unit": "ABSENT_or_PRESENT_geometry_object_not_qualification",
+      "basis": "declared"
+    },
+    "geometry_wheel_count": {
+      "meaning": "geometry_wheel_count",
+      "unit": "declared_array_count_blank_absent_zero_empty",
+      "basis": "declared"
+    },
+    "geometry_envelope_count": {
+      "meaning": "geometry_envelope_count",
+      "unit": "declared_2D_array_count_blank_absent_zero_empty",
+      "basis": "declared"
+    },
+    "geometry_unconverted_3d_count": {
+      "meaning": "geometry_unconverted_3d_count",
+      "unit": "declared_3D_entries_NOT_CONVERTED_no_URL_fetch_blank_absent_zero_empty",
+      "basis": "declared"
+    },
+    "geometry_unknown_key_count": {
+      "meaning": "geometry_unknown_key_count",
+      "unit": "unselected_geometry_keys_retained_in_original_record",
+      "basis": "declared"
+    },
+    "geometry_item_index": {
+      "meaning": "geometry_item_index",
+      "unit": "zero_based_wheel_or_envelope_array_ordinal_not_global_identity",
+      "basis": "declared"
+    },
+    "geometry_vertex_index": {
+      "meaning": "geometry_vertex_index",
+      "unit": "zero_based_original_vertex_order_no_dedup_or_closing_vertex_synthesis",
+      "basis": "declared"
+    },
+    "geometry_vertex_count": {
+      "meaning": "geometry_vertex_count",
+      "unit": "declared_vertices_count_zero_does_not_assert_valid_polygon",
+      "basis": "declared"
+    },
+    "geometry_id_hex": {
+      "meaning": "geometry_id_hex",
+      "unit": "reported_envelope_ID_UTF8_hex_duplicate_IDs_remain_distinct_by_source_ordinal",
+      "basis": "declared"
+    },
+    "geometry_description_hex": {
+      "meaning": "geometry_description_hex",
+      "unit": "optional_description_UTF8_hex_blank_absent_hex_colon_empty",
+      "basis": "declared"
+    },
+    "geometry_frame_basis": {
+      "meaning": "geometry_frame_basis",
+      "unit": "wheel_explicit_mobile_robot_frame_envelope_frame_unspecified_no_world_transform",
+      "basis": "declared"
+    },
+    "geometry_topology_basis": {
+      "meaning": "geometry_topology_basis",
+      "unit": "source_declares_closed_simple_polygon_but_this_reader_does_NOT_validate_topology_or_safety",
+      "basis": "declared"
+    },
+    "geometry_wheel_type_hex": {
+      "meaning": "geometry_wheel_type_hex",
+      "unit": "reported_extensible_wheel_type_UTF8_hex_not_a_command_or_inferred_motion",
+      "basis": "declared"
+    },
+    "geometry_wheel_type_status": {
+      "meaning": "geometry_wheel_type_status",
+      "unit": "KNOWN_DRIVE_CASTER_FIXED_MECANUM_or_EXTENSIBLE_UNRECOGNIZED",
+      "basis": "declared"
+    },
+    "geometry_active_driven": {
+      "meaning": "geometry_active_driven",
+      "unit": "declared_boolean_wheel_drive_capability_not_current_actuation",
+      "basis": "declared"
+    },
+    "geometry_active_steered": {
+      "meaning": "geometry_active_steered",
+      "unit": "declared_boolean_wheel_steer_capability_not_current_actuation",
+      "basis": "declared"
+    },
+    "geometry_x_m": {
+      "meaning": "geometry_x_m",
+      "unit": "m_declared_position_in_rows_explicit_frame_basis_not_global_or_measured",
+      "basis": "declared"
+    },
+    "geometry_y_m": {
+      "meaning": "geometry_y_m",
+      "unit": "m_declared_position_in_rows_explicit_frame_basis_not_global_or_measured",
+      "basis": "declared"
+    },
+    "geometry_theta_rad": {
+      "meaning": "geometry_theta_rad",
+      "unit": "rad_declared_wheel_orientation_in_mobile_robot_frame_blank_unreported_not_heading",
+      "basis": "declared"
+    },
+    "geometry_diameter_m": {
+      "meaning": "geometry_diameter_m",
+      "unit": "m_nominal_wheel_diameter_not_measured_or_calibrated",
+      "basis": "declared"
+    },
+    "geometry_width_m": {
+      "meaning": "geometry_width_m",
+      "unit": "m_nominal_wheel_width_not_measured_or_calibrated",
+      "basis": "declared"
+    },
+    "geometry_center_displacement_reported_m": {
+      "meaning": "geometry_center_displacement_reported_m",
+      "unit": "m_reported_nominal_center_to_rotation_point_displacement_blank_absent",
+      "basis": "declared"
+    },
+    "geometry_center_displacement_effective_m": {
+      "meaning": "geometry_center_displacement_effective_m",
+      "unit": "m_reported_value_or_spec_default_zero_only_if_absent_not_a_measurement",
+      "basis": "declared"
+    },
+    "geometry_center_displacement_basis": {
+      "meaning": "geometry_center_displacement_basis",
+      "unit": "REPORTED_or_SPEC_DEFAULT_IF_ABSENT_read_before_effective_value",
+      "basis": "declared"
+    },
+    "geometry_constraints_hex": {
+      "meaning": "geometry_constraints_hex",
+      "unit": "uninterpreted_manufacturer_constraints_UTF8_hex_blank_absent",
       "basis": "declared"
     },
     "declared_minimum_speed_m_s": {
@@ -891,6 +1266,21 @@
       "unit": "Ah_reported_remaining_charge_not_consumed",
       "basis": "declared"
     },
+    "robotnik_row_kind": {
+      "meaning": "robotnik_row_kind",
+      "unit": "SUMMARY_for_the_one_pack_row_this_producer_reports_per_record_or_CELL_for_each_reported_cell_voltage_beside_it_so_a_reader_can_tell_a_pack_quantity_from_a_per_cell_one_and_a_CELL_row_deliberately_carries_no_pack_voltage_current_or_power",
+      "basis": "declared"
+    },
+    "battery_time_charging_reported_s": {
+      "meaning": "battery_time_charging_reported_s",
+      "unit": "SECONDS_CONVERTED_FROM_THE_PRODUCERS_MINUTES_in_exactly_the_same_way_as_the_remaining_duration_beside_it_it_is_the_producers_own_estimate_of_charging_time_with_minute_granularity_and_is_never_a_measured_or_verified_duration",
+      "basis": "declared"
+    },
+    "battery_cell_count": {
+      "meaning": "battery_cell_count",
+      "unit": "how_many_cell_voltages_the_producer_reported_in_this_record_repeated_on_the_summary_row_and_on_every_cell_row_so_a_reader_of_one_row_can_tell_whether_sibling_cell_rows_exist_it_counts_REPORTED_entries_and_is_never_a_verified_cell_count_of_any_physical_pack",
+      "basis": "declared"
+    },
     "battery_cell_index": {
       "meaning": "battery_cell_index",
       "unit": "source_declared_cell_index_not_authenticated_identity",
@@ -1008,17 +1398,47 @@
     },
     "inav_gps_altitude_code_reported": {
       "meaning": "inav_gps_altitude_code_reported",
-      "unit": "int16_raw_carried_unconverted_the_gps_tab_of_the_same_pin_labels_this_value_m_on_screen_but_that_label_is_deliberately_not_adopted_here_and_no_datum_is_declared_anywhere_so_the_cell_is_not_referenced_to_ellipsoid_or_mean_sea_level",
+      "unit": "int16_original_unscaled_code_separate_altitude_m_field_uses_fixed_consumer_unit_no_datum_qualification",
       "basis": "declared"
     },
     "inav_gps_speed_code_reported": {
       "meaning": "inav_gps_speed_code_reported",
-      "unit": "uint16_raw_carried_unconverted_the_gps_tab_of_the_same_pin_labels_this_value_cm_per_s_on_screen_but_that_label_is_deliberately_not_adopted_here_so_no_speed_unit_is_applied_to_the_cell",
+      "unit": "uint16_original_unscaled_code_separate_speed_m_s_field_uses_fixed_consumer_cm_s_unit",
       "basis": "declared"
     },
     "inav_gps_ground_course_code_reported": {
       "meaning": "inav_gps_ground_course_code_reported",
       "unit": "uint16_raw_the_pinned_source_displays_this_value_nowhere_and_declares_no_unit_for_it_so_neither_decidegree_nor_degree_is_established_and_no_heading_reference_is_implied",
+      "basis": "declared"
+    },
+    "inav_gps_unscaled_basis": {
+      "meaning": "inav_gps_unscaled_basis",
+      "unit": "original_integer_cells_are_retained_beside_separate_qualified_altitude_speed_values_course_unit_remains_unknown",
+      "basis": "declared"
+    },
+    "inav_gps_altitude_m_reported": {
+      "meaning": "inav_gps_altitude_m_reported",
+      "unit": "m_reported_unknown_datum_zero_may_be_unset_not_MSL_or_ellipsoid",
+      "basis": "declared"
+    },
+    "inav_gps_speed_m_s_reported": {
+      "meaning": "inav_gps_speed_m_s_reported",
+      "unit": "m/s_reported_cm_per_s_divided_once_by_100_zero_may_be_unset",
+      "basis": "declared"
+    },
+    "inav_gps_ground_course_deg_reported": {
+      "meaning": "inav_gps_ground_course_deg_reported",
+      "unit": "deg_reported_qualified_ublox_course_not_yaw_reference_unknown",
+      "basis": "declared"
+    },
+    "inav_gps_altitude_datum": {
+      "meaning": "inav_gps_altitude_datum",
+      "unit": "UNKNOWN_no_vertical_reference_in_fixed_source",
+      "basis": "declared"
+    },
+    "inav_gps_navigation_unit_basis": {
+      "meaning": "inav_gps_navigation_unit_basis",
+      "unit": "fixed_configurator_consumer_unit_labels_not_fix_validity_or_sensor_accuracy",
       "basis": "declared"
     },
     "sonar_reported_distance_m": {
@@ -1104,6 +1524,16 @@
     "reported_link_side": {
       "meaning": "reported_link_side",
       "unit": "frame_side_label_RX_or_TX_reported_not_authenticated_publisher_identity",
+      "basis": "declared"
+    },
+    "reported_rf_power_dbm": {
+      "meaning": "reported_rf_power_dbm",
+      "unit": "dBm_reported_directional_power_not_0x14_power_code_or_physical_measurement",
+      "basis": "declared"
+    },
+    "reported_rf_frames_per_second": {
+      "meaning": "reported_rf_frames_per_second",
+      "unit": "frames_per_second_reported_TX_wire_byte_times_10_RX_absent_not_measured_throughput",
       "basis": "declared"
     },
     "trt_layer_total_time_s": {
@@ -1286,19 +1716,79 @@
       "unit": "s_of_the_reported_overall_latency_under_exactly_the_same_optional_nanosecond_source_conversion_mean_across_networks_and_non_timeline_rules",
       "basis": "declared"
     },
-    "robotnik_row_kind": {
-      "meaning": "robotnik_row_kind",
-      "unit": "SUMMARY_for_the_one_pack_row_this_producer_reports_per_record_or_CELL_for_each_reported_cell_voltage_beside_it_so_a_reader_can_tell_a_pack_quantity_from_a_per_cell_one_and_a_CELL_row_deliberately_carries_no_pack_voltage_current_or_power",
+    "tf_entry_count": {
+      "meaning": "tf_entry_count",
+      "unit": "count_of_TransformStamped_entries_in_this_TFMessage_zero_means_an_empty_array_was_recorded",
       "basis": "declared"
     },
-    "battery_time_charging_reported_s": {
-      "meaning": "battery_time_charging_reported_s",
-      "unit": "SECONDS_CONVERTED_FROM_THE_PRODUCERS_MINUTES_in_exactly_the_same_way_as_the_remaining_duration_beside_it_it_is_the_producers_own_estimate_of_charging_time_with_minute_granularity_and_is_never_a_measured_or_verified_duration",
+    "tf_entry_index": {
+      "meaning": "tf_entry_index",
+      "unit": "zero_based_entry_position_within_the_recorded_TFMessage",
       "basis": "declared"
     },
-    "battery_cell_count": {
-      "meaning": "battery_cell_count",
-      "unit": "how_many_cell_voltages_the_producer_reported_in_this_record_repeated_on_the_summary_row_and_on_every_cell_row_so_a_reader_of_one_row_can_tell_whether_sibling_cell_rows_exist_it_counts_REPORTED_entries_and_is_never_a_verified_cell_count_of_any_physical_pack",
+    "tf_parent_frame_hex": {
+      "meaning": "tf_parent_frame_hex",
+      "unit": "reported_header_frame_id_UTF8_hex_a_label_not_a_verified_frame",
+      "basis": "declared"
+    },
+    "tf_child_frame_hex": {
+      "meaning": "tf_child_frame_hex",
+      "unit": "reported_child_frame_id_UTF8_hex_a_label_not_a_verified_frame",
+      "basis": "declared"
+    },
+    "tf_source_stamp_us": {
+      "meaning": "tf_source_stamp_us",
+      "unit": "us_of_the_entry_header_stamp_as_reported_separate_from_bag_capture_time_no_clock_source_inferred",
+      "basis": "declared"
+    },
+    "tf_translation_m_x": {
+      "meaning": "tf_translation_m_x",
+      "unit": "m_reported_translation_REP103",
+      "basis": "declared"
+    },
+    "tf_translation_m_y": {
+      "meaning": "tf_translation_m_y",
+      "unit": "m_reported_translation_REP103",
+      "basis": "declared"
+    },
+    "tf_translation_m_z": {
+      "meaning": "tf_translation_m_z",
+      "unit": "m_reported_translation_REP103",
+      "basis": "declared"
+    },
+    "tf_rotation_xyzw_x": {
+      "meaning": "tf_rotation_xyzw_x",
+      "unit": "reported_unit_quaternion_component_x_of_xyzw_order_not_normalized",
+      "basis": "declared"
+    },
+    "tf_rotation_xyzw_y": {
+      "meaning": "tf_rotation_xyzw_y",
+      "unit": "reported_unit_quaternion_component_y_of_xyzw_order_not_normalized",
+      "basis": "declared"
+    },
+    "tf_rotation_xyzw_z": {
+      "meaning": "tf_rotation_xyzw_z",
+      "unit": "reported_unit_quaternion_component_z_of_xyzw_order_not_normalized",
+      "basis": "declared"
+    },
+    "tf_rotation_xyzw_w": {
+      "meaning": "tf_rotation_xyzw_w",
+      "unit": "reported_unit_quaternion_scalar_w_of_xyzw_order_not_normalized",
+      "basis": "declared"
+    },
+    "tf_topic_hex": {
+      "meaning": "tf_topic_hex",
+      "unit": "recorded_bag_topic_UTF8_hex",
+      "basis": "declared"
+    },
+    "tf_relation_kind": {
+      "meaning": "tf_relation_kind",
+      "unit": "static_or_time_varying_only_where_the_recorded_topic_is_exactly_a_tf2_ros_listener_topic_otherwise_undetermined_never_from_frame_names",
+      "basis": "declared"
+    },
+    "tf_relation_basis": {
+      "meaning": "tf_relation_basis",
+      "unit": "source_basis_for_tf_relation_kind_a_listener_contract_applied_to_the_recorded_topic_not_publisher_intent_or_QoS",
       "basis": "declared"
     }
   }

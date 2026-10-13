@@ -1,0 +1,130 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_reported_boot_TimeUS_not_UTC",
+      "basis": "declared"
+    },
+    "reported_target_vertical_rate_m_s": {
+      "meaning": "reported_target_vertical_rate_m_s",
+      "unit": "m/s_reported_z_up_target_not_execution",
+      "basis": "declared"
+    },
+    "reported_estimated_vertical_rate_m_s": {
+      "meaning": "reported_estimated_vertical_rate_m_s",
+      "unit": "m/s_reported_z_up_retained_estimate_freshness_unknown",
+      "basis": "declared"
+    },
+    "reported_target_z_up_m": {
+      "meaning": "reported_target_z_up_m",
+      "unit": "m_above_reported_EKF_origin_target_not_surface_depth",
+      "basis": "declared"
+    },
+    "reported_estimated_z_up_m": {
+      "meaning": "reported_estimated_z_up_m",
+      "unit": "m_above_reported_EKF_origin_retained_estimate_not_surface_depth",
+      "basis": "declared"
+    },
+    "position_basis": {
+      "meaning": "position_basis",
+      "unit": "reported_origin_not_verified_water_surface_no_origin_reset_tracking",
+      "basis": "declared"
+    },
+    "domain_binding_basis": {
+      "meaning": "domain_binding_basis",
+      "unit": "fixed_Sub_source_and_same_report_build_MSG_not_BlueROV2_hardware_authentication",
+      "basis": "declared"
+    },
+    "identity_record_indices": {
+      "meaning": "identity_record_indices",
+      "unit": "colon_separated_original_report_indices",
+      "basis": "declared"
+    },
+    "source_report_record_index": {
+      "meaning": "source_report_record_index",
+      "unit": "zero_based_original_report_index",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "sha256_original_report_bytes_retain_original",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "hex_canonical_selected_record_unknown_fields_preserved",
+      "basis": "declared"
+    },
+    "declared_surface_target_depth_down_m": {
+      "meaning": "declared_surface_target_depth_down_m",
+      "unit": "m_positive_down_from_caller_declared_surface_target_not_execution",
+      "basis": "declared"
+    },
+    "declared_surface_estimated_depth_down_m": {
+      "meaning": "declared_surface_estimated_depth_down_m",
+      "unit": "m_positive_down_from_caller_declared_surface_not_verified_physical_depth",
+      "basis": "declared"
+    },
+    "depth_reference_basis": {
+      "meaning": "depth_reference_basis",
+      "unit": "conditional_declared_surface_not_datum_validation",
+      "basis": "declared"
+    },
+    "anchor_declaration_sha256": {
+      "meaning": "anchor_declaration_sha256",
+      "unit": "sha256_unchanged_caller_declaration_bytes",
+      "basis": "declared"
+    },
+    "anchor_record_index": {
+      "meaning": "anchor_record_index",
+      "unit": "zero_based_original_report_index",
+      "basis": "declared"
+    },
+    "anchor_time_us": {
+      "meaning": "anchor_time_us",
+      "unit": "us_same_report_boot_clock",
+      "basis": "declared"
+    },
+    "anchor_z_up_m": {
+      "meaning": "anchor_z_up_m",
+      "unit": "m_above_same_reported_EKF_origin",
+      "basis": "declared"
+    },
+    "declared_source_id": {
+      "meaning": "declared_source_id",
+      "unit": "hex_UTF8_caller_source_label_not_authentication",
+      "basis": "declared"
+    },
+    "declared_session_id": {
+      "meaning": "declared_session_id",
+      "unit": "hex_UTF8_caller_session_label_not_inferred",
+      "basis": "declared"
+    },
+    "declared_origin_epoch_id": {
+      "meaning": "declared_origin_epoch_id",
+      "unit": "hex_UTF8_caller_origin_epoch_label_not_inferred",
+      "basis": "declared"
+    },
+    "anchor_valid_start_us": {
+      "meaning": "anchor_valid_start_us",
+      "unit": "us_inclusive_caller_origin_validity_start",
+      "basis": "declared"
+    },
+    "anchor_valid_stop_us": {
+      "meaning": "anchor_valid_stop_us",
+      "unit": "us_inclusive_caller_origin_validity_stop",
+      "basis": "declared"
+    },
+    "anchor_citation_hex": {
+      "meaning": "anchor_citation_hex",
+      "unit": "hex_UTF8_caller_evidence_citation_not_verified",
+      "basis": "declared"
+    }
+  }
+}

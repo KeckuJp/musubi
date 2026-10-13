@@ -10,6 +10,8 @@ description = "Offline reference pipeline for saved observations and synthetic a
 workspace = true
 
 [dependencies]
+musubi-types = { path = "../types" }
+serde_json = "1"
 musubi-reference-types = { path = "../reference-types" }
 musubi-reference-scenario = { path = "../reference-scenario" }
 musubi-reference-readers = { path = "../reference-readers" }

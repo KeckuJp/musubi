@@ -4,8 +4,9 @@
 The adopted converters already carry the reported side: a named vehicle mode, a mission state, a
 goal status. None of them states whether a saved value was *within what the caller expected*, or
 whether a declared progress number *advanced between two saved reports*. A raw code is not that
-comparison, so this bridge performs it and nothing else: it decodes no format, opens no second file,
-and reaches no conclusion about any machine. Outside the declared list means outside the list.
+comparison, so this bridge performs it and nothing else: it decodes no device format and reaches no
+conclusion about any machine. Range mode additionally binds a saved profile and explicit interval
+specification. Outside the declared expectation means only outside that expectation.
 """
 import argparse
 import csv
@@ -53,6 +54,14 @@ FIELDS = ["record_time_us", "check_kind", "subject_hex", "subject_columns_hex", 
           "declared_expectation_hex", "previous_value_hex", "previous_record_time_us", "elapsed_us",
           "advance_delta", "difference_value", "declared_tolerance", "declared_clock_basis",
           "expectation_basis", "source_sha256"]
+RANGE_FIELDS = ["source_row_index", "range_spec_sha256", "range_profile_sha256", "range_unit_hex",
+                "range_minimum_text", "range_maximum_text"]
+RANGE_SPEC_LIMIT = 8192
+RANGE_PROFILE_LIMIT = 65536
+RANGE_REPORT_LIMIT = 1024 * 1024
+RANGE_BASIS = ("CALLER_DECLARED_INCLUSIVE_RANGE_ON_EXACT_SAVED_DECIMALS_WITH_MATCHING_DECLARED_"
+               "SUBJECT_UNIT_AND_CLOCK_NOT_SENSOR_VALIDITY_NOT_PHYSICAL_FAULT_NOT_AUTHENTICATION_"
+               "UNQUALIFIED_SUBJECT_VALUES_NOT_INTERPRETED_NO_UNIT_CONVERSION")
 
 
 def text(value):
@@ -202,6 +211,87 @@ def bounded_number(value, what, pattern=DIFFERENCE_NUMBER):
     return Decimal(value)  # exact from the literal; the regex has already excluded inf, nan and E
 
 
+def range_declaration(data, raw, profile_raw, clock_basis, subjects, time_column):
+    """Bind one explicit interval to bytes and declared context, never to hardware truth."""
+    try:
+        import tomllib
+    except ImportError:
+        raise ValueError("range mode requires Python 3.11+ for the standard TOML profile parser") from None
+    if not isinstance(raw, bytes) or not 0 < len(raw) <= RANGE_SPEC_LIMIT:
+        raise ValueError("range specification byte bound")
+    if not isinstance(profile_raw, bytes) or not 0 < len(profile_raw) <= RANGE_PROFILE_LIMIT:
+        raise ValueError("range source profile byte bound")
+
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate range specification key")
+            result[key] = value
+        return result
+
+    def invalid_constant(_):
+        raise ValueError("nonfinite range specification constant")
+
+    spec = json.loads(raw, object_pairs_hook=unique, parse_constant=invalid_constant)
+    keys = {"schema", "source_sha256", "profile_sha256", "column", "minimum", "maximum",
+            "unit", "clock_basis", "subject_columns", "subject_values"}
+    if not isinstance(spec, dict) or set(spec) != keys or spec["schema"] != "musubi.declared-range.v1":
+        raise ValueError("unsupported range specification shape")
+    for key, content in (("source_sha256", data), ("profile_sha256", profile_raw)):
+        if spec[key] != "sha256:" + hashlib.sha256(content).hexdigest():
+            raise ValueError("range specification byte binding mismatch")
+    minimum = bounded_number(spec["minimum"], "minimum")
+    maximum = bounded_number(spec["maximum"], "maximum")
+    if minimum > maximum:
+        raise ValueError("range minimum exceeds maximum")
+    column = declared_name(spec["column"])
+    unit = spec["unit"]
+    profile = tomllib.loads(profile_raw.decode("utf-8"))
+    if not isinstance(unit, str) or not 1 <= len(unit) <= DECLARATION_LIMIT:
+        raise ValueError("range unit must be a bounded literal")
+    if (profile.get("format") != "telemetry_csv_us" or
+            not isinstance(profile.get("units"), dict) or profile["units"].get(column) != unit):
+        raise ValueError("range unit differs from the source profile; no conversion is inferred")
+    if (clock_basis not in ("unknown", "boot_relative") or spec["clock_basis"] != clock_basis or
+            profile.get("default_clock_basis") != clock_basis or
+            not isinstance(profile.get("fields"), dict) or profile["fields"].get("time") != time_column):
+        raise ValueError("range source clock or time column differs from the declaration")
+    if any(not isinstance(profile.get(key), str) or not profile[key] for key in ("profile_id", "version")):
+        raise ValueError("range source profile needs a declared configuration id and version")
+    wanted = spec["subject_values"]
+    if (spec["subject_columns"] != list(subjects) or not 1 <= len(subjects) <= 8 or
+            not isinstance(wanted, list) or len(wanted) != len(subjects) or
+            any(not isinstance(v, str) or not 1 <= len(v) <= EXPECTED_VALUE_LIMIT for v in wanted)):
+        raise ValueError("range needs one explicit nonempty subject tuple matching declared columns")
+    return spec, profile
+
+
+def declared_range(rows, index, spec, citation, shared, emit, report):
+    minimum, maximum = Decimal(spec["minimum"]), Decimal(spec["maximum"])
+    column, subjects = spec["column"], spec["subject_columns"]
+    for ordinal, (moment, cells) in enumerate(rows):
+        subject = [cells[index[name]] for name in subjects]
+        saved = cells[index[column]]
+        if subject != spec["subject_values"]:
+            category, disposition = "unqualified_subject", "UNQUALIFIED_SUBJECT"
+        elif saved == "":
+            category, disposition = "not_reported", "NOT_REPORTED"
+            report["values_not_reported"] += 1
+        else:
+            value = bounded_number(saved, "the selected range value")
+            category = "below" if value < minimum else "above" if value > maximum else "within"
+            disposition = {"below": "BELOW_DECLARED_RANGE", "above": "ABOVE_DECLARED_RANGE",
+                           "within": "WITHIN_DECLARED_RANGE"}[category]
+        report["range_counts"][category] += 1
+        emit(dict(shared, record_time_us=moment, check_kind="DECLARED_NUMERIC_RANGE",
+            subject_hex=identity(subject), checked_column_hex=text(column), value_meaning_hex=text(citation),
+            reported_value_hex=text(saved) if saved else "", expectation_disposition=disposition,
+            declared_expectation_hex=identity((spec["minimum"], spec["maximum"], spec["unit"])),
+            source_row_index=ordinal, range_unit_hex=text(spec["unit"]),
+            range_minimum_text="decimal:" + spec["minimum"], range_maximum_text="decimal:" + spec["maximum"]))
+
+
 def difference(rows, index, columns, citation, tolerance, subjects, shared, emit, report):
     """Two saved numbers the caller declared share a unit, and how far apart they are."""
     first, second = columns
@@ -238,7 +328,7 @@ def difference(rows, index, columns, citation, tolerance, subjects, shared, emit
 
 def convert(data, *, clock_basis, value_meaning, membership_column=None, expected_values=(),
             advance_column=None, difference_columns=(), tolerance=None, subjects=(),
-            time_column="record_time_us"):
+            time_column="record_time_us", range_spec=None, range_profile=None):
     if not isinstance(clock_basis, str) or not 1 <= len(clock_basis) <= DECLARATION_LIMIT:
         raise ValueError("the saved clock basis must be declared by the caller")
     if not isinstance(value_meaning, str) or not 1 <= len(value_meaning) <= CITATION_LIMIT:
@@ -246,9 +336,13 @@ def convert(data, *, clock_basis, value_meaning, membership_column=None, expecte
         raise ValueError("the checked column requires a declared meaning source")
     chosen = [name for name, given in (("membership", membership_column is not None),
                                        ("advance", advance_column is not None),
-                                       ("difference", bool(difference_columns))) if given]
+                                       ("difference", bool(difference_columns)),
+                                       ("range", range_spec is not None or range_profile is not None)) if given]
     if len(chosen) != 1:
-        raise ValueError("declare exactly one check: membership, advance or difference")
+        raise ValueError("declare exactly one check: membership, advance, difference or range")
+    spec = None
+    if chosen[0] == "range":
+        spec, source_profile = range_declaration(data, range_spec, range_profile, clock_basis, subjects, time_column)
     if chosen[0] == "difference":
         if len(difference_columns) != 2 or len(set(difference_columns)) != 2:
             raise ValueError("a difference check compares exactly two distinct declared columns")
@@ -262,7 +356,7 @@ def convert(data, *, clock_basis, value_meaning, membership_column=None, expecte
         if tolerance is not None:
             raise ValueError("a tolerance applies only to a difference check")
         columns = ()
-        column = declared_name(membership_column if advance_column is None else advance_column)
+        column = spec["column"] if spec is not None else declared_name(membership_column if advance_column is None else advance_column)
     expected = set(expected_values)
     if membership_column is not None:
         if not 1 <= len(expected) <= EXPECTED_SET_LIMIT or len(expected) != len(expected_values):
@@ -291,8 +385,16 @@ def convert(data, *, clock_basis, value_meaning, membership_column=None, expecte
               "declared_tolerance": None if tolerance is None else str(tolerance), "declared_subject_columns": list(subjects),
               "declared_clock_basis": clock_basis, "source_sha256": digest, "output_bytes": 0,
               "clock": "Unknown", "physical_cause_records": "NOT_DERIVED"}
+    output_fields = FIELDS
+    if spec is not None:
+        output_fields = FIELDS + RANGE_FIELDS
+        report.update(range_specification=spec, range_spec_sha256="sha256:" + hashlib.sha256(range_spec).hexdigest(),
+            range_profile_sha256=spec["profile_sha256"], range_profile_id=source_profile["profile_id"],
+            range_profile_version=source_profile["version"],
+            range_counts=dict(within=0, below=0, above=0, not_reported=0, unqualified_subject=0),
+            required_original_artifacts=["source.csv", "range-spec.json", "source-profile.toml"])
     produced, budget = [], io.StringIO(newline="")
-    scratch = csv.DictWriter(budget, FIELDS, lineterminator="\n", restval="")
+    scratch = csv.DictWriter(budget, output_fields, lineterminator="\n", restval="")
     scratch.writeheader()
     written = len(budget.getvalue().encode("utf-8"))
 
@@ -317,7 +419,11 @@ def convert(data, *, clock_basis, value_meaning, membership_column=None, expecte
     shared = {"subject_columns_hex": identity(subjects) if subjects else "",
               "declared_clock_basis": clock_basis, "expectation_basis": EXPECTATION_BASIS,
               "source_sha256": digest}
-    if chosen[0] == "membership":
+    if spec is not None:
+        shared.update(expectation_basis=RANGE_BASIS, range_spec_sha256=report["range_spec_sha256"],
+                      range_profile_sha256=spec["profile_sha256"])
+        declared_range(rows, index, spec, value_meaning, shared, emit, report)
+    elif chosen[0] == "membership":
         membership(rows, index, column, value_meaning, expected, subjects, shared, emit, report)
     elif chosen[0] == "advance":
         advance(rows, index, column, value_meaning, subjects, shared, emit, report)
@@ -326,8 +432,9 @@ def convert(data, *, clock_basis, value_meaning, membership_column=None, expecte
     if not report["checked_records"]:
         raise ValueError("no saved record reached the check")
     report["output_bytes"] = written
-    # Rows are emitted in the saved order, which is already non-decreasing in time.
-    return ",".join(FIELDS) + "\n" + "".join(produced), report
+    if spec is not None and len(json.dumps(report, indent=2).encode("utf-8")) > RANGE_REPORT_LIMIT:
+        raise ValueError("range report byte bound")
+    return ",".join(output_fields) + "\n" + "".join(produced), report
 
 
 def main():
@@ -349,20 +456,32 @@ def main():
                         help="exactly two columns the caller declares share a unit; with --tolerance")
     parser.add_argument("--tolerance",
                         help="declared non-negative decimal tolerance; difference check only")
+    parser.add_argument("--range-spec", type=Path, help="closed inclusive interval specification; with --range-profile")
+    parser.add_argument("--range-profile", type=Path, help="source CSV profile whose units/clock the range specification binds")
     args = parser.parse_args()
     try:
         if args.input.stat().st_size > LIMIT:
             raise ValueError("input exceeds bound")
+        source = args.input.read_bytes()
+        supplied = []
+        for path, limit in ((args.range_spec, RANGE_SPEC_LIMIT), (args.range_profile, RANGE_PROFILE_LIMIT)):
+            if path is not None and path.stat().st_size > limit:
+                raise ValueError("range declaration input bound")
+            supplied.append(None if path is None else path.read_bytes())
         output, report = convert(
-            args.input.read_bytes(), clock_basis=args.clock_basis, value_meaning=args.value_meaning,
+            source, clock_basis=args.clock_basis, value_meaning=args.value_meaning,
             time_column=args.time_column, subjects=tuple(args.subject_column),
             membership_column=args.membership_column, expected_values=tuple(args.expected_value),
             advance_column=args.advance_column,
-            difference_columns=tuple(args.difference_column), tolerance=args.tolerance)
+            difference_columns=tuple(args.difference_column), tolerance=args.tolerance,
+            range_spec=supplied[0], range_profile=supplied[1])
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2),
                                                            encoding="utf-8")
+        if args.range_spec is not None:
+            for name, content in zip(("source.csv", "range-spec.json", "source-profile.toml"), (source, *supplied)):
+                (args.output_directory / name).write_bytes(content)
     except (ValueError, OSError, csv.Error) as failure:
         print(f"declared expectation check failed; no successful conversion claim: {failure}",
               file=sys.stderr)

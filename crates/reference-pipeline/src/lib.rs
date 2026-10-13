@@ -14,6 +14,7 @@ pub mod export;
 pub mod load;
 pub mod prereg;
 pub mod timefmt;
+pub mod tlog_asset_batch;
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -100,6 +101,58 @@ pub struct AssetRun {
     pub asset_id: String,
     pub family: Family,
     pub sources: Vec<SourceRun>,
+}
+
+impl AssetRun {
+    #[must_use]
+    pub fn configured_platform_domain(&self) -> (musubi_types::PlatformDomain, Vec<String>) {
+        use musubi_types::PlatformDomain;
+        let asset = self;
+        let by_family = asset.family.platform_domain();
+        let family_only = (by_family, vec![]);
+        if !matches!(asset.family, Family::Unknown) {
+            return family_only;
+        }
+        let mut declared: Vec<PlatformDomain> = Vec::new();
+        let mut declaring: Vec<String> = Vec::new();
+        for source in &asset.sources {
+            let (domain, basis) = source.profile.configured_platform_domain();
+            if basis != musubi_reference_types::DOMAIN_BASIS_DECLARED {
+                continue;
+            }
+            if !declared.contains(&domain) {
+                declared.push(domain);
+            }
+            let id = format!(
+                "domain-declaring-profile/{}@{}",
+                source.profile.profile_id, source.profile.version
+            );
+            if !declaring.contains(&id) {
+                declaring.push(id);
+            }
+        }
+        match declared.as_slice() {
+            [] => family_only,
+            [one] => {
+                let mut provenance = vec![format!("domain-declared-by-profile/{one:?}")];
+                provenance.extend(declaring);
+                (*one, provenance)
+            }
+            many => {
+                let mut names: Vec<String> = many.iter().map(|d| format!("{d:?}")).collect();
+                names.sort();
+                let mut provenance = vec![
+                    format!(
+                        "domain-declarations-conflict-unresolved/{}",
+                        names.join("+")
+                    ),
+                    format!("domain-falls-back-to-family/{by_family:?}"),
+                ];
+                provenance.extend(declaring);
+                (by_family, provenance)
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

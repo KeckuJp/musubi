@@ -8,8 +8,10 @@ import hashlib
 import io
 import json
 import math
+import os
 from pathlib import Path
 import re
+import stat
 import struct
 import sys
 import zlib
@@ -19,6 +21,9 @@ from recorded_units import UNITS, normalize
 
 LIMIT = 16 * 1024 * 1024
 OUTPUT_LIMIT = 128 * 1024 * 1024
+IMC_WINDOW_INPUT_LIMIT = 2 * 1024**3
+IMC_WINDOW_RECORD_LIMIT = 5_000_000
+IMC_WINDOW_REPORT_LIMIT = 64 * 1024**2
 SENSORS = {263: ("f", "temperature_k", 1, 273.15),
            264: ("d", "external_pressure_pa", 100, 0),
            265: ("f", "depth_m", 1, 0),
@@ -39,13 +44,15 @@ VECTORS = {256: tuple("reported_angular_velocity_" + axis + "_rad_s" for axis in
 VELOCITY_BITS = (("x", 0x01), ("y", 0x02), ("z", 0x04))
 VELOCITIES = {259: ("reported_ground_velocity_", "ground_velocity_",
                     "REPORTED_RELATIVE_TO_GROUND_AXIS_FRAME_UNSPECIFIED_BY_MESSAGE_SCHEMA")}
+WATER_VELOCITY = ("reported_water_velocity_", "water_velocity_",
+                  "REPORTED_RELATIVE_TO_WATER_AXIS_FRAME_UNSPECIFIED_BY_MESSAGE_SCHEMA")
 VELOCITY_BASIS = ("velocity_validity_mask_reported", "velocity_unknown_validity_bits",
                   "velocity_reference_basis")
 
 
-def velocity_columns(message):
+def velocity_columns(message, *, velocities=VELOCITIES):
     """The per-axis value and disposition column names of one selected velocity message."""
-    values, dispositions, _ = VELOCITIES[message]
+    values, dispositions, _ = velocities[message]
     return ([values + axis + "_m_s" for axis, _ in VELOCITY_BITS]
             + [dispositions + axis + "_disposition" for axis, _ in VELOCITY_BITS])
 NEPTUS_SCHEMA = "neptus-2019.10.1-sensors"
@@ -58,6 +65,50 @@ NEPTUS_SCHEMA = "neptus-2019.10.1-sensors"
 # byte-identical to the current one apart from the added non-wire attribute `category="Sensors"`.
 NEPTUS_SENSORS = frozenset((251, 252, 256, 257, 259, 263, 264, 265, 267, 268))
 
+ESTIMATED_FIELDS = (
+    "estimated_origin_latitude_rad", "estimated_origin_longitude_rad",
+    "estimated_origin_height_ellipsoid_m",
+    "estimated_offset_north_m", "estimated_offset_east_m", "estimated_offset_down_m",
+    "estimated_phi_rad", "estimated_theta_rad", "estimated_psi_rad",
+    "estimated_body_u_m_s", "estimated_body_v_m_s", "estimated_body_w_m_s",
+    "estimated_ground_north_m_s", "estimated_ground_east_m_s", "estimated_ground_down_m_s",
+    "estimated_body_p_rad_s", "estimated_body_q_rad_s", "estimated_body_r_rad_s",
+    "estimated_depth_m", "estimated_altitude_m")
+ESTIMATED_EXTRA = ("estimated_depth_raw_m", "estimated_altitude_raw_m",
+                   "estimated_depth_disposition", "estimated_altitude_disposition",
+                   "estimated_state_basis")
+
+
+def estimated_selection(enabled, schema):
+    if type(enabled) is not bool or schema not in (None, NEPTUS_SCHEMA):
+        raise ValueError("estimated state requires boolean selection and qualified IMC schema")
+
+
+def estimated_quantities(payload, order):
+    if len(payload) != 88:
+        raise ValueError("selected IMC estimated state size mismatch")
+    values = struct.unpack(order + "dd18f", payload)
+    if not all(math.isfinite(value) for value in values):
+        raise ValueError("nonfinite IMC estimated state value")
+    for index, limit in ((0, math.pi / 2), (1, math.pi), (6, math.pi),
+                         (7, math.pi / 2), (8, math.pi),
+                         (15, math.pi), (16, math.pi), (17, math.pi)):
+        if index >= 2:
+            limit = struct.unpack("<f", struct.pack("<f", limit))[0]
+        if abs(values[index]) > limit:
+            raise ValueError("IMC estimated state angle exceeds schema bound")
+    quantities = dict(zip(ESTIMATED_FIELDS, values))
+    for field, value in (("depth", values[18]), ("altitude", values[19])):
+        quantities[f"estimated_{field}_raw_m"] = value
+        quantities[f"estimated_{field}_disposition"] = (
+            "WITHHELD_NEGATIVE_INVALID_ESTIMATE" if value < 0 else "REPORTED_ESTIMATE")
+        if value < 0:
+            quantities[f"estimated_{field}_m"] = None
+    quantities["estimated_state_basis"] = (
+        "IMC350_WGS84_ELLIPSOID_ORIGIN_SEPARATE_LOCAL_NED_OFFSETS_BODY_AND_GROUND_VELOCITIES"
+        "_REPORTED_ESTIMATE_NOT_SURFACE_ANCHOR_OR_PLATFORM_IDENTITY")
+    return quantities
+
 
 def crc16(data):
     value = 0
@@ -68,9 +119,28 @@ def crc16(data):
     return value
 
 
-def convert(data, *, allow_no_selected=False, schema=None):
+def _imc_header(header):
+    """One native header interpretation for bytes and saved record selection."""
+    if len(header) != 20:
+        raise ValueError("truncated IMC header/footer")
+    prefix = header[:2]
+    order = "<" if prefix == b"\x54\xfe" else ">" if prefix == b"\xfe\x54" else None
+    if order is None:
+        raise ValueError("unsupported IMC synchronization/version")
+    _, message, size, timestamp, source, entity, _, _ = struct.unpack(order + "HHHdHBHB", header)
+    if not math.isfinite(timestamp) or not 0 <= timestamp * 10**6 < 2**63:
+        raise ValueError("invalid dispatcher timestamp")
+    return order, message, size, timestamp, source, entity
+
+
+def convert(data, *, allow_no_selected=False, schema=None, water_velocity=False,
+            estimated_state=False):
     if schema not in (None, NEPTUS_SCHEMA):
         raise ValueError("unqualified IMC schema")
+    if type(water_velocity) is not bool:
+        raise ValueError("water velocity requires a boolean selection")
+    estimated_selection(estimated_state, schema)
+    velocities = {**VELOCITIES, 260: WATER_VELOCITY} if water_velocity else VELOCITIES
     if not data or len(data) > LIMIT:
         raise ValueError("empty or oversized IMC stream")
     output = io.StringIO(newline="")
@@ -78,8 +148,10 @@ def convert(data, *, allow_no_selected=False, schema=None):
              "message_id", "source_frame_hex", "measurement_status", "device_time_s",
              "device_clock_basis", "axis_frame_basis"] + [v[1] for v in SENSORS.values()] + [
                  field for fields in VECTORS.values() for field in fields] + [
-                 field for message in VELOCITIES for field in velocity_columns(message)
+                 field for message in velocities for field in velocity_columns(message, velocities=velocities)
              ] + list(VELOCITY_BASIS)
+    if estimated_state:
+        names += list(ESTIMATED_FIELDS + ESTIMATED_EXTRA)
     writer = csv.DictWriter(output, fieldnames=names, lineterminator="\n")
     writer.writeheader()
     report = {"source_frames": 0, "decoded_frames": 0, "unsupported_frames": [], "clock": "Unknown"}
@@ -88,25 +160,22 @@ def convert(data, *, allow_no_selected=False, schema=None):
     while offset < len(data):
         if len(data) - offset < 22:
             raise ValueError("truncated IMC header/footer")
-        prefix = data[offset:offset + 2]
-        order = "<" if prefix == b"\x54\xfe" else ">" if prefix == b"\xfe\x54" else None
-        if order is None:
-            raise ValueError("unsupported IMC synchronization/version")
-        _, message, size, timestamp, source, entity, _, _ = struct.unpack_from(order + "HHHdHBHB", data, offset)
+        order, message, size, timestamp, source, entity = _imc_header(data[offset:offset + 20])
         end = offset + 20 + size + 2
         if end > len(data):
             raise ValueError("truncated IMC payload")
         frame = data[offset:end]
         if crc16(frame[:-2]) != struct.unpack(order + "H", frame[-2:])[0]:
             raise ValueError("invalid IMC CRC")
-        if not math.isfinite(timestamp) or not 0 <= timestamp * 10**6 < 2**63:
-            raise ValueError("invalid dispatcher timestamp")
         if previous is not None and timestamp < previous:
             raise ValueError("decreasing dispatcher timestamp; split source streams explicitly")
         previous = timestamp
         report["source_frames"] += 1
-        if (message not in SENSORS and message not in VECTORS and message not in VELOCITIES) or (
-                schema == NEPTUS_SCHEMA and message not in NEPTUS_SENSORS):
+        if (message not in SENSORS and message not in VECTORS and message not in velocities
+                and not (estimated_state and message == 350)) or (
+                schema == NEPTUS_SCHEMA and message not in NEPTUS_SENSORS
+                and not (water_velocity and message == 260)
+                and not (estimated_state and message == 350)):
             retained = {"offset": offset, "message_id": message, "frame_hex": frame.hex()}
             report_size += len(json.dumps(retained))
             if report_size > LIMIT:
@@ -114,8 +183,11 @@ def convert(data, *, allow_no_selected=False, schema=None):
             report["unsupported_frames"].append(retained)
         else:
             missing, status = False, None
-            if message in VELOCITIES:
-                values, dispositions, reference = VELOCITIES[message]
+            if message == 350:
+                quantities = estimated_quantities(frame[20:-2], order)
+                status = "REPORTED_ESTIMATE_WITH_PER_FIELD_DISPOSITIONS"
+            elif message in velocities:
+                values, dispositions, reference = velocities[message]
                 if size != 25:
                     raise ValueError("selected IMC velocity size mismatch")
                 validity, *axes = struct.unpack(order + "Bddd", frame[20:-2])
@@ -169,7 +241,80 @@ def convert(data, *, allow_no_selected=False, schema=None):
     return output.getvalue(), report
 
 
-def convert_input(data, *, schema=None):
+XR620_PIN = "98d6052638aa98065cb58eda6530fe783a6cc4dc"
+
+
+def qualify_xr620_depth(output, report, declaration, source_sha, *, flow=None):
+    """Optional caller-bound writer interpretation; never recompute the depth."""
+    if declaration is None:
+        if flow is not None:
+            raise ValueError("flow binding requires a writer declaration")
+        return output, report
+    if flow is not None:
+        validate_writer_flow(flow)
+    required = {"driver", "source_pin", "source_sha256", "source_id", "source_entity",
+                "session", "citation"}
+    if type(declaration) is not dict or set(declaration) != required:
+        raise ValueError("complete explicit XR620 writer declaration required")
+    if declaration["driver"] != "DUNE/Sensors/XR620CTD" or declaration["source_pin"] != XR620_PIN:
+        raise ValueError("unqualified XR620 driver or source pin")
+    digest = declaration["source_sha256"]
+    if (type(digest) is not str or len(digest) != 64
+            or any(c not in "0123456789abcdef" for c in digest) or digest != source_sha):
+        raise ValueError("XR620 original source digest mismatch")
+    for key, maximum in (("source_id", 65535), ("source_entity", 255)):
+        if type(declaration[key]) is not int or not 0 <= declaration[key] <= maximum:
+            raise ValueError("invalid XR620 source/entity declaration")
+    for key in ("session", "citation"):
+        value = declaration[key]
+        if type(value) is not str or not value.strip() or len(value.encode()) > 1024 or '\x00' in value:
+            raise ValueError("bounded XR620 session and citation required")
+    reader = csv.DictReader(io.StringIO(output))
+    extra = ["depth_writer_basis", "depth_reference_pressure_pa", "depth_reference_density_kg_m3",
+             "depth_positive_direction", "depth_writer_declaration_hex", "depth_source_sha256"]
+    result = io.StringIO(newline="")
+    writer = csv.DictWriter(result, [*reader.fieldnames, *extra], lineterminator="\n")
+    writer.writeheader()
+    matched = 0
+    encoded = "hex:" + json.dumps(declaration, sort_keys=True, separators=(",", ":")).encode().hex()
+    for row in reader:
+        if (row["message_id"] == "265" and int(row["source_id"]) == declaration["source_id"]
+                and int(row["source_entity"]) == declaration["source_entity"]
+                and (flow is None or all(str(row.get(key)) == str(value) for key, value in flow.items()))):
+            matched += 1
+            row.update(depth_writer_basis="CALLER_ASSERTED_XR620_FIXED_PRESSURE_REFERENCE_NOT_ACTUAL_SURFACE",
+                       depth_reference_pressure_pa=101325, depth_reference_density_kg_m3=1025,
+                       depth_positive_direction="INCREASING_WITH_PRESSURE_ALREADY_WRITER_CONVERTED_METERS",
+                       depth_writer_declaration_hex=encoded, depth_source_sha256="sha256:" + source_sha)
+        writer.writerow(row)
+        if result.tell() > OUTPUT_LIMIT:
+            raise ValueError("qualified IMC CSV exceeds bound")
+    if not matched:
+        raise ValueError("no selected depth matches declared XR620 source/entity")
+    report["xr620_writer_qualification"] = {"declaration": dict(declaration), "qualified_depth_rows": matched,
+        "basis": "CALLER_DECLARED_NOT_AUTHENTICATED", "physical_calibration": "NOT_VERIFIED",
+        "unmatched_rows": "UNCHANGED_NOT_WRITER_QUALIFIED"}
+    if flow is not None:
+        report["xr620_writer_qualification"]["selected_flow"] = dict(flow)
+    return result.getvalue(), report
+
+
+def validate_writer_flow(flow):
+    """Exact saved IPv4 tuple, not authenticated device identity."""
+    import ipaddress
+    keys = {"udp_source_address", "udp_source_port", "udp_destination_address", "udp_destination_port"}
+    if type(flow) is not dict or set(flow) != keys:
+        raise ValueError("complete explicit saved UDP flow required")
+    for key in ("udp_source_address", "udp_destination_address"):
+        if type(flow[key]) is not str or str(ipaddress.IPv4Address(flow[key])) != flow[key]:
+            raise ValueError("canonical IPv4 flow address required")
+    for key in ("udp_source_port", "udp_destination_port"):
+        if type(flow[key]) is not int or not 1 <= flow[key] <= 65535:
+            raise ValueError("explicit UDP flow port required")
+
+
+def convert_input(data, *, schema=None, water_velocity=False, writer_declaration=None,
+                  estimated_state=False):
     """Reuse packet conversion after bounded RFC1952 member decoding, if present."""
     if not data or len(data) > LIMIT:
         raise ValueError("empty or oversized source")
@@ -194,12 +339,149 @@ def convert_input(data, *, schema=None):
             decoded.extend(part)
             pending = decoder.unused_data
         data = bytes(decoded)
-    output, report = convert(data, schema=schema)
+    output, report = convert(data, schema=schema, water_velocity=water_velocity,
+                             estimated_state=estimated_state)
     if schema is not None:
         report["selected_schema"] = schema
     report.update(source_sha256=source_hash, compression="gzip" if members else "none",
                   gzip_members=members, decoded_input_sha256=hashlib.sha256(data).hexdigest())
-    return output, report
+    if writer_declaration is not None and schema is not None:
+        raise ValueError("XR620 writer requires its fixed current IMC schema")
+    return qualify_xr620_depth(output, report, writer_declaration, source_hash)
+
+
+def convert_path(path, *, start_record, stop_record, water_velocity=False, schema=None,
+                 writer_declaration=None, estimated_state=False, source_id=None):
+    """Select native saved frames; only selected payloads/CRC reach convert().
+
+    source_id selects one header `src` system. Neptus logs each received message with its
+    sender's own dispatcher time and its own messages with local time, so one saved file can
+    interleave independent clocks; time order is then checked only within the selected system.
+    """
+    if source_id is not None and (type(source_id) is not int or not 0 <= source_id <= 0xFFFF):
+        raise ValueError("explicit IMC source id must be an integer 0..65535")
+    if (type(start_record) is not int or type(stop_record) is not int
+            or not 0 <= start_record < stop_record <= IMC_WINDOW_RECORD_LIMIT):
+        raise ValueError("invalid IMC record interval or record bound")
+    if schema not in (None, NEPTUS_SCHEMA):
+        raise ValueError("unqualified IMC schema")
+    if type(water_velocity) is not bool:
+        raise ValueError("water velocity requires a boolean selection")
+    estimated_selection(estimated_state, schema)
+    path = Path(path).resolve()
+    metadata = path.stat()
+    if (not stat.S_ISREG(metadata.st_mode)
+            or path.parts[1:2] in (("sys",), ("proc",), ("dev",))):
+        raise ValueError("saved regular IMC input required")
+    if not 0 < metadata.st_size <= IMC_WINDOW_INPUT_LIMIT:
+        raise ValueError("IMC window input byte bound exceeded")
+
+    def signature(info):
+        return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+    selected, origins, digest = bytearray(), {}, hashlib.sha256()
+    offset, count, previous = 0, 0, None
+    chosen_count, other_sources, other_in_interval, declared_seen = 0, collections.Counter(), 0, 0
+    with path.open("rb") as stream:
+        before = os.fstat(stream.fileno())
+        if signature(before) != signature(metadata):
+            raise ValueError("source changed before read")
+        while offset < before.st_size:
+            if count >= IMC_WINDOW_RECORD_LIMIT:
+                raise ValueError("IMC source record count bound exceeded")
+            header = stream.read(20)
+            _, _, size, timestamp, source, _ = _imc_header(header)
+            ordered = source_id is None or source == source_id
+            if ordered:
+                if previous is not None and timestamp < previous:
+                    raise ValueError("decreasing dispatcher timestamp; split source streams explicitly")
+                previous = timestamp
+                declared_seen += source_id is not None
+            else:
+                other_sources[source] += 1
+            if offset + 22 + size > before.st_size:
+                raise ValueError("truncated IMC payload")
+            in_interval = start_record <= count < stop_record
+            chosen = in_interval and ordered
+            chosen_count += chosen
+            other_in_interval += in_interval and not ordered
+            if chosen and len(selected) + 22 + size > LIMIT:
+                raise ValueError("IMC selected source byte bound exceeded")
+            body = stream.read(size + 2)
+            if len(body) != size + 2:
+                raise ValueError("truncated IMC payload")
+            digest.update(header)
+            digest.update(body)
+            if chosen:
+                origins[len(selected)] = (count, offset)
+                selected.extend(header)
+                selected.extend(body)
+            offset += 22 + size
+            count += 1
+        if (stream.read(1) or offset != before.st_size
+                or signature(os.fstat(stream.fileno())) != signature(before)):
+            raise ValueError("source changed during read")
+    if stop_record > count:
+        raise ValueError("record interval exceeds source records")
+    if source_id is not None and not chosen_count:
+        raise ValueError("declared IMC source id has no frame in the record interval")
+    output, report = convert(bytes(selected), water_velocity=water_velocity, schema=schema,
+                             estimated_state=estimated_state)
+    if schema is not None:
+        report["selected_schema"] = schema
+    source_sha = digest.hexdigest()
+    unsupported_offsets = {entry["offset"] for entry in report["unsupported_frames"]}
+    for entry in report["unsupported_frames"]:
+        local_offset = entry["offset"]
+        index, original_offset = origins[local_offset]
+        entry.update(offset=original_offset, selected_stream_offset=local_offset,
+                     source_record_index=index)
+    row_origins = [origin for local, origin in origins.items() if local not in unsupported_offsets]
+    reader = csv.DictReader(io.StringIO(output))
+    result = io.StringIO(newline="")
+    names = [*reader.fieldnames, "source_file_sha256", "source_record_index", "source_byte_offset"]
+    writer = csv.DictWriter(result, names, lineterminator="\n")
+    writer.writeheader()
+    rows = 0
+    for row in reader:
+        if rows >= len(row_origins):
+            raise ValueError("IMC selected origin accounting mismatch")
+        index, original_offset = row_origins[rows]
+        row.update(source_file_sha256="sha256:" + source_sha, source_record_index=index,
+                   source_byte_offset=original_offset)
+        writer.writerow(row)
+        rows += 1
+        if result.tell() > OUTPUT_LIMIT:
+            raise ValueError("IMC selected output byte bound exceeded")
+    if rows != len(row_origins) or rows != report["decoded_frames"]:
+        raise ValueError("IMC selected origin accounting mismatch")
+    encoded = result.getvalue().encode("utf-8")
+    if len(encoded) > OUTPUT_LIMIT:
+        raise ValueError("IMC selected output byte bound exceeded")
+    report.update(output_sha256=hashlib.sha256(encoded).hexdigest(), output_bytes=len(encoded),
+        record_selection={"source_sha256": source_sha, "source_bytes": offset,
+            "source_records": count, "selected_records": chosen_count,
+            "excluded_records": count - chosen_count, "start_record": start_record,
+            "stop_record_exclusive": stop_record, "selected_source_bytes": len(selected),
+            "selected_stream_sha256": hashlib.sha256(selected).hexdigest(),
+            "outside_selection": "PAYLOAD_AND_CRC_NOT_DECODED_OR_VALIDATED",
+            "header_clock_scope": "WHOLE_SOURCE_REPORTED_DISPATCHER_TIME",
+            "bounds": {"max_input_bytes": IMC_WINDOW_INPUT_LIMIT,
+                "max_records": IMC_WINDOW_RECORD_LIMIT, "max_selected_source_bytes": LIMIT,
+                "max_output_bytes": OUTPUT_LIMIT, "max_report_bytes": IMC_WINDOW_REPORT_LIMIT}})
+    if source_id is not None:
+        report["record_selection"].update(
+            header_clock_scope="SELECTED_SOURCE_REPORTED_DISPATCHER_TIME_ONLY",
+            source_selection={"source_id": source_id, "source_records": declared_seen,
+                "selected_records": chosen_count, "other_source_records_in_interval": other_in_interval,
+                "other_source_records_by_id": {str(k): v for k, v in sorted(other_sources.items())},
+                "other_sources": "HEADER_SYNC_SIZE_AND_TIME_RANGE_CHECKED_ORDER_PAYLOAD_AND_CRC_NOT_VALIDATED",
+                "basis": "CALLER_SELECTED_HEADER_SRC_NOT_AUTHENTICATED_NO_CROSS_SOURCE_CLOCK_RELATION"})
+    if len(json.dumps(report, indent=2).encode("utf-8")) > IMC_WINDOW_REPORT_LIMIT:
+        raise ValueError("IMC selected report byte bound exceeded")
+    if writer_declaration is not None and schema is not None:
+        raise ValueError("XR620 writer requires its fixed current IMC schema")
+    return qualify_xr620_depth(result.getvalue(), report, writer_declaration, source_sha)
 
 
 def _typed_alog_records(data, variable, publisher, report, timestamp_decimals,
@@ -533,22 +815,29 @@ def convert_node_report(data, variable, publisher, capture_time_us, *, timestamp
     return output.getvalue(), report
 
 
-def convert_slog(data, variable, unit, capture_time_us):
+def convert_slog(data, variable, unit, capture_time_us, *, dynamic_columns=False):
     """Fixed-column synchronous pLogger values; NaN has several possible causes."""
     if not isinstance(data, bytes) or not data or len(data) > LIMIT:
         raise ValueError("bounded slog bytes required")
+    if type(dynamic_columns) is not bool:
+        raise ValueError("explicit boolean dynamic-column selection required")
     if (not isinstance(variable, str) or variable == "TIME" or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,255}", variable)
             or unit not in UNITS or type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63):
         raise ValueError("explicit variable, qualified unit and capture time required")
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
     writer.writerow(["record_time_us", "source_line", "source_variable", "logger_relative_time_us",
-        "logger_relative_time_text", "selected_unit", UNITS[unit][0], "value_disposition", "source_sha256"])
+        "logger_relative_time_text", "selected_unit", UNITS[unit][0], "value_disposition", "source_sha256"]
+        + (["source_label_line", "source_label_hex"] if dynamic_columns else []))
     report = dict(source_records=0, selected_records=0, withheld_records=0,
         source_sha256=hashlib.sha256(data).hexdigest(), source_retention="unchanged source.slog retained with CSV/report",
         clock="CALLER_CAPTURE; logger relative microseconds floored, original text retained",
         unit_basis="caller-qualified variable contract; publisher absent in slog")
     columns, label, previous = [], None, None
+    label_line = None
+    if dynamic_columns:
+        report.update(not_yet_declared_records=0, label_updates=0,
+            column_basis="PRECEDING_IN_STREAM_LABEL_NOT_REWRITTEN_INITIAL_TABLE", writer="moos-ivp-f56c")
     for number, line in enumerate(data.decode("utf-8-sig").splitlines(), 1):
         if not line.strip(): continue
         if len(line) > 1024 * 1024: raise ValueError("oversized slog line")
@@ -563,12 +852,35 @@ def convert_slog(data, variable, unit, capture_time_us):
                 if line[len("%% TIME"):].lstrip().startswith("["):
                     continue  # The writer's per-column label timestamp is not an observation.
                 names = line[3:].split()
-                if not columns or columns[0] != "TIME" or names != columns:
+                if dynamic_columns:
+                    if (not columns or columns[0] != "TIME" or len(names) != len(columns)
+                            or len(set(names)) != len(names) or names[0] != "TIME"
+                            or any(not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name) for name in names)):
+                        raise ValueError("ambiguous dynamic slog label")
+                    if any(name != final and not re.fullmatch(r"DYNAMIC_[0-9]+", name)
+                           for name, final in zip(names, columns)):
+                        raise ValueError("dynamic label cannot map to final declaration")
+                    if label is not None:
+                        changes = [(old, new) for old, new in zip(label, names) if old != new]
+                        if len(changes) > 1 or any(not re.fullmatch(r"DYNAMIC_[0-9]+", old)
+                            or re.fullmatch(r"DYNAMIC_[0-9]+", new) for old, new in changes):
+                            raise ValueError("unsupported dynamic slot update")
+                        reserved = [name for name in label if re.fullmatch(r"DYNAMIC_[0-9]+", name)]
+                        if changes and changes[0][0] != reserved[0]:
+                            raise ValueError("dynamic slots must be assigned in reserved order")
+                    else:
+                        reserved = [name for name in names if re.fullmatch(r"DYNAMIC_[0-9]+", name)]
+                        if reserved and (reserved != [f"DYNAMIC_{i}" for i in range(len(reserved))]
+                                         or names[-len(reserved):] != reserved):
+                            raise ValueError("initial dynamic slots must be a numbered suffix")
+                    label_line = number
+                    report["label_updates"] += 1
+                elif not columns or columns[0] != "TIME" or names != columns:
                     raise ValueError("dynamic or inconsistent slog columns")
                 label = names
             continue
         parts = line.split()
-        if label is None or len(parts) != len(label) or variable not in label:
+        if label is None or len(parts) != len(label) or (not dynamic_columns and variable not in label):
             raise ValueError("fixed declared columns required")
         numeric = r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]{1,3})?"
         if len(parts[0]) > 32 or not re.fullmatch(numeric, parts[0]):
@@ -580,11 +892,18 @@ def convert_slog(data, variable, unit, capture_time_us):
         previous = stamp
         if any(value != "NaN" and (len(value) > 128 or not re.fullmatch(numeric, value)) for value in parts[1:]):
             raise ValueError("numeric or explicit NaN columns required")
-        token = parts[label.index(variable)]
+        if dynamic_columns and any(re.fullmatch(r"DYNAMIC_[0-9]+", name) and value != "NaN"
+                                   for name, value in zip(label, parts)):
+            raise ValueError("unassigned dynamic slot has a numeric value")
+        absent = variable not in label
+        token = "NaN" if absent else parts[label.index(variable)]
         report["source_records"] += 1
         value, disposition = "", "WITHHELD_NOT_FRESH_OR_NONNUMERIC_OR_MISSING"
         if token == "NaN":
             report["withheld_records"] += 1
+            if absent:
+                disposition = "WITHHELD_NOT_YET_DECLARED"
+                report["not_yet_declared_records"] += 1
         else:
             raw = float(token)
             if Decimal(token) != 0 and raw == 0: raise ValueError("numeric underflow")
@@ -592,16 +911,41 @@ def convert_slog(data, variable, unit, capture_time_us):
             disposition = "NORMALIZED_REPORTED"
             report["selected_records"] += 1
         writer.writerow([capture_time_us, number, variable, micros, parts[0], unit, value,
-            disposition, report["source_sha256"]])
+            disposition, report["source_sha256"]]
+            + ([label_line, "hex:" + " ".join(label).encode().hex()] if dynamic_columns else []))
         if output.tell() > OUTPUT_LIMIT: raise ValueError("CSV exceeds bound")
     if not report["source_records"]: raise ValueError("no slog records")
+    if dynamic_columns and (label != columns or variable not in columns
+                            or re.fullmatch(r"DYNAMIC_[0-9]+", variable)):
+        raise ValueError("final dynamic label or selected variable unresolved")
     report["conversion_status"] = "OBSERVATIONS_PRODUCED" if report["selected_records"] else "ONLY_WITHHELD_VALUES"
     return output.getvalue(), report
 
 
-def packet_ipv4(packet, linktype):
+def single_vlan_envelope(packet):
+    """Reported one-tag envelope; never infer a network configuration from it."""
+    if len(packet) < 14:
+        raise ValueError("truncated Ethernet header")
+    outer = int.from_bytes(packet[12:14], "big")
+    if outer in (0x88A8, 0x9100, 0x9200):
+        raise ValueError("alternate VLAN tag outside single 802.1Q path")
+    if outer != 0x8100:
+        return None
+    if len(packet) < 18:
+        raise ValueError("truncated 802.1Q header")
+    tci, inner = struct.unpack_from(">HH", packet, 14)
+    if inner in (0x8100, 0x88A8, 0x9100, 0x9200):
+        raise ValueError("nested VLAN tags outside single 802.1Q path")
+    return dict(vlan_tci=tci, vlan_inner_ethertype=inner)
+
+
+def packet_ipv4(packet, linktype, *, single_vlan=False):
     """Selected saved link envelope; None means explicitly unselected."""
     if linktype == 1:
+        if single_vlan:
+            tag = single_vlan_envelope(packet)
+            if tag is not None:
+                return packet[18:] if tag["vlan_inner_ethertype"] == 0x0800 else None
         if len(packet) < 14:
             raise ValueError("truncated Ethernet header")
         return packet[14:] if packet[12:14] == b"\x08\x00" else None
@@ -628,33 +972,113 @@ SavedDatagram = collections.namedtuple(
     "source_address source_port destination_address destination_port")
 
 
+def _pcap_header(header):
+    magic = {b"\xd4\xc3\xb2\xa1": ("<", 1), b"\xa1\xb2\xc3\xd4": (">", 1),
+             b"\x4d\x3c\xb2\xa1": ("<", 1000), b"\xa1\xb2\x3c\x4d": (">", 1000)}
+    if len(header) != 24 or header[:4] not in magic:
+        raise ValueError("bounded classic PCAP required")
+    order, divisor = magic[header[:4]]
+    _, major, minor, _, _, snaplen, linktype = struct.unpack(order + "IHHIIII", header)
+    if (major, minor) != (2, 4) or linktype not in (1, 105) or not 0 < snaplen <= LIMIT:
+        raise ValueError("PCAP2.4 Ethernet or plain IEEE802.11 layout required")
+    return order, divisor, snaplen, linktype
+
+
+def _pcap_record_header(header, order, divisor, snaplen, available):
+    if len(header) != 16:
+        raise ValueError("truncated PCAP record header")
+    sec, frac, captured, original = struct.unpack(order + "IIII", header)
+    if frac >= 1000000 * divisor or captured > snaplen or captured != original or captured > available:
+        raise ValueError("truncated capture or invalid packet timestamp/length")
+    return sec * 1_000_000_000 + frac * (1000 // divisor), captured
+
+
 def read_pcap_records(data):
     """Validate the classic PCAP container; return (linktype, capture microseconds per record).
 
     dpkt's reader yields short packet bodies without checking caplen, so bounds and exact integer
-    timestamps are validated here before its packet iterator is used.
+    timestamps are validated here before its packet iterator is used. Legacy bytes behavior,
+    including microsecond projection, is unchanged.
     """
-    magic = {b"\xd4\xc3\xb2\xa1": ("<", 1), b"\xa1\xb2\xc3\xd4": (">", 1),
-             b"\x4d\x3c\xb2\xa1": ("<", 1000), b"\xa1\xb2\x3c\x4d": (">", 1000)}
-    if not 24 <= len(data) <= LIMIT or data[:4] not in magic:
+    if not 24 <= len(data) <= LIMIT:
         raise ValueError("bounded classic PCAP required")
-    order, divisor = magic[data[:4]]
-    _, major, minor, _, _, snaplen, linktype = struct.unpack(order + "IHHIIII", data[:24])
-    if (major, minor) != (2, 4) or linktype not in (1, 105) or not 0 < snaplen <= LIMIT:
-        raise ValueError("PCAP2.4 Ethernet or plain IEEE802.11 layout required")
+    order, divisor, snaplen, linktype = _pcap_header(data[:24])
     entries, offset = [], 24
     while offset < len(data):
-        if len(data) - offset < 16:
-            raise ValueError("truncated PCAP record header")
-        sec, frac, captured, original = struct.unpack_from(order + "IIII", data, offset)
-        if frac >= 1000000 * divisor or captured > snaplen or captured != original or offset + 16 + captured > len(data):
-            raise ValueError("truncated capture or invalid packet timestamp/length")
-        entries.append(sec * 1000000 + frac // divisor)
+        capture_ns, captured = _pcap_record_header(
+            data[offset:offset + 16], order, divisor, snaplen, len(data) - offset - 16)
+        entries.append(capture_ns // 1000)
         offset += 16 + captured
     return linktype, entries
 
 
-def iter_udp_datagrams(data, destination_port, records=None):
+PCAP_WINDOW_INPUT_LIMIT = 2 * 1024**3
+PCAP_WINDOW_SELECTED_LIMIT = LIMIT
+PCAP_WINDOW_RECORD_LIMIT = 1_000_000
+
+
+def read_pcap_window(path, start_us, stop_us):
+    """Extract a bounded native interval for the existing bytes/UDP decoder.
+
+    Whole-container framing/time checks and digest are streaming; payloads outside
+    the interval are hashed but never interpreted. The extracted bytes are derived
+    input, not a new recording. Original indexes bind rows back to the full source.
+    """
+    if (type(start_us) is not int or type(stop_us) is not int
+            or not 0 <= start_us < stop_us <= 2**63 - 1):
+        raise ValueError("explicit nonempty microsecond interval required")
+    size = Path(path).stat().st_size
+    if not 24 <= size <= PCAP_WINDOW_INPUT_LIMIT:
+        raise ValueError("PCAP window input exceeds bound")
+    digest = hashlib.sha256()
+    indexes, previous, count = [], None, 0
+    with Path(path).open("rb") as stream:
+        header = stream.read(24)
+        order, divisor, snaplen, _ = _pcap_header(header)
+        digest.update(header)
+        selected, offset = bytearray(header), 24
+        while offset < size:
+            record_header = stream.read(min(16, size - offset))
+            capture_ns, captured = _pcap_record_header(
+                record_header, order, divisor, snaplen, size - offset - 16)
+            if previous is not None and capture_ns < previous:
+                raise ValueError("decreasing packet clock")
+            previous = capture_ns
+            if count >= PCAP_WINDOW_RECORD_LIMIT:
+                raise ValueError("PCAP window record count exceeds bound")
+            chosen = start_us * 1000 <= capture_ns < stop_us * 1000
+            if chosen:
+                if capture_ns % 1000:
+                    raise ValueError("selected PCAP timestamp is not exact microseconds")
+                if len(selected) + 16 + captured > PCAP_WINDOW_SELECTED_LIMIT:
+                    raise ValueError("PCAP selected capture exceeds bound")
+                selected.extend(record_header)
+                indexes.append(count)
+            digest.update(record_header)
+            remaining = captured
+            while remaining:
+                block = stream.read(min(remaining, 64 * 1024))
+                if not block:
+                    raise ValueError("truncated PCAP packet")
+                digest.update(block)
+                if chosen:
+                    selected.extend(block)
+                remaining -= len(block)
+            count += 1
+            offset += 16 + captured
+        if stream.read(1):
+            raise ValueError("PCAP source changed during interval read")
+    report = dict(start_us=start_us, stop_us_exclusive=stop_us, source_packets=count,
+                  selected_packets=len(indexes), outside_window_packets=count - len(indexes),
+                  selected_capture_bytes=len(selected), max_input_bytes=PCAP_WINDOW_INPUT_LIMIT,
+                  max_selected_capture_bytes=PCAP_WINDOW_SELECTED_LIMIT,
+                  max_source_packets=PCAP_WINDOW_RECORD_LIMIT,
+                  outside_window="NOT_DECODED_OR_VALIDATED",
+                  source_sha256="sha256:" + digest.hexdigest())
+    return bytes(selected), indexes, report
+
+
+def iter_udp_datagrams(data, destination_port, records=None, *, single_vlan=False):
     """Yield one [`SavedDatagram`] per saved record, in recording order.
 
     `payload` is None when the record is not selected (not IPv4, not UDP, another destination port);
@@ -668,6 +1092,8 @@ def iter_udp_datagrams(data, destination_port, records=None):
     if type(destination_port) is not int or not 1 <= destination_port <= 65535:
         raise ValueError("explicit UDP destination port required")
     linktype, entries = records if records is not None else read_pcap_records(data)
+    if single_vlan and linktype != 1:
+        raise ValueError("single VLAN selection requires Ethernet linktype")
     previous = None
     for index, (_, packet) in enumerate(dpkt.pcap.Reader(io.BytesIO(data))):
         capture = entries[index]
@@ -676,7 +1102,7 @@ def iter_udp_datagrams(data, destination_port, records=None):
         previous = capture
         frame = bytes(packet)
         unselected = SavedDatagram(index, capture, None, None, frame, None, None, None, None)
-        network = packet_ipv4(packet, linktype)
+        network = packet_ipv4(packet, linktype, single_vlan=single_vlan)
         if network is None:
             yield unselected
             continue
@@ -887,10 +1313,22 @@ def convert_icmp_echo(data):
     return output.getvalue(), report
 
 
-def convert_pcap(data, destination_port, *, payload_format="imc"):
+def convert_pcap(data, destination_port, *, payload_format="imc", single_vlan=False,
+                 water_velocity=False, writer_declaration=None, writer_flow=None,
+                 _retain_flow=False, estimated_state=False):
     """Offline complete IPv4/UDP datagrams through the selected existing decoder."""
     if payload_format not in ("imc", "nmea-wind"):
         raise ValueError("explicit supported packet payload required")
+    if type(water_velocity) is not bool or type(_retain_flow) is not bool or type(estimated_state) is not bool:
+        raise ValueError("explicit boolean IMC packet options required")
+    if payload_format != "imc" and (water_velocity or estimated_state or writer_declaration is not None or writer_flow is not None):
+        raise ValueError("IMC options require IMC packet payload")
+    if writer_declaration is not None:
+        validate_writer_flow(writer_flow)
+        if writer_flow["udp_destination_port"] != destination_port:
+            raise ValueError("writer flow differs from selected UDP port")
+    elif writer_flow is not None:
+        raise ValueError("flow binding requires writer declaration")
     records = read_pcap_records(data)
     linktype, entries = records
     output, writer = io.StringIO(newline=""), None
@@ -898,13 +1336,22 @@ def convert_pcap(data, destination_port, *, payload_format="imc"):
         selected_packets=0, unselected_packets=0, decoded_records=0, selected_sources=[], clock="Unknown",
         linktype=linktype, unselected_status="NOT_DECODED_OR_VALIDATED")
     report_size = 0
+    if single_vlan:
+        report["vlan_unselected"] = []
     if payload_format == "nmea-wind":
         report["valid_wind_measurements"] = 0
-    for saved_datagram in iter_udp_datagrams(data, destination_port, records):
+    for saved_datagram in iter_udp_datagrams(data, destination_port, records, single_vlan=single_vlan):
         index, capture = saved_datagram.index, saved_datagram.capture_time_us
         datagram = saved_datagram.payload
+        tag = single_vlan_envelope(saved_datagram.frame) if single_vlan else None
         if datagram is None:
             report["unselected_packets"] += 1
+            if tag is not None:
+                unselected = dict(packet_index=index, **tag, status="NOT_SELECTED_OR_VALIDATED")
+                report_size += len(json.dumps(unselected))
+                if report_size > 32 * 1024 * 1024:
+                    raise ValueError("packet report exceeds bound")
+                report["vlan_unselected"].append(unselected)
             continue
         if payload_format == "nmea-wind":
             try:
@@ -914,9 +1361,12 @@ def convert_pcap(data, destination_port, *, payload_format="imc"):
             normalized, payload_report = wind(datagram.decode("ascii"), allow_no_selected=True)
             report["valid_wind_measurements"] += payload_report["valid_with_measurement"]
         else:
-            normalized, payload_report = convert(datagram, allow_no_selected=True)
+            normalized, payload_report = convert(datagram, allow_no_selected=True, water_velocity=water_velocity,
+                                                  estimated_state=estimated_state)
         saved = dict(packet_index=index, packet_hex=saved_datagram.frame.hex(),
             capture_time_us=capture, udp_checksum=saved_datagram.udp_checksum)
+        if tag is not None:
+            saved.update(tag)
         saved["nmea" if payload_format == "nmea-wind" else "imc"] = payload_report
         report_size += len(json.dumps(saved))
         if report_size > 32 * 1024 * 1024:
@@ -931,6 +1381,14 @@ def convert_pcap(data, destination_port, *, payload_format="imc"):
             row.update(record_time_us=capture,
                 pcap_packet_index=index, pcap_source_sha256=report["source_sha256"],
                 pcap_clock_basis="CAPTURE_REPORTED_NOT_AUTHENTICATED")
+            if writer_declaration is not None or _retain_flow:
+                row.update(udp_source_address=saved_datagram.source_address,
+                           udp_source_port=saved_datagram.source_port,
+                           udp_destination_address=saved_datagram.destination_address,
+                           udp_destination_port=saved_datagram.destination_port)
+            if single_vlan:
+                row.update(vlan_tci=tag["vlan_tci"] if tag else "",
+                           vlan_inner_ethertype=tag["vlan_inner_ethertype"] if tag else "")
             if writer is None:
                 writer = csv.DictWriter(output, list(row), lineterminator="\n")
                 writer.writeheader()
@@ -942,7 +1400,8 @@ def convert_pcap(data, destination_port, *, payload_format="imc"):
         raise ValueError("no selected packet observations")
     if payload_format == "nmea-wind":
         report["conversion_status"] = "OBSERVATIONS_PRODUCED" if report["valid_wind_measurements"] else "ONLY_WITHHELD_VALUES"
-    return output.getvalue(), report
+    return qualify_xr620_depth(output.getvalue(), report, writer_declaration,
+                               report["source_sha256"].removeprefix("sha256:"), flow=writer_flow)
 
 
 def main():
@@ -956,15 +1415,31 @@ def main():
     parser.add_argument("--record-clock", choices=NODE_REPORT_CLOCKS, default="caller-capture")
     parser.add_argument("--declared-logstart",
         help="the log start read from the split summary; the split selector only")
-    parser.add_argument("--source-format", choices=("imc", NEPTUS_SCHEMA, "moos-typed-alog", "moos-ivp-typed-alog-f56c", NODE_REPORT_FORMAT, NODE_SPLIT_FORMAT, "moos-fixed-slog", "pcap-udp-imc", "pcap-udp-nmea-wind", "pcap-icmp-echo"), default="imc")
+    parser.add_argument("--source-format", choices=("imc", NEPTUS_SCHEMA, "moos-typed-alog", "moos-ivp-typed-alog-f56c", NODE_REPORT_FORMAT, NODE_SPLIT_FORMAT, "moos-fixed-slog", "moos-dynamic-slog-f56c", "pcap-udp-imc", "pcap-udp-nmea-wind", "pcap-icmp-echo"), default="imc")
     parser.add_argument("--udp-destination-port", type=int)
+    parser.add_argument("--single-vlan", action="store_true",
+        help="allow one saved Ethernet 802.1Q tag on selected UDP paths")
     parser.add_argument("--variable")
     parser.add_argument("--publisher")
     parser.add_argument("--unit", choices=UNITS)
     parser.add_argument("--capture-time-us", type=int)
+    parser.add_argument("--water-velocity", action="store_true",
+        help="include fixed IMC260 water-relative velocity; saved IMC only, not a body/world frame")
+    parser.add_argument("--estimated-state", action="store_true",
+        help="include qualified IMC350 estimates; keep WGS84 origin and NED offsets separate")
+    parser.add_argument("--source-id", type=int,
+        help="native IMC record interval only: keep one header src system; time order is checked per that source")
+    parser.add_argument("--start-record", type=int)
+    parser.add_argument("--stop-record", type=int)
     args = parser.parse_args()
     try:
+        if args.estimated_state and args.source_format not in ("imc", NEPTUS_SCHEMA, "pcap-udp-imc"):
+            raise ValueError("estimated state requires qualified saved IMC format")
+        if args.water_velocity and args.source_format not in ("imc", NEPTUS_SCHEMA):
+            raise ValueError("water velocity selection requires a qualified saved IMC format")
         packet_format = args.source_format in ("pcap-udp-imc", "pcap-udp-nmea-wind")
+        if args.single_vlan and not packet_format:
+            raise ValueError("single VLAN selection requires explicit UDP PCAP format")
         node_report_format = args.source_format in (NODE_REPORT_FORMAT, NODE_SPLIT_FORMAT)
         split_format = args.source_format == NODE_SPLIT_FORMAT
         alog_format = node_report_format or args.source_format in ("moos-typed-alog", "moos-ivp-typed-alog-f56c")
@@ -978,10 +1453,26 @@ def main():
                                        or args.declared_logstart is not None
                                        or args.record_clock != NODE_REPORT_CLOCKS[0]):
             raise ValueError("node report options require a node report source format")
-        if args.input.stat().st_size > LIMIT:
+        window = args.start_record is not None or args.stop_record is not None
+        if args.source_id is not None and not window:
+            raise ValueError("source id selection requires a native record interval")
+        if window:
+            if (args.start_record is None or args.stop_record is None
+                    or args.source_format not in ("imc", NEPTUS_SCHEMA)
+                    or any(value is not None for value in
+                           (args.variable, args.publisher, args.unit, args.capture_time_us))):
+                raise ValueError("record interval requires explicit native IMC selection")
+            output, report = convert_path(args.input, start_record=args.start_record,
+                                         stop_record=args.stop_record, water_velocity=args.water_velocity,
+                                         estimated_state=args.estimated_state, source_id=args.source_id,
+                                         schema=NEPTUS_SCHEMA if args.source_format == NEPTUS_SCHEMA else None)
+        elif args.input.stat().st_size > LIMIT:
             raise ValueError("input exceeds bound")
-        data = args.input.read_bytes()
-        if node_report_format:
+        if not window:
+            data = args.input.read_bytes()
+        if window:
+            pass  # Already streamed; never fall back to whole-file bytes intake.
+        elif node_report_format:
             # The composite carries no single quantity, so a bare --unit would be a unit this
             # selector never applies; it is refused rather than accepted and ignored. Per-field
             # declarations go through --node-unit and must state their basis.
@@ -1001,9 +1492,10 @@ def main():
         elif alog_format:
             output, report = convert_alog(data, args.variable, args.publisher, args.unit, args.capture_time_us,
                 timestamp_decimals=5 if args.source_format == "moos-ivp-typed-alog-f56c" else 3)
-        elif args.source_format == "moos-fixed-slog":
+        elif args.source_format in ("moos-fixed-slog", "moos-dynamic-slog-f56c"):
             if args.publisher is not None: raise ValueError("slog has no publisher identity")
-            output, report = convert_slog(data, args.variable, args.unit, args.capture_time_us)
+            output, report = convert_slog(data, args.variable, args.unit, args.capture_time_us,
+                dynamic_columns=args.source_format == "moos-dynamic-slog-f56c")
         else:
             if any(value is not None for value in (args.variable, args.publisher, args.unit, args.capture_time_us)):
                 raise ValueError("alog options require explicit format")
@@ -1013,14 +1505,17 @@ def main():
                 output, report = convert_icmp_echo(data)
             else:
                 output, report = convert_pcap(data, args.udp_destination_port,
+                    single_vlan=args.single_vlan,
+                    estimated_state=args.estimated_state,
                     payload_format="nmea-wind" if args.source_format == "pcap-udp-nmea-wind" else "imc") if packet_format else convert_input(
-                        data, schema=NEPTUS_SCHEMA if args.source_format == NEPTUS_SCHEMA else None)
+                        data, schema=NEPTUS_SCHEMA if args.source_format == NEPTUS_SCHEMA else None,
+                        water_velocity=args.water_velocity, estimated_state=args.estimated_state)
         args.output_directory.mkdir()
         if split_format:
             (args.output_directory / "source.klog").write_bytes(data)
         elif alog_format:
             (args.output_directory / "source.alog").write_bytes(data)
-        elif args.source_format == "moos-fixed-slog":
+        elif args.source_format in ("moos-fixed-slog", "moos-dynamic-slog-f56c"):
             (args.output_directory / "source.slog").write_bytes(data)
         elif packet_format:
             (args.output_directory / "source.pcap").write_bytes(data)

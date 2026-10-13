@@ -53,6 +53,38 @@ fn row(fields: &[String]) -> String {
     s
 }
 
+fn domain_header(header: &mut String) {
+    header.pop(); // Existing header ends in LF.
+    header.push_str(",platform_domain,platform_domain_basis,platform_domain_provenance\n");
+}
+
+fn domain_cells(
+    cells: &mut Vec<String>,
+    out: &PipelineOut,
+    id: &str,
+    family: musubi_reference_types::Family,
+) {
+    if let Some(asset) = out
+        .assets
+        .iter()
+        .find(|a| a.asset_id == id && a.family == family)
+    {
+        let (domain, provenance) = asset.configured_platform_domain();
+        let basis = if provenance.is_empty() {
+            musubi_reference_types::DOMAIN_BASIS_FAMILY
+        } else if provenance[0].starts_with("domain-declarations-conflict-unresolved/") {
+            "profile_declarations_conflict_unresolved"
+        } else {
+            musubi_reference_types::DOMAIN_BASIS_DECLARED
+        };
+        cells.extend([
+            format!("{domain:?}"),
+            basis.into(),
+            serde_json::Value::from(provenance).to_string(),
+        ]);
+    }
+}
+
 #[must_use]
 pub fn digest_hex8(d: &DigestRef) -> String {
     d.0.iter().take(8).map(|b| format!("{b:02x}")).collect()
@@ -140,26 +172,43 @@ fn clock_rate_clause(r: &ClockRateReport) -> String {
 
 #[must_use]
 pub fn absences_csv(out: &PipelineOut) -> String {
+    absences_csv_impl(out, false)
+}
+
+fn absences_csv_impl(out: &PipelineOut, include_domain: bool) -> String {
     let mut s = String::from(
         "family,asset_id,source_role,profile_id,profile_origin,file,channel,expectation_id,absent_since_utc,absent_since_wall_ms,expected_by_wall_ms,wall_bound_ms,absent_since_native_ms,expected_by_native_ms,clock_basis,time_confidence_min,last_good_digest,mark_status,mark_reason,note,absence_digest,export_schema_version,absence_digest_full,last_good_digest_full,gap_end,next_good_native_ms,next_good_clock_basis,next_good_digest,next_good_digest_full,wall_mapping\n",
     );
+    if include_domain {
+        domain_header(&mut s);
+    }
     for n in &out.noticed {
-        s.push_str(&row(&absence_row(
+        let mut cells = absence_row(
             source_for(out, &n.asset_id, n.source_index),
             &n.negative,
             n.bounds,
             Some((n.since_wall_ms, n.by_wall_ms, n.bound_ms)),
             WALL_MAPPED,
-        )));
+            include_domain,
+        );
+        if include_domain {
+            domain_cells(&mut cells, out, &n.asset_id, n.negative.subject.family);
+        }
+        s.push_str(&row(&cells));
     }
     for u in &out.unmapped {
-        s.push_str(&row(&absence_row(
+        let mut cells = absence_row(
             source_for(out, &u.asset_id, u.source_index),
             &u.negative,
             u.bounds,
             None,
             u.reason,
-        )));
+            include_domain,
+        );
+        if include_domain {
+            domain_cells(&mut cells, out, &u.asset_id, u.negative.subject.family);
+        }
+        s.push_str(&row(&cells));
     }
     s
 }
@@ -172,6 +221,7 @@ fn absence_row(
     bounds: GapBounds,
     wall: Option<(i64, i64, i64)>,
     mapping: &str,
+    include_domain: bool,
 ) -> Vec<String> {
     let unknown_clock = neg.clock_basis == ClockBasis::Unknown;
     let mapping = if unknown_clock {
@@ -215,7 +265,12 @@ fn absence_row(
         neg.mark.reason_code.clone(),
         "absence = Musubi says it is missing; not 'no data'".into(),
         digest_cell(&negative_digest(neg)),
-        EXPORT_SCHEMA_VERSION.into(),
+        if include_domain {
+            "4"
+        } else {
+            EXPORT_SCHEMA_VERSION
+        }
+        .into(),
         digest_full_cell(&negative_digest(neg)),
         neg.last_good
             .as_ref()
@@ -374,9 +429,16 @@ fn dedup(mut v: Vec<String>) -> Vec<String> {
 
 #[must_use]
 pub fn claims_csv(out: &PipelineOut, k: &Knowledge) -> String {
+    claims_csv_impl(out, k, false)
+}
+
+fn claims_csv_impl(out: &PipelineOut, k: &Knowledge, include_domain: bool) -> String {
     let mut s = String::from(
         "claim_id,family,asset_id,trigger_channel,window_start_utc,window_start_ms,window_end_ms,outcome,unknown_reason,candidate_signature,consistent_with,logic_confidence,match_cues_matched,match_cues_required,match_contradicting,alternatives,indistinguishable_by,what_would_disambiguate,channel_coverage_present,channel_coverage_required,input_min_confidence,basis_mix_adapter,basis_mix_measured,basis_mix_unspecified,time_confidence_min,clock_basis,time_untrusted,absence_refs,evidence_count,evidence_digests_head,catalog_version,profile_versions,build_id,mark_status,mark_reason,note,candidate_selection_rule,absence_digests,export_schema_version,absence_digests_full,evidence_digests_full\n",
     );
+    if include_domain {
+        domain_header(&mut s);
+    }
     for c in &out.claims {
         let cl = &c.claim;
         let (state, _main, alt, missing) = outcome_lines(k, &cl.outcome);
@@ -414,7 +476,7 @@ pub fn claims_csv(out: &PipelineOut, k: &Knowledge) -> String {
             .take(EVIDENCE_DIGESTS_HEAD)
             .map(digest_cell)
             .collect();
-        s.push_str(&row(&[
+        let mut cells = vec![
             cl.claim_id.clone(),
             cl.subject.family.as_str().into(),
             cl.subject.asset_id.clone(),
@@ -478,7 +540,12 @@ pub fn claims_csv(out: &PipelineOut, k: &Knowledge) -> String {
                 .map(digest_cell)
                 .collect::<Vec<_>>()
                 .join("|"),
-            EXPORT_SCHEMA_VERSION.into(),
+            if include_domain {
+                "4"
+            } else {
+                EXPORT_SCHEMA_VERSION
+            }
+            .into(),
             cl.absence
                 .iter()
                 .map(digest_full_cell)
@@ -489,7 +556,11 @@ pub fn claims_csv(out: &PipelineOut, k: &Knowledge) -> String {
                 .map(digest_full_cell)
                 .collect::<Vec<_>>()
                 .join("|"),
-        ]));
+        ];
+        if include_domain {
+            domain_cells(&mut cells, out, &cl.subject.asset_id, cl.subject.family);
+        }
+        s.push_str(&row(&cells));
     }
     s
 }
@@ -736,13 +807,70 @@ pub fn export_all(
     metrics: Option<&Metrics>,
     dir: &Path,
 ) -> std::io::Result<Vec<PathBuf>> {
+    export_all_impl(out, k, metrics, dir, false)
+}
+
+pub fn export_all_with_declared_domain(
+    out: &PipelineOut,
+    k: &Knowledge,
+    metrics: Option<&Metrics>,
+    dir: &Path,
+) -> std::io::Result<Vec<PathBuf>> {
+    for (id, subject_id, family) in out
+        .noticed
+        .iter()
+        .map(|n| {
+            (
+                &n.asset_id,
+                &n.negative.subject.asset_id,
+                n.negative.subject.family,
+            )
+        })
+        .chain(out.unmapped.iter().map(|u| {
+            (
+                &u.asset_id,
+                &u.negative.subject.asset_id,
+                u.negative.subject.family,
+            )
+        }))
+        .chain(out.claims.iter().map(|c| {
+            (
+                &c.claim.subject.asset_id,
+                &c.claim.subject.asset_id,
+                c.claim.subject.family,
+            )
+        }))
+    {
+        if id != subject_id
+            || out.assets.iter().filter(|a| a.asset_id == *id).count() != 1
+            || !out
+                .assets
+                .iter()
+                .any(|a| a.asset_id == *id && a.family == family)
+        {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "configured-domain export requires exactly one matching asset_id/family",
+            ));
+        }
+    }
+    export_all_impl(out, k, metrics, dir, true)
+}
+
+fn export_all_impl(
+    out: &PipelineOut,
+    k: &Knowledge,
+    metrics: Option<&Metrics>,
+    dir: &Path,
+    include_domain: bool,
+) -> std::io::Result<Vec<PathBuf>> {
     std::fs::create_dir_all(dir)?;
     let mut written = Vec::new();
     let a = dir.join("absences.csv");
-    std::fs::write(&a, absences_csv(out))?;
+    std::fs::write(&a, absences_csv_impl(out, include_domain))?;
     written.push(a);
     let c = dir.join("cause_claims.csv");
-    std::fs::write(&c, claims_csv(out, k))?;
+    std::fs::write(&c, claims_csv_impl(out, k, include_domain))?;
     written.push(c);
     let t = dir.join("answer.txt");
     std::fs::write(&t, answer_text(out, k, metrics))?;

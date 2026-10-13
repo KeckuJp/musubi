@@ -1,0 +1,36 @@
+{
+  "profile_id": "saved_mavlink2_statustext_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "capture_time_us"
+  },
+  "units": {
+    "capture_time_us": "caller_declared_saved_capture_microseconds_not_authenticated",
+    "first_capture_time_us": "first_saved_chunk_capture_microseconds_not_source_boot_clock",
+    "severity_reported": "RFC5424_reported_severity_code_not_physical_failure_certification",
+    "severity_name": "defined_severity_or_UNKNOWN_not_a_diagnosis",
+    "sysid_reported": "unauthenticated_MAVLink_system_id",
+    "compid_reported": "unauthenticated_MAVLink_component_id",
+    "link_tag": "caller_selected_writer_link_tag_or_empty",
+    "message_id_reported": "opaque_statustext_assembly_id_not_incident_id",
+    "assembly_status": "COMPLETE_REPORTED_TEXT_or_explicit_INCOMPLETE_reason_not_omitted_byte_recovery",
+    "text_utf8": "utf8_prefix_then_reported_text_prevents_numeric_coercion_empty_if_invalid_see_text_hex",
+    "text_hex": "hex_prefix_then_exact_selected_text_bytes_before_NUL_per_chunk_even_when_UTF8_invalid",
+    "text_encoding": "UTF8_or_INVALID_UTF8_BYTES_RETAINED",
+    "chunk_count": "number_of_saved_chunks_in_this_segment",
+    "first_chunk_sequence": "first_reported_zero_based_chunk_sequence",
+    "last_chunk_sequence": "last_reported_zero_based_chunk_sequence",
+    "source_sha256": "sha256_prefix_then_exact_original_saved_capture_digest_not_authentication",
+    "frame_references_hex": "UTF8_JSON_hex_of_every_selected_frame_reference_and_original_payload"
+  }
+}

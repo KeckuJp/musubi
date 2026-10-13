@@ -10,9 +10,12 @@ import tempfile
 
 MAX_INPUT = 64 * 1024 * 1024
 MAX_OUTPUT = 512 * 1024 * 1024
+ARRAY_BASIS = "mp1382-ca3731f5-little-endian-isbd"
 
 
-def convert(source, *, preserve_nonfinite=False):
+def convert(source, *, preserve_nonfinite=False, array_basis=None):
+    if array_basis not in (None, ARRAY_BASIS):
+        raise ValueError("unqualified text array exporter")
     if version("pymavlink") != "2.4.49":
         raise ValueError("pymavlink2.4.49 required")
     from pymavlink.DFReader import DFReader_text, DFFormat
@@ -25,9 +28,12 @@ def convert(source, *, preserve_nonfinite=False):
     delimiter = ", " if lines[0].startswith("FMT, ") else ","
     if not lines[0].startswith("FMT" + delimiter):
         raise ValueError("FMT must be first, no discarded prefix")
+    if array_basis and delimiter != ", ":
+        raise ValueError("fixed exporter delimiter required")
     formats, ids = {}, set()
     expected = []
     trailing_text = {}
+    arrays = {}
     for line in lines:
         if not line or len(line.encode()) > 12000:
             raise ValueError("blank or oversized line")
@@ -45,8 +51,11 @@ def convert(source, *, preserve_nonfinite=False):
             columns = labels.split(",")
             if (len(columns) != len(code) or len(set(columns)) != len(columns)
                     or any(not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", c) for c in columns)
-                    or "mavpackettype" in columns or "a" in code):
+                    or "mavpackettype" in columns):
                 raise ValueError("unsupported FMT columns or array")
+            if "a" in code and (array_basis is None or name != "ISBD"
+                    or code != "QHHaaa" or labels != "TimeUS,N,seqno,x,y,z"):
+                raise ValueError("unqualified array layout")
             fmt = DFFormat(int(number), name, int(length), code, labels)
             if not 3 <= int(length) <= 255 or int(length) != struct.calcsize(fmt.msg_struct) + 3:
                 raise ValueError("FMT length disagrees with declared fields")
@@ -66,6 +75,18 @@ def convert(source, *, preserve_nonfinite=False):
                 trailing_text[len(expected)] = (fmt.columns[-1], value)
             elif len(parts) != len(fmt.columns) + 1:
                 raise ValueError("undefined message or ragged text row")
+            if "a" in fmt.format:
+                values = {}
+                for field, code, token in zip(fmt.columns, fmt.format, parts[1:]):
+                    if code != "a":
+                        continue
+                    if not re.fullmatch(r"\[-?[0-9]+(?: -?[0-9]+){31}\]", token):
+                        raise ValueError("fixed signed array text required")
+                    value = [int(v) for v in token[1:-1].split(" ")]
+                    if any(not -32768 <= v <= 32767 for v in value):
+                        raise ValueError("array int16 range exceeded")
+                    values[field] = value
+                arrays[len(expected)] = values
         expected.append(kind)
     output = []
     output_bytes = 0
@@ -81,6 +102,9 @@ def convert(source, *, preserve_nonfinite=False):
                 data = message.to_dict()
                 data.pop("mavpackettype")
                 meta = dict(type=kind)
+                if index in arrays:
+                    data.update(arrays[index])
+                    meta["array_exporter_basis"] = array_basis
                 if index in trailing_text:
                     field, value = trailing_text[index]
                     data[field] = value
@@ -113,10 +137,11 @@ def main():
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--preserve-nonfinite", action="store_true", help="retain nonfinite floating fields as explicit text, never measured numbers")
+    parser.add_argument("--array-basis", choices=[ARRAY_BASIS])
     args = parser.parse_args()
     with args.input.open("rb") as source:
         raw = source.read(MAX_INPUT + 1)
-    result = convert(raw, preserve_nonfinite=args.preserve_nonfinite)
+    result = convert(raw, preserve_nonfinite=args.preserve_nonfinite, array_basis=args.array_basis)
     with args.output.open("x", encoding="utf-8") as stream:
         stream.write(result)
 
