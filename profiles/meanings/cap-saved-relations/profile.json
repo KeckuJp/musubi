@@ -1,0 +1,105 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "source_senders_declared_sent_us_reusing_CAP_numeric_offset_conversion_not_synchronized_time_or_incident_time_rows_sorted_only_for_serialization",
+      "basis": "declared"
+    },
+    "source_document_index": {
+      "meaning": "source_document_index",
+      "unit": "zero_based_supplied_file_occurrence_index_before_stable_time_serialization_not_a_chronological_sequence",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "sha256_of_exact_original_source_XML_bytes_not_authentication",
+      "basis": "declared"
+    },
+    "source_sender_hex": {
+      "meaning": "source_sender_hex",
+      "unit": "UTF8_hex_of_source_declared_sender_untrusted",
+      "basis": "declared"
+    },
+    "source_identifier_hex": {
+      "meaning": "source_identifier_hex",
+      "unit": "UTF8_hex_of_source_declared_identifier_not_a_global_incident_identifier",
+      "basis": "declared"
+    },
+    "source_sent_text_hex": {
+      "meaning": "source_sent_text_hex",
+      "unit": "UTF8_hex_of_literal_source_sent_text_after_existing_XML_whitespace_handling_not_normalized_for_identity",
+      "basis": "declared"
+    },
+    "source_msg_type": {
+      "meaning": "source_msg_type",
+      "unit": "original_CAP_declared_msgType_not_an_operation_performed_by_this_tool",
+      "basis": "declared"
+    },
+    "reference_index": {
+      "meaning": "reference_index",
+      "unit": "zero_based_whitespace_separated_reference_token_position_duplicate_tokens_remain_distinct_blank_if_no_references",
+      "basis": "declared"
+    },
+    "reference_token_hex": {
+      "meaning": "reference_token_hex",
+      "unit": "UTF8_hex_of_exact_reference_token_including_malformed_tokens_original_separators_remain_in_XML",
+      "basis": "declared"
+    },
+    "reference_sender_hex": {
+      "meaning": "reference_sender_hex",
+      "unit": "UTF8_hex_of_valid_reference_sender_component",
+      "basis": "declared"
+    },
+    "reference_identifier_hex": {
+      "meaning": "reference_identifier_hex",
+      "unit": "UTF8_hex_of_valid_reference_identifier_component",
+      "basis": "declared"
+    },
+    "reference_sent_text_hex": {
+      "meaning": "reference_sent_text_hex",
+      "unit": "UTF8_hex_of_valid_reference_sent_component_literal_match_only_no_equivalent_instant_join",
+      "basis": "declared"
+    },
+    "declared_relation_kind": {
+      "meaning": "declared_relation_kind",
+      "unit": "UPDATE_DECLARED_REFERENCE_or_CANCEL_DECLARED_REFERENCE_only_for_those_source_types_other_accepted_types_REFERENCE_NOT_UPDATE_OR_CANCEL_no_automatic_effect",
+      "basis": "declared"
+    },
+    "relation_disposition": {
+      "meaning": "relation_disposition",
+      "unit": "MATCHED_DECLARED_IDENTITY_for_one_supplied_candidate_TARGET_MISSING_for_none_AMBIGUOUS_SUPPLIED_IDENTITY_for_multiple_MALFORMED_REFERENCE_RETAINED_or_NO_REFERENCES_DECLARED_not_verified_or_applied",
+      "basis": "declared"
+    },
+    "target_candidate_count": {
+      "meaning": "target_candidate_count",
+      "unit": "number_of_supplied_occurrences_with_exact_declared_triple_not_physical_incident_count_even_identical_duplicate_files_are_ambiguous",
+      "basis": "declared"
+    },
+    "target_candidate_index": {
+      "meaning": "target_candidate_index",
+      "unit": "zero_based_candidate_in_supplied_file_order_not_preferred_target_blank_when_none",
+      "basis": "declared"
+    },
+    "target_document_index": {
+      "meaning": "target_document_index",
+      "unit": "candidate_supplied_file_occurrence_index_join_to_report_and_unchanged_original_CAP_observations_blank_when_unresolved",
+      "basis": "declared"
+    },
+    "target_source_sha256": {
+      "meaning": "target_source_sha256",
+      "unit": "sha256_of_candidate_original_XML_bytes_not_proof_of_producer_identity_or_acceptance",
+      "basis": "declared"
+    },
+    "target_relation_basis": {
+      "meaning": "target_relation_basis",
+      "unit": "SELF_REFERENCE_NOT_PREDECESSOR_or_DECLARED_REFERENCE_ONLY_NOT_ACCEPTANCE_OR_STATE_CHANGE_no_graph_execution_causal_order_or_current_incident_state",
+      "basis": "declared"
+    }
+  }
+}

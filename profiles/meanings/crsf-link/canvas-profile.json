@@ -1,0 +1,55 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "capture_microseconds_untrusted_clock",
+      "basis": "declared"
+    },
+    "glyph_byte": {
+      "meaning": "glyph_byte",
+      "unit": "reported_font_glyph_byte_not_Unicode",
+      "basis": "declared"
+    },
+    "font_bank": {
+      "meaning": "font_bank",
+      "unit": "reported_font_bank_not_font_contents",
+      "basis": "declared"
+    },
+    "blink_reported": {
+      "meaning": "blink_reported",
+      "unit": "reported_attribute_not_physical_display",
+      "basis": "declared"
+    },
+    "cell_row": {
+      "meaning": "cell_row",
+      "unit": "zero_based_caller_declared_canvas_row",
+      "basis": "declared"
+    },
+    "cell_column": {
+      "meaning": "cell_column",
+      "unit": "zero_based_caller_declared_canvas_column",
+      "basis": "declared"
+    },
+    "write_time_us": {
+      "meaning": "write_time_us",
+      "unit": "capture_microseconds_untrusted_clock",
+      "basis": "declared"
+    },
+    "draw_record_index": {
+      "meaning": "draw_record_index",
+      "unit": "zero_based_original_logical_CSV_record",
+      "basis": "declared"
+    },
+    "write_record_index": {
+      "meaning": "write_record_index",
+      "unit": "zero_based_original_logical_CSV_record",
+      "basis": "declared"
+    }
+  }
+}

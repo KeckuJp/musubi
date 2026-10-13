@@ -13,7 +13,7 @@
     },
     "identity_instance_hex": {
       "meaning": "identity_instance_hex",
-      "unit": "utf8_hex_of_the_callers_label_for_which_instance_of_that_software_this_is_blank_when_none_was_given_two_equal_names_are_never_assumed_to_be_one_instance",
+      "unit": "utf8_hex_of_the_callers_label_for_which_reported_entity_instance_this_is_software_or_explicit_SOURCE_DEVICE_blank_when_none_was_given_two_equal_names_are_never_assumed_to_be_one_instance_not_authenticated",
       "basis": "declared"
     },
     "identity_collision": {

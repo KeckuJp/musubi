@@ -1,5 +1,5 @@
 profile_id = "gpx11_declared_points"
-version = "1"
+version = "2"
 family = "unknown"
 source_role = "recorded_export"
 format = "telemetry_csv_us"
@@ -9,8 +9,14 @@ channels = ["event"]
 [fields]
 time = "record_time_us"
 [units]
+kml_track_heading_deg = "deg_KML_gx_Track_heading_declaration_not_aircraft_yaw"
+kml_track_tilt_deg = "deg_KML_gx_Track_tilt_declaration_not_aircraft_pitch"
+kml_track_roll_deg = "deg_KML_gx_Track_roll_declaration_not_measured_attitude"
+kml_track_angles_basis = "source_declaration_not_model_composition_interpolation_or_physical_attitude"
 record_time_us = "us_caller_capture_not_point_time"
 latitude_deg = "deg_WGS84"
 longitude_deg = "deg_WGS84"
 elevation_m = "m_datum_unresolved"
 point_time_unix_us = "us_unix_declared_not_authenticated"
+deere_section_id = "source_declared_SECTIONID_integer_identifier_not_quantity_or_global_physical_identity"
+deere_section_id_basis = "explicit_selected_declaration_or_missing_basis"

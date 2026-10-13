@@ -1,0 +1,21 @@
+profile_id = "saved_tlog_parameter_read_reports_v1"
+version = "1"
+family = "unknown"
+source_role = "gcs"
+format = "mavlink_tlog"
+extensions = ["tlog"]
+default_clock_basis = "unknown"
+[fields]
+time = "host_recorded_us"
+[units]
+"MAVLINK.host_recorded_us" = "reported_host_us_not_device_receipt_or_trusted_UTC"
+"MAVLINK.raw_frame_hex" = "exact_original_frame_unknowns_and_signature_not_authentication"
+"PARAM_REQUEST_READ.param_index" = "reported_signed_index_minus1_selects_parameter_ID_other_index_not_ID_basis"
+"PARAM_REQUEST_READ.target_system" = "reported_system_zero_broadcast_not_individual_identity"
+"PARAM_REQUEST_READ.target_component" = "reported_component_zero_broadcast_not_individual_identity"
+"PARAM_REQUEST_READ.param_id_hex" = "logical_ASCII_ID_before_first_NUL_hex_not_authenticated_identifier"
+"PARAM_VALUE.param_id_hex" = "logical_ASCII_ID_before_first_NUL_hex_not_authenticated_identifier"
+"PARAM_VALUE.param_count" = "reported_parameter_count"
+"PARAM_VALUE.param_index" = "reported_unsigned_parameter_index"
+"PARAM_VALUE.param_type" = "reported_MAV_PARAM_TYPE_code_not_verified_encoding_or_compatibility"
+"PARAM_VALUE.value_raw_hex" = "four_little_endian_storage_bytes_encoding_unqualified_not_numeric_quantity"

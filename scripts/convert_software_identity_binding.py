@@ -31,11 +31,17 @@ COMPONENT_LIMIT = 64
 # A finite cap on produced rows: a work bound, not a promise about size. Size is bounded separately
 # by OUTPUT_LIMIT against each row's real serialized bytes, because every text value is hex-expanded.
 WORK_ROW_LIMIT = 200000
-# Four roles, because conflating them is exactly the mistake this bridge exists to prevent.
+# Four original roles plus the explicit reported hardware subject; never interchange them.
 # CONVERSION_TOOL is the artifact that actually read the data; REFERENCE_SPECIFICATION is a
 # document or upstream source an adaptation was written against, which never executed here.
-ROLES = ("SOURCE_SOFTWARE", "CONVERSION_TOOL", "ADAPTER_PROFILE", "REFERENCE_SPECIFICATION")
-KINDS = ("NAME", "VERSION", "PIN", "DIGEST")
+ROLES = ("SOURCE_SOFTWARE", "CONVERSION_TOOL", "ADAPTER_PROFILE", "REFERENCE_SPECIFICATION", "SOURCE_DEVICE")
+KINDS = ("NAME", "VERSION", "PIN", "DIGEST", "FAMILY")
+DEVICE_BASIS = ("SAVED_REPORT_HARDWARE_SUBJECT_ONLY_NOT_AUTHENTICATED_NOT_PROOF_OF_EXISTENCE_"
+                "OWNERSHIP_OR_DRIVER_EXECUTION_OR_PERMISSION_PRODUCT_FAMILY_NOT_FIRMWARE_FAMILY_"
+                "EQUAL_NAMES_OR_SERIALS_DO_NOT_ESTABLISH_ONE_PHYSICAL_DEVICE")
+DEVICE_FIELDS = ["record_time_us", "time_disposition", "device_index", "product_line_hex",
+                 "product_line_disposition", "device_name_hex", "serial_number_hex", "usb_product_id_hex",
+                 "source_block_hex", "source_input_sha256", "device_identity_basis"]
 # The kinds of one paired identity are named with a single separator, and the list of the parts a
 # saved row left empty uses that same separator -- so `identity_missing_components` reads as a
 # subset of `identity_kind` in one notation: NAME+PIN against NAME+PIN+VERSION. It is deliberately
@@ -80,6 +86,81 @@ FIELDS = ["record_time_us", "identity_role", "identity_kind", "identity_value_he
 
 def text(value):
     return "hex:" + value.encode("utf-8").hex()
+
+
+def convert_realsense_device_info(data, *, capture_time_us=None):
+    """Saved v2.56.5 device-info blocks only; never invoke SDK or open a playback path."""
+    if not isinstance(data, bytes) or not data or len(data) > 1024 * 1024:
+        raise ValueError("saved device info must be nonempty bytes within 1 MiB")
+    if capture_time_us is not None and (type(capture_time_us) is not int
+                                      or not 0 <= capture_time_us < 2**63):
+        raise ValueError("caller capture time must be integer microseconds below 2^63")
+    source = data.decode("utf-8")
+    if re.search(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]|\r(?!\n)", source):
+        raise ValueError("unsupported control or binary device info")
+    # Only the writer's LF/CRLF frames rows; Unicode separators inside values are data.
+    parts = source.split("\n")
+    lines = [part + "\n" for part in parts[:-1]] + ([parts[-1]] if parts[-1] else [])
+    digest = "sha256:" + hashlib.sha256(data).hexdigest()
+    report = dict(devices=0, input_lines=len(lines), selected_lines=0, unselected_lines=[],
+                  source_input_sha256=digest, source_input_hex="hex:" + data.hex(), clock="Unknown")
+    output = io.StringIO(newline="")
+    writer = csv.DictWriter(output, DEVICE_FIELDS, lineterminator="\n")
+    writer.writeheader()
+    block, info, annotation = None, {}, False
+    for index, original in enumerate(lines, 1):
+        line = original.removesuffix("\n").removesuffix("\r")
+        if block is None:
+            if line != "Device info: ":
+                if line.startswith("Device info:"):
+                    raise ValueError("malformed device-info header")
+                report["unselected_lines"].append(dict(line=index, text=original))
+                continue
+            block, info, annotation = [original], {}, False
+            report["selected_lines"] += 1
+            continue
+        block.append(original)
+        report["selected_lines"] += 1
+        if line == "":
+            if not info or report["devices"] >= 256:
+                raise ValueError("empty device info or device count exceeds 256")
+            product = info.get("Product Line")
+            row = dict(record_time_us=0 if capture_time_us is None else capture_time_us,
+                       time_disposition="UNLOCATED_TIME" if capture_time_us is None else "CALLER_CAPTURE_UNKNOWN",
+                       device_index=report["devices"], product_line_hex=text(product) if product else "",
+                       product_line_disposition="NOT_REPORTED" if product is None else
+                           "REPORTED_EMPTY" if product == "" else "REPORTED_UNCLASSIFIED",
+                       source_block_hex=text("".join(block)), source_input_sha256=digest,
+                       device_identity_basis=DEVICE_BASIS)
+            for column, key in (("device_name_hex", "Name"), ("serial_number_hex", "Serial Number"),
+                                ("usb_product_id_hex", "Product Id")):
+                row[column] = text(info[key]) if info.get(key) else ""
+            writer.writerow(row)
+            if output.tell() > 16 * 1024 * 1024:
+                raise ValueError("device CSV exceeds 16 MiB")
+            report["devices"] += 1
+            block = None
+            continue
+        if not info and not annotation and line.startswith("Playback Device (") and line.endswith(")"):
+            annotation = True
+            continue
+        match = re.fullmatch(r"    ([A-Za-z][A-Za-z0-9 /_-]{0,63}): \t(.*)", line)
+        if not match:
+            raise ValueError("malformed or unterminated device-info block")
+        padded, value = match.groups()
+        key = padded.rstrip(" ")
+        if padded != key.ljust(30) or key in info or len(info) >= 64 or len(value.encode()) > 256:
+            raise ValueError("duplicate, malformed or oversized device-info field")
+        info[key] = value
+    if block is not None or not report["devices"]:
+        raise ValueError("incomplete device info or no selected device block")
+    return output.getvalue(), report
+
+
+def validate_role_kind(role, kind):
+    if (kind == "FAMILY" and role != "SOURCE_DEVICE") or (
+            role == "SOURCE_DEVICE" and kind not in ("NAME", "FAMILY")):
+        raise ValueError("hardware FAMILY/NAME and software version/pin roles cannot be interchanged")
 
 
 # A saved column name, in the two shapes this estate's converters actually write. Several adopted
@@ -154,6 +235,7 @@ def component(spec):
     role, colon, kind = head.partition(":")
     if not separator or not colon or role not in ROLES or kind not in KINDS:
         raise ValueError(f"each component is ROLE:KIND=VALUE with ROLE in {ROLES} and KIND in {KINDS}")
+    validate_role_kind(role, kind)
     if len(value) > VALUE_LIMIT:
         raise ValueError("a declared component value exceeds the supported length")
     return role, kind, value
@@ -179,6 +261,7 @@ def read_identity(spec):
         kind, colon, column = item.partition(":")
         if not colon or kind not in KINDS:
             raise ValueError(f"each part of a paired identity is KIND:COLUMN with KIND in {KINDS}")
+        validate_role_kind(role, kind)
         parts.append((kind, declared_name(column)))
     if len(parts) < 2 or len({column for _, column in parts}) != len(parts):
         raise ValueError("a paired identity needs at least two parts with distinct columns")
@@ -211,6 +294,13 @@ def convert(data, *, read_components=(), declared_components=(), paired_identiti
         for _, column in parts:
             if column not in header:
                 raise ValueError("a paired identity column is not in the saved header")
+    if "device_identity_basis" in index:
+        allowed = {"device_name_hex": ("SOURCE_DEVICE", "NAME"),
+                   "product_line_hex": ("SOURCE_DEVICE", "FAMILY")}
+        selectors = parsed_read + [(role, kind, column) for role, parts in parsed_pairs for kind, column in parts]
+        for role, kind, column in selectors:
+            if allowed.get(column) != (role, kind):
+                raise ValueError("native device identity column has a different role or meaning")
     if len({(role, kind, column) for role, kind, column in parsed_read}) != len(parsed_read):
         raise ValueError("duplicate column-read component")
     digest = "sha256:" + hashlib.sha256(data).hexdigest()
@@ -244,6 +334,8 @@ def convert(data, *, read_components=(), declared_components=(), paired_identiti
 
     def emit(row):
         nonlocal written
+        if row.get("identity_role") == "SOURCE_DEVICE":
+            row["identity_basis"] = DEVICE_BASIS
         for name, value in row.items():
             if NEEDS_QUOTING.search(str(value)):
                 raise ValueError(f"{name} would need CSV quoting, which the common reader refuses; "
@@ -344,28 +436,43 @@ def main():
     parser.add_argument("input", type=Path, help="observations CSV an adopted converter already wrote")
     parser.add_argument("output_directory", type=Path, help="new directory only")
     parser.add_argument("--time-column", default="record_time_us")
+    parser.add_argument("--input-format", choices=("csv", "realsense-device-info-v2.56.5"), default="csv")
+    parser.add_argument("--capture-time-us", type=int, help="caller capture clock for saved device-info text only")
     parser.add_argument("--read-component", action="append", default=[],
                         help="ROLE:KIND=COLUMN read from the observation rows themselves")
     parser.add_argument("--declare-component", action="append", default=[],
                         help="ROLE:KIND=VALUE stated by the caller; an empty VALUE stays unknown")
     parser.add_argument("--read-identity", action="append", default=[],
                         help="ROLE=KIND:COLUMN,KIND:COLUMN read as one paired identity per saved row")
-    parser.add_argument("--instance", help="label that keeps two instances of one software apart")
+    parser.add_argument("--instance", help="caller label keeping reported instances apart; never authenticated")
     parser.add_argument("--source-citation", help="where the caller says these values are defined")
     parser.add_argument("--namespace",
                         help="whose naming authority the caller says the value belongs to; opt-in, "
                              "blank by default, never verified and never a grant of that authority")
     args = parser.parse_args()
     try:
-        if args.input.stat().st_size > LIMIT:
+        if args.input.stat().st_size > (LIMIT if args.input_format == "csv" else 1024 * 1024):
             raise ValueError("input exceeds bound")
-        output, report = convert(args.input.read_bytes(), time_column=args.time_column,
+        data = args.input.read_bytes()
+        native, native_report = None, None
+        if args.input_format != "csv":
+            if args.time_column != "record_time_us":
+                raise ValueError("native device-info time column cannot be reinterpreted")
+            native, native_report = convert_realsense_device_info(data, capture_time_us=args.capture_time_us)
+        elif args.capture_time_us is not None:
+            raise ValueError("capture override is not allowed for existing CSV observations")
+        output, report = convert(data if native is None else native.encode(), time_column=args.time_column,
                                  read_components=tuple(args.read_component),
                                  declared_components=tuple(args.declare_component),
                                  paired_identities=tuple(args.read_identity),
                                  instance=args.instance, source_citation=args.source_citation,
                                  namespace=args.namespace)
+        if native_report is not None:
+            report["native_device_info"] = native_report
         args.output_directory.mkdir()
+        if native is not None:
+            (args.output_directory / "source.txt").write_bytes(data)
+            (args.output_directory / "device_observations.csv").write_text(native, encoding="utf-8")
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2),
                                                            encoding="utf-8")

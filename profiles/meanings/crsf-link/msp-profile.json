@@ -1,0 +1,70 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "reported_roll_rad": {
+      "meaning": "reported_roll_rad",
+      "unit": "rad_reported_BF452_roll_not_qualified_world_or_body_reference",
+      "basis": "declared"
+    },
+    "reported_pitch_rad": {
+      "meaning": "reported_pitch_rad",
+      "unit": "rad_reported_BF452_pitch_not_qualified_world_or_body_reference",
+      "basis": "declared"
+    },
+    "reported_yaw_rad": {
+      "meaning": "reported_yaw_rad",
+      "unit": "rad_reported_BF452_yaw_not_true_north_or_qualified_world_reference",
+      "basis": "declared"
+    },
+    "attitude_wire_basis": {
+      "meaning": "attitude_wire_basis",
+      "unit": "fixed_caller_selected_BF452_MSP1_meaning_not_verified_firmware_identity_HEADFREE_reference_possible",
+      "basis": "declared"
+    },
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_caller_capture_label_shared_by_all_native_frames_not_packet_or_producer_time_no_UTC_or_boot_anchor",
+      "basis": "declared"
+    },
+    "source_input_sha256": {
+      "meaning": "source_input_sha256",
+      "unit": "digest_of_supplied_native_bytes_not_source_authentication",
+      "basis": "declared"
+    },
+    "source_packet_index": {
+      "meaning": "source_packet_index",
+      "unit": "zero_based_complete_frame_ordinal_including_unselected_commands_not_global_communication_sequence",
+      "basis": "declared"
+    },
+    "source_start_offset": {
+      "meaning": "source_start_offset",
+      "unit": "byte_offset_in_supplied_native_input",
+      "basis": "declared"
+    },
+    "source_stop_offset_exclusive": {
+      "meaning": "source_stop_offset_exclusive",
+      "unit": "exclusive_byte_offset_in_supplied_native_input",
+      "basis": "declared"
+    },
+    "source_wire_hex": {
+      "meaning": "source_wire_hex",
+      "unit": "exact_native_frame_bytes_hex_prefixed_keep_original_input_for_unframed_and_incomplete_ranges",
+      "basis": "declared"
+    },
+    "source_frame_hex": {
+      "meaning": "source_frame_hex",
+      "unit": "complete_MSPv1_reply_bytes_hex_prefixed",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "derived_capture_CSV_row_JSON_hex_prefixed_not_original_native_container",
+      "basis": "declared"
+    }
+  }
+}

@@ -60,6 +60,111 @@
       "meaning": "energy_j",
       "unit": "J_stored_consumed_or_remaining_role_not_inferred",
       "basis": "declared"
+    },
+    "j1939_pgn": {
+      "meaning": "j1939_pgn",
+      "unit": "J1939_PGN_from_cantools_40_7_1_pgn_from_frame_id_PDU1_destination_excluded_PDU2_group_extension_included",
+      "basis": "declared"
+    },
+    "j1939_priority": {
+      "meaning": "j1939_priority",
+      "unit": "priority_bits_of_the_captured_frame_named_by_frame_id_for_a_transfer_the_completing_TP_DT_or_EndOfMsgACK_frame_not_the_transported_payload_priority_and_not_identity",
+      "basis": "declared"
+    },
+    "j1939_source_address": {
+      "meaning": "j1939_source_address",
+      "unit": "reported_source_address_of_the_sender_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "j1939_destination_address": {
+      "meaning": "j1939_destination_address",
+      "unit": "PDU1_or_transfer_receiver_address_255_global_blank_for_PDU2",
+      "basis": "declared"
+    },
+    "j1939_match_basis": {
+      "meaning": "j1939_match_basis",
+      "unit": "PGN_ANY_SOURCE_DBC_SA_IGNORED_or_EXACT_ID_PROPRIETARY_or_FIXED_ADDRESS_CLAIM_LAYOUT_4360E08B",
+      "basis": "declared"
+    },
+    "j1939_dbc_declared_source_address": {
+      "meaning": "j1939_dbc_declared_source_address",
+      "unit": "source_address_written_in_the_DBC_identifier_reported_not_used_for_PGN_matching",
+      "basis": "declared"
+    },
+    "j1939_transfer_basis": {
+      "meaning": "j1939_transfer_basis",
+      "unit": "SINGLE_FRAME_or_BAM_or_saved_RTS_basis_reconstructed_transfer_not_physical_delivery",
+      "basis": "declared"
+    },
+    "j1939_transfer_index": {
+      "meaning": "j1939_transfer_index",
+      "unit": "zero_based_transfer_in_report_j1939_transfers_source_frames_retained_once_there",
+      "basis": "declared"
+    },
+    "j1939_transfer_sha256": {
+      "meaning": "j1939_transfer_sha256",
+      "unit": "sha256_of_the_retained_transfer_source_frame_rows",
+      "basis": "declared"
+    },
+    "j1939_transfer_first_time_us": {
+      "meaning": "j1939_transfer_first_time_us",
+      "unit": "capture_microseconds_of_the_transfer_announcement_unknown_clock",
+      "basis": "declared"
+    },
+    "j1939_reported_name_hex": {
+      "meaning": "j1939_reported_name_hex",
+      "unit": "Address_Claim_NAME_little_endian_hex_a_producer_report_blank_when_none_or_uncertain",
+      "basis": "declared"
+    },
+    "j1939_claim_kind": {
+      "meaning": "j1939_claim_kind",
+      "unit": "ADDRESS_CLAIMED_or_CANNOT_CLAIM_reported_frame",
+      "basis": "declared"
+    },
+    "j1939_name_identity_number": {
+      "meaning": "j1939_name_identity_number",
+      "unit": "reported_21_bit_NAME_identity_number",
+      "basis": "declared"
+    },
+    "j1939_name_manufacturer_code": {
+      "meaning": "j1939_name_manufacturer_code",
+      "unit": "reported_11_bit_NAME_manufacturer_code_not_resolved_to_a_company",
+      "basis": "declared"
+    },
+    "j1939_name_ecu_instance": {
+      "meaning": "j1939_name_ecu_instance",
+      "unit": "reported_3_bit_NAME_ECU_instance",
+      "basis": "declared"
+    },
+    "j1939_name_function_instance": {
+      "meaning": "j1939_name_function_instance",
+      "unit": "reported_5_bit_NAME_function_instance",
+      "basis": "declared"
+    },
+    "j1939_name_function": {
+      "meaning": "j1939_name_function",
+      "unit": "reported_8_bit_NAME_function_code_not_resolved",
+      "basis": "declared"
+    },
+    "j1939_name_vehicle_system": {
+      "meaning": "j1939_name_vehicle_system",
+      "unit": "reported_7_bit_NAME_vehicle_system_code_not_resolved",
+      "basis": "declared"
+    },
+    "j1939_name_vehicle_system_instance": {
+      "meaning": "j1939_name_vehicle_system_instance",
+      "unit": "reported_4_bit_NAME_vehicle_system_instance",
+      "basis": "declared"
+    },
+    "j1939_name_industry_group": {
+      "meaning": "j1939_name_industry_group",
+      "unit": "reported_3_bit_NAME_industry_group_code",
+      "basis": "declared"
+    },
+    "j1939_name_arbitrary_address_capable": {
+      "meaning": "j1939_name_arbitrary_address_capable",
+      "unit": "reported_1_bit_NAME_arbitrary_address_capable_flag",
+      "basis": "declared"
     }
   }
 }

@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 import unittest
 
-from scripts.convert_mqtt_recorded import convert, DOCK_FORMAT
+from scripts.convert_mqtt_recorded import convert, convert_path, DOCK_FORMAT
 from tests.test_electrical_schema_reuse import connection, vda, ros
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,6 +36,10 @@ def json_value_envelope(payload, *, payloadlen=None, tst="2026-01-01T01:00:01.12
     return json.dumps(record, ensure_ascii=False)
 
 
+# Authored capture B, written as raw text rather than re-serialized: different values, a different
+# key order inside the payload, and internal whitespace - the shape a build without cJSON writes,
+# since it copies the payload bytes verbatim instead of reprinting them. Still exactly one line: a
+# record spans no newline, so the pretty-printed variant stays out of scope.
 JSON_VALUE_LINE_B = (
     '{"tst":"2026-01-01T01:00:02.500000+0100","topic":"example/state","qos":0,"retain":0,'
     '"payloadlen":211,"payload":{ "version": "2.1.0" , "serialNumber":"example-2",'
@@ -45,6 +49,53 @@ JSON_VALUE_LINE_B = (
 
 
 class MqttRecordedTests(unittest.TestCase):
+    def test_saved_window_large_source_and_distinct_json_value_reuse(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "capture.jsonl"
+            line = json.dumps(envelope(vda("2.1.0")))
+            excluded = 'x' * 40000 + '\n'
+            path.write_text(excluded * 420 + line + '\n' + line + '\n')
+            self.assertGreater(path.stat().st_size, 16 * 1024**2)
+            output, report = convert_path(path, "example/state", "vda-state-2.1",
+                                          start_record=420, stop_record=422)
+            rows = list(csv.DictReader(io.StringIO(output)))
+            self.assertEqual([r['mqtt_source_record_index'] for r in rows], ['420', '421'])
+            self.assertEqual(report['excluded_records_not_decoded'], 420)
+            self.assertEqual(report['source_sha256'], hashlib.sha256(path.read_bytes()).hexdigest())
+            original = list(csv.DictReader(io.StringIO(convert(line+'\n'+line+'\n',
+                                             'example/state', 'vda-state-2.1'))))
+            for old, new in zip(original, rows):
+                for key, value in old.items():
+                    if key != 'mqtt_source_record_index':
+                        self.assertEqual(new[key], value)
+            other = Path(directory) / 'other.jsonl'
+            other.write_text(JSON_VALUE_LINE_B + '\n')
+            second, second_report = convert_path(other, 'example/state', 'vda-state-2.1',
+                    start_record=0, stop_record=1, envelope_format='J')
+            self.assertEqual(second_report['selected_records'], 1)
+            reader = os.environ.get('MUSUBI_TELEMETRY_READER')
+            if not reader:
+                self.skipTest('common reader not configured')
+            for index, (csv_text, count) in enumerate(((output, 2), (second, 1))):
+                csv_path = Path(directory) / f'common{index}.csv'
+                csv_path.write_text(csv_text)
+                common = json.loads(subprocess.run([reader, str(ROOT / 'profiles/declared/electrical-schema-reuse/json-profile.toml'),
+                            str(csv_path), '--allow-equal-time'], check=True, capture_output=True, text=True).stdout)
+                self.assertEqual(len(common['observations']), count)
+
+    def test_saved_window_rejects_bounds_selected_topic_and_framing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'capture.jsonl'
+            path.write_text(json.dumps(envelope(vda('2.1.0'))) + '\n')
+            for start, stop, topic in ((0, 2, 'example/state'), (1, 1, 'example/state'),
+                                      (0, 1, 'wrong/state')):
+                with self.assertRaises(ValueError):
+                    convert_path(path, topic, 'vda-state-2.1', start_record=start, stop_record=stop)
+            path.write_text('\n' + json.dumps(envelope(vda('2.1.0'))) + '\n')
+            with self.assertRaises(ValueError):
+                convert_path(path, 'example/state', 'vda-state-2.1', start_record=1, stop_record=2)
+
     def test_saved_connection_envelopes_reuse_the_same_reported_state_and_clocks(self):
         """A saved %j envelope of the connection topic, not a broker session or a live client."""
         topic = "uagv/v2/authored-maker/authored-serial-1/connection"
@@ -62,12 +113,14 @@ class MqttRecordedTests(unittest.TestCase):
         self.assertEqual([r["vda_connection_state_reported"] for r in rows],
                          ["ONLINE", "CONNECTIONBROKEN"])
         self.assertIn("BROKER_LAST_WILL", rows[1]["vda_connection_basis"])
+        # The capture clock and the payload clock stay separate, neither standing in for the other.
         self.assertEqual([r["record_time_us"] for r in rows], ["1767225601123456", "1767225602123456"])
         self.assertEqual([r["payload_record_time_us"] for r in rows],
                          ["1767225600120000", "1767225602000000"])
         self.assertEqual({r["mqtt_clock_basis"] for r in rows}, {"CAPTURE_REPORTED"})
         self.assertEqual({(r["mqtt_qos"], r["mqtt_retain"]) for r in rows}, {("1", "1")})
         self.assertEqual(bytes.fromhex(rows[0]["mqtt_topic_hex"][4:]).decode(), topic)
+        # The saved envelope is retained exactly, so identity and unknown fields stay recoverable.
         self.assertIn(topic, bytes.fromhex(rows[0]["source_record_hex"][4:]).decode())
         if os.environ.get("MUSUBI_TELEMETRY_READER"):
             with tempfile.TemporaryDirectory() as work:
@@ -90,13 +143,17 @@ class MqttRecordedTests(unittest.TestCase):
         record.update(topic=topic, payload=text, payloadlen=len(text.encode()))
         line = json.dumps(record, ensure_ascii=False)
         self.assertTrue(convert(line, topic, "vda-connection-3.0"))
+        # A record captured on another topic than the declared one is refused, not relabelled.
         with self.assertRaises(ValueError):
             convert(line, "vda5050/v3/authored-maker/other-serial/connection", "vda-connection-3.0")
+        # Wildcards are never accepted as a declared topic.
         for wildcard in ("vda5050/v3/+/authored-serial-1/connection", "vda5050/v3/#"):
             with self.subTest(wildcard), self.assertRaises(ValueError):
                 convert(line, wildcard, "vda-connection-3.0")
+        # The version binding survives the envelope path.
         with self.assertRaises(ValueError):
             convert(line, topic, "vda-connection-2.1")
+        # And the adopted envelope checks still apply to this payload format.
         broken = json.loads(line)
         broken["payloadlen"] = 3
         with self.assertRaises(ValueError):
@@ -187,7 +244,7 @@ class MqttRecordedTests(unittest.TestCase):
             with self.assertRaises(ValueError): convert(text, "example/state", fmt)
             self.assertEqual(len(list(csv.DictReader(io.StringIO(convert(text, "example/state", fmt, vda_errors=True))))), 1001)
             with self.assertRaises(ValueError): convert(text, "other", fmt, vda_errors=True)
-            with self.assertRaises(ValueError): convert(text, "example/state", "vda-state-2.0", vda_errors=True)
+            with self.assertRaises(ValueError): convert(text, "example/state", "vda-state-1.1", vda_actions=True)
         finally:
             csv.field_size_limit(old_limit)
 
@@ -248,6 +305,7 @@ class MqttRecordedTests(unittest.TestCase):
         output = convert(text, "example/state", "vda-state-2.1", envelope_format="J")
         rows = list(csv.DictReader(io.StringIO(output)))
         self.assertEqual(len(rows), 2)  # every line yields its row; nothing sampled
+        # The same selected quantities the adopted %j route produces for the same message.
         reference = next(csv.DictReader(io.StringIO(
             convert(json.dumps(envelope(payload), ensure_ascii=False), "example/state", "vda-state-2.1"))))
         for column in ("battery_voltage_v", "battery_remaining_fraction", "battery_consumed_ah",
@@ -258,12 +316,14 @@ class MqttRecordedTests(unittest.TestCase):
         self.assertEqual(float(rows[0]["battery_voltage_v"]), 24.)
         self.assertEqual(float(rows[0]["battery_remaining_fraction"]), .75)
         self.assertEqual(rows[0]["battery_reported_charging_state"], "NOT_CHARGING")
+        # Capture B: different values, different key order, internal whitespace.
         self.assertEqual(float(rows[1]["battery_voltage_v"]), 48.5)
         self.assertEqual(float(rows[1]["battery_remaining_fraction"]), .42)
         self.assertEqual(rows[1]["battery_reported_charging_state"], "CHARGING")
         self.assertEqual([r["mqtt_qos"] for r in rows], ["1", "0"])
         self.assertEqual([r["mqtt_retain"] for r in rows], ["1", "0"])
         for row, line in zip(rows, text.splitlines()):
+            # The exact envelope line is retained, whitespace and key order included.
             self.assertEqual(bytes.fromhex(row["source_record_hex"][4:]).decode(), line)
             self.assertNotEqual(row["record_time_us"], row["payload_record_time_us"])
             self.assertEqual(row["mqtt_clock_basis"], "CAPTURE_REPORTED")
@@ -272,9 +332,11 @@ class MqttRecordedTests(unittest.TestCase):
             self.assertEqual(row["mqtt_payload_length_basis"], JSON_VALUE_LENGTH_BASIS)
             self.assertIn("NOT_VERIFIED", row["mqtt_payload_length_basis"])
         self.assertEqual(rows[1]["mqtt_payload_bytes_reported"], "211")
+        # Unknown payload and envelope fields stay in the retained line, unexpanded.
         self.assertIn("vendorExtra", bytes.fromhex(rows[1]["source_record_hex"][4:]).decode())
         self.assertIn("保持", bytes.fromhex(rows[0]["source_record_hex"][4:]).decode())
         self.assertNotIn("vendorExtra", output.splitlines()[0])
+        # A practical capture is not sampled: every one of 200 envelopes becomes a row.
         many = "\n".join(json_value_envelope(
             payload, tst=f"2026-01-01T01:00:01.{index:06d}+0100") for index in range(200))
         self.assertEqual(len(list(csv.DictReader(io.StringIO(
@@ -302,8 +364,10 @@ class MqttRecordedTests(unittest.TestCase):
     def test_json_value_envelope_refusals_keep_the_default_j_path_unchanged(self):
         payload = vda("2.1.0")
         j_line = json.dumps(envelope(payload), ensure_ascii=False)
+        # Default selection is the adopted path, byte-identical to naming it.
         self.assertEqual(convert(j_line, "example/state", "vda-state-2.1"),
                          convert(j_line, "example/state", "vda-state-2.1", envelope_format="j"))
+        # The CLI selector is wired to the same route, and its default is still %j.
         with tempfile.TemporaryDirectory() as directory:
             source, out = Path(directory) / "in.jsonl", Path(directory) / "out.csv"
             source.write_text(json_value_envelope(payload))
@@ -313,6 +377,7 @@ class MqttRecordedTests(unittest.TestCase):
             subprocess.run(command + ["--envelope-format", "J"], cwd=ROOT, check=True, capture_output=True)
             self.assertEqual(out.read_text(), convert(json_value_envelope(payload), "example/state",
                                                       "vda-state-2.1", envelope_format="J"))
+        # Neither representation is accepted under the other selector.
         with self.assertRaises(ValueError) as refusal:
             convert(j_line, "example/state", "vda-state-2.1", envelope_format="J")
         self.assertEqual(str(refusal.exception), "selected %J envelope requires a JSON object payload")
@@ -324,10 +389,12 @@ class MqttRecordedTests(unittest.TestCase):
                 convert(j_line, "example/state", "vda-state-2.1", envelope_format=selector)
             self.assertEqual(str(refusal.exception),
                              "explicit supported mosquitto envelope format required")
+        # A %J payload that is not the selected object shape is refused, never coerced.
         for shape in ([payload], 24, "24", True, None):
             with self.subTest(shape=shape), self.assertRaises(ValueError) as refusal:
                 convert(json_value_envelope(shape), "example/state", "vda-state-2.1", envelope_format="J")
             self.assertEqual(str(refusal.exception), "selected %J envelope requires a JSON object payload")
+        # The reported length is bounded and required, but never checked against the value.
         for length in (-1, 16 * 1024 * 1024 + 1, "216", 216.0, None):
             record = json.loads(json_value_envelope(payload))
             record["payloadlen"] = length
@@ -337,11 +404,13 @@ class MqttRecordedTests(unittest.TestCase):
                 convert(json.dumps(record, ensure_ascii=False), "example/state", "vda-state-2.1",
                         envelope_format="J")
             self.assertEqual(str(refusal.exception), "invalid reported payload byte count")
+        # Duplicate JSON keys inside a %J payload are refused by the existing line parse.
         duplicated = json_value_envelope(payload).replace('"manufacturer": "synthetic"',
             '"manufacturer": "synthetic", "manufacturer": "other"', 1)
         self.assertIn('"manufacturer": "other"', duplicated)
         with self.assertRaises(ValueError):
             convert(duplicated, "example/state", "vda-state-2.1", envelope_format="J")
+        # Every adopted envelope guard still applies under the new selector.
         for patch, message in ((dict(topic="other"), "capture topic mismatch"),
                                (dict(qos=3), "invalid reported MQTT flag"),
                                (dict(retain=2), "invalid reported MQTT flag"),
@@ -423,24 +492,31 @@ class DockSavedStatusTests(unittest.TestCase):
         rows = self.rows(source + "\n")
         self.assertEqual(len(rows), 1)
         row = rows[0]
+        # Enum codes keep the pinned page's own labels, code beside name.
         self.assertEqual((row["dock_mode_code"], row["dock_mode_reported"]), ("4", "IN_OPERATION"))
         self.assertEqual(row["dock_cover_state_reported"], "ON")
         self.assertEqual(row["dock_rainfall_reported"], "LIGHT_RAIN")
+        # Celsius to kelvin through the shared table, with the two bodies the page itself names.
         self.assertAlmostEqual(float(row["dock_environment_temperature_k"]), 294.65)
         self.assertAlmostEqual(float(row["dock_internal_temperature_k"]), 299.15)
+        # The page declares %RH and no range, so the reported percent is kept as written.
         self.assertEqual(float(row["dock_internal_humidity_percent_reported"]), 48.5)
         self.assertEqual(float(row["dock_wind_speed_m_s"]), 3.25)
+        # KB/s keeps the source's own label: no byte base is documented, so none is applied.
         self.assertEqual(float(row["dock_network_rate_kb_s_reported"]), 512.5)
         self.assertEqual(row["dock_network_quality_reported"], "BETTER")
+        # The dock's report about the aircraft on it, with the page's declared 0..100 bound.
         self.assertEqual(row["dock_aircraft_charge_state_reported"], "CHARGING")
         self.assertAlmostEqual(float(row["dock_aircraft_charge_capacity_fraction"]), .78)
         self.assertEqual(bytes.fromhex(row["dock_sub_device_sn_hex"][4:]).decode(), "AC-SN-002")
         self.assertEqual(bytes.fromhex(row["dock_gateway_sn_hex"][4:]).decode(), "DOCK-SN-001")
+        # The payload clock is retained and is never the row clock.
         self.assertEqual(row["dock_payload_timestamp_ms_reported"], "1789000000123")
         self.assertEqual(row["record_time_us"], "1790071200000000")
         self.assertEqual(row["mqtt_clock_basis"], "CAPTURE_REPORTED")
         self.assertIn("NOT_A_CLOUD_SIDE_EXPORT", row["dock_value_basis"])
         self.assertIn("NEITHER_AUTHENTICATED", row["dock_identity_basis"])
+        # Unselected dock properties survive in the retained envelope rather than being dropped.
         retained = bytes.fromhex(row["source_record_hex"][4:]).decode()
         self.assertEqual(retained, source)
         self.assertIn("unselected_dock_property", retained)
@@ -452,6 +528,7 @@ class DockSavedStatusTests(unittest.TestCase):
                     str(ROOT / DOCK_PROFILE), str(path), "--allow-equal-time"],
                     capture_output=True, check=True).stdout)
             self.assertEqual(common["main_rows"], 1)
+            # A station is not a vehicle: no platform is inferred from a dock report.
             self.assertEqual(common["platform_domain"], "Unknown")
             fields = common["observations"][0]["fields"]
             self.assertAlmostEqual(fields["dock_environment_temperature_k"], 294.65)
@@ -465,6 +542,7 @@ class DockSavedStatusTests(unittest.TestCase):
                           units["dock_aircraft_charge_state_reported"])
 
     def test_missing_is_not_zero_and_an_unlisted_enum_code_is_retained(self):
+        # Only the dock state is required; every other property may be absent.
         sparse = self.rows(dock_line({"gateway": "DOCK-SN-001", "data": {"mode_code": 0}}) + "\n")[0]
         self.assertEqual((sparse["dock_mode_code"], sparse["dock_mode_reported"]), ("0", "IDLE"))
         for absent in ("dock_cover_state_code", "dock_environment_temperature_k",
@@ -472,15 +550,18 @@ class DockSavedStatusTests(unittest.TestCase):
                        "dock_aircraft_charge_capacity_fraction", "dock_sub_device_sn_hex",
                        "dock_payload_timestamp_ms_reported"):
             self.assertEqual(sparse[absent], "", absent)
+        # A reported zero is a real state in every one of these tables, never an absence.
         zeros = self.rows(dock_line(dock_payload(data={"mode_code": 0, "cover_state": 0, "rainfall": 0,
                                                        "network_state": {"quality": 0}})) + "\n")[0]
         self.assertEqual(zeros["dock_cover_state_reported"], "DISABLE")
         self.assertEqual(zeros["dock_rainfall_reported"], "NO_RAIN")
         self.assertEqual((zeros["dock_network_quality_code"],
                           zeros["dock_network_quality_reported"]), ("0", "NO_SIGNAL"))
+        # An undocumented code is retained with its number, never guessed into a known label.
         unknown = self.rows(dock_line(dock_payload(data={"mode_code": 99})) + "\n")[0]
         self.assertEqual((unknown["dock_mode_code"], unknown["dock_mode_reported"]),
                          ("99", "UNKNOWN_CODE_RETAINED"))
+        # The pinned quality table labels both 1 and 2 "POOR", so the code stays authoritative.
         both = [self.rows(dock_line(dock_payload(data={"network_state": {"quality": q}})) + "\n")[0]
                 for q in (1, 2)]
         self.assertEqual([r["dock_network_quality_reported"] for r in both], ["POOR", "POOR"])
@@ -503,10 +584,12 @@ class DockSavedStatusTests(unittest.TestCase):
                  dock_line(dock_payload(data={"network_state": 2})), DOCK_TOPIC)):
             with self.subTest(label=label), self.assertRaises(ValueError):
                 convert(text + "\n", topic, DOCK_FORMAT)
+        # The aircraft OSD shares this topic; reading it as station status must fail loudly.
         aircraft = {"timestamp": 12345, "data": {"mode_code": 0, "battery": {"capacity_percent": 75,
                     "batteries": [{"index": 0, "voltage": 12000}]}}}
         with self.assertRaises(ValueError):
             convert(dock_line(aircraft) + "\n", DOCK_TOPIC, DOCK_FORMAT)
+        # ...and a dock payload has no battery array, so the aircraft selector refuses it too.
         from scripts.convert_ardupilot_battery_csv import DJI_FORMAT
         with self.assertRaises(ValueError):
             convert(dock_line(dock_payload()) + "\n", DOCK_TOPIC, DJI_FORMAT)
@@ -523,7 +606,9 @@ class DockSavedStatusTests(unittest.TestCase):
         self.assertEqual(row["dock_source_declaration"],
                          "CALLER_DECLARED_DOCK1_SOURCE_NOT_AUTOMATIC_PRODUCER_IDENTIFICATION")
         self.assertIn("ORIGIN_IS_UNVERIFIED_HERE", row["dock_value_basis"])
+        # The one origin check states its own bounded scope rather than implying a general detector.
         self.assertIn("NOT_EVERY_PARTIAL_OR_SHARED_FIELD_PAYLOAD", row["dock_value_basis"])
+        # No gateway, no sub-device, no timestamp: absence stays absence in an ambiguous capture.
         for absent in ("dock_gateway_sn_hex", "dock_sub_device_sn_hex",
                        "dock_payload_timestamp_ms_reported"):
             self.assertEqual(row[absent], "", absent)
@@ -563,6 +648,7 @@ class DockSavedStatusTests(unittest.TestCase):
         self.assertEqual(row["dock_rainfall_reported"], "HEAVY_RAIN")
         self.assertEqual(row["dock_network_type_reported"], "FOUR_G")
         self.assertEqual(row["dock_sub_device_online_reported"], "POWER_OFF")
+        # A sub-zero Celsius report and a zero percentage both stay real reported values.
         self.assertAlmostEqual(float(row["dock_environment_temperature_k"]), 267.65)
         self.assertAlmostEqual(float(row["dock_internal_temperature_k"]), 273.15)
         self.assertEqual(float(row["dock_aircraft_charge_capacity_fraction"]), 0.)

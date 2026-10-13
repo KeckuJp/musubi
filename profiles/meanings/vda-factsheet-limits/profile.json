@@ -1,0 +1,45 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "reported_integer": {
+      "meaning": "reported_integer",
+      "unit": "reported_maximum_with_per_row_value_basis_and_disposition",
+      "basis": "declared"
+    },
+    "seconds": {
+      "meaning": "seconds",
+      "unit": "s_reported_interval_not_measured_rate",
+      "basis": "declared"
+    },
+    "truth_value": {
+      "meaning": "truth_value",
+      "unit": "boolean_true_false_text_not_numeric",
+      "basis": "declared"
+    },
+    "value_basis": {
+      "meaning": "value_basis",
+      "unit": "source_semantics_not_runtime_capability",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "zero_based_original_JSONL_record",
+      "basis": "declared"
+    },
+    "factsheet_version": {
+      "meaning": "factsheet_version",
+      "unit": "present_only_under_the_vda-factsheet-2.1_selector_the_reported_2.1.0_never_relabelled_3.0",
+      "basis": "declared"
+    },
+    "vda_3_0_meaning_path": {
+      "meaning": "vda_3_0_meaning_path",
+      "unit": "3.0_e9ba560b_path_whose_meaning_a_2.1_row_was_read_under_declaration_path_keeps_the_original_2.1_path_or_blank_when_NOT_IN_VERSION",
+      "basis": "declared"
+    }
+  }
+}

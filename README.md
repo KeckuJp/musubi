@@ -1,5 +1,7 @@
 # Musubi
 
+For additional offline declarations and reports, see [saved input examples](docs/additional-saved-inputs.md).
+
 Musubi turns signals from equipment you cannot fully trust into **evidence you can check**.
 
 A sensor, a vehicle or a human report tells you something. Musubi normalizes that into one

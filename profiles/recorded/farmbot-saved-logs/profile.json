@@ -1,0 +1,33 @@
+{
+  "profile_id": "farmbot_saved_log_6db0ea3e",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "caller capture microseconds; Unknown basis, not event time",
+    "log_created_at_seconds": "reported API Unix seconds; may be caller supplied, not guaranteed occurrence time",
+    "log_type_reported": "known category or unknown:percent-encoded-UTF8; not ranked or physical severity",
+    "log_type_disposition": "QUALIFIED_CATEGORY or UNKNOWN_CATEGORY; unknown raw type retained",
+    "log_message": "text:percent-encoded-UTF8 reported event text; decode percent escapes once; not commands or verified facts",
+    "log_time_disposition": "MISSING, NULL or REPORTED_API_TIME; no capture substitution",
+    "log_verbosity_reported": "producer-reported verbosity integer, not physical severity",
+    "log_id_reported": "API Log id, not device identity",
+    "device_identity_declared": "text:percent-encoded-UTF8 caller association; not serialized authenticated device id",
+    "source_record_hex": "exact selected UTF-8 line, unknown fields retained",
+    "source_record_index": "zero-based original physical line with window CLI",
+    "source_file_sha256": "original bytes digest with window CLI; not authentication",
+    "source_record_byte_offset": "zero-based original byte offset",
+    "selected_normalized_sha256": "LF-normalized selected content digest, distinct from original"
+  }
+}

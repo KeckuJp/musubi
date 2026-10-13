@@ -1,4 +1,4 @@
-"""Saved OPC UA 1.05.07 compact scalar or 1-D Double array DataValues, never a live UA client."""
+"""Saved OPC UA 1.05.07 scalar and selected numeric DataValue arrays, never a live UA client."""
 import argparse
 import base64
 import csv
@@ -7,13 +7,20 @@ import hashlib
 import json
 import math
 import re
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+if __name__ == "__main__" and not __package__:
+    # Keep the direct saved-file CLI equivalent to `python -m scripts...`.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from scripts.convert_mqtt_recorded import strict_json
 from scripts.convert_ardupilot_battery_csv import json_time, quantity
 from scripts.recorded_units import UNITS, normalize
 from scripts.convert_gpx_recorded import utc_microseconds, decimal_value
 FLEET_HOURS_FORMAT = "iso-fleet-hours-xml-20190501"
+IMAGING_SETTINGS_FORMAT = "onvif-imaging-settings20-exposure"
 AEMP_FORMATS = ("iso-hours-xml-20190501", FLEET_HOURS_FORMAT, "takeuchi-v3-hours-json")
 # ISO 15143-3 20190501 common.xsd (sha256 03669def0875f75057bbe96162cdcfd534f383cb7433ba8c302b6efaa4059d0c)
 # declares one global element, Fleet, whose Equipment records carry an EquipmentHeader and at most one
@@ -38,6 +45,8 @@ INTEGER_RANGES = {2: (-128, 127), 3: (0, 255), 4: (-32768, 32767),
 # count is bounded before anything is materialised; the 12000-byte record bound alone would not say so.
 ARRAY_FIELDS = ["opcua_array_ordinal", "opcua_array_length", "opcua_element_index",
                 "opcua_array_disposition"]
+MATRIX_FIELDS = ["opcua_dimension_0_length", "opcua_dimension_1_length",
+                 "opcua_dimension_0_index", "opcua_dimension_1_index"]
 MAX_ARRAY_ELEMENTS = 512
 ARRAY_ELEMENT = "ORDERED_ELEMENT_OF_ONE_REPORTED_ARRAY"
 ARRAY_EMPTY = "EMPTY_ARRAY_NO_ELEMENT_REPORTED"
@@ -88,11 +97,18 @@ def numeric_value(data):
     return value
 
 
-def convert(text, node, unit=None, *, boolean=False, arrays=False):
+def convert(text, node, unit=None, *, boolean=False, arrays=False, matrix2d=False, array_type=None):
     if type(boolean) is not bool or (boolean and unit is not None):
         raise ValueError("Boolean selection cannot carry an engineering unit")
     if type(arrays) is not bool or (arrays and boolean):
         raise ValueError("array selection applies to the numeric path only")
+    if type(matrix2d) is not bool or (matrix2d and (arrays or boolean)):
+        raise ValueError("2D matrix selection must be exclusive")
+    collection = arrays or matrix2d
+    if array_type is not None and (not collection or type(array_type) is not int
+                                   or array_type not in (6, 7, 10, 11)):
+        raise ValueError("array type requires selected Int32, UInt32, Float or Double collection")
+    selected_type = 11 if array_type is None else array_type
     if not isinstance(node, str) or not node or len(node.encode()) > 1024 or (not boolean and unit not in UNITS):
         raise ValueError("explicit qualified node and unit required")
     if not text or len(text.encode()) > 16 * 1024 * 1024:
@@ -103,12 +119,15 @@ def convert(text, node, unit=None, *, boolean=False, arrays=False):
     if boolean:
         fields = ["boolean_reported"]
     writer = csv.DictWriter(output, BASE + fields + ["selected_unit"] + QUALITY_FIELDS
-                            + (ARRAY_FIELDS if arrays else []), lineterminator="\n")
+                            + (ARRAY_FIELDS if collection else [])
+                            + (MATRIX_FIELDS if matrix2d else []), lineterminator="\n")
     writer.writeheader()
     report = dict(records=0, converted_values=0, withheld_values=0, clock="Unknown")
-    if arrays:
+    if collection:
         report.update(arrays=0, array_elements=0, empty_arrays=0,
                       element_order="SOURCE_JSON_ORDER_NOT_A_COMPONENT_OR_AXIS_ASSIGNMENT")
+    if matrix2d:
+        report["matrix_shape"] = "EXPLICIT_2D_LAST_DIMENSION_FASTEST_NOT_PHYSICAL_AXES"
     previous = None
     for line in text.splitlines():
         if not line.strip() or len(line.encode()) > 12000:
@@ -123,19 +142,28 @@ def convert(text, node, unit=None, *, boolean=False, arrays=False):
         data = record.get("data_value")
         if (not isinstance(data, dict) or type(data.get("UaType")) is not int
                 or not (data["UaType"] == 1 if boolean else
-                        data["UaType"] == 11 if arrays else 2 <= data["UaType"] <= 11)):
-            raise ValueError("explicit selected compact scalar UaType required" if not arrays
-                             else "explicit selected UaType 11 array required")
-        if arrays:
+                        data["UaType"] == selected_type if collection else 2 <= data["UaType"] <= 11)):
+            raise ValueError("explicit selected compact scalar UaType required" if not collection
+                             else f"explicit selected UaType {selected_type} array required")
+        if collection:
             elements = data.get("Value")
             if not isinstance(elements, list):
                 raise ValueError("selected array DataValue required")
             # The inspected pin defines Dimensions only for multidimensional arrays and says nothing
-            # about it on a 1-D array, so this selection admits the one shape the text does define: a
-            # plain JSON array with no Dimensions field. Any Dimensions presence is refused rather
+            # about it on a 1-D array, so the existing 1-D selection still admits only a
+            # plain JSON array with no Dimensions field. Its Dimensions presence is refused rather
             # than matched against a length rule no section here states - which would also have let a
             # JSON true or 1.0 stand in for the length, since Python compares them equal to 1.
-            if "Dimensions" in data:
+            if matrix2d:
+                dimensions = data.get("Dimensions")
+                # Part6 tables41/42 use the flat Variant form; this is not the
+                # inline Matrix object. Integer lexical types are a scoped restriction.
+                if (not isinstance(dimensions, list) or len(dimensions) != 2
+                        or any(type(d) is not int or not 0 < d <= 2**32 - 1 for d in dimensions)):
+                    raise ValueError("explicit two positive UInt32 integer dimensions required")
+                if dimensions[0] * dimensions[1] != len(elements):
+                    raise ValueError("matrix dimensions do not match flat element count")
+            elif "Dimensions" in data:
                 raise ValueError("unsupported array dimensions")
             if len(elements) > MAX_ARRAY_ELEMENTS:
                 raise ValueError("array exceeds the expanded element bound")
@@ -146,6 +174,11 @@ def convert(text, node, unit=None, *, boolean=False, arrays=False):
                 # A JSON null, a special-value string, a Boolean or a nested array is not a defined
                 # Double element here: Double is not nullable, so none of them becomes a zero.
                 raise ValueError("array element is not a defined JSON number")
+            if selected_type != 11:
+                # New finite types share scalar range/integrality before quality withholding.
+                # The previous Double quality behavior is deliberately unchanged.
+                for element in elements:
+                    numeric_value({"UaType": selected_type, "Value": element})
         elif "Dimensions" in data or isinstance(data.get("Value"), (list, dict)):
             raise ValueError("scalar DataValue required")
         status = data.get("Status", {})
@@ -170,9 +203,11 @@ def convert(text, node, unit=None, *, boolean=False, arrays=False):
                 row[prefix + "_timestamp_hex"] = "hex:" + stamp.encode().hex()
             elif pico:
                 raise ValueError("picoseconds without timestamp")
-        if arrays:
+        if collection:
             report["arrays"] += 1
             row.update(opcua_array_ordinal=report["arrays"], opcua_array_length=len(elements))
+            if matrix2d:
+                row.update(opcua_dimension_0_length=dimensions[0], opcua_dimension_1_length=dimensions[1])
             if not elements:
                 # An empty array is neither a value nor something to drop: it is accounted on its own row.
                 row.update(opcua_array_disposition=ARRAY_EMPTY,
@@ -188,10 +223,14 @@ def convert(text, node, unit=None, *, boolean=False, arrays=False):
                 # DataValue (Part 6 Table 42), so every row of one array repeats them.
                 cell = dict(row, opcua_element_index=index,
                             opcua_array_disposition=ARRAY_ELEMENT)
+                if matrix2d:
+                    # Referenced Part6 5.2.2.16 ordering: last dimension varies fastest.
+                    cell.update(opcua_dimension_0_index=index // dimensions[1],
+                                opcua_dimension_1_index=index % dimensions[1])
                 if code == 0:
                     # Only exact Good is interpreted numerically; a withheld element is never ranged,
                     # normalized or promoted.
-                    field, normalized = normalize(numeric_value({"UaType": 11, "Value": element}), unit)
+                    field, normalized = normalize(numeric_value({"UaType": selected_type, "Value": element}), unit)
                     cell[field] = normalized
                     cell["value_disposition"] = "NORMALIZED_REPORTED"
                     report["converted_values"] += 1
@@ -247,7 +286,36 @@ def saved_page_gate(text, property_definition, capture_time_us, object_reason):
     return source
 
 
-def convert_sensorthings(text, property_definition, capture_time_us):
+def validate_sensorthings_datastream(stream, property_definition, result_kind="celsius"):
+    """Shared selected scalar metadata gate, including callers with empty data arrays."""
+    types = {"celsius": "OM_Measurement", "count": "OM_CountObservation", "truth": "OM_TruthObservation"}
+    if result_kind not in types:
+        raise ValueError("explicit qualified scalar kind required")
+    if not isinstance(stream, dict) or stream.get("observationType") != "http://www.opengis.net/def/observationType/OGC-OM/2.0/" + types[result_kind]:
+        raise ValueError("expanded measurement Datastream required")
+    unit = stream.get("unitOfMeasurement")
+    expected = {"name": "degree Celsius", "symbol": "°C", "definition": "http://unitsofmeasure.org/ucum.html#para-30"}
+    if result_kind != "celsius":
+        expected = dict.fromkeys(("name", "symbol", "definition"))
+    observed = stream.get("ObservedProperty")
+    if unit != expected or not isinstance(observed, dict) or observed.get("definition") != property_definition:
+        raise ValueError("unqualified unit or observed property")
+
+
+def sensorthings_fields(result_kind):
+    fields = ["record_time_us", "source_record_hex", "source_sha256", "source_index",
+              "observation_id_hex", "datastream_id_hex", "observed_property_hex",
+              "temperature_k", "value_disposition", "phenomenon_time_us", "result_time_us",
+              "phenomenon_time_kind", "phenomenon_start_us", "phenomenon_end_us"]
+    if result_kind != "celsius":
+        if result_kind not in ("count", "truth"):
+            raise ValueError("explicit qualified scalar kind required")
+        fields.remove("temperature_k")
+        fields += [result_kind + "_reported", "result_kind"]
+    return fields
+
+
+def convert_sensorthings(text, property_definition, capture_time_us, *, result_kind="celsius"):
     """Saved expanded 1.1 scalar collection, not an API client or conformance claim."""
     # The adopted single-page reasons and their order are unchanged: a non-object body is still
     # refused as an absent nonempty collection here.
@@ -259,10 +327,7 @@ def convert_sensorthings(text, property_definition, capture_time_us):
     if "@iot.nextLink" in source and (not isinstance(next_link, str) or not next_link):
         raise ValueError("invalid nextLink")
     output = io.StringIO(newline="")
-    fields = ["record_time_us", "source_record_hex", "source_sha256", "source_index",
-              "observation_id_hex", "datastream_id_hex", "observed_property_hex",
-              "temperature_k", "value_disposition", "phenomenon_time_us", "result_time_us",
-              "phenomenon_time_kind", "phenomenon_start_us", "phenomenon_end_us"]
+    fields = sensorthings_fields(result_kind)
     writer = csv.DictWriter(output, fields, lineterminator="\n")
     writer.writeheader()
     digest = "sha256:" + hashlib.sha256(text.encode()).hexdigest()
@@ -274,13 +339,7 @@ def convert_sensorthings(text, property_definition, capture_time_us):
         if not isinstance(observation, dict):
             raise ValueError("Observation object required")
         stream = observation.get("Datastream")
-        if not isinstance(stream, dict) or stream.get("observationType") != "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement":
-            raise ValueError("expanded measurement Datastream required")
-        unit = stream.get("unitOfMeasurement")
-        expected = {"name": "degree Celsius", "symbol": "°C", "definition": "http://unitsofmeasure.org/ucum.html#para-30"}
-        observed = stream.get("ObservedProperty")
-        if unit != expected or not isinstance(observed, dict) or observed.get("definition") != property_definition:
-            raise ValueError("unqualified unit or observed property")
+        validate_sensorthings_datastream(stream, property_definition, result_kind)
         row = dict(record_time_us=capture_time_us, source_sha256=digest, source_index=index,
                    source_record_hex="hex:" + text.encode().hex() if index == 0 else "",
                    observed_property_hex="hex:" + property_definition.encode().hex())
@@ -315,11 +374,22 @@ def convert_sensorthings(text, property_definition, capture_time_us):
         if "result" not in observation:
             raise ValueError("result missing")
         value = observation["result"]
+        if result_kind != "celsius":
+            row["result_kind"] = result_kind
         row["value_disposition"] = "NULL_NOT_PROVIDED" if value is None else "REPORTED_QUALITY_UNASSESSED"
         if value is None:
             report["withheld_values"] += 1
         else:
-            row["temperature_k"] = normalize(value, "degC")[1]
+            if result_kind == "count":
+                if type(value) is not int or abs(value) > 2**53 - 1:
+                    raise ValueError("exact common-model count integer required")
+                row["count_reported"] = value
+            elif result_kind == "truth":
+                if type(value) is not bool:
+                    raise ValueError("reported boolean required")
+                row["truth_reported"] = "true" if value else "false"
+            else:
+                row["temperature_k"] = normalize(value, "degC")[1]
             report["converted_values"] += 1
         writer.writerow(row)
         report["records"] += 1
@@ -338,7 +408,7 @@ MAX_SAVED_PAGES = 512
 MAX_CHAIN_OBSERVATIONS = 200000
 
 
-def sensorthings_saved_pages(text, property_definition, capture_time_us):
+def sensorthings_saved_pages(text, property_definition, capture_time_us, *, result_kind="celsius", empty_header=False):
     """A caller-bound finite set of saved pages; never a client, never a completeness claim.
 
     Each manifest line carries the URL the caller says a page was saved from and that page's exact saved
@@ -348,6 +418,7 @@ def sensorthings_saved_pages(text, property_definition, capture_time_us):
     nextLink. OGC 18-088 makes the link opaque and is silent on cross-page consistency, so the spec
     supports nothing stronger.
     """
+    fields = sensorthings_fields(result_kind)
     if not text or len(text.encode()) > 64 * 1024 * 1024:
         raise ValueError("bounded saved page manifest required")
     pages, seen_urls = [], set()
@@ -429,7 +500,8 @@ def sensorthings_saved_pages(text, property_definition, capture_time_us):
                 retained_manifest_keys=sorted(extra)))
             continue
         # The adopted single-page semantics are reused unchanged, per page.
-        page_output, page_report = convert_sensorthings(body, property_definition, capture_time_us)
+        page_output, page_report = convert_sensorthings(body, property_definition, capture_time_us,
+                                                       result_kind=result_kind)
         # Row 0 of a page carries that page's whole body as hex, which can exceed the csv module's
         # default field limit on a large page. Raise it only for this parse and put it back, so no other
         # reader in the process inherits a widened limit.
@@ -466,6 +538,12 @@ def sensorthings_saved_pages(text, property_definition, capture_time_us):
             raise ValueError("expanded output exceeds bound")
     if not report["records"] and not report["empty_pages"]:
         raise ValueError("no selected observation in the saved chain")
+    if not report["records"] and empty_header:
+        csv.DictWriter(output, fields + PAGE_FIELDS, lineterminator="\n").writeheader()
+    if result_kind != "celsius" or empty_header:
+        report["declared_result_kind"] = result_kind
+        report["empty_header_selected"] = empty_header
+        report["scalar_metadata_basis"] = "VALIDATED_ON_NONEMPTY_OBSERVATIONS_ONLY_NOT_ON_EMPTY_PAGES"
     return output.getvalue(), report
 
 
@@ -597,7 +675,64 @@ def aemp_link(node, ns):
             sum(child.tag not in (ns + "rel", ns + "href") for child in node))
 
 
-def aemp_fleet_records(root, ns):
+FUEL_RECORDS = {"FuelUsed": "fuel_used", "FuelUsedLast24": "fuel_used_last24", "FuelRemaining": "fuel_remaining"}
+FUEL_FIELDS = ["fuel_used_litre_reported", "fuel_used_measurement_time_us", "fuel_used_disposition",
+    "fuel_used_last24_litre_reported", "fuel_used_last24_measurement_time_us", "fuel_used_last24_disposition",
+    "fuel_remaining_fraction_reported", "fuel_remaining_measurement_time_us", "fuel_remaining_disposition",
+    "fuel_tank_capacity_litre_reported", "fuel_basis"]
+
+
+def aemp_fuel_records(equipment, ns):
+    """Fixed common.xsd fuel types; no inferred level, usage rate or common measurement time."""
+    values, count, unknown = {}, 0, 0
+    def scalar(node, name, required=True):
+        found = node.findall(ns + name)
+        if len(found) > 1 or (required and not found):
+            raise ValueError("missing or duplicate selected fuel field")
+        if not found:
+            return None
+        if len(found[0]) or found[0].text is None:
+            raise ValueError("scalar fuel field required")
+        return found[0].text
+    def uint(value):
+        if not re.fullmatch(r"\+?[0-9]+", value) or int(value) >= 2**32:
+            raise ValueError("fuel value must be unsignedInt")
+        return int(value)
+    for name, prefix in FUEL_RECORDS.items():
+        nodes = equipment.findall(ns + name)
+        if len(nodes) > 1:
+            raise ValueError("duplicate selected fuel record")
+        values[prefix + "_disposition"] = "NOT_REPORTED_NOT_ZERO"
+        if not nodes:
+            continue
+        node = nodes[0]
+        values[prefix + "_measurement_time_us"] = utc_microseconds(node.attrib["datetime"])
+        values[prefix + "_disposition"] = "REPORTED"
+        if name == "FuelRemaining":
+            percent = decimal_value(scalar(node, "Percent"), low=0)
+            if percent > 100:
+                raise ValueError("fuel percent outside selected range")
+            values[prefix + "_fraction_reported"] = float(percent / 100)
+            capacity, unit = scalar(node, "FuelTankCapacity", False), scalar(node, "FuelTankCapacityUnits", False)
+            if (capacity is None) != (unit is None):
+                raise ValueError("capacity needs its explicit unit")
+            if capacity is not None:
+                if unit != "litre":
+                    raise ValueError("selected fuel unit must be litre")
+                values["fuel_tank_capacity_litre_reported"] = uint(capacity)
+            selected = {"Percent", "FuelTankCapacity", "FuelTankCapacityUnits"}
+        else:
+            if scalar(node, "FuelUnits") != "litre":
+                raise ValueError("selected fuel unit must be litre")
+            values[prefix + "_litre_reported"] = uint(scalar(node, "FuelConsumed"))
+            selected = {"FuelUnits", "FuelConsumed"}
+        unknown += sum(child.tag not in {ns + key for key in selected} for child in node)
+        count += 1
+    values["fuel_basis"] = "ISO15143_20190501_REPORTED_CUMULATIVE_LAST24_LEVEL_CAPACITY_SEPARATE"
+    return values, count, unknown
+
+
+def aemp_fleet_records(root, ns, include_fuel=False):
     """Selected Fleet snapshot equipment records; reported provenance, never proven identity.
 
     common.xsd defines Fleet with required version and snapshotTime attributes, one or more Links,
@@ -656,8 +791,16 @@ def aemp_fleet_records(root, ns):
                 fleet["unknown_elements"] += extra
             else:
                 fleet["absent_hour_records"] += 1
+            if include_fuel:
+                fuel_values, fuel_count, fuel_unknown = aemp_fuel_records(node, ns)
+                record.update(fuel_values)
+                fleet["fuel_selected_records"] = fleet.get("fuel_selected_records", 0) + fuel_count
+                fleet["fuel_unknown_elements"] = fleet.get("fuel_unknown_elements", 0) + fuel_unknown
+                fleet["unknown_elements"] += fuel_unknown
             for child in node:
                 if child.tag in (ns + "EquipmentHeader", ns + "CumulativeOperatingHours"):
+                    continue
+                if include_fuel and child.tag in {ns + name for name in FUEL_RECORDS}:
                     continue
                 key = "unselected_metric_elements" if child.tag in {ns + m for m in FLEET_METRICS} else "unknown_elements"
                 fleet[key] += 1
@@ -667,8 +810,10 @@ def aemp_fleet_records(root, ns):
     return records, links, fleet
 
 
-def convert_aemp_hours(text, equipment_id, capture_time_us, layout):
+def convert_aemp_hours(text, equipment_id, capture_time_us, layout, include_fuel=False):
     """Selected cumulative engine-hour page; not work performed or meter continuity."""
+    if type(include_fuel) is not bool or (include_fuel and layout != FLEET_HOURS_FORMAT):
+        raise ValueError("fuel option requires selected Fleet layout")
     if layout not in AEMP_FORMATS or not text or len(text.encode()) > 16 * 1024 * 1024:
         raise ValueError("bounded selected operating-hours layout required")
     if not isinstance(equipment_id, str) or not equipment_id or len(equipment_id.encode()) > 4096:
@@ -686,7 +831,7 @@ def convert_aemp_hours(text, equipment_id, capture_time_us, layout):
         root = ET.fromstring(text)
         if layout == FLEET_HOURS_FORMAT:
             # The same namespace and the same hour record, nested per equipment instead of per page.
-            records, links, fleet = aemp_fleet_records(root, ns)
+            records, links, fleet = aemp_fleet_records(root, ns, include_fuel)
         else:
             if root.tag != ns + "CumulativeOperatingHoursMessages":
                 raise ValueError("wrong operating-hours XML namespace/root")
@@ -708,7 +853,7 @@ def convert_aemp_hours(text, equipment_id, capture_time_us, layout):
     writer = csv.writer(output, lineterminator="\n")
     writer.writerow(["record_time_us", "source_record_hex", "source_sha256", "source_index",
         "equipment_id_hex", "engine_operating_seconds_reported", "operating_hours_measurement_time_us", "operating_hours_basis"]
-        + (FLEET_FIELDS if fleet is not None else []))
+        + (FLEET_FIELDS if fleet is not None else []) + (FUEL_FIELDS if include_fuel else []))
     for index, record in enumerate(records):
         reported = fleet is None or "Hour" in record
         if reported:
@@ -728,6 +873,8 @@ def convert_aemp_hours(text, equipment_id, capture_time_us, layout):
             row += ["hex:" + record[field].encode().hex() if field in record else None
                     for field in ("EquipmentID", "SerialNumber", "PIN", "OEMName", "Model")]
             row.append("REPORTED_EQUIPMENT_HOUR_RECORD" if reported else "HOUR_RECORD_NOT_REPORTED_NOT_ZERO")
+        if include_fuel:
+            row += [record.get(field) for field in FUEL_FIELDS]
         writer.writerow(["" if value is None else value for value in row])
         if output.tell() > 128 * 1024 * 1024:
             raise ValueError("operating-hours output exceeds bound")
@@ -746,6 +893,9 @@ def convert_aemp_hours(text, equipment_id, capture_time_us, layout):
             selected_schema_reference="element names and namespace from ISO15143-3 20190501 common.xsd"
                 " sha256:03669def0875f75057bbe96162cdcfd534f383cb7433ba8c302b6efaa4059d0c;"
                 " the input is not validated against the XSD at conversion time")
+    if include_fuel:
+        report.update(fuel_selected_records=fleet.get("fuel_selected_records", 0),
+                      fuel_unknown_elements=fleet.get("fuel_unknown_elements", 0))
     return output.getvalue(), report
 
 
@@ -822,6 +972,98 @@ def convert_onvif_status(text, profile_id, capture_time_us):
         scope="saved response, caller profile not authenticated; source extensions retained not interpreted")
 
 
+def convert_onvif_imaging_settings(text, video_source_token, capture_time_us):
+    """Saved exposure configuration, not effective per-frame sensor values.
+
+    ImagingSettings20/Exposure20 declare units for these three settings but no
+    universal device range. GetOptions is not supplied or requested here.
+    """
+    if (not isinstance(text, str) or not text or len(text.encode()) > 1024 * 1024
+            or "\x00" in text or re.search(r"<!\s*(?:DOCTYPE|ENTITY)", text, re.I)):
+        raise ValueError("bounded XML without entity declarations required")
+    if (not isinstance(video_source_token, str) or not video_source_token
+            or len(video_source_token.encode()) > 4096):
+        raise ValueError("caller-declared video source token required")
+    if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
+        raise ValueError("explicit capture clock required")
+    ns = "{http://www.onvif.org/ver10/schema}"
+    imaging = "{http://www.onvif.org/ver20/imaging/wsdl}"
+    soap = "{http://www.w3.org/2003/05/soap-envelope}"
+    nil = "{http://www.w3.org/2001/XMLSchema-instance}nil"
+
+    def one(parent, namespace, name, required=False):
+        tag = namespace + name
+        if any(child.tag.rsplit("}", 1)[-1] == name and child.tag != tag for child in parent):
+            raise ValueError("selected imaging element in wrong namespace")
+        found = parent.findall(tag)
+        if len(found) > 1 or (required and not found):
+            raise ValueError("missing or duplicated selected imaging element")
+        if found and nil in found[0].attrib:
+            raise ValueError("nil selected imaging element")
+        return found[0] if found else None
+
+    def scalar(node):
+        if len(node) or node.text is None or not node.text.strip():
+            raise ValueError("scalar imaging setting required")
+        return node.text
+
+    try:
+        root = ET.fromstring(text)
+        if root.tag == soap + "Envelope":
+            body = one(root, soap, "Body", True)
+            if len(body) != 1:
+                raise ValueError("one saved SOAP response required")
+            root = body[0]
+        if root.tag != imaging + "GetImagingSettingsResponse":
+            raise ValueError("not a saved imaging settings response")
+        settings = one(root, imaging, "ImagingSettings", True)
+        exposure = one(settings, ns, "Exposure")
+        row = dict(record_time_us=capture_time_us,
+            imaging_video_source_token_hex="hex:" + video_source_token.encode().hex(),
+            source_response_sha256="sha256:" + hashlib.sha256(text.encode()).hexdigest(),
+            imaging_settings_basis="REPORTED_CONFIGURATION_NOT_EFFECTIVE_FRAME_PARAMETERS",
+            imaging_exposure_disposition="EXPOSURE_NOT_REPORTED",
+            imaging_exposure_mode_disposition="NOT_PROVIDED",
+            imaging_device_range_basis="NOT_VALIDATED_AGAINST_DEVICE_OPTIONS")
+        interpreted = unselected_exposure = 0
+        if exposure is not None:
+            mode = scalar(one(exposure, ns, "Mode", True))
+            if len(mode.encode()) > 128:
+                raise ValueError("exposure mode exceeds bound")
+            row.update(imaging_exposure_disposition="EXPOSURE_REPORTED",
+                imaging_exposure_mode_reported=mode,
+                imaging_exposure_mode_disposition=("SCHEMA_KNOWN_REPORTED" if mode in ("AUTO", "MANUAL")
+                                                   else "UNKNOWN_MODE_RETAINED"))
+            for name, field, divisor in (("ExposureTime", "imaging_exposure_time_s", 1_000_000),
+                                      ("Gain", "imaging_gain_db", 1),
+                                      ("Iris", "imaging_iris_attenuation_db", 1)):
+                node = one(exposure, ns, name)
+                if node is None:
+                    continue
+                value = decimal_value(scalar(node), scientific=True)
+                converted = value / divisor
+                if not math.isfinite(converted) or (value != 0 and converted == 0):
+                    raise ValueError("imaging quantity outside common numeric range")
+                row[field] = converted
+                interpreted += 1
+            selected = {ns + name for name in ("Mode", "ExposureTime", "Gain", "Iris")}
+            unselected_exposure = sum(child.tag not in selected for child in exposure)
+    except ET.ParseError as error:
+        raise ValueError("malformed saved imaging response") from error
+    fields = ["record_time_us", "imaging_video_source_token_hex", "source_response_sha256",
+              "imaging_settings_basis", "imaging_exposure_disposition", "imaging_exposure_mode_reported",
+              "imaging_exposure_mode_disposition", "imaging_exposure_time_s", "imaging_gain_db",
+              "imaging_iris_attenuation_db", "imaging_device_range_basis"]
+    output = io.StringIO(newline="")
+    writer = csv.DictWriter(output, fields, lineterminator="\n")
+    writer.writeheader()
+    writer.writerow(row)
+    return output.getvalue(), dict(observations=1, interpreted_quantities=interpreted, clock="Unknown",
+        source_response=text, source_response_sha256=row["source_response_sha256"],
+        uninterpreted_imaging_elements=sum(child.tag != ns + "Exposure" for child in settings),
+        uninterpreted_exposure_elements=unselected_exposure)
+
+
 def main():
     import json
     parser = argparse.ArgumentParser(description=__doc__)
@@ -834,17 +1076,35 @@ def main():
     parser.add_argument("--arrays", action="store_true",
                         help="explicit saved 1-D UaType11 Double arrays; one ordered row per element, "
                              "no component, axis or frame meaning is taken from an index")
-    parser.add_argument("--source-format", choices=("opcua", "sensorthings-1.1-celsius", SENSORTHINGS_PAGES_FORMAT, "har-1.2-sensorthings", "har-1.2-response-status", "onvif-ptz-status-1812", *AEMP_FORMATS), default="opcua")
+    parser.add_argument("--matrix2d", action="store_true",
+                        help="explicit 2-D UaType11 flat Double DataValue with positive Dimensions; no physical axes inferred")
+    parser.add_argument("--array-ua-type", type=int, choices=(6, 7, 10, 11),
+                        help="explicit collection type: Int32=6, UInt32=7, Float=10, default Double=11")
+    parser.add_argument("--source-format", choices=("opcua", "sensorthings-1.1-celsius", SENSORTHINGS_PAGES_FORMAT, "har-1.2-sensorthings", "har-1.2-response-status", "onvif-ptz-status-1812", IMAGING_SETTINGS_FORMAT, *AEMP_FORMATS), default="opcua")
     parser.add_argument("--profile-id")
+    parser.add_argument("--video-source-token", help="caller association for a saved ImagingSettings response")
     parser.add_argument("--equipment-id")
     parser.add_argument("--har-entry", type=int)
     parser.add_argument("--observed-property")
     parser.add_argument("--capture-time-us", type=int)
+    parser.add_argument("--include-aemp-fuel", action="store_true")
+    parser.add_argument("--result-kind", choices=("celsius", "count", "truth"))
+    parser.add_argument("--empty-csv-header", action="store_true")
     args = parser.parse_args()
+    if (args.result_kind is not None or args.empty_csv_header) and args.source_format != SENSORTHINGS_PAGES_FORMAT:
+        raise ValueError("typed/empty page options require explicit saved page format")
+    if args.array_ua_type is not None and args.source_format != "opcua":
+        raise ValueError("array type selection requires OPC UA format")
+    if args.matrix2d and args.source_format != "opcua":
+        raise ValueError("matrix selection requires OPC UA format")
     if args.source_format != "onvif-ptz-status-1812" and args.profile_id is not None:
         raise ValueError("profile ID requires explicit saved PTZ format")
+    if args.source_format != IMAGING_SETTINGS_FORMAT and args.video_source_token is not None:
+        raise ValueError("video source token requires explicit saved imaging format")
     if args.source_format not in AEMP_FORMATS and args.equipment_id is not None:
         raise ValueError("equipment ID requires explicit operating-hours format")
+    if args.include_aemp_fuel and args.source_format != FLEET_HOURS_FORMAT:
+        raise ValueError("fuel option requires selected Fleet layout")
     if args.source_format != "har-1.2-sensorthings" and args.har_entry is not None:
         raise ValueError("HAR entry requires explicit HAR format")
     limit = 64 * 1024 * 1024 if args.source_format == SENSORTHINGS_PAGES_FORMAT else 16 * 1024 * 1024
@@ -860,15 +1120,20 @@ def main():
         if args.node is not None or args.unit is not None or args.boolean or args.arrays or args.observed_property is not None:
             raise ValueError("unrelated options do not qualify PTZ status")
         output, report = convert_onvif_status(raw.decode("utf-8"), args.profile_id, args.capture_time_us)
+    elif args.source_format == IMAGING_SETTINGS_FORMAT:
+        if args.node is not None or args.unit is not None or args.boolean or args.arrays or args.observed_property is not None:
+            raise ValueError("unrelated options do not qualify imaging settings")
+        output, report = convert_onvif_imaging_settings(raw.decode("utf-8"), args.video_source_token,
+                                                       args.capture_time_us)
     elif args.source_format in AEMP_FORMATS:
         if args.node is not None or args.unit is not None or args.boolean or args.arrays or args.observed_property is not None:
             raise ValueError("unrelated options do not qualify operating hours")
-        output, report = convert_aemp_hours(raw.decode("utf-8"), args.equipment_id, args.capture_time_us, args.source_format)
+        output, report = convert_aemp_hours(raw.decode("utf-8"), args.equipment_id, args.capture_time_us, args.source_format, args.include_aemp_fuel)
     elif args.source_format == "opcua":
         if args.observed_property is not None or args.capture_time_us is not None:
             raise ValueError("SensorThings options require explicit format")
         output, report = convert(raw.decode("utf-8"), args.node, args.unit, boolean=args.boolean,
-                                 arrays=args.arrays)
+                                 arrays=args.arrays, matrix2d=args.matrix2d, array_type=args.array_ua_type)
     else:
         if args.node is not None or args.unit is not None or args.boolean or args.arrays:
             raise ValueError("OPC options do not qualify SensorThings units")
@@ -878,7 +1143,8 @@ def main():
             output, report = convert_har_sensorthings(raw.decode("utf-8"), args.har_entry, args.observed_property)
         elif args.source_format == SENSORTHINGS_PAGES_FORMAT:
             output, report = sensorthings_saved_pages(raw.decode("utf-8"), args.observed_property,
-                                                      args.capture_time_us)
+                                                      args.capture_time_us, result_kind=args.result_kind or "celsius",
+                                                      empty_header=args.empty_csv_header)
         else:
             output, report = convert_sensorthings(raw.decode("utf-8"), args.observed_property, args.capture_time_us)
     with args.output.open("x", encoding="utf-8", newline="") as stream:

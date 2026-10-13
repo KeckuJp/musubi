@@ -1,0 +1,70 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact_UTF8_export_line_once_on_SNAPSHOT_including_unknown_fields",
+      "basis": "declared"
+    },
+    "farm_source_record_index": {
+      "meaning": "farm_source_record_index",
+      "unit": "zero_based_input_line_index_not_a_device_identity_or_physical_order",
+      "basis": "declared"
+    },
+    "farm_snapshot_sha256": {
+      "meaning": "farm_snapshot_sha256",
+      "unit": "sha256_of_exact_source_line_joins_snapshot_and_pin_rows_not_authentication",
+      "basis": "declared"
+    },
+    "farm_pin_record_kind": {
+      "meaning": "farm_pin_record_kind",
+      "unit": "SNAPSHOT_or_PIN_summary_is_not_a_digital_measurement",
+      "basis": "declared"
+    },
+    "farm_pin_count": {
+      "meaning": "farm_pin_count",
+      "unit": "saved_map_entries_zero_is_empty_blank_is_null_or_not_reported_not_physical_pin_count",
+      "basis": "declared"
+    },
+    "farm_pin_number": {
+      "meaning": "farm_pin_number",
+      "unit": "reported_pin_number_0_to_255_not_a_global_hardware_identity",
+      "basis": "declared"
+    },
+    "farm_pin_mode_reported": {
+      "meaning": "farm_pin_mode_reported",
+      "unit": "reported_mode_0_digital_1_analog_minus1_or_other_unknown_no_guess_from_value",
+      "basis": "declared"
+    },
+    "farm_pin_status": {
+      "meaning": "farm_pin_status",
+      "unit": "summary_presence_or_per_pin_conversion_disposition_unknown_analog_nonbinary_values_remain_in_source",
+      "basis": "declared"
+    },
+    "digital_level_reported": {
+      "meaning": "digital_level_reported",
+      "unit": "LOW_or_HIGH_saved_mode0_binary_report_can_include_write_response_not_contact_polarity_or_safety",
+      "basis": "declared"
+    },
+    "digital_value_reported": {
+      "meaning": "digital_value_reported",
+      "unit": "0_or_1_saved_digital_report_NOT_MEASURED_GPIO_voltage_or_actuation_unknown_is_blank",
+      "basis": "declared"
+    },
+    "farm_pin_value_provenance": {
+      "meaning": "farm_pin_value_provenance",
+      "unit": "opt_in_WRITE_RESPONSE_RECORDED_NOT_A_READ_for_mode_0_or_1_with_a_value_VALUE_NOT_REPORTED_without_one_FIRMWARE_REPORT_MODE_NOT_GIVEN_for_minus1_per_the_exact_e711c03e_lib_pin_writers_not_physical_success",
+      "basis": "declared"
+    },
+    "analog_written_value_reported": {
+      "meaning": "analog_written_value_reported",
+      "unit": "raw_value_of_a_recorded_mode1_analog_write_response_as_stored_no_range_unit_voltage_or_calibration_given_by_the_source_not_a_measurement_blank_when_missing",
+      "basis": "declared"
+    }
+  }
+}

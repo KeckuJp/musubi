@@ -6,6 +6,96 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "isb_switch_state_code": {
+      "meaning": "isb_switch_state_code",
+      "unit": "reported_ISB_byte7_low2bits_not_verified_interlock",
+      "basis": "declared"
+    },
+    "isb_switch_state_reported": {
+      "meaning": "isb_switch_state_reported",
+      "unit": "Stop_Permit_Error_NotAvailable_report_only_not_actual_stop_or_safety_permission",
+      "basis": "declared"
+    },
+    "isb_transition_count_reported": {
+      "meaning": "isb_transition_count_reported",
+      "unit": "raw_uint8_switch_transition_counter_wrap_or_restart_unresolved",
+      "basis": "declared"
+    },
+    "isb_byte7_reported": {
+      "meaning": "isb_byte7_reported",
+      "unit": "raw_uint8_including_uninterpreted_upper_bits",
+      "basis": "declared"
+    },
+    "isb_report_basis": {
+      "meaning": "isb_report_basis",
+      "unit": "fixed_AgIsoStack_shortcut_button_receive_layout_passive_report_only",
+      "basis": "declared"
+    },
+    "machine_speed_raw_mm_s": {
+      "meaning": "machine_speed_raw_mm_s",
+      "unit": "reported_unsigned_LE16_mm_per_second_source_valid_max64255_above_max_raw_only_not_zero_no_scalar_sentinel_guess",
+      "basis": "declared"
+    },
+    "machine_speed_m_s": {
+      "meaning": "machine_speed_m_s",
+      "unit": "m_per_s_reported_machine_selected_speed_nonnegative_magnitude_not_signed_world_velocity_or_physical_motion_proof",
+      "basis": "declared"
+    },
+    "machine_speed_status": {
+      "meaning": "machine_speed_status",
+      "unit": "REPORTED_or_OUTSIDE_SOURCE_VALID_RANGE_raw_preserved_and_SI_blank_above_fixed_source_max",
+      "basis": "declared"
+    },
+    "machine_distance_raw_mm": {
+      "meaning": "machine_distance_raw_mm",
+      "unit": "reported_unsigned_LE32_mm_per_accessor_and_storage_source_valid_max4211081215_wrap_note_unit_conflict_no_unwrap",
+      "basis": "declared"
+    },
+    "machine_distance_m": {
+      "meaning": "machine_distance_m",
+      "unit": "m_reported_cumulative_machine_selected_distance_no_integration_unwrap_or_physical_distance_validation",
+      "basis": "declared"
+    },
+    "machine_distance_status": {
+      "meaning": "machine_distance_status",
+      "unit": "REPORTED_or_OUTSIDE_SOURCE_VALID_RANGE_raw_preserved_and_SI_blank_above_fixed_source_max",
+      "basis": "declared"
+    },
+    "machine_direction_code": {
+      "meaning": "machine_direction_code",
+      "unit": "reported_low_two_bits_of_byte7_0_reverse_1_forward_2_error_3_not_available",
+      "basis": "declared"
+    },
+    "machine_direction_reported": {
+      "meaning": "machine_direction_reported",
+      "unit": "source_enum_REVERSE_FORWARD_ERROR_NOT_AVAILABLE_at_zero_speed_may_retain_last_travel_direction_not_world_axis",
+      "basis": "declared"
+    },
+    "machine_speed_source_code": {
+      "meaning": "machine_speed_source_code",
+      "unit": "reported_byte7_bits2_to4_0_wheel_1_ground_2_navigation_3_blended_4_simulated_5_6_reserved_7_not_available",
+      "basis": "declared"
+    },
+    "machine_speed_source_reported": {
+      "meaning": "machine_speed_source_reported",
+      "unit": "source_enum_WHEEL_BASED_GROUND_BASED_NAVIGATION_BASED_BLENDED_SIMULATED_RESERVED_5_RESERVED_6_NOT_AVAILABLE_no_physical_sensor_identity",
+      "basis": "declared"
+    },
+    "machine_speed_byte6_raw": {
+      "meaning": "machine_speed_byte6_raw",
+      "unit": "raw_byte6_preserved_without_exit_reason_normalization",
+      "basis": "declared"
+    },
+    "machine_speed_byte7_raw": {
+      "meaning": "machine_speed_byte7_raw",
+      "unit": "raw_byte7_preserved_limit_status_upper_bits_not_normalized_due_to_pinned_writer_receiver_bit_width_difference",
+      "basis": "declared"
+    },
+    "machine_speed_meaning_basis": {
+      "meaning": "machine_speed_meaning_basis",
+      "unit": "fixed_AgIsoStack_source_units_ranges_and_limitations_for_opt_in_F022_reports_only_no_command_or_motion_validation",
+      "basis": "declared"
+    },
     "record_time_us": {
       "meaning": "record_time_us",
       "unit": "us_capture_reported_time_carried_through_from_the_adopted_candump_conversion_it_is_the_capturing_hosts_own_stamp_and_never_a_bus_clock_never_synchronised_and_never_authenticated",
@@ -18,7 +108,7 @@
     },
     "isobus_protocol_role": {
       "meaning": "isobus_protocol_role",
-      "unit": "states_which_of_the_two_protocol_roles_this_row_belongs_to_the_universal_terminal_iso11783_6_virtual_terminal_or_the_task_controller_iso11783_10_process_data_the_two_are_never_merged_and_neither_implies_the_other",
+      "unit": "states_this_rows_role_universal_terminal_iso11783_6_task_controller_iso11783_10_or_opt_in_MACHINE_SELECTED_SPEED_ISO11783_7_these_are_not_merged_and_none_implies_the_other",
       "basis": "declared"
     },
     "isobus_message_kind": {
@@ -114,6 +204,11 @@
     "isobus_semantic_basis": {
       "meaning": "isobus_semantic_basis",
       "unit": "states_that_every_field_meaning_comes_from_the_pinned_agisostack_plus_plus_source_and_that_a_code_the_pin_does_not_define_is_reported_as_a_number_with_its_bytes_retained_rather_than_interpreted",
+      "basis": "declared"
+    },
+    "isobus_scope_basis": {
+      "meaning": "isobus_scope_basis",
+      "unit": "states_this_rows_passive_scope_no_frame_sent_no_command_issued_no_implement_controlled_UT_TC_active_capability_outside_this_path_or_opt_in_machine_selected_speed_report_not_physical_motion_or_general_tractor_support_no_aef_certification_claimed",
       "basis": "declared"
     },
     "source_record_hex": {

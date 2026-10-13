@@ -6,6 +6,21 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "mission_parameter_basis": {
+      "meaning": "mission_parameter_basis",
+      "unit": "passive_saved_configuration_not_instruction_or_execution",
+      "basis": "declared"
+    },
+    "mission_parameter_definition_pin": {
+      "meaning": "mission_parameter_definition_pin",
+      "unit": "fixed_common_xml_parameter_and_sentinel_definition",
+      "basis": "declared"
+    },
+    "mission_parameter_coverage": {
+      "meaning": "mission_parameter_coverage",
+      "unit": "qualified_nine_command_declaration_set_or_uninterpreted_not_all_missions",
+      "basis": "declared"
+    },
     "record_time_us": {
       "meaning": "record_time_us",
       "unit": "us_the_caller_declared_clock_for_when_the_saved_plan_file_was_taken_in_which_is_never_a_mission_time_never_an_execution_time_and_never_when_anything_flew_because_a_plan_file_carries_no_time_of_its_own_at_all",

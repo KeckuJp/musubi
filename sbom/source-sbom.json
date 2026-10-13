@@ -2,8 +2,8 @@
   "schemaVersion": "musubi.sbom.source/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "inventoryDigest": "sha256:ae1d488dfbc209f1b20da240ae3209a72ee48ffa94c653b741865de8f4ee0d78",
-    "inventoryFileCount": 960,
+    "inventoryDigest": "sha256:202e45419d7aacfc6884077549edec5e3fc118e938826051a91d97a1e7302168",
+    "inventoryFileCount": 1066,
     "inventoryCoveragePolicy": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
     "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
     "excludedPaths": [
@@ -20,8 +20,8 @@
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "sha256:38c16aba9def83e63c0bfdeedb8dc549de1af76c5b05898a88f19d5f7fb278cb",
-      "bytes": 13037,
+      "sha256": "sha256:0baf31c300c33e86a63abec423ac55c4c3c07be2a7c8b47957053da36216ec26",
+      "bytes": 13349,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -80,8 +80,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "sha256:e10be77a2b4ecdd4f650e95d3df019e2aeb46b389f1cd956b5fe5a0d19f0ece7",
-      "bytes": 8995,
+      "sha256": "sha256:4680c2de530e7a06590a35819c0b26e795f932d2f2a15bb366149f9d8860a320",
+      "bytes": 9106,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -703,6 +703,18 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "crates/reference-readers/examples/export_tlog_nav_csv.rs",
+      "sha256": "sha256:fade454ddeca8743829f2c2cb55d5a19e4eb744e0f3732e22731349bf3eac752",
+      "bytes": 6174,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-readers/examples/export_tlog_param_csv.rs",
+      "sha256": "sha256:9df1b0274762fb318a6bb35ab4ba5c39631286c736199e3a2234f7bd60326ac8",
+      "bytes": 7056,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "crates/reference-readers/examples/read_blackbox_csv.rs",
       "sha256": "sha256:37d986dd9f4d2f6ee385629623bdb57ffd79a71bbd82f9add5e2823733ae2ae9",
       "bytes": 2300,
@@ -722,8 +734,8 @@
     },
     {
       "path": "crates/reference-readers/examples/read_telemetry_csv.rs",
-      "sha256": "sha256:e12fb2c09916dc26ffa6b0cf71be9922deba55ffeb443ff2cc8265144c94ac47",
-      "bytes": 3776,
+      "sha256": "sha256:9ca76a76470765540e378463587929969d9f44e3a0c6f87cb9b1505837f5569f",
+      "bytes": 3866,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -848,8 +860,14 @@
     },
     {
       "path": "crates/reference-readers/src/tlog.rs",
-      "sha256": "sha256:e42b2a5feb6cfcef9117043047e125e35b2c73603d3ccdb72b7b19f7f2a3e02d",
-      "bytes": 158320,
+      "sha256": "sha256:8d3be3f73e959fb50462cb2870b5540211840be4489e4e42cfa203264d50a0a2",
+      "bytes": 185649,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-readers/src/tlog_rc_tests.rs",
+      "sha256": "sha256:f8db1c93c739a8eed5d41911965dacaa709e790c62fe4eb06122042adcda4ce1",
+      "bytes": 2884,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1231,6 +1249,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "crates/reference-readers/tests/nav_controller_contract.rs",
+      "sha256": "sha256:3014d92f2d2a53231e3623fd0dd573ec8fdd1d2e4dcc79493b1f5e21e3467f30",
+      "bytes": 4150,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "crates/reference-readers/tests/recorded_enu_profile.rs",
       "sha256": "sha256:ae93b6f120353cb76afb8a10dcc50cf932396eb20e096c71d57d85424885bd44",
       "bytes": 6165,
@@ -1513,6 +1537,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "docs/additional-saved-inputs.md",
+      "sha256": "sha256:0211258fd33810ff4a1e76377c01044ebc0371dd66ee9172c601eca48cff84f0",
+      "bytes": 4130,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "docs/dependency-license-notices.md",
       "sha256": "sha256:97db99d8e4609494fa9a90f1fe56474695573773d38d93a16233e050e2677c66",
       "bytes": 80303,
@@ -1618,6 +1648,12 @@
       "path": "examples/saved-inputs/authored-rtklib.pos",
       "sha256": "sha256:8973619ca1c4cbf6cdba5a9f18010901a23bd163bfe3650ed3b7d89c3b86516c",
       "bytes": 290,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/saved-inputs/authored-vda21-factsheet.jsonl",
+      "sha256": "sha256:427522d23d9272733b38025e88737fd45c72084f442b8ca3967166489520c867",
+      "bytes": 1697,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1789,6 +1825,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/cap-saved-relations/profile.toml",
+      "sha256": "sha256:ff649ac08dde6c0040ac44ec19ff4f074d18ef21f9384fda1351076ad61f59fc",
+      "bytes": 2618,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/cockpit-clog/profile.toml",
       "sha256": "sha256:99d10ddd5abb54394ddc0272169da6f88383f36e04bc5f3a8512c6ad58ea84ec",
       "bytes": 6505,
@@ -1807,9 +1849,27 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/crsf-link/canvas-profile.toml",
+      "sha256": "sha256:b4abc90c6285013245f9707ecf03d36cad845f58f218f4cff7256ae0aded9cfb",
+      "bytes": 766,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/crsf-link/channels-profile.toml",
+      "sha256": "sha256:8ceb22694c59a477177d1e35a5fa026847b75b5162f797d69311d9458f73bcdf",
+      "bytes": 5903,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/crsf-link/msp-profile.toml",
+      "sha256": "sha256:f26df0205a72d5d8ab6faed335862bef6141b4616f92f2f5406f03c58c182447",
+      "bytes": 1372,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/crsf-link/profile.toml",
-      "sha256": "sha256:67b3ef97cbe6a4b0dea93f3572b59fdabdd0cf60b06cfa507686cd4bd49bc393",
-      "bytes": 1925,
+      "sha256": "sha256:befe533b62df2425a24627d826ca00a49992e2f88b6708ab963f0785ba310be6",
+      "bytes": 3038,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1820,8 +1880,8 @@
     },
     {
       "path": "profiles/declared/dbc-recorded/profile.toml",
-      "sha256": "sha256:61a71ab92a5eadc7ca487ccdec2cd65250c95b152a9144766b3b13dfb1f6be0e",
-      "bytes": 780,
+      "sha256": "sha256:a13411943523e01a67b3f3a88fa2cdf38a7e99b445f9b8cc822988ed0b5ce0b0",
+      "bytes": 3106,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1921,6 +1981,24 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/farmbot-saved-logs/profile.toml",
+      "sha256": "sha256:b581791054ad50ae615b16b89ef8b97dcdfbf200582bde68c1a953538eede563",
+      "bytes": 1475,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/farmbot-saved-pins/mqtt-profile.toml",
+      "sha256": "sha256:b1edcb796238c1363545e6eaf62ceb67192967dfa7d06bf3d5ff790eaadf4a8f",
+      "bytes": 2412,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/farmbot-saved-pins/profile.toml",
+      "sha256": "sha256:6e9ebdce7ded3b72e264dd2812576c87813a0c53ebc62d30148b1289f9d62145",
+      "bytes": 1683,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/file-presence/profile.toml",
       "sha256": "sha256:c71a673444825462c9e622a6bde5b82d7f4fb3b04e3b441656646b84a3c926b6",
       "bytes": 561,
@@ -1964,14 +2042,20 @@
     },
     {
       "path": "profiles/declared/gpx-points/kmz-profile.toml",
-      "sha256": "sha256:5a2b2df96e1996b5c17e808462e532e01deb8e288cc3341ef0466156c086888f",
-      "bytes": 1555,
+      "sha256": "sha256:5a3e51905c2f3e4b900a4db44b56e53b37d9feb3550d207cac40ea82a3efa35a",
+      "bytes": 3887,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/declared/gpx-points/profile.toml",
-      "sha256": "sha256:a3a68a2630f95bf553cf16435b14a0ba46ea06071d8a73e35cfba73437b6a8ce",
-      "bytes": 445,
+      "sha256": "sha256:8e8b9a56bc7af7ee156e1cca2349f7f2af80b8a3ca52678f682fd4a01c466067",
+      "bytes": 964,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/gpx-points/recpath-profile.toml",
+      "sha256": "sha256:0bbd0453e7575d9eeb32d23a8bc37f7d41ff2dee8e0db8bedc15e308b2a544d1",
+      "bytes": 989,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1982,8 +2066,8 @@
     },
     {
       "path": "profiles/declared/gpx-points/wpl-profile.toml",
-      "sha256": "sha256:f34db1b2107a68f6713ca4596475cd84a150ad16566fdca13609b526adec89fb",
-      "bytes": 408,
+      "sha256": "sha256:357abb6d456bb33ff4d4526c3edde938929cdfb06cb44129223f4a7d8cc44930",
+      "bytes": 685,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1994,8 +2078,8 @@
     },
     {
       "path": "profiles/declared/image-metadata/profile.toml",
-      "sha256": "sha256:b9e637fdfdb794ab83447df181a395eae2be26c1918deb460a7525e066bb7f47",
-      "bytes": 1739,
+      "sha256": "sha256:11bcdb094f00458bb0852bbc786635c91f8a3cb84c08b0e92ba41b2baef664f1",
+      "bytes": 2136,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2024,20 +2108,20 @@
     },
     {
       "path": "profiles/declared/isobus-ut-tc-passive/profile.toml",
-      "sha256": "sha256:12b1a5be345898ed1c953b4a8bc61f36481f43a0bc22e01057edbb08245157a5",
-      "bytes": 9121,
+      "sha256": "sha256:f1686df1b7a82da2f85965c7619ece852487f0be04ca4f61645e2736356e342d",
+      "bytes": 11263,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/declared/isoxml-prescription-reuse/profile.toml",
-      "sha256": "sha256:365377f14a63acbc431ceb631dcc3ee3f2e047c6121c47d275bd881ca5f1b1e9",
-      "bytes": 4343,
+      "sha256": "sha256:f6c607b5ca7a6311fcc5bf96f431bfd6d7add82a8642e700b98daf58e8c7a5f4",
+      "bytes": 4931,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/declared/isoxml-rate/profile.toml",
-      "sha256": "sha256:4d8cb31423ad7b2a42c1a610e7ffa9a57af5719cecacee18415023b630c687b8",
-      "bytes": 17444,
+      "sha256": "sha256:2723d96279aed76a4f42c55278ca36cab3852af545be7cddb57ee2dac84168cf",
+      "bytes": 18741,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2102,14 +2186,14 @@
     },
     {
       "path": "profiles/declared/nav2-map-content/profile.toml",
-      "sha256": "sha256:d2ec0a5f6cc1c5eab64eaf4df902a891eb41d7a7884cacecbe30209a6e0dbd60",
-      "bytes": 2431,
+      "sha256": "sha256:460255020bdc7f08106e39aa73dcabb8421bbfe927213408b6cfc323781e20ed",
+      "bytes": 2790,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/declared/nav2-passive-progress/profile.toml",
-      "sha256": "sha256:f786995fe617ac47e7104565b324f3f1421b59c6cbc9f4c838a9a6376ef91a83",
-      "bytes": 3938,
+      "sha256": "sha256:634bfd9e876d0bdf9f805e35b1c39f5c127087fa2da667de156d8b98a29af0fc",
+      "bytes": 4396,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2126,8 +2210,8 @@
     },
     {
       "path": "profiles/declared/opcua-recorded/profile.toml",
-      "sha256": "sha256:f1bee84f9cbcbe68ce27c14d296d95dd6483914c7ad1efbfc80dc46d5c7a2da2",
-      "bytes": 6123,
+      "sha256": "sha256:e392a38cad42af04d236e912ee35bff795a53bd2f54fb4d858c6c1e99c3e6628",
+      "bytes": 8724,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2300,8 +2384,8 @@
     },
     {
       "path": "profiles/declared/saved-mission-plan/profile.toml",
-      "sha256": "sha256:64bfcc2e019c010d498c6f8a32f3993ce70ee4c88bbb213929e72a4e1227d159",
-      "bytes": 7422,
+      "sha256": "sha256:4586bc5fde94411268c67c7597587f75851f4f957143d56fbecb0fadfcb625f1",
+      "bytes": 7699,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2341,6 +2425,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/sensorthings-dataarray/profile.toml",
+      "sha256": "sha256:0a36724090ce5f15662ba8c083b072bfe6f05071076b160f46adfe05a596d661",
+      "bytes": 2317,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/skydio-flight-telemetry/profile.toml",
       "sha256": "sha256:0345d9088f88fcdb3cecb07c8c1b04d2d766a52d7d5bfeacb3c8cc9c878aacbd",
       "bytes": 10830,
@@ -2348,8 +2438,14 @@
     },
     {
       "path": "profiles/declared/software-identity-binding/profile.toml",
-      "sha256": "sha256:15cb78aed989692e0e9e68ac1cebb0f54a4679a600d9f1fe3093ac6b299424ff",
-      "bytes": 6432,
+      "sha256": "sha256:7031903bcd349cddd6370ec101b5c6b8df00f9674eec191b27e481f76538e53d",
+      "bytes": 6786,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/software-identity-binding/realsense-device-info.toml",
+      "sha256": "sha256:888abe96493beccfb93b159b9cb4d9a99d2fbc4036136bbdea4884c9c66fd6ce",
+      "bytes": 1650,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2380,6 +2476,12 @@
       "path": "profiles/declared/surface-usv/survey-boat-profile.toml",
       "sha256": "sha256:2b5abc945e96a5664ded2569824b36fa0bf2050c49911af64d1bf8388688bc03",
       "bytes": 596,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/tlog-param-comparison/profile.toml",
+      "sha256": "sha256:6429e3a22b9d7ad469ce5dd9b00ead12f7cffd7f546fa338c6a2df278ab0cbf0",
+      "bytes": 1231,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2419,6 +2521,18 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/vda-factsheet-limits/capabilities-profile.toml",
+      "sha256": "sha256:1aaf03b3ab5014c4dd0e94adc727c0cc502023b7b4b4dae04aca59bb4c3da14a",
+      "bytes": 1900,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/vda-factsheet-limits/profile.toml",
+      "sha256": "sha256:8cd3e63feaa35c04e6d1646c88fc64fbb1933c91b59d87258651cfbadd20ddd2",
+      "bytes": 818,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/vda-load-report/profile.toml",
       "sha256": "sha256:62314201833100fcd89a129a296e245ed9371e58f4f8ea492bd6caacd6b9a3d7",
       "bytes": 8687,
@@ -2426,8 +2540,20 @@
     },
     {
       "path": "profiles/declared/video-frame-export/detection-profile.toml",
-      "sha256": "sha256:616eae26bd70f4f1198a576ba010e51ce22503b1401341401f49ef977f18dee6",
-      "bytes": 1348,
+      "sha256": "sha256:3f5bc4e4c528b5b62003371c30cd9fe86373a7317d13b94c1e23bc48c93613db",
+      "bytes": 2248,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/video-frame-export/detector-interval-profile.toml",
+      "sha256": "sha256:0c611b5267d9dbae530e4ab57750011181fd4820c1a264221ab7471a1e1c34e5",
+      "bytes": 2450,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/video-frame-export/expectation-profile.toml",
+      "sha256": "sha256:fdeee443a1486d4fa550e61baf2c61c735645ed1545e4bc89962b8c7599cba1d",
+      "bytes": 706,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2629,6 +2755,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/meanings/cap-saved-relations/profile.json",
+      "sha256": "sha256:27f3cd48519ff8efb5d1963385b17c0a1396b7e5337a53dd6b7eb589977764aa",
+      "bytes": 4399,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/meanings/cockpit-clog/profile.json",
       "sha256": "sha256:b161db456df13e7d2ecfa92aa4f565db522c63ec1d34f3e7e262e9834b8afad8",
       "bytes": 10425,
@@ -2647,9 +2779,27 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/meanings/crsf-link/canvas-profile.json",
+      "sha256": "sha256:d4b8a779eb8d1e4e883b43bf7d0e4d658a5732f6697264c4d55e4a0cc3240f23",
+      "bytes": 1518,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/crsf-link/channels-profile.json",
+      "sha256": "sha256:6193d23c04fb105c7de05a79f158b2fd4a73e9dfca4b4d9736ee50ab846e3d66",
+      "bytes": 9846,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/crsf-link/msp-profile.json",
+      "sha256": "sha256:30af8f3ef66f63098425b144f4378ca8318f03b45b9c38fef542ad968d14a632",
+      "bytes": 2461,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/meanings/crsf-link/profile.json",
-      "sha256": "sha256:9de44dec49f338a8be5e2f32eb9005ec4b3e03feed6185213b27ddd6165a38a2",
-      "bytes": 2601,
+      "sha256": "sha256:b63b4aa5ac3f658b17dcdce23a0c66704b4285907cb621c0420cd3a3f920db24",
+      "bytes": 4440,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2660,8 +2810,8 @@
     },
     {
       "path": "profiles/meanings/dbc-recorded/profile.json",
-      "sha256": "sha256:70905f28f2012008b22caae5ac617287098b27d5f3db36661a558b16794e0ad8",
-      "bytes": 1708,
+      "sha256": "sha256:4069c17466e0d5fe4536213e546da316832b55607a743afa1af56526dd60defd",
+      "bytes": 5774,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2761,6 +2911,24 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/meanings/farmbot-saved-logs/profile.json",
+      "sha256": "sha256:130662d403e47f623b88625af95ce51b4eb122f847e889a122ed5b8f4ea26863",
+      "bytes": 2773,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/farmbot-saved-pins/mqtt-profile.json",
+      "sha256": "sha256:e326d494e7512614b3e7e9cec8683c5870161e778ce2f90f49d174bc4ff09978",
+      "bytes": 5132,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/farmbot-saved-pins/profile.json",
+      "sha256": "sha256:0cbd514f267b25febcdefe15f5034930220312b5b2bbc6a976b750350363b956",
+      "bytes": 2801,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/meanings/file-presence/profile.json",
       "sha256": "sha256:d8a55628da72ce45c6435f8e5fb974a5e105bb3d2b7e531a8f250f7b181cf66c",
       "bytes": 1005,
@@ -2804,14 +2972,20 @@
     },
     {
       "path": "profiles/meanings/gpx-points/kmz-profile.json",
-      "sha256": "sha256:2b8d0e1295cc77c5d2042ea174c300ad344fff57bccaf36b9d94e8c91cb67a4d",
-      "bytes": 2637,
+      "sha256": "sha256:59c752084262652905f4cd9b147c5b83ce0aa3d9477210bb791a2aaa5acc7574",
+      "bytes": 7996,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/meanings/gpx-points/profile.json",
-      "sha256": "sha256:934a2dbadec7125a7b0ff58661293f4ba2f896b39ebbbeae9cb27898fa83f2fc",
-      "bytes": 864,
+      "sha256": "sha256:1946829a7d135118d8fef63e467d0a3a13a56b8a2de987f737a9c86fb278b348",
+      "bytes": 1956,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/gpx-points/recpath-profile.json",
+      "sha256": "sha256:306fdabf931e0afbf3ae63b84bced1a43c0df099c753f76e6dc00b28010028d5",
+      "bytes": 1864,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2822,8 +2996,8 @@
     },
     {
       "path": "profiles/meanings/gpx-points/wpl-profile.json",
-      "sha256": "sha256:f728777f80d68b4da281fb3e861191f4d96e49c57454360341f1da129f282e71",
-      "bytes": 736,
+      "sha256": "sha256:bec607ba9001d6c8554ce8e37a48aeae3183bd4e654f0d40b1748ed6d6e9a180",
+      "bytes": 1322,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2834,8 +3008,8 @@
     },
     {
       "path": "profiles/meanings/image-metadata/profile.json",
-      "sha256": "sha256:0794e415c94f0014e78312a05f2074dec889f521c6144b66431d53dbba236c56",
-      "bytes": 3685,
+      "sha256": "sha256:1966c9394c547f7fbfec9dbb028f5b950e6da69340ba8aa336892edb57b8e597",
+      "bytes": 4484,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2864,20 +3038,20 @@
     },
     {
       "path": "profiles/meanings/isobus-ut-tc-passive/profile.json",
-      "sha256": "sha256:4fb13a7a13f8b1fe2d61bea969aea29c0cc9aa0bb298b59f145acb4bfd8ba22c",
-      "bytes": 7602,
+      "sha256": "sha256:09ddd9a00af813cb6644c9878eeb0783980866785e1dff337fc44be03110c6ad",
+      "bytes": 11824,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/meanings/isoxml-prescription-reuse/profile.json",
-      "sha256": "sha256:76421e36bfa6f85db4f2fa5e4677d23302c0d8dd0b2f1ba0752965e91bab20a5",
-      "bytes": 7728,
+      "sha256": "sha256:c8019066949422e452a43d3d6d47cfb830ce5d738ee3d92b5b3b537ce3f69639",
+      "bytes": 9704,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/meanings/isoxml-rate/profile.json",
-      "sha256": "sha256:2aa78fb899b0f122db9359b93bd4d0debba3b9c008433a986d479ad588e315bb",
-      "bytes": 14372,
+      "sha256": "sha256:d58892d117cfc36855092aa383aa6f2a2713462259e35e835b8d495f1739d605",
+      "bytes": 16724,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2924,14 +3098,14 @@
     },
     {
       "path": "profiles/meanings/nav2-map-content/profile.json",
-      "sha256": "sha256:b3451a2ed30487c2580cf7809378c3535097cbe84e64b187b0e42eccc9c0f379",
-      "bytes": 4482,
+      "sha256": "sha256:3d7745260b4ecfe439c8a2e73de4dae83a270d51e6085f83c7181247447d179b",
+      "bytes": 5348,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/meanings/nav2-passive-progress/profile.json",
-      "sha256": "sha256:7c671be94e841a05893fa4d887cb5ebd85d367f96acc8838b1b4dc754fa5fd5a",
-      "bytes": 6655,
+      "sha256": "sha256:04014c1f69c32e38c1e6ec7a6ed378cab265aa8451df460d8ca07811b564591b",
+      "bytes": 7429,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2948,8 +3122,8 @@
     },
     {
       "path": "profiles/meanings/opcua-recorded/profile.json",
-      "sha256": "sha256:99b6a1b7a6c55a865056aa230e843c390ead48e2bcfb940a93df64a8fd8813af",
-      "bytes": 10119,
+      "sha256": "sha256:5fefdb1a47f41846dab9de76d4dbfa245adcd658594b0c969190240ea36082f5",
+      "bytes": 14971,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3122,8 +3296,8 @@
     },
     {
       "path": "profiles/meanings/saved-mission-plan/profile.json",
-      "sha256": "sha256:454f5d208cc91888d51a0e32df38bd1865376250db0da52ec65fc9a53e617eb4",
-      "bytes": 10133,
+      "sha256": "sha256:449a7a7bb0773c435c20f6ff577244d4f2d3d9c30fdf6f1cb2dccb9da0e34505",
+      "bytes": 10719,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3163,6 +3337,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/meanings/sensorthings-dataarray/profile.json",
+      "sha256": "sha256:1d78412fe87854a434b73d89643b9e5a0c9b1200fe2e794dc3a97de3e029d257",
+      "bytes": 4422,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/meanings/skydio-flight-telemetry/profile.json",
       "sha256": "sha256:8f693d77936f1c8464e2a85df9a131f6e43635d41d57e4acf208940504d5c856",
       "bytes": 11960,
@@ -3170,8 +3350,14 @@
     },
     {
       "path": "profiles/meanings/software-identity-binding/profile.json",
-      "sha256": "sha256:f1b33f937380b9e8938a9748814a3d1ff1962b9df1d9a212ab6d336654a2990f",
-      "bytes": 3058,
+      "sha256": "sha256:36517768cae56d41ee7c1a27f6200c2795765037efad205137ae885c0491e0c1",
+      "bytes": 3110,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/software-identity-binding/realsense-device-info.json",
+      "sha256": "sha256:1e1401bd0cae371ced6a48c3581fec8f8170aa76d3645a76ad8221f2c1279820",
+      "bytes": 2629,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3241,6 +3427,18 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/meanings/vda-factsheet-limits/capabilities-profile.json",
+      "sha256": "sha256:bc6d710c16c223eaeeb1e85a9e35980d1542b93e3f6fc5665d6f55db4c3fafcf",
+      "bytes": 3537,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/vda-factsheet-limits/profile.json",
+      "sha256": "sha256:d8de426c499dc5f9bcc173faa7ce3ae19e2cb36c35ebc7b930a63a30a0f73482",
+      "bytes": 1411,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/meanings/vda-load-report/profile.json",
       "sha256": "sha256:029021f4de7c988bda9bc8c2ae55438ba65b6bd38ced68516776c4a31bdc80e5",
       "bytes": 9029,
@@ -3248,8 +3446,20 @@
     },
     {
       "path": "profiles/meanings/video-frame-export/detection-profile.json",
-      "sha256": "sha256:cbfbd0911a64f54e2a0016b14c38a1ddeeb2ab53c9fbaa8fc5419539ddc30eb7",
-      "bytes": 2758,
+      "sha256": "sha256:82c75e701a78451296d815457b47161a57cdd8fb1aa4858d30a8524b11399661",
+      "bytes": 4584,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/video-frame-export/detector-interval-profile.json",
+      "sha256": "sha256:02f11bde18668624fb29c48ad0dd9e235fe19429d31040fc24cc9b6aa267395a",
+      "bytes": 5067,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/video-frame-export/expectation-profile.json",
+      "sha256": "sha256:4ddb37c9a0059d592fa2147431cb469664dd146860b0bae4bf8deb0dff384fc1",
+      "bytes": 1295,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3505,6 +3715,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/recorded/cap-saved-relations/profile.json",
+      "sha256": "sha256:26ff4a2131d924ea2419f91ab3e4325971de76b0cd1aaa7c9cf22857e15ce824",
+      "bytes": 2807,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/recorded/cockpit-clog/profile.json",
       "sha256": "sha256:83eba5b824bb417ad8bf87073bbdfbbf5b1e4fa16f69e51eadcf6ca0652f5bc3",
       "bytes": 6820,
@@ -3523,9 +3739,27 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/recorded/crsf-link/canvas-profile.json",
+      "sha256": "sha256:754eb645ef40bd6c0c8fd7530ec4d061417d17dc10402591eb4079fe2f7e566a",
+      "bytes": 895,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/crsf-link/channels-profile.json",
+      "sha256": "sha256:af1155ab7dc3708791c2c95128d47c8f6f4f307c21bc614fc27bd32e6a5637d2",
+      "bytes": 6224,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/crsf-link/msp-profile.json",
+      "sha256": "sha256:6a9508da60305dee95454e583798e49d1cd37d32f353fd09fc6ffbddb3f25b2c",
+      "bytes": 1519,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/recorded/crsf-link/profile.json",
-      "sha256": "sha256:c0fcb44e3d60b5d64c43b82a453bde3ac333cfeb104449d0e16fe1e1c9f53cf9",
-      "bytes": 2178,
+      "sha256": "sha256:006ccfe74d0ec88564bc9ab336c449edc506c566a69115284a1c28532e66515a",
+      "bytes": 3381,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3536,8 +3770,8 @@
     },
     {
       "path": "profiles/recorded/dbc-recorded/profile.json",
-      "sha256": "sha256:a9db61dfaef9529ed06d86fdeceae2dcc1f78632ee5e50e1d4139b3a5c33a71e",
-      "bytes": 921,
+      "sha256": "sha256:a8330088902f1e37da7a5c1a0a1df2a26aa404fe2007dae73607225e94716194",
+      "bytes": 3379,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3637,6 +3871,24 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/recorded/farmbot-saved-logs/profile.json",
+      "sha256": "sha256:146af82302068aad7a955990db7eba82b7bb19662f99623b225c876d2bdc40fb",
+      "bytes": 1634,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/farmbot-saved-pins/mqtt-profile.json",
+      "sha256": "sha256:5e62ef53b493cd2b2e5da31163fbac48face182aa0f7be9a824597ca61cd5946",
+      "bytes": 2661,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/farmbot-saved-pins/profile.json",
+      "sha256": "sha256:277d71e5d8796ce155a5e32ae6525dd1a979468323ed78ce6586f57a4cf04418",
+      "bytes": 1830,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/recorded/file-presence/profile.json",
       "sha256": "sha256:284666042d5f8657c386f4a58507e9546dc22235d56f5d7ecc74c6699643ae31",
       "bytes": 666,
@@ -3680,14 +3932,20 @@
     },
     {
       "path": "profiles/recorded/gpx-points/kmz-profile.json",
-      "sha256": "sha256:02feb66f1581b353654247a3082551da575dccaea539969e1c16e21facbf7741",
-      "bytes": 1702,
+      "sha256": "sha256:8f4ad18acd25fd4d20cacdf52984083dd6cecd74d0b92a918442545188ed0557",
+      "bytes": 4226,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/recorded/gpx-points/profile.json",
-      "sha256": "sha256:ac7cbe32398411d3dc098551b8fa5c168edf8f8c8820b67f3a19a5f71a02231f",
-      "bytes": 550,
+      "sha256": "sha256:71f542e590190684cf50cdbfcb9c344ea7a6c53cd98ba9de4a72ee82b23ada3a",
+      "bytes": 1105,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/gpx-points/recpath-profile.json",
+      "sha256": "sha256:0b1767920abecbc0589dc09d08d57f504abfc5888ac4b5b5d76691dc090cb065",
+      "bytes": 1124,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3698,8 +3956,8 @@
     },
     {
       "path": "profiles/recorded/gpx-points/wpl-profile.json",
-      "sha256": "sha256:f4733f5a35eec92cd529595e54382288e58b34cc552fd61a50d665eb47204f93",
-      "bytes": 507,
+      "sha256": "sha256:85379719eb735482a93c3500ff281c97694dbe8f8554402e05853d179476a0c3",
+      "bytes": 802,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3710,8 +3968,8 @@
     },
     {
       "path": "profiles/recorded/image-metadata/profile.json",
-      "sha256": "sha256:503b98e2e61caa8e758c2087b9e788063bdd1ea912fb0e709b0b4e6d1b1950c2",
-      "bytes": 1938,
+      "sha256": "sha256:b7f999bd2b1785d5d656a0c6df8f2ebae6315636322954c6f6455a66488a7282",
+      "bytes": 2359,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3740,20 +3998,20 @@
     },
     {
       "path": "profiles/recorded/isobus-ut-tc-passive/profile.json",
-      "sha256": "sha256:dff0b747e025edfeec3adece418e7defeed73c1caf06baa6f5d60ad8b36843b0",
-      "bytes": 9398,
+      "sha256": "sha256:703630efa5ff3c01fc0c77bad43cbc7599d27114cedff9dea93ab848ce95c13b",
+      "bytes": 11648,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/recorded/isoxml-prescription-reuse/profile.json",
-      "sha256": "sha256:de609f041b1dc0f2b8e83a83d4fd6e36ff91bff6a62878448ed77ac9953470bc",
-      "bytes": 4664,
+      "sha256": "sha256:21366c00ff0a0b05b399d10a5bf10ac14bd4f70ad5faad43d95f28b66fed9bfa",
+      "bytes": 5300,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/recorded/isoxml-rate/profile.json",
-      "sha256": "sha256:a29236ecc2d09684d11e906babf353383c379d4ebeee8c1f6b89b63b618ce0a3",
-      "bytes": 17999,
+      "sha256": "sha256:a6cdd6ec1523af8f1961cbf1ebfd60eac254a95fd6076fdabf0fa960211cc25e",
+      "bytes": 19356,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3800,14 +4058,14 @@
     },
     {
       "path": "profiles/recorded/nav2-map-content/profile.json",
-      "sha256": "sha256:de1a5d2f2254e0cbdd530f153a922f051a79f05c7f291ff6192cb9254abee99f",
-      "bytes": 2636,
+      "sha256": "sha256:9d495fec0b52e0b79d40f99df6e53473f72c38cab47f88ad8e70a063e7a0d061",
+      "bytes": 3025,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/recorded/nav2-passive-progress/profile.json",
-      "sha256": "sha256:a267cc33b0ab3d974e583b6ee979122f8e147c527a6308dcb8b9fb0ffde22447",
-      "bytes": 4181,
+      "sha256": "sha256:ac2e19ee7991b3563db2aa8f58587084c7dc113936123ccaca506a749bacc76d",
+      "bytes": 4657,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3824,8 +4082,8 @@
     },
     {
       "path": "profiles/recorded/opcua-recorded/profile.json",
-      "sha256": "sha256:b491459d82e29a0dffef4f89961ec1dc7ae76685a2331c7f71d59064164a973c",
-      "bytes": 6510,
+      "sha256": "sha256:2d860d84aae993dab1a39487424fa7d0ef73eb81dc9e326ed579e4e227688f10",
+      "bytes": 9243,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3992,8 +4250,8 @@
     },
     {
       "path": "profiles/recorded/saved-mission-plan/profile.json",
-      "sha256": "sha256:72087a06e34eb16fff021ddba26439020b23e5bb26b7ac59566b2cb6e08ddf57",
-      "bytes": 7747,
+      "sha256": "sha256:148988bb7d85d78eb754da248709820015ac3c9d934805320f40c0efff7e191b",
+      "bytes": 8042,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4033,6 +4291,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/recorded/sensorthings-dataarray/profile.json",
+      "sha256": "sha256:9a247bf6f09095580df7c4826589ff1091b58a1f8e81b77d19c3427b89a777f8",
+      "bytes": 2530,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/recorded/skydio-flight-telemetry/profile.json",
       "sha256": "sha256:7e47cd943ff7781689d02029104eb7bf19f677212e0aef99912f2ba10b785eba",
       "bytes": 11179,
@@ -4040,8 +4304,14 @@
     },
     {
       "path": "profiles/recorded/software-identity-binding/profile.json",
-      "sha256": "sha256:9d273663ad5fe58c25cf1767e66de62a4317df6ba9b5055bb66dbf58bdc59b04",
-      "bytes": 6625,
+      "sha256": "sha256:9e15c2ea233674070d6ed9b38806a68ce6734774c161e60f548232a745c40965",
+      "bytes": 6979,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/software-identity-binding/realsense-device-info.json",
+      "sha256": "sha256:59bf1d7f5e861ab736d007f95017adb4e8b68118a285c5c40ded8041e07163b8",
+      "bytes": 1791,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4111,6 +4381,18 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/recorded/vda-factsheet-limits/capabilities-profile.json",
+      "sha256": "sha256:28fa6f8a7434e43ab812161bf85dd1aeda5323efe0c9df8673a8ec6d1d71e644",
+      "bytes": 2089,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/vda-factsheet-limits/profile.json",
+      "sha256": "sha256:23cfca5ad48bd5ad410c918e923801ba8e483ee166be9b2a98d29e3c010373c6",
+      "bytes": 935,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/recorded/vda-load-report/profile.json",
       "sha256": "sha256:e4b6141cc757bca8638709043935277726fe60a3b633b32f872474c7f7cb011c",
       "bytes": 9006,
@@ -4118,8 +4400,20 @@
     },
     {
       "path": "profiles/recorded/video-frame-export/detection-profile.json",
-      "sha256": "sha256:4d11adab9c3c1d72f662ea58ddfbdacc6194680286e24babd2dd9a23f5222e57",
-      "bytes": 1519,
+      "sha256": "sha256:5d610e6b0901b0a13427dbc2ea021d48dc3a05bf14cddc41924dc78a1fc333d9",
+      "bytes": 2479,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/video-frame-export/detector-interval-profile.json",
+      "sha256": "sha256:208c8d01bb246a3e9a007ceb5d095b2034a6136c0d1f87b4923b08638a0671a0",
+      "bytes": 2693,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/video-frame-export/expectation-profile.json",
+      "sha256": "sha256:5e7f0222c20a8b4e0ad6e1cc967791e453a589b14e495b4fc44c6054a1365869",
+      "bytes": 823,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4204,6 +4498,12 @@
       "path": "scripts/check_declared_schema_units.py",
       "sha256": "sha256:5da2741d1e29492ed5678d3e3d64b09f2f2ce1e8e26fe1acdad1514a40ac07e2",
       "bytes": 18027,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/check_saved_video_frames.py",
+      "sha256": "sha256:aeddfc1d18bf59fa07aecfbdb2cac251ef0cd66df8527e5b4f36d43b283962bd",
+      "bytes": 5597,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4309,6 +4609,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_cap_saved_relations.py",
+      "sha256": "sha256:e9dbaafb0f186145a99beefa93cd9c327fd7fcf710a1f2d144212ac7e566a495",
+      "bytes": 8948,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_cockpit_clog.py",
       "sha256": "sha256:807dfe684ba228f862ff2d166c89d35b5cbd4ce53fd9b9528201d0fb15691c87",
       "bytes": 12881,
@@ -4316,8 +4622,8 @@
     },
     {
       "path": "scripts/convert_crsf_link.py",
-      "sha256": "sha256:41e56c65bc3905c1e04fa0c357c0ba8206a0bdcf80b997d07fc0557feffbbe70",
-      "bytes": 12131,
+      "sha256": "sha256:afd6ea6063539335a4cae967ab481a8deeb17d7959b1227cfce00649d851c337",
+      "bytes": 38661,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4334,14 +4640,20 @@
     },
     {
       "path": "scripts/convert_dbc_recorded.py",
-      "sha256": "sha256:f4a50bfb00bc491b1f7ef10b9a9c8f950cfbe3498460ff18922ca2929b5de0ab",
-      "bytes": 6483,
+      "sha256": "sha256:b7e8f154eaefac87394895b10ea0eff1865b07256ba8d408ef9ba2b83ae82d08",
+      "bytes": 23519,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "scripts/convert_declared_expectation_check.py",
       "sha256": "sha256:583ac4c26156ab2ebe321736646a19f0400812c71b43777652abf311c2a435ab",
       "bytes": 28303,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_displayport_canvas.py",
+      "sha256": "sha256:0b26a082a3b1144ddea2f36fdf19c2ea30dcf41a17b482125da1c064a27d6693",
+      "bytes": 6854,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4360,6 +4672,24 @@
       "path": "scripts/convert_elrs_settings.py",
       "sha256": "sha256:3389182835e8eaaf70e2f34bab563af81bf6f2103fefcdbece158c5159186838",
       "bytes": 20341,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_farmbot_image_binding.py",
+      "sha256": "sha256:d32182f28e04d9769cc742c8b2a921723c69f317c9d218b6755a3ab411c53903",
+      "bytes": 9065,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_farmbot_point_list.py",
+      "sha256": "sha256:9408415bb56abaa71027902e93b269a86ea285dd473297a003bc50ab72b0e41f",
+      "bytes": 3813,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_farmbot_saved_logs.py",
+      "sha256": "sha256:f5b4b6473b727fd83e949ae08e0fde7eb231559a4bc15f6cbd877e4cdd4d4d72",
+      "bytes": 7123,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4387,9 +4717,21 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_image_flight_binding.py",
+      "sha256": "sha256:57a66b9ba3bbe9cc19cdef85ed1f13abd21dcc7a3d149c3ea184cc1cab5e2a8c",
+      "bytes": 11339,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_image_metadata.py",
-      "sha256": "sha256:7bdaf78ca016958cb4636f32b98838abe99fb035eb0fb16e6b2ed190c87840f3",
-      "bytes": 27523,
+      "sha256": "sha256:56cf22a809164145fc827448d7041d391b37503486a4e46ef9e45be53cf81826",
+      "bytes": 31192,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_image_original_binding.py",
+      "sha256": "sha256:70f9926e89027c55266d94ca24cc7fbb32b07469d78946889b83ed9e67dcf284",
+      "bytes": 11785,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4412,14 +4754,14 @@
     },
     {
       "path": "scripts/convert_isobus_ut_tc_capture.py",
-      "sha256": "sha256:5b6d18da7ea82788701dee2afdbc496f1dbe891c6e75a0c605e1e07ada9ff9cf",
-      "bytes": 27573,
+      "sha256": "sha256:e230848be42e25041a620026f58fe98c1e18cd5516c433683f0295f4aa260240",
+      "bytes": 34334,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "scripts/convert_isoxml_rate.py",
-      "sha256": "sha256:93392db66c423a089c1116f9232dcbeb38a90264c399e494d1932ec400a1c23c",
-      "bytes": 54642,
+      "sha256": "sha256:d9aaf9865bba6f3cbd341cedc48d251a5dec700356ff2b4bd7039147af364517",
+      "bytes": 63663,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4489,6 +4831,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_nav2_saved_result.py",
+      "sha256": "sha256:a7d3b069a91702a3e221ed046b4e38ee372aea3415d97d2bd94ed14897e5a496",
+      "bytes": 6259,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_nmea_ascii_window.py",
       "sha256": "sha256:21d154de0563d85702b37452d94c28ec299d29ed8928e965f4abd2810ab4b866",
       "bytes": 5117,
@@ -4508,8 +4856,8 @@
     },
     {
       "path": "scripts/convert_opcua_recorded.py",
-      "sha256": "sha256:52866f3d46d4c977f8bf08e748d57a506b9787442fac9a3e336a684de915919f",
-      "bytes": 54396,
+      "sha256": "sha256:ee951229c42d50dc53bff9a0330d3d7637e00afe541efaad8c0f96db787151fe",
+      "bytes": 70631,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4564,6 +4912,18 @@
       "path": "scripts/convert_rinex_records.py",
       "sha256": "sha256:33d50d6a7c0d9019477ef3744041457f0b4e01704d9588894c166ea9cf00f447",
       "bytes": 35379,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_rmf_issue_reports.py",
+      "sha256": "sha256:e74d6d5654a03603a2511f6a1ea0e2fc46287d73c6d634b5a18f57c744e9466f",
+      "bytes": 10613,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_rmf_path_association.py",
+      "sha256": "sha256:bee3308a7595aca31ee3815266d9f4e7d722caac69ef6b6d43bfcb52856d90a9",
+      "bytes": 7374,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4640,8 +5000,8 @@
     },
     {
       "path": "scripts/convert_saved_mission_plan.py",
-      "sha256": "sha256:29fa7fda90922421f51995e2db430b00f0cb13fa01bcf2811fc8a88d22a4632b",
-      "bytes": 20107,
+      "sha256": "sha256:9283619b84f0e7bc3c6e6a64a099bd056e7aafc5fc1ebf595b0f4511f41a1f92",
+      "bytes": 22642,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4688,8 +5048,8 @@
     },
     {
       "path": "scripts/convert_software_identity_binding.py",
-      "sha256": "sha256:291f0637e3fa74b09061fafce3c3dae30a7afa1701130d29bc9d86cca9ba9b50",
-      "bytes": 22644,
+      "sha256": "sha256:31af47e782bbf955a5db8312faa6a5397935718ec7375a89cc48bbae091d8449",
+      "bytes": 29335,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4705,15 +5065,33 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_vda_factsheet_limits.py",
+      "sha256": "sha256:bee0f85b72c6bd7ee4106d3c242750dc2429be78e9ad253b4025fc7f36b11241",
+      "bytes": 33565,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_vda_load_report.py",
       "sha256": "sha256:a656cd9bbc8f1fb32c703eda44985ebededab9b564400f5da6b419d5643015c8",
       "bytes": 35624,
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_video_detector_intervals.py",
+      "sha256": "sha256:734dcc48c0e4dd0814e21e6f814fb4ea68221fb964a0f072bfb3c0cb13f41689",
+      "bytes": 14149,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_video_flight_binding.py",
+      "sha256": "sha256:4126fc7c593f2672a1783eec471dbc00aeef346e9a5a04834e6f279617d52c26",
+      "bytes": 9353,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_video_frames.py",
-      "sha256": "sha256:011e3aeceaf251642986ea14d6b248b366f106590e532453974d41d5d35e02ef",
-      "bytes": 26810,
+      "sha256": "sha256:7771d3027f2b84ecf8adc4255635904d9751a8478ba6e992573dfffb23ca7e26",
+      "bytes": 34292,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4786,6 +5164,12 @@
       "path": "scripts/recorded_mission_parameters.py",
       "sha256": "sha256:accb40ea47f7e01a6ac794123bd3f7c1b5927fdb8c1d9eee0555789f265fde78",
       "bytes": 7397,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/recorded_plan_geometry.py",
+      "sha256": "sha256:362e87d7971fcd1a3f3c039ab49f1fa3e10ad2b1b80bb4f5619182361f465e81",
+      "bytes": 13268,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4903,9 +5287,21 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_ais_class_b.py",
+      "sha256": "sha256:11dbab1d47b244e54946092d3fced27eadcd1f0a8e9b157c1a6d06303bd271ac",
+      "bytes": 10217,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_ais_recorded.py",
       "sha256": "sha256:a4c4052b1ed7be101630cdb9055511e8882aee9e690afe25773e04dcd193dc59",
       "bytes": 29638,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ais_rot.py",
+      "sha256": "sha256:0c7a23503783b31fd45cdc711ba116536ca3871ed8d2b6abf5af6b1f0509335e",
+      "bytes": 6518,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5054,8 +5450,8 @@
     },
     {
       "path": "tests/test_canopen_recorded.py",
-      "sha256": "sha256:7090869d70322f35fa25a6d85388ac413b162c25030ae56136dd64375214e5ad",
-      "bytes": 43498,
+      "sha256": "sha256:c7ad32c273be4175282fcde7200a04d3e60afd264483c33825a861bf75939c75",
+      "bytes": 55414,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5065,15 +5461,27 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_cap_saved_relations.py",
+      "sha256": "sha256:93c56c9bf1dcad1dc11978f98533e4681baabfe87b71836b4aa6430fe46d6d2b",
+      "bytes": 6754,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_cockpit_clog.py",
       "sha256": "sha256:b6f97e7370513150893b52e152644ef8cba1789c5b2cbf198f2252ba021fe53c",
       "bytes": 12159,
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_crsf_antenna_pair.py",
+      "sha256": "sha256:003e5049282e372f31b367f68bf59e3061f34c9ae5a2c76944b0780206cee6af",
+      "bytes": 12061,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_crsf_link.py",
-      "sha256": "sha256:04f6355a663a2626ad9a628f66405e51b9e8d3be81a23693b700fc46af7fb229",
-      "bytes": 28115,
+      "sha256": "sha256:42d36a0777f6ffefc38de5d8aff8176e07f91e105b42b50e46241b4198c8d3d9",
+      "bytes": 35564,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5096,8 +5504,14 @@
     },
     {
       "path": "tests/test_dbc_recorded.py",
-      "sha256": "sha256:d8dd93689302956d1230d3b5dc893ab226131fca8ed57b9abf976143135aa6eb",
-      "bytes": 15377,
+      "sha256": "sha256:a054eff4c78268b7aad04bae8e8cc900dc81a731a30049e332129d70786d8815",
+      "bytes": 33074,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_dbc_window.py",
+      "sha256": "sha256:648a745bd4907be737944f8f01e9b27a5c8f4b8f017577528a607f0305750b35",
+      "bytes": 5949,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5113,9 +5527,27 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_detection_window.py",
+      "sha256": "sha256:62fc35e82ede74183439da36db01b1533088fd5794eedd66d8397db8ee400962",
+      "bytes": 13684,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_displayport_canvas.py",
+      "sha256": "sha256:d4f2d539f05b77fc060ef7f9a09a1d4fa150efb23b59e18a7bc0f5c5d4c95dd4",
+      "bytes": 5404,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_dronecan_capture.py",
       "sha256": "sha256:d6ff9ff2a354f4d8899563acfe39582c4224602e55425974835d0c914fa3a664",
       "bytes": 35641,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_dronecan_window.py",
+      "sha256": "sha256:f9cd453f63f7fcbc3454ed495fbf9e4ddc237fe138941b89413c84666c66e331",
+      "bytes": 3630,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5137,9 +5569,45 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_farmbot_identity_contract.py",
+      "sha256": "sha256:8a2baa885d989173392c97c5aa6f95dbe9087b07e89609e8ade53b4c3de3d417",
+      "bytes": 2796,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_farmbot_image_binding.py",
+      "sha256": "sha256:1373e4ab8d4bbb41bfc254927233f57b4c5b2333936abea8f93877b0f6d65e25",
+      "bytes": 5984,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_farmbot_mqtt_pins.py",
+      "sha256": "sha256:c6edf867319a2d445f2e2e9151006374f205cd6755898533a88ef8aa2a76f7ec",
+      "bytes": 6351,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_farmbot_point_list.py",
+      "sha256": "sha256:4070dd611798b0fafeaf3d0b5bc8bfba4e61710b0a2153d98f7eddbe6baad0c9",
+      "bytes": 3497,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_farmbot_saved_logs.py",
+      "sha256": "sha256:0a24b4fa07583e57f399febdd421ce9d932592f31aee4e70befbbbf4809b20be",
+      "bytes": 3868,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_farmbot_saved_pins.py",
+      "sha256": "sha256:fff2b338fd4d37bd8f5315b6185953cecd015633ca24a377357512df881512f6",
+      "bytes": 9253,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_farmbot_state.py",
-      "sha256": "sha256:dc2f9f586d88ed0e7876751e560d3f10b11ca259b15ec493b09cb25ce1e37340",
-      "bytes": 5906,
+      "sha256": "sha256:1ce80a7e41697a0b848203b5308e30bde23248144ce225835ff07b5deb777dce",
+      "bytes": 10903,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5186,8 +5654,8 @@
     },
     {
       "path": "tests/test_ground_message_closure.py",
-      "sha256": "sha256:2728421a0175dfcaba44e2333cd214872fdcd0454c176425051d932786533562",
-      "bytes": 27609,
+      "sha256": "sha256:e425a9444ceeb07b6cd3aa7856ce859dde2ed619f3b2aaefbcc03072be7231e6",
+      "bytes": 42699,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5245,6 +5713,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_isobus_isb_report.py",
+      "sha256": "sha256:ff60f505025ecfc1c19cddeecbedf5c703e1fd045013c16af3a1e356c32b0873",
+      "bytes": 3341,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_isobus_ut_tc_capture.py",
       "sha256": "sha256:e7c1897245fb0423e8d0043c9c0efde63f2b2e19216e26b4848008702e01d73c",
       "bytes": 20849,
@@ -5252,20 +5726,38 @@
     },
     {
       "path": "tests/test_isoxml_prescription.py",
-      "sha256": "sha256:46ee78c90244d09e4cf75a423c9a628762cc81341b1388269c383d6eff67ab84",
-      "bytes": 21555,
+      "sha256": "sha256:d3e95e2ba3d037c9660ff9e7a54d579fc2194eaeff74276950004a0b462f0c79",
+      "bytes": 31029,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_isoxml_prescription_contract.py",
+      "sha256": "sha256:c5b90efc306ab2d111cca5e57a2d6102f3d9ad1d55c411ca08e0d1b152cc7ac0",
+      "bytes": 2944,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "tests/test_isoxml_rate.py",
-      "sha256": "sha256:50b1eb574b5f3f519b20806cde9b5ff544a19142e6d5ca524be48ba97a213a81",
-      "bytes": 57014,
+      "sha256": "sha256:de691892f9be2d32754752d1b79ed88042404b01f8c2873ee70cf3a4dfd1d000",
+      "bytes": 75709,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "tests/test_j1939_recorded.py",
       "sha256": "sha256:096b1a46b435457341774582149f470f0f7317baed0c144c9866dfd572e047ea",
       "bytes": 11282,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_j1939_rts.py",
+      "sha256": "sha256:04da73e0a734ca2df938f17a4bdd86c6589df893b19ac75af77bfc63ddeb9cd8",
+      "bytes": 14418,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_j1939_window.py",
+      "sha256": "sha256:a7f1946eafaf7ff09221bbc77a01c8fc001836899ef2246009786adb9384c193",
+      "bytes": 3553,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5360,14 +5852,26 @@
     },
     {
       "path": "tests/test_mqtt_recorded.py",
-      "sha256": "sha256:e7d73994eb72c66b689335779ab892b79d25c958a32313050546d16e4f4764f5",
-      "bytes": 39471,
+      "sha256": "sha256:c69577a98a51c05d0e5ea64e889ef0507365b71043be9782de3d8df7133a3860",
+      "bytes": 45995,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_msp_stream.py",
+      "sha256": "sha256:9423c930f2795ffd6a9922bcf28e00105a15b7c6313ef1796994e1f14758f0f9",
+      "bytes": 7401,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_native_displayport.py",
+      "sha256": "sha256:bc8626528673e55ceca16df71055d9a0c84f7478e268d88424378b92b953680e",
+      "bytes": 3787,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "tests/test_nav2_map_content.py",
-      "sha256": "sha256:84f8b435f1ad9c2ece90a4c6c5281889539ed4f163e6119b9457ccb238c67687",
-      "bytes": 15714,
+      "sha256": "sha256:cc589cd31d37c8118d7f8e8c88a4363c0e94a99df29347f628386f496ed025af",
+      "bytes": 23127,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5377,21 +5881,45 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_nav2_saved_result.py",
+      "sha256": "sha256:ebcea3791fe27fd51f258d5d5ec7d3bdfa0d0c7996d95763833482a5a489b950",
+      "bytes": 3732,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_nav2_through_poses.py",
+      "sha256": "sha256:579f13991985d41110451f944187f33edc9b9e490deada036ac3811423bafbe7",
+      "bytes": 8295,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_neptus_dictionary_compatibility.py",
       "sha256": "sha256:bea999ae789ec4a897073773100ba7c8e1322e82e3630dd975f5cc19875716a1",
       "bytes": 9971,
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_nmea2000_engine_contract.py",
+      "sha256": "sha256:2717e8572934e7e23436e00992a2edf82f01d22c98b400ed222f8c11368c6871",
+      "bytes": 10954,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_nmea2000_weather.py",
-      "sha256": "sha256:8933eddf9eb831dda07cd7204a97c632017541c47dfdc8a15bdb8da45e251ee5",
-      "bytes": 29393,
+      "sha256": "sha256:9abe97e088288a42488e8b1a690025c11a2a19540961d336e9a19a14f507a195",
+      "bytes": 38740,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "tests/test_nmea_ascii_window.py",
       "sha256": "sha256:c0d10f2903d5b004297e8fd49a4d701f42ac70a251fa3b161b6665727b8e1f26",
       "bytes": 4629,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_nmea_engine_window.py",
+      "sha256": "sha256:eaae630ed852c2e453adbe2777131a407ba6456ce4b1edd88ab5c866047121ca",
+      "bytes": 4069,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5485,6 +6013,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_public_factsheet_sample.py",
+      "sha256": "sha256:7543bb9e2ad9aaf47eba4e702163aabd6c3d6d3c2e3882bd6df01b60e634348c",
+      "bytes": 1970,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_public_point_chunks.py",
       "sha256": "sha256:72c18d4d749553f745dd9881610fcfb62014cc7dbfccdbdf060849a1e42f5c30",
       "bytes": 8164,
@@ -5533,6 +6067,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_recorded_mission_parameters.py",
+      "sha256": "sha256:e4446bd15f96e235e4c06b838dcd9e6df50d93d5ad45c7cac0333ff5cfb54849",
+      "bytes": 5916,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_recorded_observation_connection.py",
       "sha256": "sha256:5ced4a7432c1a8903d73b223c3bec2ae5c1a4f2046c11430d78391b9cca8e810",
       "bytes": 21900,
@@ -5557,6 +6097,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_rmf_path_association.py",
+      "sha256": "sha256:15d490cb0a2ba30df30d260844cb1c4bb2fbe3e76da71fb6e42edbc8ec329289",
+      "bytes": 4883,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_rmf_websocket_recorded.py",
       "sha256": "sha256:3945ce9f35830cd21fc6e0b3ec23d5d67db9a1e324a99589b53156f775d74a83",
       "bytes": 5088,
@@ -5572,6 +6118,12 @@
       "path": "tests/test_ros1_window_contract.py",
       "sha256": "sha256:d3f0223c330f9794007af70c3e16cb2f3ab82cc39cd857ac62e2e76075448d8c",
       "bytes": 10428,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ros_legacy_sensors.py",
+      "sha256": "sha256:80c9e6e72707716610d08b0502373dfc9e66df2a635aeaa18abecf384358d6a8",
+      "bytes": 4633,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5701,6 +6253,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_saved_video_frames.py",
+      "sha256": "sha256:feea57f8997ebe9b8851f2cb9e91acdf6ae250645caa034e7d7afbf19d97ed92",
+      "bytes": 5253,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_sbf_records.py",
       "sha256": "sha256:5389bce854d6af8741adf481bb808b11c4758e20ab66fdc9e1989a083c357c17",
       "bytes": 23349,
@@ -5710,6 +6268,18 @@
       "path": "tests/test_sdf_airframe.py",
       "sha256": "sha256:608aa4e197d3cf93a5fdcea83f8b0e64477178cef49c9b9e8b8a48c268688928",
       "bytes": 22944,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_sensorthings_typed_pages.py",
+      "sha256": "sha256:faa304182c7ac46569db647470671296527b955c55f550cb08f487d10f25746a",
+      "bytes": 5373,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_serial_frame_window.py",
+      "sha256": "sha256:b25bc8feed28e1c1fec9472d384e1f2bfa8fe5214b82a3a6d3b77d42bf425e66",
+      "bytes": 5132,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -5737,6 +6307,24 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_sport_stream_contract.py",
+      "sha256": "sha256:23e518d0fd9b33aa4b3ff51336c0a29ee920a641619516984b2a5751e3bd2702",
+      "bytes": 9797,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_tlog_nav_comparison_contract.py",
+      "sha256": "sha256:5b642afea53eb57b6a424d66a19230903eba127d93f5c7f4877bbc266ce70a4e",
+      "bytes": 13392,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_tlog_param_comparison.py",
+      "sha256": "sha256:7c859ac02f1dcf62920a6ab2e07149a65f6c2301f1024c703601d63d1487b573",
+      "bytes": 8482,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_trajectory_conversion.py",
       "sha256": "sha256:8a32b4bc383e58bfed4a5fb42cec3cee53e1e751d057a21205e7011b0c35251e",
       "bytes": 2705,
@@ -5749,6 +6337,42 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_vda20_error_reports.py",
+      "sha256": "sha256:dcb050d21a6b967e7528c68b3c9f854927669ff39f90aeb1836c2f329099c5cb",
+      "bytes": 3230,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_vda_context_contract.py",
+      "sha256": "sha256:5a8ad2fd4c75e19401d7902353dcfb493fed3ffaf8911a9a2ffb58f40346a068",
+      "bytes": 4523,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_vda_factsheet_capabilities.py",
+      "sha256": "sha256:bd35be9bb3aa5dbd56ca5949a93ade130e94a530c48bce2f51e41e81796e9a12",
+      "bytes": 15666,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_vda_factsheet_geometry.py",
+      "sha256": "sha256:27d6ae5be8ee4198c8c6dc57e572e2088444df92492c6ffdc6abdeedfbfab46c",
+      "bytes": 9931,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_vda_factsheet_limits.py",
+      "sha256": "sha256:0fbbfcd4c02fa4756114b1de481932e048bd3cd29ef1e666d7f54297ac3a6646",
+      "bytes": 5602,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_vda_factsheet_v21.py",
+      "sha256": "sha256:b904570938cee11b7f167d5acd814c52d5e9f788a9b069c2e8d781c2c42ccfeb",
+      "bytes": 13721,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_vda_load_report.py",
       "sha256": "sha256:6ecb5fec9855d860a1b8d5a4872462b4637c9db42e20bf611a8bc49a9482813c",
       "bytes": 21644,
@@ -5758,6 +6382,18 @@
       "path": "tests/test_vda_load_window.py",
       "sha256": "sha256:ef8f3fce09e275b3f8b540a06e7cc0ad9dd37eaba1f7a209fe22adcb6d612cb2",
       "bytes": 10784,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_video_detector_intervals.py",
+      "sha256": "sha256:d218f1c41d36941c8e5a600a2e144c40db665152bbb52888b3daab3adc08c07e",
+      "bytes": 12230,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_video_flight_binding.py",
+      "sha256": "sha256:3a6e83bff5e75d10a3d823e15be663c88bc2315b59cd68c8210dd47214077fd3",
+      "bytes": 11726,
       "spdxLicenseId": "Apache-2.0"
     },
     {

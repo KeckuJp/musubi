@@ -1,5 +1,6 @@
 """Authored layout/meaning checks; no physical application claim."""
 import csv
+import hashlib
 import io
 import json
 import os
@@ -14,7 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = b'<TIM A="" D="4"><PTN A="" B="" D=""/><DLV A="0002" B="" C="DET-1"/><DLV A="0001" B="" C="DET-1"/><DLV A="0002" B="" C="DET-2"/></TIM>'
 
 
+# The same layout with a declared-geometry DDI in the log, so a reported value can be shown to
+# stay out of the declaration.
 GEOMETRY_TEMPLATE = TEMPLATE.replace(b'A="0001"', b'A="0043"')
+# Authored description: one section element referring to six declared geometry properties, one
+# property this converter does not select, one process data, and one reference that resolves to
+# nothing; plus a second element that declares no geometry at all.
 GEOMETRY_DESCRIPTION = ('<ISO11783_TaskData VersionMajor="4" VersionMinor="2"><DVC A="DVC-1">'
     '<DET A="DET-1" B="1" C="4" D="Left" E="1" F="0">'
     '<DOR A="10"/><DOR A="11"/><DOR A="12"/><DOR A="13"/><DOR A="14"/><DOR A="15"/>'
@@ -36,6 +42,198 @@ def row(changes, *, position=True, ms=1000):
 
 
 class IsoxmlRateTests(unittest.TestCase):
+    @unittest.skipUnless(os.environ.get("MUSUBI_TELEMETRY_READER"), "shared reader required")
+    def test_declared_process_channels_reach_common_without_becoming_values(self):
+        for element, ddi, presentation in (("DET-P", "0002", 'F="9"'), ("DET-Q", "FFFF", 'F="10"')):
+            description = (f'<ISO11783_TaskData VersionMajor="4" VersionMinor="2"><DVC A="DVC-1">'
+                f'<DET A="{element}" B="1" C="4" E="3" F="0"><DOR A="8"/><DOR A="77"/></DET>'
+                f'<DPD A="8" B="{ddi}" C="7" D="31" E="channel" {presentation} Z="future"/>'
+                '<DVP A="9" B="-1" C="0.01" D="2" E="custom,unit"/></DVC></ISO11783_TaskData>').encode()
+            template = f'<TIM A="" D="4"><DLV A="0002" B="" C="{element}"/></TIM>'.encode()
+            data = row([(0, 120)], position=False)
+            text, report = convert(template, data, taskdata=description, process_data=True)
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / 'channels.csv'; path.write_text(text)
+                common = json.loads(subprocess.run([os.environ['MUSUBI_TELEMETRY_READER'],
+                    str(ROOT / 'profiles/declared/isoxml-rate/profile.toml'),
+                    str(path)], check=True, capture_output=True).stdout)
+            fields = common['observations'][0]['fields']
+            self.assertEqual(common['main_rows'], 1)
+            self.assertEqual(fields['declared_process_channels'], '8=' + ddi)
+            self.assertEqual(fields['declared_process_property_codes'], '8=7')
+            self.assertEqual(fields['declared_process_trigger_codes'], '8=31')
+            self.assertEqual(fields['actual_volume_rate_l_ha'], 0.012)
+            self.assertIn('ref=9:offset=-1:scale=0.01:decimals=2:unithex=' if ddi == '0002'
+                          else 'ref=10:UNRESOLVED', fields['declared_process_value_presentations'])
+            self.assertIn('future', bytes.fromhex(fields['declared_process_unknown_attributes_hex'].split(':', 1)[1]).decode())
+            self.assertEqual(str(fields['declared_process_unresolved_references']), '77')
+            self.assertEqual(fields['device_description_sha256'], 'sha256:' + hashlib.sha256(description).hexdigest())
+            self.assertEqual(report['clock'], 'Unknown')
+            self.assertEqual(report['source_records_hex'], [data.hex()])
+
+    def test_declared_process_invalid_references_and_codes_are_refused(self):
+        description = ('<ISO11783_TaskData VersionMajor="4" VersionMinor="2"><DVC A="DVC-1">'
+            '<DET A="DET-1" B="1" C="4" E="0" F="0"><DOR A="8"/></DET>'
+            '<DPD A="8" B="0002" C="0" D="1"/></DVC></ISO11783_TaskData>')
+        template = b'<TIM A="" D="4"><DLV A="0002" B="" C="DET-1"/></TIM>'
+        data = row([(0, 120)], position=False)
+        for bad in (description.replace('C="0" D="1"', 'C="8" D="1"'),
+                    description.replace('D="1"/>', 'D="32"/>'),
+                    description.replace('B="0002"', 'B="XYZ2"'),
+                    description.replace('<DOR A="8"/>', '<DOR A="8"/><DOR A="8"/>')):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                convert(template, data, taskdata=bad.encode(), process_data=True)
+        with self.assertRaises(ValueError):
+            convert(template, data, process_data=True)
+
+    @unittest.skipUnless(os.environ.get("MUSUBI_TELEMETRY_READER"), "shared reader required")
+    def test_reported_geometry_changes_remain_distinct_from_declarations(self):
+        ddis = (67, 68, 70, 134, 135, 136, 999)
+        template = ('<TIM A="" D="4">' + ''.join(
+            f'<DLV A="{ddi:04X}" B="" C="DET-1"/>' for ddi in ddis) + '</TIM>').encode()
+        data = row([(0, 2000), (1, 3200), (2, 3500), (3, -500), (4, 1234),
+                    (5, -2147483648), (6, 19)], position=False)
+        data += row([(0, 0), (3, 2147483647)], position=False) + row([], position=False)
+        csv_text, report = convert(template, data, taskdata=GEOMETRY_DESCRIPTION.encode(),
+                                   section_geometry=True, reported_geometry=True)
+        self.assertEqual((report['source_records'], report['source_updates'],
+                          report['decoded_updates'], report['unsupported_updates'],
+                          report['reported_geometry_updates']), (3, 9, 8, 1, 8))
+        self.assertEqual(b''.join(bytes.fromhex(x) for x in report['source_records_hex']), data)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'geometry.csv'; path.write_text(csv_text)
+            common = json.loads(subprocess.run([os.environ['MUSUBI_TELEMETRY_READER'],
+                str(ROOT / 'profiles/declared/isoxml-rate/profile.toml'),
+                str(path), '--allow-equal-time'], check=True, capture_output=True).stdout)
+        self.assertEqual(common['main_rows'], 8)
+        fields = [o['fields'] for o in common['observations']]
+        self.assertEqual(fields[0]['reported_actual_working_width_m'], 2)
+        self.assertEqual(fields[0]['declared_actual_working_width_m'], 3)
+        self.assertIsNone(fields[0]['reported_element_offset_x_m'])
+        self.assertEqual(fields[3]['reported_element_offset_x_m'], -0.5)
+        self.assertEqual(fields[5]['reported_element_offset_z_m'], -2147483.648)
+        self.assertEqual(fields[6]['reported_actual_working_width_m'], 0)
+        self.assertEqual(fields[7]['reported_element_offset_x_m'], 2147483.647)
+        self.assertEqual([f['source_update'] for f in fields], [0, 1, 2, 3, 4, 5, 0, 1])
+        self.assertEqual([f['source_row'] for f in fields], [1] * 6 + [2] * 2)
+        self.assertIn('NO_AXIS_SIGN', fields[3]['reported_geometry_reference_basis'])
+        # Separate authored input: different element, no description, no borrowing declarations.
+        second = b'<TIM A="" D="4"><DLV A="0087" B="" C="DET-NEW"/></TIM>'
+        text, second_report = convert(second, row([(0, -25)], position=False), reported_geometry=True)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'other.csv'; path.write_text(text)
+            result = json.loads(subprocess.run([os.environ['MUSUBI_TELEMETRY_READER'],
+                str(ROOT / 'profiles/declared/isoxml-rate/profile.toml'),
+                str(path), '--allow-equal-time'], check=True, capture_output=True).stdout)
+        self.assertEqual(result['observations'][0]['fields']['reported_element_offset_y_m'], -0.025)
+        self.assertEqual(second_report['decoded_updates'], 1)
+
+    def test_reported_geometry_refuses_invalid_values_and_preserves_default(self):
+        data = row([(0, 1250), (1, 2500)])
+        before = convert(GEOMETRY_TEMPLATE, data, taskdata=GEOMETRY_DESCRIPTION.encode(),
+                         section_geometry=True)
+        self.assertEqual(before, convert(GEOMETRY_TEMPLATE, data,
+            taskdata=GEOMETRY_DESCRIPTION.encode(), section_geometry=True, reported_geometry=False))
+        self.assertEqual(before[1]['reported_geometry_updates'], 1)
+        self.assertEqual(before[1]['unsupported_updates'], 1)
+        with self.assertRaisesRegex(ValueError, 'geometry.*range'):
+            convert(GEOMETRY_TEMPLATE, row([(1, -1)]), reported_geometry=True)
+        with self.assertRaisesRegex(ValueError, 'truncated'):
+            convert(GEOMETRY_TEMPLATE, data[:-1], reported_geometry=True)
+        with self.assertRaisesRegex(ValueError, 'boolean'):
+            convert(GEOMETRY_TEMPLATE, data, reported_geometry='yes')
+
+    def test_reported_geometry_cli_and_prescription_rejection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            (base / 'tim.xml').write_bytes(GEOMETRY_TEMPLATE)
+            (base / 'tim.bin').write_bytes(row([(1, 2750)]))
+            command = [os.sys.executable, str(ROOT / 'scripts/convert_isoxml_rate.py'),
+                       str(base / 'tim.xml'), str(base / 'tim.bin'), str(base / 'out'),
+                       '--reported-geometry']
+            result = subprocess.run(command, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads((base / 'out/report.json').read_text())
+            self.assertEqual(report['reported_geometry_updates'], 1)
+            self.assertEqual(report['applied_converter_revision'], '4')
+            refused = subprocess.run(command[:4] + [str(base / 'refused')] + command[5:]
+                + ['--prescription', '--capture-time-us', '1', '--grid-byte-order', 'little'],
+                capture_output=True)
+            self.assertEqual(refused.returncode, 2)
+            self.assertFalse((base / 'refused').exists())
+
+    @unittest.skipUnless(os.environ.get("MUSUBI_TELEMETRY_READER"), "shared reader required")
+    def test_crop_moisture_actual_and_average_remain_distinct_at_common(self):
+        template = b'<TIM A="" D="4"><DLV A="0063" B="" C="DET-M"/><DLV A="0106" B="" C="DET-M"/><DLV A="00B8" B="" C="DET-M"/></TIM>'
+        for actual, average in ((125000, 150000), (0, 1000000)):
+            data = row([(0, actual), (1, average), (0, actual), (2, 250000)], position=False)
+            data += row([], position=False)
+            data += row([(0, 1000001)], position=False)
+            output, report = convert(template, data, harvest=True, crop_moisture=True)
+            self.assertEqual((report['source_records'], report['source_updates'], report['decoded_updates'],
+                              report['unsupported_updates'], report['records_without_supported_update']), (3, 5, 4, 1, 1))
+            self.assertEqual(b''.join(bytes.fromhex(x) for x in report['source_records_hex']), data)
+            self.assertEqual(report['applied_converter_revision'], '3')
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / 'out.csv'; path.write_text(output)
+                common = json.loads(subprocess.run([os.environ['MUSUBI_TELEMETRY_READER'],
+                    str(ROOT / 'profiles/declared/isoxml-rate/profile.toml'),
+                    str(path), '--allow-equal-time'], check=True, capture_output=True).stdout)
+            self.assertEqual(common['main_rows'], 4)
+            fields = [o['fields'] for o in common['observations']]
+            self.assertEqual([f['source_ddi'] for f in fields], [99, 262, 99, 99])
+            self.assertEqual([f['source_update'] for f in fields], [0, 1, 2, 0])
+            self.assertEqual([f['source_row'] for f in fields], [1, 1, 1, 3])
+            self.assertEqual(fields[0]['reported_crop_moisture_ppm'], actual)
+            self.assertEqual(fields[0]['reported_crop_moisture_fraction'], actual / 1000000)
+            self.assertIsNone(fields[0]['reported_average_crop_moisture_ppm'])
+            self.assertIsNone(fields[1]['reported_crop_moisture_ppm'])
+            self.assertEqual(fields[1]['reported_average_crop_moisture_ppm'], average)
+            self.assertEqual(fields[3]['reported_crop_moisture_ppm'], 1000001)
+            self.assertIsNone(fields[3]['reported_crop_moisture_fraction'])
+            self.assertEqual(fields[3]['reported_crop_moisture_status'], 'OUTSIDE_FRACTION_RANGE')
+            for observation in common['observations']:
+                self.assertEqual(observation['clock_basis'], 'Unknown')
+                self.assertIsNone(observation['anchor_unix_us'])
+                self.assertEqual(observation['fields']['device_element_hex'], 'hex:' + b'DET-M'.hex())
+
+    def test_crop_moisture_default_hashes_and_cli_selection(self):
+        template = b'<TIM A="" D="4"><DLV A="0002" B="" C="D"/><DLV A="0063" B="" C="M"/><DLV A="0106" B="" C="M"/><DLV A="00B8" B="" C="M"/></TIM>'
+        data = row([(0, 100), (1, 125000), (2, 150000), (3, 123)], position=False)
+        for harvest, csv_sha, report_sha in ((False,
+                '276453a14d41e28f25fac4a8e7d36ca0c6035fd4e520a7b058e49de686489d5e',
+                '3767fecd4c36e0529d554bbabbe58e48ca5ba3c9c66b481287534659c6d8b695'), (True,
+                '62d2a2626b6843a21cbaffd76d31fb3eebe7f92b6ed38b11a0ca4dcfefb426e1',
+                '6c7e489e0b60cf5006cd3097a1f80ba08d9ac84c9d51243de1ebbc05f951320e')):
+            output, report = convert(template, data, harvest=harvest)
+            self.assertEqual(hashlib.sha256(output.encode()).hexdigest(), csv_sha)
+            self.assertEqual(hashlib.sha256(json.dumps(report, sort_keys=True).encode()).hexdigest(), report_sha)
+            self.assertEqual((output, report), convert(template, data, harvest=harvest, crop_moisture=False))
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory); xml = base / 'tim.xml'; binary = base / 'tim.bin'
+            xml.write_bytes(template); binary.write_bytes(data)
+            cli = [os.sys.executable, str(ROOT / 'scripts/convert_isoxml_rate.py'), str(xml), str(binary)]
+            subprocess.run(cli + [str(base / 'out'), '--crop-moisture'], check=True, capture_output=True)
+            self.assertEqual((base / 'out/observations.csv').read_text(), convert(template, data, crop_moisture=True)[0])
+            result = subprocess.run(cli + [str(base / 'bad'), '--crop-moisture', '--prescription',
+                '--capture-time-us', '1', '--grid-byte-order', 'little-endian-pinned-decoder'], capture_output=True)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn(b'ISOXML rate conversion failed', result.stderr)
+            self.assertFalse((base / 'bad').exists())
+
+    def test_crop_moisture_important_refusals_and_no_sentinel_guess(self):
+        template = b'<TIM A="" D="4"><DLV A="0063" B="" C="M"/></TIM>'
+        for value in (1000000, 2147483647):
+            output, _ = convert(template, row([(0, value)], position=False), crop_moisture=True)
+            record = next(csv.DictReader(io.StringIO(output)))
+            self.assertEqual(record['reported_crop_moisture_ppm'], str(value))
+            self.assertEqual(record['reported_crop_moisture_fraction'], '1.0' if value == 1000000 else '')
+        for data in (row([(0, -1)], position=False), row([(0, 1)], position=False)[:-1], row([], position=False)):
+            with self.subTest(data=data), self.assertRaises(ValueError): convert(template, data, crop_moisture=True)
+        for option in (1, 'yes', None):
+            with self.subTest(option=option), self.assertRaises(ValueError):
+                convert(template, row([(0, 1)], position=False), crop_moisture=option)
+
     def test_device_reference_links_local_ids_without_changing_rate(self):
         for designator in ('Left', 'Right'):
             description = ('<ISO11783_TaskData VersionMajor="4" VersionMinor="2"><!-- writer -->'
@@ -106,6 +304,7 @@ class IsoxmlRateTests(unittest.TestCase):
         self.assertEqual(rows[0]['reported_work_state'], 'ENABLED')
         self.assertEqual(rows[0]['declared_element_designator_hex'], 'hex:' + b'Boom'.hex())
         self.assertEqual(rows[0]['declared_element_number'], '7')
+        # The condensed row resolves to its own declared element, not the 141 one.
         self.assertEqual(rows[1]['first_child_ordinal'], '1')
         self.assertEqual((rows[1]['child_state_1'], rows[1]['child_state_2']), ('ERROR', 'ENABLED'))
         self.assertEqual(rows[1]['declared_element_object_id'], '4')
@@ -165,6 +364,8 @@ class IsoxmlRateTests(unittest.TestCase):
                     self.assertEqual(common['main_rows'], 8)
                     self.assertEqual(common['observations'][4]['fields']['child_state_1'], names[pattern & 3])
                     self.assertEqual(common['observations'][6]['fields']['first_child_ordinal'], 33)
+                    # The element-level state itself, in the Observation rather than only the CSV,
+                    # with the links that make it attributable.
                     element = common['observations'][0]['fields']
                     self.assertEqual(element['reported_work_state'], names[0])
                     self.assertEqual(element['source_ddi'], 141)
@@ -173,6 +374,7 @@ class IsoxmlRateTests(unittest.TestCase):
                     units = common['profile_units']
                     self.assertIn('not_measured_material_flow', units['reported_work_state'])
                     self.assertIn('not_physical_geometry', units['first_child_ordinal'])
+                    # Every slot declares its own ordinal and the caution the codes need.
                     for slot in range(1, 17):
                         declared = units[f'child_state_{slot}']
                         self.assertIn(f'first_child_ordinal_plus_{slot - 1}', declared)
@@ -276,6 +478,7 @@ class IsoxmlRateTests(unittest.TestCase):
         description = (b'<ISO11783_TaskData VersionMajor="4" VersionMinor="2">'
                        b'<DVC A="DVC-H"><DET A="DET-H" B="7" C="6" D="Combine header" E="3" F="0"/></DVC>'
                        b'</ISO11783_TaskData>')
+        # Authored values that appear nowhere else in this module, so a mapping - not a fixture - is shown.
         mass, flow, total, moisture, withheld = 1234567, 98765, 4242, 123456, 1500000
         data = row([(0, mass), (1, flow), (2, total), (3, moisture)], position=False)
         data += row([(3, withheld)], position=False, ms=2000)
@@ -283,6 +486,7 @@ class IsoxmlRateTests(unittest.TestCase):
         rows = list(csv.DictReader(io.StringIO(output)))
         self.assertEqual([int(r["source_ddi"]) for r in rows], [84, 87, 90, 262, 262])
         self.assertEqual(report["device_description_sha256"][:7], "sha256:")
+        # Reported yield and moisture never borrow the applied-rate columns, and nothing is held over.
         self.assertTrue(all(r["actual_volume_rate_l_ha"] == "" and r["actual_mass_rate_kg_m2"] == ""
                             and r["actual_count_per_m2"] == "" for r in rows))
         self.assertEqual(rows[4]["reported_yield_mass_kg_m2"], "")
@@ -303,6 +507,7 @@ class IsoxmlRateTests(unittest.TestCase):
         self.assertEqual(common["main_rows"], 5)
         self.assertEqual(common["platform_domain"], "Unknown")
         fields = [observation["fields"] for observation in common["observations"]]
+        # All four supported dimensions arrive as normalized quantities, not as raw integers alone.
         self.assertAlmostEqual(fields[0]["reported_yield_mass_kg_m2"], mass / 1000000)
         self.assertAlmostEqual(fields[1]["reported_yield_mass_kg_s"], flow / 1000000)
         self.assertEqual(fields[2]["reported_yield_total_mass_kg"], total)
@@ -311,9 +516,11 @@ class IsoxmlRateTests(unittest.TestCase):
         self.assertEqual(fields[3]["reported_moisture_status"], "REPORTED")
         self.assertEqual([field["source_raw_value"] for field in fields],
                          [mass, flow, total, moisture, withheld])
+        # The out-of-range average keeps its ppm and its reason; the fraction is withheld, never clamped.
         self.assertEqual(fields[4]["reported_average_crop_moisture_ppm"], withheld)
         self.assertIsNone(fields[4]["reported_average_crop_moisture_fraction"])
         self.assertEqual(fields[4]["reported_moisture_status"], "OUTSIDE_FRACTION_RANGE")
+        # The device identity of the reporting element travels with every quantity row.
         for field in fields:
             self.assertEqual(field["declared_device_id_hex"], "hex:" + b"DVC-H".hex())
             self.assertEqual(field["declared_element_object_id"], 7)
@@ -322,6 +529,7 @@ class IsoxmlRateTests(unittest.TestCase):
             self.assertEqual(field["declared_element_designator_hex"],
                              "hex:" + "Combine header".encode().hex())
             self.assertEqual(field["device_description_sha256"], report["device_description_sha256"])
+        # The clock stays the source's own local calendar time: no UTC anchor is claimed.
         self.assertTrue(all(observation["clock_basis"] == "Unknown"
                             and observation["anchor_unix_us"] is None
                             for observation in common["observations"]))
@@ -339,6 +547,7 @@ class IsoxmlRateTests(unittest.TestCase):
         self.assertIn("task_average_not_instantaneous", units["reported_average_crop_moisture_ppm"])
         self.assertIn("not_an_authenticated_device", units["declared_device_id_hex"])
         self.assertIn("not_a_measured_implement_identity", units["declared_element_designator_hex"])
+        # A timelog element absent from the declared device description is refused, not left blank.
         with self.assertRaises(ValueError):
             convert(template, data, harvest=True,
                     taskdata=description.replace(b'A="DET-H"', b'A="DET-OTHER"'))
@@ -457,18 +666,22 @@ class IsoxmlRateTests(unittest.TestCase):
         self.assertEqual(bytes.fromhex(first["declared_task_controller_hex"][4:]).decode(), "Acme TC")
         self.assertEqual(bytes.fromhex(first["declared_task_controller_version_hex"][4:]).decode(), "3.4")
         self.assertIn("NOT_AUTHENTICATED", first["declared_transfer_provenance_basis"])
+        # The rate is untouched by the new columns, and no provenance appears without --taskdata.
         baseline = list(csv.DictReader(io.StringIO(convert(TEMPLATE, data)[0])))[0]
         self.assertEqual(first["actual_volume_rate_l_ha"], baseline["actual_volume_rate_l_ha"])
         self.assertNotIn("declared_transfer_origin", baseline)
+        # An absent declaration stays blank: it is not MICS and it is not an error.
         absent = list(csv.DictReader(io.StringIO(convert(TEMPLATE, data, taskdata=description())[0])))[0]
         self.assertEqual([absent[key] for key in ("declared_transfer_origin_code",
                                                   "declared_transfer_origin",
                                                   "declared_management_software_hex")], ["", "", ""])
         self.assertIn("NOT_AUTHENTICATED", absent["declared_transfer_provenance_basis"])
+        # An undocumented code keeps its number rather than being guessed into a known side.
         unknown = list(csv.DictReader(io.StringIO(convert(
             TEMPLATE, data, taskdata=description(' DataTransferOrigin="9"'))[0])))[0]
         self.assertEqual((unknown["declared_transfer_origin_code"], unknown["declared_transfer_origin"]),
                          ("9", "UNKNOWN_CODE_RETAINED"))
+        # A non-integer origin is refused rather than ignored.
         with self.assertRaises(ValueError):
             convert(TEMPLATE, data, taskdata=description(' DataTransferOrigin="FMIS"'))
 
@@ -499,9 +712,12 @@ class IsoxmlRateTests(unittest.TestCase):
         data = row([(0, 10000), (1, 43000), (2, 20000)])
         plain, _ = convert(GEOMETRY_TEMPLATE, data, taskdata=description)
         output, report = convert(GEOMETRY_TEMPLATE, data, taskdata=description, section_geometry=True)
+        # Without the flag the adopted output is untouched, column for column.
         self.assertNotIn("declared_element_offset_x_m", plain.splitlines()[0])
         rows = list(csv.DictReader(io.StringIO(output)))
         left, right = rows[0], rows[1]
+        # The three widths are different declarations and stay apart; the decoder's 0046-over-0044
+        # -over-0043 priority is deliberately not reproduced.
         self.assertEqual(left["declared_actual_working_width_m"], "3.000")
         self.assertEqual(left["declared_default_working_width_m"], "3.200")
         self.assertEqual(left["declared_maximum_working_width_m"], "3.500")
@@ -512,19 +728,24 @@ class IsoxmlRateTests(unittest.TestCase):
         self.assertEqual(left["declared_geometry_property_ids"],
                          "0043=10;0044=11;0046=12;0086=13;0087=14;0088=15")
         self.assertIn("NO_AXIS_SIGN_CONVENTION", left["declared_geometry_reference_basis"])
+        # A declared presentation is kept and not applied: 1200 mm stays 1.2 m, not 1.2 scaled again.
         self.assertEqual(left["declared_geometry_value_presentation"], "0088=30")
         self.assertIn("RETAINED_NOT_APPLIED", left["declared_geometry_value_presentation_disposition"])
+        # Referenced but unselected, and referenced but resolving to nothing, are both named.
         self.assertEqual(left["declared_referenced_property_count"], "7")
         self.assertEqual(left["declared_unselected_property_ddis"], "00A0")
         self.assertEqual(left["declared_unresolved_reference_ids"], "99")
         self.assertEqual(left["declared_referenced_process_data_count"], "1")
+        # An element that declares no geometry is blank throughout, and blank is not zero.
         self.assertEqual([right[name] for name in ("declared_actual_working_width_m",
                                                    "declared_element_offset_x_m",
                                                    "declared_geometry_raw_mm",
                                                    "declared_geometry_reference_basis")], [""] * 4)
         self.assertEqual(right["declared_geometry_value_presentation_disposition"], "NOT_DECLARED")
+        # The rates themselves are untouched by the new columns.
         self.assertEqual([r["actual_volume_rate_l_ha"] for r in rows],
                          [r["actual_volume_rate_l_ha"] for r in csv.DictReader(io.StringIO(plain))])
+        # The timelog carried DDI 0043 as a reported value; the declaration is not filled from it.
         self.assertEqual(report["reported_geometry_updates"], 1)
         self.assertEqual(report["unsupported_updates"], 1)
         self.assertEqual([report["declared_geometry_elements"], report["declared_geometry_properties"],
@@ -558,6 +779,8 @@ class IsoxmlRateTests(unittest.TestCase):
             self.assertNotEqual(broken, GEOMETRY_DESCRIPTION.encode(), why)
             with self.assertRaises(ValueError, msg=why):
                 convert(TEMPLATE, data, taskdata=broken, section_geometry=True)
+        # Those refusals exist only because the flag reads the references at all: the adopted
+        # --taskdata path never looked at a DOR and still does not.
         self.assertTrue(convert(TEMPLATE, data, taskdata=GEOMETRY_DESCRIPTION.replace(
             '<DOR A="10"/>', '<DOR A="10" B="1"/>').encode())[0])
         with self.assertRaises(ValueError):  # Geometry has nothing to resolve against on its own.
@@ -595,6 +818,7 @@ class IsoxmlRateTests(unittest.TestCase):
         data = row([(0, 10000), (2, 20000)])
         output, report = convert(TEMPLATE, data)
         header = output.splitlines()[0].split(",")
+        # Appended, so every column that existed keeps its name and its position.
         self.assertEqual(header[-2:], ["applied_converter_id", "applied_converter_revision"])
         self.assertEqual(header[:6], ["record_time_us", "source_row", "source_update",
                                       "source_column", "device_element_hex", "source_raw_value"])
@@ -603,14 +827,17 @@ class IsoxmlRateTests(unittest.TestCase):
         self.assertTrue(all(r["applied_converter_id"] == APPLIED_CONVERTER_ID for r in rows))
         self.assertTrue(all(r["applied_converter_revision"] == APPLIED_CONVERTER_REVISION
                             for r in rows))
+        # The measurements are untouched: same times, same values, same accounting as before.
         self.assertEqual([(r["record_time_us"], r["actual_volume_rate_l_ha"]) for r in rows],
                          [("864000001000000", "1.0"), ("864000001000000", "2.0")])
         self.assertEqual((report["source_records"], report["decoded_updates"]), (1, 2))
         self.assertEqual(report["applied_converter_id"], APPLIED_CONVERTER_ID)
+        # The basis says what the revision is not, and never claims an authenticated execution.
         for absent in ("AUTHENTICAT", "ATTEST", "VERIFIED", "PROOF"):
             self.assertNotIn(absent, report["applied_converter_basis"].replace(
                 "NOT_A_SOURCE_BYTE_OR_INSTALLED_PACKAGE_ATTESTATION", ""))
         self.assertIn("NOT_A_SIGNATURE_OR_RECEIPT", report["applied_converter_basis"])
+        # The prescription path carries the same two fields, at the end of its own header.
         description = ('<ISO11783_TaskData VersionMajor="4" VersionMinor="2"><TSK A="TSK-1" B="Plan">'
                        '<TZN A="1"><PDV A="0001" B="5000"/></TZN>'
                        '<GRD A="52.0" B="4.0" C="0.001" D="0.001" E="1" F="1" G="GRID1" I="1"/>'
@@ -626,6 +853,8 @@ class IsoxmlRateTests(unittest.TestCase):
 
 
 
+# Declared material attribution from the task's own product allocation. Authored documents only:
+# no real task file, no product registry, no application claim.
 TWO_PRODUCTS = (
     '<ISO11783_TaskData VersionMajor="4" VersionMinor="2">'
     '<PDT A="PDT1" B="Irrigation water" C="PGP1" E="0007" F="1"/>'
@@ -654,12 +883,16 @@ class IsoxmlProductAllocationTests(unittest.TestCase):
         first, second = by_element["DET-1"], by_element["DET-2"]
         self.assertEqual(self.unhex(first["declared_product_designator_hex"]), "Irrigation water")
         self.assertEqual(self.unhex(second["declared_product_designator_hex"]), "Urea 46")
+        # Nothing crosses: each element carries only the product its own allocation named.
         self.assertNotEqual(first["declared_product_id_hex"], second["declared_product_id_hex"])
         self.assertEqual(self.unhex(first["declared_allocation_element_ref_hex"]), "DET-1")
         self.assertEqual(self.unhex(second["declared_allocation_element_ref_hex"]), "DET-2")
+        # The declared type stays a raw code; no material class is read out of it or the name.
         self.assertEqual((first["declared_product_type_code"],
                           second["declared_product_type_code"]), ("1", "2"))
+        # carried as written, not hex-encoded, like the other raw declared codes
         self.assertEqual(first["declared_product_quantity_ddi"], "0007")
+        # Every link is reopenable.
         self.assertEqual(json.loads(self.unhex(first["declared_allocation_source_hex"])),
                          [["task", "TSK1"], ["allocation_index", 0], ["product_ref", "PDT1"]])
         for reported in (first, second):
@@ -678,18 +911,24 @@ class IsoxmlProductAllocationTests(unittest.TestCase):
 
     def test_every_unsupported_allocation_scope_is_named_and_binds_nothing(self):
         cases = {
+            # a reference no declared product resolves
             '<PAN A="PDT9" E="DET-1"/><PAN A="PDT2" E="DET-2"/>': "NAMES_A_PRODUCT_REFERENCE_THAT_NO_PDT",
+            # two allocations for one element: nothing is chosen, the first is never taken
             '<PAN A="PDT1" E="DET-1"/><PAN A="PDT2" E="DET-1"/><PAN A="PDT2" E="DET-2"/>':
                 "MORE_THAN_ONE_PRODUCT_ALLOCATION_NAMES_THIS_DEVICE_ELEMENT",
+            # an allocation stamp whose time scope this converter does not evaluate
             '<PAN A="PDT1" E="DET-1"><ASP A="s" B="e"/></PAN><PAN A="PDT2" E="DET-2"/>':
                 "CARRIES_AN_ALLOCATION_STAMP",
+            # task-scoped: the pinned definition makes the element reference optional
             '<PAN A="PDT1"/>': "DECLARES_NO_DEVICE_ELEMENT_REFERENCE",
+            # no allocation at all
             '': "NO_PRODUCT_ALLOCATION_IN_THE_DECLARED_TASK_NAMES_THIS_DEVICE_ELEMENT",
         }
         for allocations, expected in cases.items():
             rows, _, _ = self.rows(allocations)
             first = next(r for r in rows if self.unhex(r["device_element_hex"]) == "DET-1")
             self.assertIn(expected, first["product_allocation_basis"], expected)
+            # Nothing is bound, and no designator is invented for any of them.
             self.assertEqual(first["declared_product_designator_hex"], "", expected)
             if "NO_PDT" in expected:  # the dangling reference is still carried as reported
                 self.assertEqual(self.unhex(first["declared_product_id_hex"]), "PDT9")
@@ -704,6 +943,7 @@ class IsoxmlProductAllocationTests(unittest.TestCase):
         first = list(csv.DictReader(io.StringIO(output)))[0]
         self.assertIn("MORE_THAN_ONE_TASK", first["product_allocation_basis"])
         self.assertEqual(first["declared_product_id_hex"], "")
+        # Naming the task resolves it, and the caller does the naming.
         named, _ = convert(TEMPLATE, row([(0, 1)]), taskdata=document,
                            product_allocation=True, declared_task="TSK1")
         self.assertEqual(self.unhex(list(csv.DictReader(io.StringIO(named)))[0]
@@ -766,6 +1006,7 @@ class IsoxmlProductAllocationTests(unittest.TestCase):
             with self.assertRaises(ValueError, msg=why):
                 convert(TEMPLATE, row([(0, 1)]), taskdata=self.document(products, allocations),
                         product_allocation=True)
+        # A designator may legitimately contain a comma: it is hex-encoded, so it cannot escape.
         output, _ = convert(TEMPLATE, row([(0, 1)]), product_allocation=True,
                             taskdata=self.document('<PDT A="PDT1" B="Urea, 46%"/>',
                                                    '<PAN A="PDT1" E="DET-1"/>'))
@@ -782,11 +1023,14 @@ class IsoxmlProductAllocationTests(unittest.TestCase):
                                 '<PAN A="PDT1"/>'))
         rows = list(csv.DictReader(io.StringIO(output)))
         for reported in rows:
+            # The element-scoped allocation is NOT assumed to win.
             self.assertEqual(reported["declared_product_id_hex"], "")
             self.assertEqual(reported["declared_product_designator_hex"], "")
             self.assertIn("STATE_NO_PRECEDENCE_BETWEEN", reported["product_allocation_basis"])
             self.assertIn("UNRESOLVED_AND_NOTHING_IS_BOUND", reported["product_allocation_basis"])
+            # What was considered is still visible.
             self.assertNotEqual(reported["declared_allocation_element_ref_hex"], "")
+        # and the measured rate is untouched by the ambiguity
         self.assertEqual(rows[0]["source_raw_value"], "1")
 
 

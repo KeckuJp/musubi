@@ -1,0 +1,60 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_caller_capture_not_point_or_device_time",
+      "basis": "declared"
+    },
+    "point_index": {
+      "meaning": "point_index",
+      "unit": "zero_based_saved_order_not_time_or_distance",
+      "basis": "declared"
+    },
+    "easting_m": {
+      "meaning": "easting_m",
+      "unit": "m_local_field_origin_unresolved",
+      "basis": "declared"
+    },
+    "northing_m": {
+      "meaning": "northing_m",
+      "unit": "m_local_field_origin_unresolved",
+      "basis": "declared"
+    },
+    "heading_rad": {
+      "meaning": "heading_rad",
+      "unit": "rad_saved_pivot_heading_in_local_plane_not_true_north_or_verified_vehicle_heading",
+      "basis": "declared"
+    },
+    "reported_path_speed_m_s": {
+      "meaning": "reported_path_speed_m_s",
+      "unit": "m/s_saved_replay_speed_after_producer_minimum_1_kmh_clamp_not_measured_speed",
+      "basis": "declared"
+    },
+    "section_master_auto_reported": {
+      "meaning": "section_master_auto_reported",
+      "unit": "saved_section_master_Auto_button_declaration_not_actuation_or_physical_state",
+      "basis": "declared"
+    },
+    "coordinate_basis": {
+      "meaning": "coordinate_basis",
+      "unit": "local_plane_no_origin_or_WGS84_transform",
+      "basis": "declared"
+    },
+    "speed_basis": {
+      "meaning": "speed_basis",
+      "unit": "producer_clamp_and_replay_semantics_original_speed_not_recoverable",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "digest_of_retained_exact_source_not_authentication",
+      "basis": "declared"
+    }
+  }
+}

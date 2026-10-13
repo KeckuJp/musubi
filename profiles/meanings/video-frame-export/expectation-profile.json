@@ -1,0 +1,45 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "comparison_order_zero_not_capture_time",
+      "basis": "declared"
+    },
+    "expected_pts": {
+      "meaning": "expected_pts",
+      "unit": "exact_ticks_of_explicit_selected_stream_timebase_not_UTC",
+      "basis": "declared"
+    },
+    "presence": {
+      "meaning": "presence",
+      "unit": "saved_record_match_to_caller_schedule_not_physical_frame_loss",
+      "basis": "declared"
+    },
+    "matched_frame_count": {
+      "meaning": "matched_frame_count",
+      "unit": "count_in_export_not_unique_physical_frames",
+      "basis": "declared"
+    },
+    "matched_frame_indices_hex": {
+      "meaning": "matched_frame_indices_hex",
+      "unit": "utf8_json_original_frame_indices_including_duplicate_PTS",
+      "basis": "declared"
+    },
+    "start_pts": {
+      "meaning": "start_pts",
+      "unit": "inclusive_expected_window_ticks",
+      "basis": "declared"
+    },
+    "stop_pts": {
+      "meaning": "stop_pts",
+      "unit": "exclusive_expected_window_ticks",
+      "basis": "declared"
+    }
+  }
+}

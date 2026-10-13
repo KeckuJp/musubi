@@ -1,0 +1,105 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "zero_based_original_JSONL_record",
+      "basis": "declared"
+    },
+    "item_index": {
+      "meaning": "item_index",
+      "unit": "zero_based_declared_list_position_navigationTypes_order_is_declared_priority",
+      "basis": "declared"
+    },
+    "sub_index": {
+      "meaning": "sub_index",
+      "unit": "zero_based_position_inside_the_item_index_entry",
+      "basis": "declared"
+    },
+    "disposition": {
+      "meaning": "disposition",
+      "unit": "reported_absent_or_empty_and_spelling_variant_never_an_inferred_value",
+      "basis": "declared"
+    },
+    "value_hex": {
+      "meaning": "value_hex",
+      "unit": "utf8_declared_text_hex_not_authenticated_not_a_runtime_capability",
+      "basis": "declared"
+    },
+    "enum_status": {
+      "meaning": "enum_status",
+      "unit": "KNOWN_or_EXTENSIBLE_UNRECOGNIZED_or_OUTSIDE_PINNED_ENUM_RETAINED_against_the_row_versions_own_tokens_3.0.0_e9ba560b_or_2.1.0_511d01d7",
+      "basis": "declared"
+    },
+    "truth_value": {
+      "meaning": "truth_value",
+      "unit": "boolean_true_false_text_not_numeric_string_form_recorded_in_disposition",
+      "basis": "declared"
+    },
+    "length_m": {
+      "meaning": "length_m",
+      "unit": "m_declared_not_measured",
+      "basis": "declared"
+    },
+    "angle_rad": {
+      "meaning": "angle_rad",
+      "unit": "rad_declared_not_measured",
+      "basis": "declared"
+    },
+    "mass_kg": {
+      "meaning": "mass_kg",
+      "unit": "kg_declared_maximum_not_measured_mass",
+      "basis": "declared"
+    },
+    "speed_m_s": {
+      "meaning": "speed_m_s",
+      "unit": "m_s_only_under_explicit_caller_policy_spec_text_schema_states_m_s2_declared_not_measured",
+      "basis": "declared"
+    },
+    "unit_conflict_value": {
+      "meaning": "unit_conflict_value",
+      "unit": "loadSet_maximumSpeed_number_whose_unit_is_unresolved_schema_m_s2_vs_spec_text_m_s_never_a_speed",
+      "basis": "declared"
+    },
+    "acceleration_m_s2": {
+      "meaning": "acceleration_m_s2",
+      "unit": "m_s2_declared_sign_preserved_not_measured",
+      "basis": "declared"
+    },
+    "duration_s": {
+      "meaning": "duration_s",
+      "unit": "s_declared_approximate_or_desired_time_not_measured",
+      "basis": "declared"
+    },
+    "percent": {
+      "meaning": "percent",
+      "unit": "percent_0_100_declared_charging_parameter_not_measured_state_of_charge",
+      "basis": "declared"
+    },
+    "coordinate_unit_not_stated": {
+      "meaning": "coordinate_unit_not_stated",
+      "unit": "robot_frame_number_whose_unit_the_pinned_source_does_not_state_never_assumed_m_or_rad",
+      "basis": "declared"
+    },
+    "value_basis": {
+      "meaning": "value_basis",
+      "unit": "source_semantics_not_runtime_capability_or_certification",
+      "basis": "declared"
+    },
+    "factsheet_version": {
+      "meaning": "factsheet_version",
+      "unit": "present_only_under_the_vda-factsheet-2.1_selector_the_reported_2.1.0_never_relabelled_3.0",
+      "basis": "declared"
+    },
+    "vda_3_0_meaning_path": {
+      "meaning": "vda_3_0_meaning_path",
+      "unit": "3.0_e9ba560b_path_whose_meaning_a_2.1_row_was_read_under_declaration_path_keeps_the_original_2.1_path_or_blank_when_NOT_IN_VERSION",
+      "basis": "declared"
+    }
+  }
+}

@@ -24,6 +24,74 @@ def capture(frames):
 
 
 class CrsfLinkTests(unittest.TestCase):
+    @unittest.skipUnless(os.environ.get('MUSUBI_TELEMETRY_READER'), 'actual common reader required')
+    def test_elrs_channels_report_values_and_configuration_at_common(self):
+        kind = 'channels-elrs-a60b68af-16ch'
+        ticks = [0, 1, 172, 191, 992, 1792, 1811, 1984, 2047, 2, 100, 500, 1000, 1500, 2000, 2046]
+        # Fixed asymmetric wire vector; channel boundaries cross bytes, including bit 10.
+        payload = bytes.fromhex('0008002b7e013e804f1cf8ff170019e8833eee42dfff')
+        packets = [frame(payload, 0x16), frame(bytes(22), 0x16)]
+        output, report = convert(capture([(7, packets[0]), (7, frame()), (7, packets[1])]), kind)
+        rows = list(csv.DictReader(io.StringIO(output)))
+        self.assertEqual((report['source_records'], report['decoded_records'], len(rows)), (3, 2, 2))
+        self.assertEqual(len(report['unsupported_records']), 1)
+        self.assertEqual([int(rows[0][f'rc_channel_{i:02d}_ticks']) for i in range(1, 17)], ticks)
+        self.assertEqual([int(rows[0][f'rc_channel_{i:02d}_nominal_us']) for i in range(1, 10)],
+                         [881, 882, 988, 1000, 1500, 2000, 2012, 2120, 2159])
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'out.csv'; path.write_text(output)
+            args = [os.environ['MUSUBI_TELEMETRY_READER'],
+                    str(ROOT / 'profiles/declared/crsf-link/channels-profile.toml'), str(path)]
+            self.assertNotEqual(subprocess.run(args, capture_output=True).returncode, 0)
+            common = json.loads(subprocess.run(args + ['--allow-equal-time'], check=True,
+                                               capture_output=True).stdout)
+        self.assertEqual(common['main_rows'], 2)
+        for index, observation in enumerate(common['observations']):
+            fields = observation['fields']
+            self.assertEqual(observation['clock_basis'], 'Unknown')
+            self.assertEqual(fields['source_frame_hex'], 'hex:' + packets[index].hex())
+            self.assertEqual(json.loads(bytes.fromhex(fields['source_record_hex'][4:]))['unknown_hint'], 'keep-me')
+            self.assertEqual(fields['rc_channel_configuration_basis'],
+                             'CALLER_DECLARED_ELRS_FULL_RES_16CH_NOT_VERIFIED_FROM_FRAME')
+            self.assertEqual(fields['rc_channel_value_basis'],
+                             'ELRS_A60B68AF_CRSF_TO_US_INTEGER_MAPPING_NOT_MEASURED_PWM')
+            self.assertEqual([fields[f'rc_channel_{i:02d}_ticks'] for i in range(1, 17)],
+                             ticks if index == 0 else [0] * 16)
+        self.assertEqual(common['observations'][0]['fields']['rc_channel_09_nominal_us'], 2159)
+        self.assertEqual(common['observations'][1]['fields']['rc_channel_01_nominal_us'], 881)
+        self.assertIn('nominal', common['profile_units']['rc_channel_01_nominal_us'])
+
+    def test_elrs_channels_refuses_wrong_wire_and_preserves_nonselection(self):
+        kind = 'channels-elrs-a60b68af-16ch'
+        valid = frame(bytes(22), 0x16)
+        for packet in (frame(bytes(21), 0x16), frame(bytes(23), 0x16), valid[:-1],
+                       valid[:-1] + bytes([valid[-1] ^ 1])):
+            with self.subTest(packet=packet.hex()), self.assertRaises(ValueError):
+                convert(capture([(1, packet)]), kind)
+        for bad in (capture([(2, valid), (1, valid)]), capture([(2**63, valid)]),
+                    'time_us,frame_hex\n,\n', capture([(1, frame(bytes(22), 0x17))])):
+            with self.subTest(bad=bad), self.assertRaises(ValueError): convert(bad, kind)
+        _, report = convert(capture([(1, valid), (1, frame(bytes(22), 0x17))]), kind)
+        self.assertEqual((report['source_records'], report['decoded_records']), (2, 1))
+        self.assertEqual(len(report['unsupported_records']), 1)
+
+    def test_elrs_channels_cli_opt_in_leaves_legacy_default_unchanged(self):
+        kind = 'channels-elrs-a60b68af-16ch'
+        selected = frame(bytes(22), 0x16)
+        old_output, old_report = convert(capture([(1, frame())]))
+        output, report = convert(capture([(1, selected), (1, frame())]))
+        self.assertEqual(output, old_output)
+        self.assertEqual(report['decoded_records'], old_report['decoded_records'])
+        self.assertEqual(report['unsupported_records'][0]['frame_hex'], selected.hex())
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory); source = base / 'in.csv'; target = base / 'out'
+            source.write_text(capture([(1, selected)]))
+            args = [os.sys.executable, str(ROOT / 'scripts/convert_crsf_link.py'), str(source),
+                    str(target), '--kind', kind]
+            subprocess.run(args, check=True, capture_output=True)
+            self.assertEqual((target / 'observations.csv').read_text(), convert(source.read_text(), kind)[0])
+            self.assertEqual(subprocess.run(args, capture_output=True).returncode, 2)
+
     def test_displayport_reuses_msp_with_glyph_semantics_and_capacity(self):
         def reply(payload, code=182):
             body = bytes([len(payload), code]) + payload
@@ -297,6 +365,8 @@ class CrsfLinkTests(unittest.TestCase):
             self.assertEqual((output["main_rows"], output["platform_domain"]), (2, "Unknown"))
             self.assertEqual([o["channel"] for o in output["observations"]],
                              ["onboard", "link_stats", "onboard", "link_stats"])
+            # All three selected quantities, in their declared form, through the actual reader:
+            # negative dBm, a 0..1 packet-success fraction and signed dB. Reported values only.
             for channel in (output["observations"][0], output["observations"][1]):
                 fields = channel["fields"]
                 self.assertEqual(fields["uplink_rssi_1_dbm"], -70)
@@ -306,9 +376,15 @@ class CrsfLinkTests(unittest.TestCase):
                 self.assertEqual(fields["downlink_lq_fraction"], .5)
                 self.assertEqual(fields["uplink_snr_db"], -5)
                 self.assertEqual(fields["downlink_snr_db"], 3)
+                # Uplink and downlink stay separate quantities, and the antenna the sender
+                # reported as active is carried rather than folded into the RSSI pair.
                 self.assertNotEqual(fields["uplink_rssi_1_dbm"], fields["downlink_rssi_dbm"])
                 self.assertEqual(fields["active_antenna"], "ANTENNA_2")
+                # The RF codes stay codes: no rate in Hz and no measured power in watts or dBm.
                 self.assertEqual((fields["rf_mode_code"], fields["tx_power_code"]), (250, 250))
+            # Every quantity in this projection reaches its consumer with a declared meaning.
+            # active_antenna was the one field of the ten that carried none, so the diversity
+            # label arrived beside two per-antenna RSSI figures with nothing saying what it is.
             units = output["profile_units"]
             for name in ("uplink_rssi_1_dbm", "uplink_rssi_2_dbm", "uplink_lq_fraction",
                          "uplink_snr_db", "downlink_rssi_dbm", "downlink_lq_fraction",
@@ -318,6 +394,7 @@ class CrsfLinkTests(unittest.TestCase):
                             "never_the_cause_of_either_reported_uplink_RSSI",
                             "never_an_interference_obstruction_or_range_finding"):
                 self.assertIn(refused, units["active_antenna"])
+            # The source record and the capture clock survive into the full-record channel.
             onboard = output["observations"][0]["fields"]
             self.assertEqual(onboard["record_time_us"], 1)
             self.assertEqual(onboard["source_frame_hex"], "hex:" + frame().hex())
@@ -327,11 +404,13 @@ class CrsfLinkTests(unittest.TestCase):
             for observation in output["observations"]:
                 self.assertEqual(observation["clock_basis"], "Unknown")
                 self.assertIsNone(observation["anchor_unix_us"])
+                # Capture time only, in the reader's own millisecond field; no boot axis is invented.
                 self.assertEqual(observation["t_ms"], 0)
                 self.assertIsNone(observation["t_boot_us"])
 
     @unittest.skipUnless(os.environ.get("MUSUBI_TELEMETRY_READER"), "CI supplies shared reader")
     def test_common_output_keeps_a_reported_zero_distinct_from_a_missing_value(self):
+        # Byte 0 is a reported value, not an absence: it must arrive as 0, never as null.
         zero = frame(bytes([0, 255, 0, 128, 8, 251, 252, 0, 0, 127]))
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "observations.csv"
@@ -346,6 +425,7 @@ class CrsfLinkTests(unittest.TestCase):
                 self.assertIn(name, fields, name)
                 self.assertIsNotNone(fields[name], name)
                 self.assertEqual(fields[name], 0, name)
+            # Extremes are carried as the sender wrote them, with no clamping to a plausible range.
             self.assertEqual(fields["uplink_rssi_2_dbm"], -255)
             self.assertEqual((fields["uplink_snr_db"], fields["downlink_snr_db"]), (-128, 127))
             self.assertEqual(fields["active_antenna"], "UNKNOWN_8")
@@ -362,11 +442,13 @@ class CrsfLinkTests(unittest.TestCase):
             self.assertNotEqual(refused.returncode, 0, "equal capture times must not pass silently")
             self.assertIn("strictly increasing", refused.stderr.decode())
             self.assertEqual(refused.stdout, b"")
+            # The converter keeps both records; only the reader decides whether to accept them.
             self.assertEqual(json.loads(subprocess.run(command + ["--allow-equal-time"],
                              capture_output=True, check=True).stdout)["main_rows"], 2)
 
     @unittest.skipUnless(os.environ.get("MUSUBI_TELEMETRY_READER"), "CI supplies shared reader")
     def test_directional_reports_reach_common_output_with_both_sides_distinct(self):
+        # Same three quantities from 0x1C/0x1D, read through the adopted full-record routing.
         seen = {}
         for kind, message in (("link-rx", 0x1C), ("link-tx", 0x1D)):
             payload = struct.pack("BBBbB", 70, 80, 99, -5, 20)
@@ -381,6 +463,9 @@ class CrsfLinkTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr.decode())
                 common = json.loads(result.stdout)
                 fields = common["observations"][0]["fields"]
+            # The same common output declares what these quantities mean, in the profile it was
+            # actually read with: dBm, a packet-success fraction and signed dB, with the RSSI
+            # percentage kept distinct from the dBm power and the side kept a label.
             units = common["profile_units"]
             self.assertEqual(units["reported_rssi_dbm"], "dBm_reported_possible_stale_if_no_link")
             self.assertEqual(units["reported_lq_fraction"], "reported_packet_success_fraction")
@@ -390,6 +475,10 @@ class CrsfLinkTests(unittest.TestCase):
             self.assertIn("not_dBm", units["reported_rssi_fraction"])
             self.assertNotEqual(units["reported_rssi_fraction"], units["reported_rssi_dbm"])
             self.assertIn("not_authenticated_publisher_identity", units["reported_link_side"])
+            self.assertEqual(units["reported_rf_power_dbm"], "dBm_reported_directional_power_not_0x14_power_code_or_physical_measurement")
+            self.assertEqual(units["reported_rf_frames_per_second"], "frames_per_second_reported_TX_wire_byte_times_10_RX_absent_not_measured_throughput")
+            self.assertEqual(fields["reported_rf_power_dbm"], 20)
+            # No declared meaning promises freshness, physical quality or a value when absent.
             for name in ("reported_rssi_dbm", "reported_rssi_fraction", "reported_lq_fraction",
                          "reported_snr_db", "reported_link_side"):
                 self.assertNotIn("measured", units[name], name)
@@ -397,12 +486,18 @@ class CrsfLinkTests(unittest.TestCase):
             self.assertEqual(fields["reported_rssi_dbm"], -70)
             self.assertEqual(fields["reported_lq_fraction"], .99)
             self.assertEqual(fields["reported_snr_db"], -5)
+            # The reported RSSI percentage stays its own quantity and is never read as dBm.
             self.assertEqual(fields["reported_rssi_fraction"], .8)
             self.assertNotEqual(fields["reported_rssi_fraction"], fields["reported_rssi_dbm"])
+            # A value the frame does not carry is null here, while a reported 0 would be 0 --
+            # so missing and zero stay distinguishable in the same observation.
             if kind == "link-rx":
                 self.assertIsNone(fields["reported_rf_frames_per_second"])
+            else:
+                self.assertEqual(fields["reported_rf_frames_per_second"], 150)
             self.assertEqual(fields["record_time_us"], 1)
             seen[kind] = fields["reported_link_side"]
+        # The side is a frame-side label carried per kind, not an authenticated peer identity.
         self.assertEqual(seen, {"link-rx": "RX_REPORTED", "link-tx": "TX_REPORTED"})
 
 

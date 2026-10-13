@@ -1,0 +1,18 @@
+profile_id = "saved_vda30_protocol_limits_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+reported_integer = "reported_maximum_with_per_row_value_basis_and_disposition"
+seconds = "s_reported_interval_not_measured_rate"
+truth_value = "boolean_true_false_text_not_numeric"
+value_basis = "source_semantics_not_runtime_capability"
+source_record_index = "zero_based_original_JSONL_record"
+factsheet_version = "present_only_under_the_vda-factsheet-2.1_selector_the_reported_2.1.0_never_relabelled_3.0"
+vda_3_0_meaning_path = "3.0_e9ba560b_path_whose_meaning_a_2.1_row_was_read_under_declaration_path_keeps_the_original_2.1_path_or_blank_when_NOT_IN_VERSION"

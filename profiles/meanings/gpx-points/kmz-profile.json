@@ -65,6 +65,166 @@
       "meaning": "position_status",
       "unit": "COORDINATE_DECLARED_or_MISSING_COORDINATE_NOT_INTERPOLATED",
       "basis": "declared"
+    },
+    "feature_path_hex": {
+      "meaning": "feature_path_hex",
+      "unit": "hex_of_zero_based_XML_child_path_for_nearest_containing_Feature_not_authenticated_ID",
+      "basis": "declared"
+    },
+    "feature_id_hex": {
+      "meaning": "feature_id_hex",
+      "unit": "exact_declared_feature_id_UTF8_hex_optional_not_authenticated",
+      "basis": "declared"
+    },
+    "feature_name_hex": {
+      "meaning": "feature_name_hex",
+      "unit": "exact_declared_feature_name_UTF8_hex_optional_not_identity",
+      "basis": "declared"
+    },
+    "geometry_id_hex": {
+      "meaning": "geometry_id_hex",
+      "unit": "declared_geometry_id_UTF8_hex_optional",
+      "basis": "declared"
+    },
+    "polygon_path_hex": {
+      "meaning": "polygon_path_hex",
+      "unit": "original_XML_path_hex_identifies_common_Polygon_for_its_rings",
+      "basis": "declared"
+    },
+    "ring_index": {
+      "meaning": "ring_index",
+      "unit": "zero_based_boundary_order_in_Polygon",
+      "basis": "declared"
+    },
+    "ring_role": {
+      "meaning": "ring_role",
+      "unit": "OUTER_or_INNER_boundary_vertices_not_filled_area_or_checked_winding",
+      "basis": "declared"
+    },
+    "multitrack_path_hex": {
+      "meaning": "multitrack_path_hex",
+      "unit": "original_XML_path_hex_identifies_grouped_tracks",
+      "basis": "declared"
+    },
+    "multitrack_part_index": {
+      "meaning": "multitrack_part_index",
+      "unit": "zero_based_Track_order_in_MultiTrack_no_interpolation",
+      "basis": "declared"
+    },
+    "multitrack_interpolate_reported": {
+      "meaning": "multitrack_interpolate_reported",
+      "unit": "boolean_text_of_rendering_declaration_never_executed",
+      "basis": "declared"
+    },
+    "feature_time_precision": {
+      "meaning": "feature_time_precision",
+      "unit": "YEAR_MONTH_DAY_or_INSTANT_no_timezone_inferred_for_calendar_values",
+      "basis": "declared"
+    },
+    "feature_time_year": {
+      "meaning": "feature_time_year",
+      "unit": "declared_calendar_year_not_unix_epoch",
+      "basis": "declared"
+    },
+    "feature_time_month": {
+      "meaning": "feature_time_month",
+      "unit": "declared_calendar_month_optional_not_defaulted",
+      "basis": "declared"
+    },
+    "feature_time_day": {
+      "meaning": "feature_time_day",
+      "unit": "declared_calendar_day_optional_not_defaulted",
+      "basis": "declared"
+    },
+    "feature_begin_text_hex": {
+      "meaning": "feature_begin_text_hex",
+      "unit": "original_TimeSpan_begin_text_hex_optional",
+      "basis": "declared"
+    },
+    "feature_begin_precision": {
+      "meaning": "feature_begin_precision",
+      "unit": "YEAR_MONTH_DAY_INSTANT_or_UNBOUNDED_no_inferred_instant",
+      "basis": "declared"
+    },
+    "feature_begin_unix_us": {
+      "meaning": "feature_begin_unix_us",
+      "unit": "declared_explicit_timezone_instant_only_unix_microseconds",
+      "basis": "declared"
+    },
+    "feature_begin_year": {
+      "meaning": "feature_begin_year",
+      "unit": "declared_calendar_year_optional",
+      "basis": "declared"
+    },
+    "feature_begin_month": {
+      "meaning": "feature_begin_month",
+      "unit": "declared_calendar_month_optional",
+      "basis": "declared"
+    },
+    "feature_begin_day": {
+      "meaning": "feature_begin_day",
+      "unit": "declared_calendar_day_optional",
+      "basis": "declared"
+    },
+    "feature_end_text_hex": {
+      "meaning": "feature_end_text_hex",
+      "unit": "original_TimeSpan_end_text_hex_optional",
+      "basis": "declared"
+    },
+    "feature_end_precision": {
+      "meaning": "feature_end_precision",
+      "unit": "YEAR_MONTH_DAY_INSTANT_or_UNBOUNDED_no_inferred_instant",
+      "basis": "declared"
+    },
+    "feature_end_unix_us": {
+      "meaning": "feature_end_unix_us",
+      "unit": "declared_explicit_timezone_instant_only_unix_microseconds",
+      "basis": "declared"
+    },
+    "feature_end_year": {
+      "meaning": "feature_end_year",
+      "unit": "declared_calendar_year_optional",
+      "basis": "declared"
+    },
+    "feature_end_month": {
+      "meaning": "feature_end_month",
+      "unit": "declared_calendar_month_optional",
+      "basis": "declared"
+    },
+    "feature_end_day": {
+      "meaning": "feature_end_day",
+      "unit": "declared_calendar_day_optional",
+      "basis": "declared"
+    },
+    "kml_track_heading_deg": {
+      "meaning": "kml_track_heading_deg",
+      "unit": "KML_declared_heading_degrees_not_aircraft_yaw",
+      "basis": "declared"
+    },
+    "kml_track_tilt_deg": {
+      "meaning": "kml_track_tilt_deg",
+      "unit": "KML_declared_tilt_degrees_not_aircraft_pitch",
+      "basis": "declared"
+    },
+    "kml_track_roll_deg": {
+      "meaning": "kml_track_roll_deg",
+      "unit": "KML_declared_roll_degrees_not_composed_model_rotation",
+      "basis": "declared"
+    },
+    "kml_track_angles_status": {
+      "meaning": "kml_track_angles_status",
+      "unit": "DECLARED_MISSING_NOT_DECLARED_or_NOT_A_TRACK_no_interpolation",
+      "basis": "declared"
+    },
+    "kml_track_angles_text_hex": {
+      "meaning": "kml_track_angles_text_hex",
+      "unit": "exact_track_angles_character_text_hex",
+      "basis": "declared"
+    },
+    "kml_track_angles_basis": {
+      "meaning": "kml_track_angles_basis",
+      "unit": "KML_heading_tilt_roll_declaration_only_no_physical_pose_inference",
+      "basis": "declared"
     }
   }
 }

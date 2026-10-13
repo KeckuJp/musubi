@@ -33,6 +33,10 @@
     "gps_time_of_day_utc": "HH_MM_SS_fff_utc_by_specification_no_date_of_its_own",
     "datetime_original_text": "local_wall_text_zone_unknown_never_converted_to_utc",
     "datetime_original_zone_offset_text": "declared_offset_text_retained_not_applied",
+    "image_capture_epoch_us": "us_since_1970_01_01T00_00_00Z_exporter_derived_explicit_offset_not_trusted_capture",
+    "image_capture_time_text_hex": "hex_of_interpreted_ExifTool13_59_composite_not_raw_EXIF_recomposition",
+    "image_capture_time_basis": "fixed_exporter_code_qualification_not_Exif_revision_compliance",
+    "image_capture_time_status": "derived_or_unresolved_reported_time_not_physical_clock_quality",
     "camera_make_hex": "declared_camera_string_not_a_platform_identity",
     "camera_model_hex": "declared_camera_string_not_a_platform_identity",
     "unknown_tag_count": "tags_named_and_digested_in_report_values_not_emitted"
