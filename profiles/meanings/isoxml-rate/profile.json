@@ -6,6 +6,41 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "reported_actual_working_width_m": {
+      "meaning": "reported_actual_working_width_m",
+      "unit": "m_TIM_reported_DDI67_not_a_declaration_or_verified_physical_width",
+      "basis": "declared"
+    },
+    "reported_default_working_width_m": {
+      "meaning": "reported_default_working_width_m",
+      "unit": "m_TIM_reported_DDI68_default_width_not_an_actual_width_inference",
+      "basis": "declared"
+    },
+    "reported_maximum_working_width_m": {
+      "meaning": "reported_maximum_working_width_m",
+      "unit": "m_TIM_reported_DDI70_maximum_width_not_an_actual_width_inference",
+      "basis": "declared"
+    },
+    "reported_element_offset_x_m": {
+      "meaning": "reported_element_offset_x_m",
+      "unit": "m_TIM_reported_DDI134_device_reference_point_offset_no_axis_sign_transform_or_position_qualification",
+      "basis": "declared"
+    },
+    "reported_element_offset_y_m": {
+      "meaning": "reported_element_offset_y_m",
+      "unit": "m_TIM_reported_DDI135_device_reference_point_offset_no_axis_sign_transform_or_position_qualification",
+      "basis": "declared"
+    },
+    "reported_element_offset_z_m": {
+      "meaning": "reported_element_offset_z_m",
+      "unit": "m_TIM_reported_DDI136_device_reference_point_offset_no_axis_sign_transform_or_position_qualification",
+      "basis": "declared"
+    },
+    "reported_geometry_reference_basis": {
+      "meaning": "reported_geometry_reference_basis",
+      "unit": "reported_timelog_value_never_fills_DPT_declarations_or_other_records_or_devices",
+      "basis": "declared"
+    },
     "record_time_us": {
       "meaning": "record_time_us",
       "unit": "local_calendar_microseconds_since_1980_not_UTC",
@@ -149,6 +184,21 @@
     "reported_moisture_status": {
       "meaning": "reported_moisture_status",
       "unit": "reported_fraction_availability_not_sensor_health",
+      "basis": "declared"
+    },
+    "reported_crop_moisture_ppm": {
+      "meaning": "reported_crop_moisture_ppm",
+      "unit": "ppm_reported_actual_crop_moisture_DDI99_not_task_average262_or_reference184_not_calibration_or_sampling_period",
+      "basis": "declared"
+    },
+    "reported_crop_moisture_fraction": {
+      "meaning": "reported_crop_moisture_fraction",
+      "unit": "fraction_from_reported_DDI99_ppm_only_within_zero_to_one_not_moisture_corrected_yield",
+      "basis": "declared"
+    },
+    "reported_crop_moisture_status": {
+      "meaning": "reported_crop_moisture_status",
+      "unit": "REPORTED_or_OUTSIDE_FRACTION_RANGE_Musubi_zero_to_one_fraction_representation_policy_raw_ppm_retained_not_source_range_violation_physical_invalidity_wet_basis_or_sensor_health",
       "basis": "declared"
     },
     "reported_work_state": {

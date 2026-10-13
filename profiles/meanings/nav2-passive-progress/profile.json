@@ -86,6 +86,21 @@
       "unit": "count_of_reported_recovery_behaviours_not_a_failure_verdict",
       "basis": "declared"
     },
+    "nav2_number_of_poses_remaining": {
+      "meaning": "nav2_number_of_poses_remaining",
+      "unit": "signed16_report_of_goals_blackboard_size_not_verified_physical_count_or_completion_zero_default_feedback_possible_negative_unqualified",
+      "basis": "declared"
+    },
+    "nav2_poses_remaining_disposition": {
+      "meaning": "nav2_poses_remaining_disposition",
+      "unit": "positive_reported_count_zero_or_empty_goals_default_feedback_or_negative_representation_not_a_status_result",
+      "basis": "declared"
+    },
+    "nav2_feedback_source_basis": {
+      "meaning": "nav2_feedback_source_basis",
+      "unit": "fixed_Nav2_1_1_20_multi_pose_writer_empty_goals_return_before_progress_assignments_no_success_or_cause_inferred",
+      "basis": "declared"
+    },
     "nav2_pose_disposition": {
       "meaning": "nav2_pose_disposition",
       "unit": "REPORTED_ESTIMATE_or_MISSING_FRAME_NOT_NORMALIZED_when_the_saved_frame_id_is_empty_read_the_saved_frame_id_itself_because_a_failed_transform_publishes_an_identity_pose_in_the_robot_frame",

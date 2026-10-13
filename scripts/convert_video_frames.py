@@ -6,6 +6,8 @@ import io
 import json
 import hashlib
 import math
+import os
+import stat
 import struct
 from pathlib import Path
 import re
@@ -16,6 +18,10 @@ except ModuleNotFoundError:
     from convert_position_csv import unique_object, invalid_constant
 
 LIMIT = 16 * 1024 * 1024
+MAX_INPUT_BYTES = 2 * 1024**3
+MAX_RECORDS = 5_000_000
+MAX_RECORD_BYTES = 1024**2
+MAX_WINDOW_OUTPUT_BYTES = 16 * 1024**2
 
 
 def unsigned(value, maximum=2**63 - 1):
@@ -314,10 +320,17 @@ def convert_progress(text):
     return output.getvalue(), report
 
 
-def convert_detections(text, selected_stream, *, deepstream=False):
-    """Saved qualified Ultralytics8.3.0 axis-aligned detections, no inference."""
+def convert_detections(text, selected_stream, *, deepstream=False, obb=False):
+    """Saved qualified detections, optionally ordered OBB corners; no inference."""
+    return _convert_detections(text, selected_stream, deepstream=deepstream, obb=obb)
+
+
+def _convert_detections(text, selected_stream, *, deepstream=False, obb=False,
+                        source_sha256=None, start_record=0):
     if len(text.encode()) > LIMIT or type(selected_stream) is not int or selected_stream < 0 or type(deepstream) is not bool:
         raise ValueError("invalid detection input bound or stream")
+    if type(obb) is not bool or (obb and deepstream):
+        raise ValueError("OBB selection requires the qualified Ultralytics path")
     output = io.StringIO(newline="")
     names = ["record_time_us", "stream_index_configured", "source_record_index", "source_record_sha256",
              "image_id_hex", "model_id_hex", "width_px", "height_px", "detection_count",
@@ -325,16 +338,23 @@ def convert_detections(text, selected_stream, *, deepstream=False):
              "model_score_reported", "box_x1_px", "box_y1_px", "box_x2_px", "box_y2_px",
              "coordinates_normalized_in_source", "track_id_reported", "box_coordinate_basis",
              "model_score_status", "track_id_text", "tracking_status"]
+    if obb:
+        names += [f"obb_corner{n}_{axis}_px" for n in range(1,5) for axis in "xy"]
+        names += ["obb_corner_order", "obb_extent_disposition"]
+    if source_sha256 is not None:
+        names.append("source_file_sha256")
     writer = csv.DictWriter(output, names, lineterminator="\n")
     writer.writeheader()
     report = dict(source_records=[], detections=0, empty_records=0, clock="Unknown",
                   extras="unknown, mask and keypoint fields retained, not interpreted")
+    if obb:
+        report["box_geometry"] = "REPORTED_ORDERED_FOUR_CORNERS_NOT_VALIDATED_RECTANGLE"
     previous = None
     try:
         lines = text.splitlines()
         if not lines:
             raise ValueError("empty detection export")
-        for index, line in enumerate(lines):
+        for index, line in enumerate(lines, start_record):
             record = json.loads(line, object_pairs_hook=unique_object, parse_constant=invalid_constant)
             if deepstream:
                 record = deepstream_detections(record)
@@ -358,6 +378,8 @@ def convert_detections(text, selected_stream, *, deepstream=False):
                         model_id_hex="hex:" + record["model_id"].encode().hex(), width_px=width, height_px=height,
                         detection_count=len(detections), coordinates_normalized_in_source=int(record["normalized"]),
                         box_coordinate_basis="PIPELINE_LAST_COMPONENT_PIXELS" if deepstream else "ORIGINAL_IMAGE_PIXELS")
+            if source_sha256 is not None:
+                base["source_file_sha256"] = "sha256:" + source_sha256
             if not detections:
                 writer.writerow(dict(base, detection_status="NO_DETECTIONS_REPORTED"))
                 report["empty_records"] += 1
@@ -372,15 +394,28 @@ def convert_detections(text, selected_stream, *, deepstream=False):
                         type(score) not in (int, float) or not math.isfinite(score) or not 0 <= score <= 1):
                     raise ValueError("invalid model score")
                 box = item["box"]
-                if not isinstance(box, dict) or set(box) != {"x1", "y1", "x2", "y2"}:
-                    raise ValueError("axis-aligned box required; OBB/classification not accepted")
+                expected = {f"{axis}{n}" for n in range(1,5) for axis in "xy"} if obb else {"x1", "y1", "x2", "y2"}
+                if not isinstance(box, dict) or set(box) != expected:
+                    raise ValueError("exact selected box shape required; missing corners are not inferred")
                 coordinates = {}
+                outside = False
                 for key, value in box.items():
                     bound = width if key.startswith("x") else height
-                    if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= (1 if record["normalized"] else bound):
+                    if (type(value) not in (int, float) or not math.isfinite(value)
+                            or (not obb and not 0 <= value <= (1 if record["normalized"] else bound))):
                         raise ValueError("invalid image-space coordinate")
-                    coordinates["box_" + key + "_px"] = value * bound if record["normalized"] else value
-                if coordinates["box_x1_px"] > coordinates["box_x2_px"] or coordinates["box_y1_px"] > coordinates["box_y2_px"]:
+                    converted = value * bound if record["normalized"] else value
+                    if obb:
+                        if not math.isfinite(converted):
+                            raise ValueError("scaled corner must remain finite")
+                        coordinates[f"obb_corner{key[1]}_{key[0]}_px"] = converted
+                        outside = outside or not 0 <= converted <= bound
+                    else:
+                        coordinates["box_" + key + "_px"] = converted
+                if obb:
+                    coordinates.update(obb_corner_order="SOURCE_ORDER_NOT_REORDERED",
+                        obb_extent_disposition="EXTENDS_OUTSIDE_DECLARED_IMAGE" if outside else "WITHIN_DECLARED_IMAGE_EXTENT")
+                elif coordinates["box_x1_px"] > coordinates["box_x2_px"] or coordinates["box_y1_px"] > coordinates["box_y2_px"]:
                     raise ValueError("inverted image-space box")
                 track = item.get("track_id")
                 if "track_id" in item and (type(track) is not int or not 0 <= track <= 2**63 - 1):
@@ -401,6 +436,85 @@ def convert_detections(text, selected_stream, *, deepstream=False):
         raise ValueError("malformed detection export") from exc
 
 
+def convert_detections_path(path, selected_stream, *, deepstream=False, obb=False, start_record, stop_record):
+    """Select native JSONL records, not times or a guessed camera/stream identity."""
+    if (type(start_record) is not int or type(stop_record) is not int
+            or not 0 <= start_record < stop_record <= MAX_RECORDS):
+        raise ValueError("invalid detection record interval")
+    if type(selected_stream) is not int or selected_stream < 0 or type(deepstream) is not bool:
+        raise ValueError("invalid detection stream or schema selector")
+    if type(obb) is not bool or (obb and deepstream):
+        raise ValueError("OBB selection requires the qualified Ultralytics path")
+    path = Path(path).resolve()
+    metadata = path.stat()
+    if (not stat.S_ISREG(metadata.st_mode)
+            or path.parts[1:2] in (("sys",), ("proc",), ("dev",))):
+        raise ValueError("saved regular input required")
+    if metadata.st_size > MAX_INPUT_BYTES:
+        raise ValueError("detection input byte bound exceeded")
+    digest = hashlib.sha256()
+    selected = []
+    total_bytes = selected_bytes = count = 0
+
+    def signature(info):
+        return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+    with path.open("rb") as stream:
+        before = os.fstat(stream.fileno())
+        if signature(before) != signature(metadata):
+            raise ValueError("source changed before read")
+        while True:
+            raw = stream.readline(MAX_RECORD_BYTES + 3)
+            if not raw:
+                break
+            native = raw[:-1].removesuffix(b"\r") if raw.endswith(b"\n") else raw
+            if len(native) > MAX_RECORD_BYTES:
+                raise ValueError("detection individual record byte bound exceeded")
+            total_bytes += len(raw)
+            if total_bytes > MAX_INPUT_BYTES:
+                raise ValueError("detection input byte bound exceeded")
+            digest.update(raw)
+            text = native.decode("utf-8")
+            if (not text.strip() or "\0" in text
+                    or any(c in text for c in "\r\n\v\f\x1c\x1d\x1e\x85\u2028\u2029")):
+                raise ValueError("unsupported detection JSONL record framing")
+            if start_record <= count < stop_record:
+                retained_line = text + "\n"
+                selected_bytes += len(retained_line.encode("utf-8"))
+                if selected_bytes > LIMIT:
+                    raise ValueError("detection selected source byte bound exceeded")
+                selected.append(retained_line)
+            count += 1
+            if count > MAX_RECORDS:
+                raise ValueError("detection source record count bound exceeded")
+        after = os.fstat(stream.fileno())
+        if signature(after) != signature(before) or total_bytes != before.st_size:
+            raise ValueError("source changed during read")
+    if stop_record > count:
+        raise ValueError("detection record interval exceeds source records")
+    source_sha = digest.hexdigest()
+    # Only selected JSON is decoded. The existing two schema adapters and shared
+    # meaning/output loop remain authoritative; excluded clocks are not examined.
+    output, report = _convert_detections("".join(selected), selected_stream,
+        deepstream=deepstream, obb=obb, source_sha256=source_sha, start_record=start_record)
+    encoded = output.encode("utf-8")
+    if len(encoded) > MAX_WINDOW_OUTPUT_BYTES:
+        raise ValueError("detection selected output byte bound exceeded")
+    report.update(output_sha256=hashlib.sha256(encoded).hexdigest(), output_bytes=len(encoded),
+        record_selection={"source_sha256": source_sha, "source_bytes": total_bytes,
+            "source_records": count, "selected_records": stop_record - start_record,
+            "excluded_records": count - (stop_record - start_record),
+            "start_record": start_record, "stop_record_exclusive": stop_record,
+            "outside_selection": "NOT_DECODED_OR_VALIDATED",
+            "capture_clock_scope": "SELECTED_RECORDS_ONLY_NO_CROSS_WINDOW_ORDER_CLAIM",
+            "bounds": {"max_input_bytes": MAX_INPUT_BYTES, "max_records": MAX_RECORDS,
+                "max_record_bytes": MAX_RECORD_BYTES, "max_selected_source_bytes": LIMIT,
+                "max_output_bytes": MAX_WINDOW_OUTPUT_BYTES, "max_report_bytes": 2 * LIMIT}})
+    if len(json.dumps(report, indent=2).encode("utf-8")) > 2 * LIMIT:
+        raise ValueError("detection selected report byte bound exceeded")
+    return output, report
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
@@ -408,23 +522,35 @@ def main():
     parser.add_argument("output_directory", type=Path)
     parser.add_argument("--compact", action="store_true", help="retain selected stream once in report.json and bind rows by SHA256")
     parser.add_argument("--detections-830", action="store_true", help="qualified saved detection envelopes; stream index is caller configured")
+    parser.add_argument("--obb-830", action="store_true", help="qualified saved four-corner summaries, no angle or physical rectangle inference")
     parser.add_argument("--deepstream-900", action="store_true", help="caller-saved NvDs object metadata in pipeline pixel coordinates")
     parser.add_argument("--progress-81", action="store_true", help="saved ffmpeg8.1 -progress blocks; reported processing counters, never capture or transport loss")
+    parser.add_argument("--start-record", type=int, help="first detection JSONL record, zero-based")
+    parser.add_argument("--stop-record", type=int, help="exclusive detection JSONL record stop")
     args = parser.parse_args()
     try:
-        if args.input.stat().st_size > (2 * LIMIT if args.compact else LIMIT):
-            raise ValueError("input exceeds bound")
+        if args.obb_830 and (args.detections_830 or args.deepstream_900 or args.progress_81 or args.compact):
+            raise ValueError("separate OBB and other source selections")
         if (args.detections_830 and args.deepstream_900) or ((args.detections_830 or args.deepstream_900) and args.compact):
             raise ValueError("separate detection/ffprobe selections")
         if args.progress_81 and (args.compact or args.detections_830 or args.deepstream_900):
             raise ValueError("separate progress/ffprobe selections")
-        # The progress digest and block spans must bind the exact input, so that mode reads bytes
-        # and decodes strictly. The older modes keep their own read, and their digests with it.
-        text = (args.input.read_bytes().decode("utf-8") if args.progress_81
-                else args.input.read_text(encoding="utf-8"))
-        output, report = (convert_progress(text) if args.progress_81 else
-                          convert_detections(text, args.stream_index, deepstream=args.deepstream_900)
-                          if args.detections_830 or args.deepstream_900 else convert(text, args.stream_index, compact=args.compact))
+        if args.start_record is not None or args.stop_record is not None:
+            if (args.start_record is None or args.stop_record is None
+                    or not (args.detections_830 or args.deepstream_900 or args.obb_830)):
+                raise ValueError("both detection record interval bounds and schema selector required")
+            output, report = convert_detections_path(args.input, args.stream_index,
+                deepstream=args.deepstream_900, obb=args.obb_830, start_record=args.start_record, stop_record=args.stop_record)
+        else:
+            if args.input.stat().st_size > (2 * LIMIT if args.compact else LIMIT):
+                raise ValueError("input exceeds bound")
+            # The progress digest and block spans must bind the exact input, so that mode reads bytes
+            # and decodes strictly. The older modes keep their own read, and their digests with it.
+            text = (args.input.read_bytes().decode("utf-8") if args.progress_81
+                    else args.input.read_text(encoding="utf-8"))
+            output, report = (convert_progress(text) if args.progress_81 else
+                              convert_detections(text, args.stream_index, deepstream=args.deepstream_900, obb=args.obb_830)
+                              if args.detections_830 or args.deepstream_900 or args.obb_830 else convert(text, args.stream_index, compact=args.compact))
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")

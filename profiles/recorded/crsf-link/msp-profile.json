@@ -1,0 +1,31 @@
+{
+  "profile_id": "recorded_bf452_msp_attitude_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "reported_roll_rad": "rad_reported_BF452_roll_not_qualified_world_or_body_reference",
+    "reported_pitch_rad": "rad_reported_BF452_pitch_not_qualified_world_or_body_reference",
+    "reported_yaw_rad": "rad_reported_BF452_yaw_not_true_north_or_qualified_world_reference",
+    "attitude_wire_basis": "fixed_caller_selected_BF452_MSP1_meaning_not_verified_firmware_identity_HEADFREE_reference_possible",
+    "record_time_us": "us_caller_capture_label_shared_by_all_native_frames_not_packet_or_producer_time_no_UTC_or_boot_anchor",
+    "source_input_sha256": "digest_of_supplied_native_bytes_not_source_authentication",
+    "source_packet_index": "zero_based_complete_frame_ordinal_including_unselected_commands_not_global_communication_sequence",
+    "source_start_offset": "byte_offset_in_supplied_native_input",
+    "source_stop_offset_exclusive": "exclusive_byte_offset_in_supplied_native_input",
+    "source_wire_hex": "exact_native_frame_bytes_hex_prefixed_keep_original_input_for_unframed_and_incomplete_ranges",
+    "source_frame_hex": "complete_MSPv1_reply_bytes_hex_prefixed",
+    "source_record_hex": "derived_capture_CSV_row_JSON_hex_prefixed_not_original_native_container"
+  }
+}

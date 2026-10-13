@@ -1,0 +1,30 @@
+{
+  "profile_id": "realsense_saved_device_info_v2_56_5",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "microseconds_caller_capture_Unknown_or_zero_UNLOCATED_TIME_no_producer_timestamp_or_UTC",
+    "time_disposition": "UNLOCATED_TIME_when_no_clock_was_supplied_or_CALLER_CAPTURE_UNKNOWN_for_explicit_caller_capture_neither_is_trusted_UTC",
+    "device_index": "zero_based_complete_block_order_in_this_saved_artifact_not_physical_identity",
+    "product_line_hex": "hex_UTF8_reported_device_product_line_from_RS2_CAMERA_INFO_PRODUCT_LINE_not_firmware_family_not_build_number_not_authentication",
+    "product_line_disposition": "NOT_REPORTED_when_key_absent_REPORTED_EMPTY_when_key_present_empty_REPORTED_UNCLASSIFIED_when_nonempty_no_product_whitelist_or_guessed_sentinel",
+    "device_name_hex": "hex_UTF8_reported_friendly_device_name_not_verified_model_or_unique_identity",
+    "serial_number_hex": "hex_UTF8_reported_device_serial_number_not_authenticated_instance_not_build_or_PIN",
+    "usb_product_id_hex": "hex_UTF8_product_ID_reported_in_USB_descriptor_not_serial_or_family_or_authenticated_identity",
+    "source_block_hex": "hex_UTF8_exact_device_info_block_including_unknown_fields_playback_annotation_and_original_line_endings_no_path_is_opened",
+    "source_input_sha256": "SHA256_exact_saved_diagnostic_text_identifies_bytes_not_authenticated_producer_or_device",
+    "device_identity_basis": "hardware_subject_of_saved_diagnostic_report_only_no_actual_existence_authentication_ownership_driver_execution_or_permission"
+  }
+}

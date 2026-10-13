@@ -1,0 +1,80 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller capture microseconds; Unknown basis, not event time",
+      "basis": "declared"
+    },
+    "log_created_at_seconds": {
+      "meaning": "log_created_at_seconds",
+      "unit": "reported API Unix seconds; may be caller supplied, not guaranteed occurrence time",
+      "basis": "declared"
+    },
+    "log_type_reported": {
+      "meaning": "log_type_reported",
+      "unit": "known category or unknown:percent-encoded-UTF8; not ranked or physical severity",
+      "basis": "declared"
+    },
+    "log_type_disposition": {
+      "meaning": "log_type_disposition",
+      "unit": "QUALIFIED_CATEGORY or UNKNOWN_CATEGORY; unknown raw type retained",
+      "basis": "declared"
+    },
+    "log_message": {
+      "meaning": "log_message",
+      "unit": "text:percent-encoded-UTF8 reported event text; decode percent escapes once; not commands or verified facts",
+      "basis": "declared"
+    },
+    "log_time_disposition": {
+      "meaning": "log_time_disposition",
+      "unit": "MISSING, NULL or REPORTED_API_TIME; no capture substitution",
+      "basis": "declared"
+    },
+    "log_verbosity_reported": {
+      "meaning": "log_verbosity_reported",
+      "unit": "producer-reported verbosity integer, not physical severity",
+      "basis": "declared"
+    },
+    "log_id_reported": {
+      "meaning": "log_id_reported",
+      "unit": "API Log id, not device identity",
+      "basis": "declared"
+    },
+    "device_identity_declared": {
+      "meaning": "device_identity_declared",
+      "unit": "text:percent-encoded-UTF8 caller association; not serialized authenticated device id",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact selected UTF-8 line, unknown fields retained",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "zero-based original physical line with window CLI",
+      "basis": "declared"
+    },
+    "source_file_sha256": {
+      "meaning": "source_file_sha256",
+      "unit": "original bytes digest with window CLI; not authentication",
+      "basis": "declared"
+    },
+    "source_record_byte_offset": {
+      "meaning": "source_record_byte_offset",
+      "unit": "zero-based original byte offset",
+      "basis": "declared"
+    },
+    "selected_normalized_sha256": {
+      "meaning": "selected_normalized_sha256",
+      "unit": "LF-normalized selected content digest, distinct from original",
+      "basis": "declared"
+    }
+  }
+}

@@ -14,6 +14,40 @@ HEADER = "time_us,standard_id,data_hex\n"
 
 
 class CanopenRecordedTests(unittest.TestCase):
+    def test_explicit_subff_does_not_count_as_normal_pdo_subentry(self):
+        # Fixed Lely 3.2.0 lint/Object enumerate range(255), excluding FF.
+        for unit, raw, expected in (("mV", 12000, 12), ("mA", 2500, 2.5)):
+            base = ("[1A00]\nParameterName=Map\nObjectType=9\nSubNumber=2\n"
+                    "[1A00sub0]\nParameterName=Count\nDataType=5\nAccessType=ro\nDefaultValue=1\n"
+                    "[1A00sub1]\nParameterName=Slot\nDataType=7\nAccessType=ro\nDefaultValue=0x20000010\n"
+                    f"[2000]\nParameterName=Quantity\nDataType=6\nAccessType=ro\nPDOMapping=1\nUnit={unit}\n")
+            extra = ("[1A00subFF]\nParameterName=Unqualified extension\nDataType=7\n"
+                     "AccessType=ro\nDefaultValue=42\nUnknownExtension=kept\n")
+            saved = HEADER + f"7,181,{raw.to_bytes(2, 'little').hex()}\n"
+            baseline, _ = convert_canopen_pdo(saved, base, 0x181, 0x1a00)
+            output, report = convert_canopen_pdo(saved, base + extra, 0x181, 0x1a00)
+            a, b = list(csv.DictReader(io.StringIO(baseline)))[0], list(csv.DictReader(io.StringIO(output)))[0]
+            a.pop("dictionary_sha256"); b.pop("dictionary_sha256")
+            self.assertEqual(a, b)
+            field = "voltage_v" if unit == "mV" else "current_a"
+            self.assertEqual(float(b[field]), expected)
+            self.assertEqual(bytes.fromhex(report["source_document_hex"][4:]).decode(), base + extra)
+            declaration, _ = convert_canopen_dictionary(base + extra, 0)
+            ff = next(r for r in csv.DictReader(io.StringIO(declaration)) if r["object_subindex"] == "255")
+            self.assertEqual(ff["declaration_status"], "UNQUALIFIED_SUBINDEX_FF")
+            self.assertIn("UnknownExtension", bytes.fromhex(ff["source_section_hex"][4:]).decode())
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "out.csv"; path.write_text(output)
+                if os.environ.get("MUSUBI_TELEMETRY_READER"):
+                    common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                        str(ROOT / "profiles/declared/dronecan-recorded/pdo-profile.toml"),
+                        str(path)], check=True, capture_output=True).stdout)
+                    self.assertEqual(common["observations"][0]["fields"][field], expected)
+            with self.assertRaisesRegex(ValueError, "subentry count"):
+                convert_canopen_dictionary((base + extra).replace("SubNumber=2", "SubNumber=3"), 0)
+            with self.assertRaises(ValueError):
+                convert_canopen_pdo(saved, (base + extra).replace("0x20000010", "0x1A00FF20"), 0x181, 0x1a00)
+
     def test_boolean_pdo_reuses_mapping_and_numeric_neighbor(self):
         import sys
         def dictionary(width, reverse=False):
@@ -86,6 +120,7 @@ class CanopenRecordedTests(unittest.TestCase):
             signed_raw = current & ((1 << signed_bits) - 1)
             word = (volts | signed_raw << unsigned_bits) if reverse else (signed_raw | volts << signed_bits)
             total = signed_bits + unsigned_bits
+            # Nonzero padding is retained in the frame, never made a measurement.
             if total % 8:
                 word |= 0xf << total
             raw = word.to_bytes((total + 7) // 8, "little").hex()
@@ -138,6 +173,9 @@ class CanopenRecordedTests(unittest.TestCase):
                          f"AccessType=ro\nPDOMapping=1\nUnit={unit}\n{extra}")
             return text
 
+        # Two independent authored map/value sets. A: REAL32 first, INTEGER16 neighbour after it.
+        # B: the neighbour first, so the float sits at a non-zero byte-aligned offset. Both are
+        # byte-aligned and full width, which is the only float layout the pin defines.
         set_a = dictionary([0x20000020, 0x20010010],
                            {0x2000: (8, "V", ""), 0x2001: (3, "degC", "Factor=0.1\n")})
         set_b = dictionary([0x20000010, 0x20010020],
@@ -157,14 +195,18 @@ class CanopenRecordedTests(unittest.TestCase):
             self.assertEqual(float(floats[0]["raw_value"]), volts)
             self.assertEqual(floats[0]["quantity_status"], "REPORTED_CONFIGURED_QUANTITY")
             self.assertAlmostEqual(float(others[0]["temperature_k"]), temp / 10 + 273.15)
+            # The source bit range travels with the row in the default mode too, so the float's
+            # bytes are locatable inside the retained frame without re-deriving the mapping.
             self.assertEqual((int(floats[0]["mapped_bit_offset"]), int(floats[0]["mapped_bit_width"])),
                              (float_offset, 32))
             self.assertEqual(int(others[0]["mapped_bit_width"]), 16)
             self.assertEqual((report["mapped_bits"], report["retained_padding_bits"]), (48, 0))
+            # No overlap and no unmapped loss: the slots tile the payload exactly once.
             covered = sorted((int(r["mapped_bit_offset"]), int(r["mapped_bit_width"])) for r in rows[:2])
             self.assertEqual(covered, [(0, 16), (16, 32)] if float_offset else [(0, 32), (32, 16)])
             self.assertEqual(sum(width for _, width in covered), report["mapped_bits"])
             self.assertEqual(len(payload) * 8, report["mapped_bits"])
+            # The reported range addresses the exact bytes of the retained original frame.
             retained = bytes.fromhex(json.loads(bytes.fromhex(floats[0]["source_frame_hex"][4:]))[2])
             start = int(floats[0]["mapped_bit_offset"]) // 8
             self.assertEqual(struct.unpack("<f", retained[start:start + 4])[0], volts)
@@ -193,6 +235,7 @@ class CanopenRecordedTests(unittest.TestCase):
                 self.assertIn("not_a_standard_CANopen_guarantee", units["configured_unit"])
                 self.assertIn("required_to_be_exactly_1_for_a_float", units["configured_factor"])
 
+        # A REAL64 alone: full width, byte-aligned, and the only shape that fits a classic PDO.
         wide = dictionary([0x20000040], {0x2000: (17, "V", "")})
         output, report = convert_canopen_pdo(
             HEADER + f"1,181,{struct.pack('<d', -12.75).hex()}\n", wide, 0x181, 0x1a00)
@@ -201,6 +244,8 @@ class CanopenRecordedTests(unittest.TestCase):
         self.assertEqual((int(row["mapped_bit_offset"]), int(row["mapped_bit_width"])), (0, 64))
         self.assertEqual((report["mapped_bits"], report["retained_padding_bits"]), (64, 0))
 
+        # NaN and both infinities stay unnormalised: no quantity, an explicit disposition, and the
+        # exact source bits still recoverable from the retained frame at the reported range.
         for value in (float("nan"), float("inf"), float("-inf")):
             payload = struct.pack("<fh", value, 250)
             output, _ = convert_canopen_pdo(HEADER + f"1,181,{payload.hex()}\n", set_a, 0x181, 0x1a00)
@@ -213,17 +258,27 @@ class CanopenRecordedTests(unittest.TestCase):
             self.assertEqual(struct.pack("<f", recovered), struct.pack("<f", value))
             self.assertFalse(math.isfinite(recovered))
 
+        # The unsupported boundary, refused by a reason that names this cause. The pinned reference
+        # shift/masks a non-byte-aligned field, which cannot run on a float, and its aligned read
+        # slices the declared width while ignoring a shorter mapped width - so neither is guessed at
+        # here, in either mode.
         boundary = "float PDO mapping requires byte alignment and the full declared width"
         for words, objects, bits in (
+                # REAL32 at bit offset 4, behind a 4-bit integer.
                 ([0x20000004, 0x20010020], {0x2000: (3, "mA", ""), 0x2001: (8, "V", "")}, True),
+                # REAL32 mapped at 16 bits: byte-aligned, but not the declared width.
                 ([0x20000010], {0x2000: (8, "V", "")}, True),
+                # REAL64 mapped at 32 bits.
                 ([0x20000020], {0x2000: (17, "V", "")}, True),
+                # And the same short-width float outside the bit-field mode.
                 ([0x20000010], {0x2000: (8, "V", "")}, False)):
             selected = dictionary(words, objects)
             with self.subTest(words=words, bit_fields=bits), self.assertRaises(ValueError) as caught:
                 convert_canopen_pdo(HEADER + "1,181,0000000000000000\n", selected, 0x181, 0x1a00,
                                     bit_fields=bits)
             self.assertEqual(str(caught.exception), boundary)
+        # Adopted float rules that are unchanged, each still refused: a non-unit factor, an unknown
+        # unit, a payload that does not match the mapping, and a mapping past the classic 64 bits.
         for selected, reason in (
                 (set_a.replace("Unit=V", "Unit=V\nFactor=2"), "invalid or ambiguous physical factor"),
                 (set_a.replace("Unit=V", "Unit=guessed"), "qualified engineering unit required"),
@@ -296,6 +351,7 @@ DefaultValue=0x20000F10
             row = next(csv.DictReader(io.StringIO(converted)))
             self.assertEqual(float(row["voltage_v"]), expected)
             self.assertEqual(row["object_subindex"], "15")
+            # The declared DCF value is not substituted for a captured value.
             self.assertNotEqual(float(row["raw_value"]), 12345)
             if os.environ.get("MUSUBI_TELEMETRY_READER"):
                 with tempfile.TemporaryDirectory() as directory:
@@ -368,6 +424,7 @@ Unit=%
             return text
 
         def compact(index, words, *, parameter_values=False):
+            # The whole record is the template plus one value list: no sub-index section at all.
             text = (f"[{index:04X}]\nParameterName=Transmit mapping\nObjectType=9\n"
                     f"CompactSubObj={len(words)}\nDataType=7\nAccessType=ro\n")
             if not parameter_values:
@@ -378,6 +435,7 @@ Unit=%
             return text
 
         sets = (
+            # (mapping index, mapping words, slot names, variable declarations, frame bytes, expectations)
             (0x1A00, (0x20000010, 0x20010010), ("Voltage slot", "Temperature slot"), variables,
              struct.pack("<Hh", 12500, -125), {"voltage_v": 12.5, "temperature_k": 273.15 - 12.5}),
             (0x1A01, (0x21000020, 0x21010010, 0x21020008), ("Current slot", "Angle slot", "Load slot"),
@@ -391,6 +449,7 @@ Unit=%
             for dictionary in (declarations + compact(mapping_index, words),
                                declarations + compact(mapping_index, words, parameter_values=True)):
                 converted, report = convert_canopen_pdo(capture, dictionary, 0x181, mapping_index)
+                # Same mapping, same slots, same values: only the digest of the source document differs.
                 self.assertNotEqual(report["dictionary_sha256"], reference_report["dictionary_sha256"])
                 compacted, expected = (list(csv.DictReader(io.StringIO(text)))
                                        for text in (converted, reference))
@@ -413,6 +472,7 @@ Unit=%
                         self.assertAlmostEqual([v for v in observed if v is not None][0], value,
                                                places=6)
 
+        # The expanded declaration metadata of the compact record, through the dictionary path.
         index, words = sets[0][0], sets[0][1]
         output, _ = convert_canopen_dictionary(compact(index, words), 7)
         rows = {row["object_subindex"]: row for row in csv.DictReader(io.StringIO(output))}
@@ -427,6 +487,7 @@ Unit=%
             self.assertEqual(rows[position]["data_type_reported"], "UNSIGNED32")
             self.assertEqual(rows[position]["declaration_status"],
                              "COMPACT_EXPANDED_NOT_DEVICE_VERIFIED")
+            # DCF ParameterValue and EDS DefaultValue stay separate declarations.
             self.assertEqual(decoded(position)["ParameterValue"], f"0x{words[int(position) - 1]:08X}")
             self.assertEqual(decoded(position)["DefaultValue"], f"0x{words[0]:08X}")
         if os.environ.get("MUSUBI_TELEMETRY_READER"):
@@ -435,11 +496,13 @@ Unit=%
                 common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
                     str(ROOT / "profiles/declared/dronecan-recorded/dictionary-profile.toml"),
                     str(path), "--allow-equal-time"], check=True, capture_output=True).stdout)
+            # parent RECORD + NrOfObjects + the two derived mapping words
             self.assertEqual(len(common["observations"]), 4)
             units = common["profile_units"]
             self.assertIn("COMPACT", units["declaration_status"])
             self.assertIn("not_device_verified", units["declaration_status"].lower())
 
+        # Refused rather than guessed, and never silently half-expanded.
         template = compact(0x1A00, sets[0][1])
         for bad in (template.replace("CompactSubObj=2", "CompactSubObj=255"),
                     template.replace("CompactSubObj=2", "CompactSubObj=2\nSubNumber=3"),
@@ -450,10 +513,13 @@ Unit=%
                     "[DeviceInfo]\nCompactPDO=0x3\nNrOfTXPDO=2\n" + template):
             with self.assertRaises(ValueError):
                 convert_canopen_dictionary(bad, 7)
+        # A zero CompactPDO declares nothing implicit and stays acceptable.
         convert_canopen_dictionary("[DeviceInfo]\nCompactPDO=0\n" + template, 7)
+        # A count past the classic PDO is refused by the adopted mapping check, not truncated.
         oversize = variables + compact(0x1A00, (0x20000010,) * 9)
         with self.assertRaises(ValueError):
             convert_canopen_pdo(HEADER + "1,181,0000\n", oversize, 0x181, 0x1a00)
+        # Missing template type or access stays unexpanded, so the map is absent rather than invented.
         unexpanded = variables + template.replace("DataType=7\n", "")
         self.assertEqual([row["declaration_status"] for row in csv.DictReader(io.StringIO(
             convert_canopen_dictionary(unexpanded, 7)[0])) if row["object_index"] == "6656"],
@@ -501,6 +567,7 @@ Factor=0.1
         for count, volts, temp in ((10000, 24000, -100), (2, 12500, 250)):
             selected = dictionary
             if count == 2:
+                # A DCF override reverses slots without changing the converter.
                 selected = selected.replace("DefaultValue=0x20000010", "DefaultValue=0x20000010\nParameterValue=0x20010010")
                 selected = selected.replace("DefaultValue=0x20010010\n[2000]", "DefaultValue=0x20010010\nParameterValue=0x20000010\n[2000]")
             data = struct.pack("<Hh", volts, temp) if count == 10000 else struct.pack("<hH", temp, volts)
@@ -539,6 +606,76 @@ Factor=0.1
             self.assertEqual(row["quantity_status"], "REPORTED_CONFIGURED_QUANTITY" if value == 24.5 else "NONFINITE_RETAINED")
         with self.assertRaises(ValueError):
             convert_canopen_pdo(HEADER + "1,181,0000c441fa00\n", floating.replace("Unit=V", "Unit=V\nFactor=2"), 0x181, 0x1a00)
+
+    def test_declared_tpdo_communication_cob_id_binds_the_selection(self):
+        """canopen-python 14b3336 PdoMap.read (DCF over EDS, bit31 not valid); CANopenNode v4.1 bits 11..29 zero."""
+        mapping = ("[1A00]\nParameterName=Map\nObjectType=9\nSubNumber=2\n"
+                   "[1A00sub0]\nParameterName=Count\nDataType=5\nAccessType=ro\nDefaultValue=1\n"
+                   "[1A00sub1]\nParameterName=Slot\nDataType=7\nAccessType=ro\nDefaultValue=0x20000010\n"
+                   "[2000]\nParameterName=Voltage\nDataType=6\nAccessType=ro\nPDOMapping=1\nUnit=mV\n")
+        def communication(value):
+            return ("[1800]\nParameterName=Transmit communication\nObjectType=9\nSubNumber=2\n"
+                    "[1800sub0]\nParameterName=Highest sub-index\nDataType=5\nAccessType=ro\nDefaultValue=1\n"
+                    f"[1800sub1]\nParameterName=COB-ID\nDataType=7\nAccessType=rw\nDefaultValue={value}\n")
+        saved = HEADER + "7,181,e02e\n8,182,e02e\n"
+        baseline, baseline_report = convert_canopen_pdo(saved, mapping, 0x181, 0x1a00)
+        self.assertNotIn("pdo_communication_check", baseline_report)
+        drop = lambda text: [{k: v for k, v in r.items() if k != "dictionary_sha256"}
+                             for r in csv.DictReader(io.StringIO(text))]
+        # Matching literal (RTR bit 30 is not part of the identifier), and a DCF value over an EDS default.
+        for declared in ("0x181", "0x40000181", "0x182\nParameterValue=0x181"):
+            output, report = convert_canopen_pdo(saved, mapping + communication(declared), 0x181, 0x1a00)
+            self.assertEqual(drop(output), drop(baseline))
+            self.assertEqual(report["pdo_communication_check"], "DECLARED_COB_ID_MATCHES_SELECTION")
+            self.assertEqual(len(report["unsupported_frames"]), 1)
+        # A symbolic expression is not evaluated: the selection stays caller-qualified, and says so.
+        for expression in ("$NODEID+0x180", "$NODEID", "0x181\nParameterValue=$NODEID+0x180"):
+            output, report = convert_canopen_pdo(saved, mapping + communication(expression), 0x181, 0x1a00)
+            self.assertEqual(drop(output), drop(baseline))
+            self.assertEqual(report["pdo_communication_check"],
+                             "DECLARED_EXPRESSION_NOT_EVALUATED_CALLER_QUALIFIED")
+        # Not a recognized expression and not a uint32 literal: refused, never caller-qualified.
+        malformed = "declared TPDO COB-ID is not a uint32 literal or NodeID expression"
+        for declared in ("0x100000000", "4294967296", "-1", "0x18G", "385abc", "$NODEID*2",
+                         "$NODEID+0x180\nParameterValue=0x18G"):
+            with self.subTest(declared=declared), self.assertRaises(ValueError) as caught:
+                convert_canopen_pdo(saved, mapping + communication(declared), 0x181, 0x1a00)
+            self.assertEqual(str(caught.exception), malformed)
+        # Only the qualified UNSIGNED32 entry is read as a COB-ID, whatever its value.
+        for datatype in ("5", "6", "4", "8"):
+            with self.subTest(datatype=datatype), self.assertRaises(ValueError) as caught:
+                convert_canopen_pdo(saved, mapping + communication("0x181").replace(
+                    "DataType=7\nAccessType=rw", f"DataType={datatype}\nAccessType=rw"), 0x181, 0x1a00)
+            self.assertEqual(str(caught.exception), "declared TPDO COB-ID must be UNSIGNED32")
+        # The dictionary itself contradicts the selection: refused, never decoded with that map.
+        for declared, reason in (("0x182", "selected COB-ID contradicts declared TPDO communication parameter"),
+                                 ("0x80000181", "selected TPDO is declared not valid"),
+                                 ("0x20000181", "declared TPDO COB-ID is not a classic 11-bit identifier"),
+                                 ("0x981", "declared TPDO COB-ID is not a classic 11-bit identifier"),
+                                 ("0x181\nParameterValue=0x182",
+                                  "selected COB-ID contradicts declared TPDO communication parameter")):
+            with self.subTest(declared=declared), self.assertRaises(ValueError) as caught:
+                convert_canopen_pdo(saved, mapping + communication(declared), 0x181, 0x1a00)
+            self.assertEqual(str(caught.exception), reason)
+        if os.environ.get("MUSUBI_TELEMETRY_READER"):
+            import sys
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory)
+                (path / "input.csv").write_text(saved)
+                (path / "device.dcf").write_text(mapping + communication("0x181"))
+                subprocess.run([sys.executable, str(ROOT / "scripts/convert_dronecan_capture.py"),
+                                str(path / "input.csv"), str(path / "out"), "--protocol", "canopen-pdo-python",
+                                "--pdo-dictionary", str(path / "device.dcf"), "--pdo-id", "0x181",
+                                "--pdo-map", "0x1a00"], cwd=ROOT, check=True, capture_output=True)
+                accounting = json.loads((path / "out/accounting.json").read_text())
+                self.assertEqual(accounting["pdo_communication_check"], "DECLARED_COB_ID_MATCHES_SELECTION")
+                common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                    str(ROOT / "profiles/declared/dronecan-recorded/pdo-profile.toml"),
+                    str(path / "out/observations.csv")], check=True, capture_output=True).stdout)
+                self.assertEqual(len(common["observations"]), 1)
+                self.assertEqual(common["observations"][0]["fields"]["voltage_v"], 12)
+                self.assertEqual(common["observations"][0]["fields"]["pdo_cob_id"], 0x181)
+                self.assertEqual(common["observations"][0]["clock_basis"], "Unknown")
 
     def test_dictionary_two_inputs_typed_declarations_and_common_output(self):
         for name, datatype, expected in (("One", "0x10", "INTEGER24"), ("Two", "8", "REAL32")):
@@ -619,6 +756,7 @@ AccessType=ro
         self.assertEqual(rows[1]["canopen_error_report_kind"], "ERROR_RESET_REPORTED")
         self.assertEqual(rows[1]["canopen_error_voltage_reported"], "1")
         self.assertEqual(rows[2]["canopen_error_code"], "")
+        # The whole reported classification, including the bits the earlier version never asserted.
         self.assertEqual(rows[0]["canopen_error_report_kind"], "ERROR_REPORTED")
         self.assertEqual(rows[0]["canopen_error_register"], "5")
         self.assertEqual(rows[0]["canopen_error_generic_reported"], "1")
@@ -631,6 +769,8 @@ AccessType=ro
                          "001005aabbccddee")
         self.assertEqual(rows[1]["canopen_error_code"], "0")
         self.assertEqual(rows[1]["canopen_error_register_disposition"], "ALL_DEFINED_REGISTER_BITS")
+        # A node that sets the reserved bit still sent a well-formed report: it is retained and named,
+        # not discarded, and nothing reads it as a vendor fault.
         reserved = HEADER + "4,081,0000c00000000000\n"
         kept, kept_report = convert_canopen(reserved, include_emergency=True)
         reserved_row = next(csv.DictReader(io.StringIO(kept)))
@@ -663,6 +803,7 @@ AccessType=ro
                                "canopen_error_device_profile_reported", "canopen_error_reserved_reported",
                                "canopen_error_manufacturer_reported"):
                     self.assertTrue(units.get(column), f"{column} must declare its meaning")
+                # The limits have to be in the declarations, not only in the case prose.
                 self.assertIn("never_normality_all_faults_cleared_or_healthy_hardware",
                               units["canopen_error_report_kind"])
                 self.assertIn("never_a_diagnosed_cause", units["canopen_error_register"])
@@ -671,6 +812,7 @@ AccessType=ro
                 self.assertIn("never_becomes_a_named_fault", units["canopen_error_code"])
                 self.assertIn("never_interpreted_as_a_named_or_vendor_fault",
                               units["canopen_error_reserved_reported"])
+        # The DLC/framing refusals are unchanged; only the reserved-bit content rule stopped being one.
         for body in ("1,081,00\n", "1,081,001005aabbccdd\n"):
             with self.assertRaises(ValueError):
                 convert_canopen(HEADER + body, include_emergency=True)

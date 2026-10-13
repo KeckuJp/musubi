@@ -1,0 +1,125 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_capture_microseconds_unknown_clock_not_observation_time",
+      "basis": "declared"
+    },
+    "temperature_k": {
+      "meaning": "temperature_k",
+      "unit": "K",
+      "basis": "declared"
+    },
+    "count_reported": {
+      "meaning": "count_reported",
+      "unit": "reported_OM_CountObservation_integer_exact_within_signed_53_bits_no_inferred_physical_unit",
+      "basis": "declared"
+    },
+    "truth_reported": {
+      "meaning": "truth_reported",
+      "unit": "reported_OM_TruthObservation_boolean_text_true_or_false_not_numeric_not_verified_predicate",
+      "basis": "declared"
+    },
+    "result_kind": {
+      "meaning": "result_kind",
+      "unit": "explicit_selected_OGC_scalar_kind_count_or_truth_null_is_missing_not_false_or_zero",
+      "basis": "declared"
+    },
+    "value_disposition": {
+      "meaning": "value_disposition",
+      "unit": "reported_quality_unassessed_or_null_not_provided_not_calibration_or_sensor_validity",
+      "basis": "declared"
+    },
+    "phenomenon_time_us": {
+      "meaning": "phenomenon_time_us",
+      "unit": "reported_unix_us_not_verified_device_clock",
+      "basis": "declared"
+    },
+    "phenomenon_time_kind": {
+      "meaning": "phenomenon_time_kind",
+      "unit": "INSTANT_or_PERIOD_no_fabricated_instant_for_period",
+      "basis": "declared"
+    },
+    "phenomenon_start_us": {
+      "meaning": "phenomenon_start_us",
+      "unit": "reported_period_start_unix_us_not_an_instant_sample",
+      "basis": "declared"
+    },
+    "phenomenon_end_us": {
+      "meaning": "phenomenon_end_us",
+      "unit": "reported_period_end_unix_us_not_capture_time",
+      "basis": "declared"
+    },
+    "result_time_us": {
+      "meaning": "result_time_us",
+      "unit": "reported_result_generation_unix_us_nullable",
+      "basis": "declared"
+    },
+    "observation_id_hex": {
+      "meaning": "observation_id_hex",
+      "unit": "UTF8_hex_of_JSON_declared_Observation_id_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "datastream_id_hex": {
+      "meaning": "datastream_id_hex",
+      "unit": "UTF8_hex_of_JSON_id_in_the_supplied_exact_link_bound_Datastream_not_device_identity",
+      "basis": "declared"
+    },
+    "observed_property_hex": {
+      "meaning": "observed_property_hex",
+      "unit": "UTF8_hex_exact_caller_selected_property_definition",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact_UTF8_whole_original_dataArray_response_once_not_the_internal_expansion_not_secret_scrubbed",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "SHA256_of_original_dataArray_UTF8_response_not_generated_expansion",
+      "basis": "declared"
+    },
+    "source_index": {
+      "meaning": "source_index",
+      "unit": "global_zero_based_native_row_index_including_unselected_rows_before_it",
+      "basis": "declared"
+    },
+    "dataarray_metadata_sha256": {
+      "meaning": "dataarray_metadata_sha256",
+      "unit": "SHA256_of_original_supplied_Datastream_UTF8_document_exact_selfLink_binding_not_authentication",
+      "basis": "declared"
+    },
+    "dataarray_metadata_hex": {
+      "meaning": "dataarray_metadata_hex",
+      "unit": "exact_original_Datastream_UTF8_once_including_unknown_fields_not_secret_scrubbed",
+      "basis": "declared"
+    },
+    "dataarray_group_index": {
+      "meaning": "dataarray_group_index",
+      "unit": "zero_based_original_value_group_position_no_order_or_snapshot_claim",
+      "basis": "declared"
+    },
+    "dataarray_row_index": {
+      "meaning": "dataarray_row_index",
+      "unit": "zero_based_original_row_within_group_not_time_order",
+      "basis": "declared"
+    },
+    "dataarray_global_row_index": {
+      "meaning": "dataarray_global_row_index",
+      "unit": "zero_based_original_row_across_all_groups_including_excluded_rows",
+      "basis": "declared"
+    },
+    "dataarray_repeat_disposition": {
+      "meaning": "dataarray_repeat_disposition",
+      "unit": "FIRST_REPORTED_ID_or_REPEATED_IN_DISTINCT_GROUP_neither_merged_nor_ranked",
+      "basis": "declared"
+    }
+  }
+}

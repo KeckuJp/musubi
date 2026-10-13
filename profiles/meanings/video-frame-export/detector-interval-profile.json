@@ -1,0 +1,150 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "constant_zero_association_order_not_capture_or_media_time",
+      "basis": "declared"
+    },
+    "detector_interval_index": {
+      "meaning": "detector_interval_index",
+      "unit": "zero_based_order_per_detector_in_filtered_export_frame_order",
+      "basis": "declared"
+    },
+    "interval_status": {
+      "meaning": "interval_status",
+      "unit": "closed_open_end_without_start_or_none_reported_by_the_filter_not_physical_state",
+      "basis": "declared"
+    },
+    "start_tag_frame_index": {
+      "meaning": "start_tag_frame_index",
+      "unit": "filtered_export_frame_that_carries_the_start_tag",
+      "basis": "declared"
+    },
+    "start_frame_index": {
+      "meaning": "start_frame_index",
+      "unit": "filtered_export_frame_whose_pts_the_start_value_names_blank_if_unresolved",
+      "basis": "declared"
+    },
+    "start_frame_resolution": {
+      "meaning": "start_frame_resolution",
+      "unit": "how_the_start_frame_was_identified_from_pinned_filter_semantics",
+      "basis": "declared"
+    },
+    "start_pts": {
+      "meaning": "start_pts",
+      "unit": "exact_ticks_of_the_filtered_stream_timebase",
+      "basis": "declared"
+    },
+    "start_time_text_reported": {
+      "meaning": "start_time_text_reported",
+      "unit": "exact_tag_text_seconds_rounded_by_av_ts2timestr",
+      "basis": "declared"
+    },
+    "end_frame_index": {
+      "meaning": "end_frame_index",
+      "unit": "filtered_export_frame_that_carries_the_end_tag_first_frame_after_the_interval",
+      "basis": "declared"
+    },
+    "end_pts_exclusive": {
+      "meaning": "end_pts_exclusive",
+      "unit": "exact_ticks_of_the_filtered_stream_timebase_exclusive_end",
+      "basis": "declared"
+    },
+    "end_time_text_reported": {
+      "meaning": "end_time_text_reported",
+      "unit": "exact_tag_text_seconds_rounded_by_av_ts2timestr",
+      "basis": "declared"
+    },
+    "interval_ticks": {
+      "meaning": "interval_ticks",
+      "unit": "end_minus_start_exact_ticks_when_both_resolved",
+      "basis": "declared"
+    },
+    "freeze_duration_text_reported": {
+      "meaning": "freeze_duration_text_reported",
+      "unit": "exact_tag_text_seconds_rounded_by_av_ts2timestr",
+      "basis": "declared"
+    },
+    "freeze_duration_us_from_reported_text": {
+      "meaning": "freeze_duration_us_from_reported_text",
+      "unit": "us_parsed_from_rounded_reported_text_not_proven_original_counter_not_interval_duration",
+      "basis": "declared"
+    },
+    "freeze_duration_precision_basis": {
+      "meaning": "freeze_duration_precision_basis",
+      "unit": "whether_parsed_us_reprint_the_reported_text_text_remains_authoritative",
+      "basis": "declared"
+    },
+    "stream_index": {
+      "meaning": "stream_index",
+      "unit": "selected_filtered_export_stream",
+      "basis": "declared"
+    },
+    "timebase_numerator": {
+      "meaning": "timebase_numerator",
+      "unit": "filtered_stream_timebase_numerator",
+      "basis": "declared"
+    },
+    "timebase_denominator": {
+      "meaning": "timebase_denominator",
+      "unit": "filtered_stream_timebase_denominator",
+      "basis": "declared"
+    },
+    "min_duration_basis": {
+      "meaning": "min_duration_basis",
+      "unit": "whether_the_filter_applied_its_minimum_duration_before_tagging",
+      "basis": "declared"
+    },
+    "detector_basis": {
+      "meaning": "detector_basis",
+      "unit": "filter_metadata_report_not_physical_black_frozen_or_fault_truth",
+      "basis": "declared"
+    },
+    "filtered_export_sha256": {
+      "meaning": "filtered_export_sha256",
+      "unit": "sha256_filtered_ffprobe_export_bytes_not_media_authentication",
+      "basis": "declared"
+    },
+    "declaration_sha256": {
+      "meaning": "declaration_sha256",
+      "unit": "sha256_caller_declaration_bytes",
+      "basis": "declared"
+    },
+    "filter_graph_hex": {
+      "meaning": "filter_graph_hex",
+      "unit": "utf8_hex_caller_declared_filter_graph_not_verified",
+      "basis": "declared"
+    },
+    "session_id_hex": {
+      "meaning": "session_id_hex",
+      "unit": "utf8_hex_caller_declared_session_not_authenticated",
+      "basis": "declared"
+    },
+    "camera_id_hex": {
+      "meaning": "camera_id_hex",
+      "unit": "utf8_hex_caller_declared_camera_not_authenticated",
+      "basis": "declared"
+    },
+    "citation_hex": {
+      "meaning": "citation_hex",
+      "unit": "utf8_hex_caller_citation",
+      "basis": "declared"
+    },
+    "unfiltered_export_sha256": {
+      "meaning": "unfiltered_export_sha256",
+      "unit": "caller_declared_filter_input_export_digest_not_verified",
+      "basis": "declared"
+    },
+    "unfiltered_relation": {
+      "meaning": "unfiltered_relation",
+      "unit": "caller_relation_frame_indices_not_interchangeable",
+      "basis": "declared"
+    }
+  }
+}

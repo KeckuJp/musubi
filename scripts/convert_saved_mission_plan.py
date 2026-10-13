@@ -16,7 +16,8 @@ or VTOL vehicles"), `hoverSpeed` ("the default forward speed for multi-rotor veh
 `plannedHomePosition` (`[latitude, longitude, AMSL altitude]`) and `items`; a `SimpleItem` carries
 `command` (MAV_CMD), `frame` (MAV_FRAME), `autoContinue`, `doJumpId` and `params` -- which that
 format states are **"MISSION_ITEM.param1,2,3,4,x,y,z (values depends on the particular MAV_CMD)"**,
-so they are retained positionally and **not one of them is interpreted here**.
+so default output retains them positionally; opt-in fixed-nine-command meanings
+are separate fields, never an instruction for a vehicle.
 """
 import argparse
 import csv
@@ -28,8 +29,12 @@ import math
 from pathlib import Path
 
 try:
+    from scripts import recorded_plan_geometry
+    from scripts.recorded_mission_parameters import FIELDS, DEFINITIONS, interpret
     from scripts.convert_position_csv import unique_object, invalid_constant
 except ModuleNotFoundError:
+    import recorded_plan_geometry
+    from recorded_mission_parameters import FIELDS, DEFINITIONS, interpret
     from convert_position_csv import unique_object, invalid_constant
 
 LIMIT = 8 * 1024 * 1024
@@ -197,7 +202,7 @@ def plan_declaration(document, mission, digest, capture_time_us, simple, complex
     return row
 
 
-def mission_item(item, index, header):
+def mission_item(item, index, header, *, parameter_meanings=False):
     """One SimpleItem, in the file's own field names. Nothing is added and nothing is reordered."""
     row = dict(header)
     row.update({"plan_record_kind": MISSION_ITEM, "item_index": index,
@@ -232,10 +237,17 @@ def mission_item(item, index, header):
             # positions a particular command does not use.
             continue
         row["item_param_%d" % position] = number(value, "param %d" % position)
+    if parameter_meanings:
+        row.update(interpret(item['command'], item['frame'], params))
+        row['item_param_basis'] = 'original_positional_values_retained_see_separate_fixed_parameter_fields'
     return row
 
 
-def convert(data, capture_time_us):
+def convert(data, capture_time_us, *, parameter_meanings=False, geometry_settings=False):
+    if type(parameter_meanings) is not bool:
+        raise ValueError('explicit boolean selector required')
+    if type(geometry_settings) is not bool:
+        raise ValueError('explicit boolean geometry selector required')
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
         raise ValueError("invalid capture time")
     if len(data) > LIMIT:
@@ -297,13 +309,22 @@ def convert(data, capture_time_us):
     header = plan_declaration(document, mission, digest, capture_time_us, len(simple),
                               len(complex_kinds), len(unrecognised_kinds))
     output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=COLUMNS, lineterminator="\n")
+    writer = csv.DictWriter(output, fieldnames=COLUMNS + (FIELDS if parameter_meanings else [])
+                            + (recorded_plan_geometry.FIELDS if geometry_settings else []), lineterminator="\n")
     writer.writeheader()
     writer.writerow(header)
     for document_index, item in simple:
-        writer.writerow(mission_item(item, document_index, header))
+        writer.writerow(mission_item(item, document_index, header, parameter_meanings=parameter_meanings))
         if output.tell() > LIMIT:
             raise ValueError("observation CSV exceeds bound")
+    geometry_report = None
+    if geometry_settings:
+        geometry_rows, geometry_report = recorded_plan_geometry.read(document,number,whole)
+        for geometry_row in geometry_rows:
+            geometry_row.update(record_time_us=capture_time_us,source_plan_sha256=digest,
+                                plan_record_kind='GEOMETRY_DECLARATION',record_basis=RECORD_BASIS)
+            writer.writerow(geometry_row)
+            if output.tell()>LIMIT:raise ValueError('geometry observation CSV exceeds bound')
 
     def tally(pairs):
         counted = {}
@@ -337,6 +358,14 @@ def convert(data, capture_time_us):
                         "claim, no parameter interpretation and no mission authoring or "
                         "optimisation",
     }
+    if parameter_meanings:
+        report['parameter_meanings'] = 'fixed_nine_saved_commands_not_execution'
+        report['parameter_uninterpreted_items'] = sum(item['command'] not in DEFINITIONS for _, item in simple)
+        report['not_produced'] = 'no transmission, actuation, acceptance, execution, authoring or optimisation'
+    if geometry_settings:
+        report['saved_geometry'] = geometry_report
+        report['source_retention'] = 'unchanged original.plan must accompany output; unknown fields/internal Items remain there'
+        report['complex_items_counted_not_decoded'] = tally([p for p in complex_kinds if p[1] not in recorded_plan_geometry.COMPLEX_VERSIONS])
     if len(json.dumps(report).encode()) > LIMIT:
         raise ValueError("report exceeds bound")
     return output.getvalue(), report
@@ -345,6 +374,8 @@ def convert(data, capture_time_us):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("plan", type=Path, help="saved .plan file")
+    parser.add_argument('--parameter-meanings', action='store_true')
+    parser.add_argument('--geometry-settings', action='store_true')
     parser.add_argument("output_directory", type=Path, help="new directory only")
     parser.add_argument("--capture-time-us", type=int, required=True,
                         help="caller clock for when the saved plan was taken in; never a mission "
@@ -353,11 +384,14 @@ def main():
     try:
         with args.plan.open("rb") as stream:
             data = stream.read(LIMIT + 1)
-        output, report = convert(data, args.capture_time_us)
+        output, report = convert(data, args.capture_time_us, parameter_meanings=args.parameter_meanings,
+                                 geometry_settings=args.geometry_settings)
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2),
                                                            encoding="utf-8")
+        if args.geometry_settings:
+            (args.output_directory/'original.plan').write_bytes(data)
     except (ValueError, OSError, RecursionError):
         parser.exit(2, "saved plan conversion failed; no mission configuration is claimed\n")
 

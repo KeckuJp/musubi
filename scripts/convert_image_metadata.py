@@ -13,8 +13,10 @@ from pathlib import Path
 
 try:
     from scripts.convert_position_csv import unique_object, invalid_constant
+    from scripts.convert_gpx_recorded import utc_microseconds
 except ModuleNotFoundError:
     from convert_position_csv import unique_object, invalid_constant
+    from convert_gpx_recorded import utc_microseconds
 
 LIMIT = 16 * 1024 * 1024
 MAX_IMAGES = 4096
@@ -79,6 +81,48 @@ COLUMNS = [
     "camera_make_hex", "camera_model_hex", "camera_identity_basis",
     "unknown_tag_count", "retained_tag_count",
 ]
+COMPOSITE_TIME_COLUMNS = ["image_capture_epoch_us", "image_capture_time_text_hex",
+                          "image_capture_time_status", "image_capture_time_basis"]
+COMPOSITE_TIME_TEXT = re.compile(
+    r"([0-9]{4}:[0-9]{2}:[0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})"
+    r"(\.[0-9]{1,6})?([+-][0-9]{2}:[0-9]{2})?")
+
+
+def composite_capture_time(record, used, local_text):
+    """Read the exporter's composite, never synthesize it from raw EXIF tags."""
+    row = dict(image_capture_time_basis="EXIFTOOL_13_59_COMPOSITE_DERIVED_NOT_TRUSTED_CAPTURE",
+               image_capture_time_status="NOT_REPORTED")
+    keys = ("Composite:SubSecDateTimeOriginal", "SubSecDateTimeOriginal")
+    if not any(key in record for key in keys):
+        return row
+    text, _ = resolve(record, "Composite", "SubSecDateTimeOriginal", used)
+    match = COMPOSITE_TIME_TEXT.fullmatch(text) if isinstance(text, str) else None
+    if not match:
+        raise ValueError("unsupported ExifTool composite capture time")
+    date, hour, minute, second, fraction, offset = match.groups()
+    calendar_date(date, "SubSecDateTimeOriginal")
+    datetime.time(int(hour), int(minute), min(int(second), 59))
+    if int(second) > 60:
+        raise ValueError("invalid composite seconds")
+    if local_text and local_text != text[:19]:
+        raise ValueError("composite capture time contradicts DateTimeOriginal")
+    row["image_capture_time_text_hex"] = hexed(text)
+    if offset is None:
+        row["image_capture_time_status"] = ("LEAP_SECOND_LEXICAL_NOT_NORMALIZED" if second == "60"
+                                             else "ZONE_NOT_REPORTED")
+        return row
+    # The helper validates the exact finite offset/date range. For a lexical leap
+    # second validate its other components using 59, then discard that validation value.
+    iso = date.replace(":", "-") + "T" + hour + ":" + minute + ":" + (
+        "59" if second == "60" else second) + (fraction or "") + offset
+    micros = utc_microseconds(iso)
+    if micros > 2**53 - 1:
+        raise ValueError("composite epoch outside exact common numeric range")
+    if second == "60":
+        row["image_capture_time_status"] = "LEAP_SECOND_LEXICAL_NOT_NORMALIZED"
+    else:
+        row.update(image_capture_epoch_us=micros, image_capture_time_status="EXPLICIT_OFFSET_DERIVED")
+    return row
 
 
 def hexed(text):
@@ -278,7 +322,7 @@ def gps_time_of_day(value):
     return "%02d:%02d:%s" % (hour, minute, seconds_text), second >= 60
 
 
-def image_row(record, index, capture_time_us, export_digest):
+def image_row(record, index, capture_time_us, export_digest, composite_time=None):
     if not isinstance(record, dict):
         raise ValueError("each export entry is one image object")
     if len(record) > MAX_TAGS_PER_IMAGE:
@@ -448,6 +492,9 @@ def image_row(record, index, capture_time_us, export_digest):
             row[column] = hexed(declared)
     row["camera_identity_basis"] = "DECLARED_CAMERA_STRING_NOT_A_PLATFORM_IDENTITY"
 
+    if composite_time is not None:
+        row.update(composite_capture_time(record, used, row.get("datetime_original_text")))
+
     # No silent drop, and no new fingerprint either. Every tag outside the consumed set is
     # named by its field path and counted, and the supplied export plus the record index is
     # the reference that recovers its value. Nothing value-derived is emitted: a digest of a
@@ -460,7 +507,9 @@ def image_row(record, index, capture_time_us, export_digest):
     return row, retained
 
 
-def convert(data, capture_time_us):
+def convert(data, capture_time_us, *, composite_time=None):
+    if composite_time not in (None, "exiftool-13.59"):
+        raise ValueError("unsupported composite capture-time source")
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
         raise ValueError("invalid capture time")
     if len(data) > LIMIT:
@@ -481,7 +530,7 @@ def convert(data, capture_time_us):
         data if isinstance(data, (bytes, bytearray)) else data.encode()).hexdigest()
 
     output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=COLUMNS, lineterminator="\n")
+    writer = csv.DictWriter(output, fieldnames=COLUMNS + (COMPOSITE_TIME_COLUMNS if composite_time else []), lineterminator="\n")
     writer.writeheader()
     report = {
         "export_sha256": export_digest,
@@ -497,9 +546,12 @@ def convert(data, capture_time_us):
         "images_with_coordinates": 0,
         "images_with_gps_utc": 0,
     }
+    if composite_time:
+        report["composite_capture_time"] = dict(source=composite_time, derived_images=0, statuses={},
+            meaning="exporter-derived explicit offset; not Exif revision certification or a trusted capture clock")
     try:
         for index, record in enumerate(document, start=1):
-            row, retained = image_row(record, index, capture_time_us, export_digest)
+            row, retained = image_row(record, index, capture_time_us, export_digest, composite_time)
             writer.writerow(row)
             report["images"] += 1
             report["unknown_tag_total"] += len(retained)
@@ -512,9 +564,15 @@ def convert(data, capture_time_us):
                 report["images_with_coordinates"] += 1
             if row["gps_time_basis"] == "EXIF_GPS_UTC_DECLARED":
                 report["images_with_gps_utc"] += 1
+            if composite_time:
+                status = row["image_capture_time_status"]
+                counts = report["composite_capture_time"]["statuses"]
+                counts[status] = counts.get(status, 0) + 1
+                if status == "EXPLICIT_OFFSET_DERIVED":
+                    report["composite_capture_time"]["derived_images"] += 1
             if output.tell() > LIMIT:
                 raise ValueError("observation CSV exceeds bound")
-        if len(json.dumps(report).encode()) > LIMIT:
+        if len(json.dumps(report, **({"indent": 2} if composite_time else {})).encode()) > LIMIT:
             raise ValueError("report exceeds bound")
     except (KeyError, TypeError, AttributeError, OverflowError, RecursionError) as exc:
         raise ValueError("malformed export") from exc
@@ -527,11 +585,13 @@ def main():
     parser.add_argument("output_directory", type=Path)
     parser.add_argument("--capture-time-us", type=int, required=True,
                         help="caller read clock; not the image capture time and not UTC")
+    parser.add_argument("--composite-time", choices=("exiftool-13.59",),
+                        help="interpret saved SubSecDateTimeOriginal composite; caller clock stays Unknown")
     args = parser.parse_args()
     try:
         with args.input.open("rb") as stream:
             data = stream.read(LIMIT + 1)  # one bounded read; no size/read race
-        output, report = convert(data, args.capture_time_us)
+        output, report = convert(data, args.capture_time_us, composite_time=args.composite_time)
         args.output_directory.mkdir()  # Refuse an existing output/evidence directory.
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2),

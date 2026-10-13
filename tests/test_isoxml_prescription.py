@@ -41,6 +41,111 @@ def cells(*values):
 
 
 class IsoxmlPrescriptionTests(unittest.TestCase):
+    def test_device_reference_opt_in_preserves_grid_values_and_default(self):
+        declarations = (b'<DVC A="DVC-1"><DET A="DET-1" B="1" C="4" D="Left" E="7" F="0"/></DVC>'
+                        b'<DVC A="DVC-2"><DET A="DET-2" B="1" C="99" E="8" F="0"/></DVC>')
+        for kind, binary in ((1, bytes([3, 3])), (2, cells(40000, 1200, 50000, 1300))):
+            description = document(grid(kind, 2, 1, extra=' J="3"' if kind == 2 else ''),
+                zone(3, [('0001', 10000, ' D="DET-1"'), ('0006', 2000, ' D="DET-2"')]))
+            description = description.replace(b'</ISO11783_TaskData>', declarations + b'</ISO11783_TaskData>')
+            baseline, baseline_report = self.convert(description, binary)
+            self.assertEqual(self.convert(description, binary, device_reference=False),
+                             (baseline, baseline_report))
+            output, report = self.convert(description, binary, device_reference=True)
+            rows = list(csv.DictReader(io.StringIO(output)))
+            old_rows = list(csv.DictReader(io.StringIO(baseline)))
+            self.assertEqual(len(rows), 4)
+            for old, new in zip(old_rows, rows):
+                for key, value in old.items():
+                    self.assertEqual(new[key], '2' if key == 'applied_converter_revision' else value)
+            self.assertEqual([r['declared_device_id_hex'] for r in rows],
+                             ['hex:4456432d31', 'hex:4456432d32'] * 2)
+            self.assertEqual([r['declared_element_object_id'] for r in rows], ['1'] * 4)
+            self.assertEqual(rows[1]['declared_element_type'], 'UNKNOWN_RETAINED')
+            self.assertEqual(rows[1]['declared_element_type_raw'], '99')
+            self.assertEqual(rows[0]['declared_element_designator_hex'], 'hex:4c656674')
+            self.assertEqual(report['prescription_device_reference_counts'],
+                             {'RESOLVED_DECLARATION': 4, 'REFERENCE_NOT_PROVIDED': 0,
+                              'REFERENCED_ELEMENT_NOT_FOUND': 0})
+            with tempfile.TemporaryDirectory() as directory:
+                base = Path(directory)
+                result = self.command(base, description, binary, extra=('--prescription-device-reference',))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual((base / 'out/observations.csv').read_text(), output)
+                if os.environ.get('MUSUBI_TELEMETRY_READER'):
+                    common = json.loads(subprocess.run([os.environ['MUSUBI_TELEMETRY_READER'], str(PROFILE),
+                        str(base / 'out/observations.csv'), '--allow-equal-time'],
+                        check=True, capture_output=True).stdout)
+                    self.assertEqual(common['main_rows'], 4)
+                    self.assertEqual(common['platform_domain'], 'Unknown')
+                    self.assertEqual(common['observations'][1]['fields']['declared_element_type_raw'], 99)
+                    self.assertTrue(all(o['clock_basis'] == 'Unknown' for o in common['observations']))
+                    self.assertIn('not_authenticated', common['profile_units']['declared_device_id_hex'])
+                    self.assertIn('REFERENCED_ELEMENT_NOT_FOUND',
+                                  common['profile_units']['prescription_device_reference_disposition'])
+
+    def test_device_reference_absent_dangling_and_empty_zone_are_accounted(self):
+        description = document(grid(1, 3, 1),
+            zone(1, [('0001', 10000, ' D="DET-X"'), ('0001', 20000, '')]), zone(2, []))
+        for declarations in (b'', b'<DVC A="DVC-EMPTY"/>'):
+            source = description.replace(b'</ISO11783_TaskData>', declarations + b'</ISO11783_TaskData>')
+            output, report = self.convert(source, bytes([1, 2, 1]), device_reference=True)
+            rows = list(csv.DictReader(io.StringIO(output)))
+            self.assertEqual(len(rows), 5)
+            self.assertEqual(report['prescription_device_reference_counts'],
+                             {'RESOLVED_DECLARATION': 0, 'REFERENCE_NOT_PROVIDED': 3,
+                              'REFERENCED_ELEMENT_NOT_FOUND': 2})
+            self.assertEqual(rows[0]['declared_device_element_ref_hex'], 'hex:' + b'DET-X'.hex())
+            self.assertEqual(rows[0]['declared_device_id_hex'], '')
+            self.assertEqual(rows[2]['prescription_value_status'], 'ZONE_DECLARES_NO_PROCESS_DATA')
+            self.assertEqual((report['cells_read'], report['prescription_values']), (3, 4))
+            self.assertEqual(bytes.fromhex(report['device_description_hex']), source)
+
+    def test_device_reference_reuses_existing_ambiguity_refusals(self):
+        source = document(grid(1, 1, 1), zone(1, [('0001', 10000, ' D="DET-1"')]))
+        det = '<DET A="DET-1" B="1" C="4" E="1" F="0"/>'
+        bad = [
+            '<DVC A="DVC-1">' + det + det + '</DVC>',
+            '<DVC A="DVC-1">' + det + '</DVC><DVC A="DVC-1"/>',
+            '<DVC A="DVC-1">' + det + '<DPT A="1"/></DVC>',
+            '<DVC A="DVC-1">' + det.replace('F="0"', 'F="1"') + '</DVC>',
+            '<DVC A="DVC-1">' + det.replace('F="0"', 'F="2"') + '</DVC>',
+        ]
+        for declaration in bad:
+            description = source.replace(b'</ISO11783_TaskData>',
+                                         declaration.encode() + b'</ISO11783_TaskData>')
+            with self.subTest(declaration=declaration):
+                self.convert(description, b'\x01')  # Opt-out still does not select descriptions.
+                self.refuses(description, b'\x01', device_reference=True)
+        # Added columns remain subject to the same output-byte bound.
+        with mock.patch.object(convert_isoxml_rate, 'OUTPUT_LIMIT', 10):
+            self.refuses(source, b'\x01', device_reference=True)
+
+    def test_device_reference_cli_misuse_and_ambiguity_leave_no_output(self):
+        description = document(grid(1, 1, 1), zone(1, [('0001', 10000, ' D="DET-1"')]))
+        for extra in (('--prescription-device-reference', '--work-state'),
+                      ('--prescription-device-reference', '--section-geometry')):
+            with tempfile.TemporaryDirectory() as directory:
+                base = Path(directory)
+                result = self.command(base, description, b'\x01', extra=extra)
+                self.assertEqual(result.returncode, 2)
+                self.assertFalse((base / 'out').exists())
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            result = subprocess.run([os.sys.executable, str(SCRIPT), str(base / 'missing.xml'),
+                str(base / 'missing.bin'), str(base / 'out'), '--prescription-device-reference'],
+                capture_output=True)
+            self.assertEqual(result.returncode, 2)
+            self.assertFalse((base / 'out').exists())
+        declarations = (b'<DVC A="DVC-1"><DET A="DET-1" B="1" C="4" E="1" F="0"/>'
+                        b'<DET A="DET-1" B="2" C="4" E="2" F="0"/></DVC>')
+        description = description.replace(b'</ISO11783_TaskData>', declarations + b'</ISO11783_TaskData>')
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            result = self.command(base, description, b'\x01', extra=('--prescription-device-reference',))
+            self.assertEqual(result.returncode, 2)
+            self.assertFalse((base / 'out').exists())
+
     def convert(self, description, binary, **kwargs):
         kwargs.setdefault('capture_time_us', CAPTURE)
         kwargs.setdefault('byte_order', GRID_BYTE_ORDER)
@@ -90,6 +195,8 @@ class IsoxmlPrescriptionTests(unittest.TestCase):
                 self.assertEqual(fields['setpoint_volume_rate_l_ha'], 250000 * .0001)
                 self.assertEqual(fields['grid_coordinate_basis'],
                                  'DECLARED_DEGREES_NO_DATUM_IN_SOURCE_NOT_PROJECTED')
+                # The planned route's clock is the caller's capture time: no anchor, and not an
+                # authoring or application instant. The reader must say so too, not only the profile.
                 self.assertTrue(all(observation['clock_basis'] == 'Unknown'
                                     and observation['anchor_unix_us'] is None
                                     for observation in common['observations']))
@@ -106,6 +213,7 @@ class IsoxmlPrescriptionTests(unittest.TestCase):
             capture_output=True, text=True)
 
     def test_cell_values_carry_their_own_bytes_and_unused_layout_is_reported(self):
+        # An authored layout whose declared zone and value presentation are never used by the grid.
         description = document(grid(2, 3, 2, extra=' J="5" H="48"'),
                                zone(5, [('0001', 0, ' E="VPN-1"'), ('0006', 0, '')], designator='Rx'),
                                zone(9, [('000B', 400, '')], designator='Spare'))
@@ -122,20 +230,25 @@ class IsoxmlPrescriptionTests(unittest.TestCase):
         self.assertEqual(rows[0]['source_value_origin'], 'GRID_CELL_BINARY')
         self.assertEqual(rows[0]['setpoint_volume_rate_l_ha'], str(10000 * .0001))
         self.assertEqual(rows[1]['setpoint_mass_rate_kg_m2'], str(500 * .000001))
+        # The declared value presentation is retained and reported, never applied to the value.
         self.assertEqual(rows[0]['declared_value_presentation_ref_hex'], 'hex:' + b'VPN-1'.hex())
         self.assertEqual(rows[0]['value_presentation_disposition'],
                          'DECLARED_VALUE_PRESENTATION_NOT_APPLIED')
         self.assertEqual(rows[1]['value_presentation_disposition'], 'NOT_PROVIDED')
         self.assertEqual(report['value_presentation_declarations'], 1)
         self.assertEqual([r['declared_grid_columns'] for r in rows[:1]], ['3'])
+        # The cell order is the decoder family's documented convention, and it is named as such.
         self.assertEqual(rows[0]['grid_cell_order_basis'],
                          'ROW_MAJOR_NORTHWARD_FROM_MINIMUM_CORNER_PER_DECODER_EXAMPLE_NOT_NORMATIVE')
+        # Grid geometry is relative to the declared origin; no absolute fix is published.
         self.assertEqual(rows[0]['cell_position_basis'],
                          'RELATIVE_TO_DECLARED_GRID_ORIGIN_NOT_AN_ABSOLUTE_FIX')
         self.assertEqual([name for name in rows[0]
                           if 'latitude' in name or 'longitude' in name], [])
 
     def test_asymmetric_layouts_bind_each_cell_to_its_row_and_column(self):
+        # 3 columns x 2 rows and its transpose, with unequal north/east cell sizes, so a swapped
+        # axis or a column-major reading changes every cell after the first.
         for columns, rows, expected in ((3, 2, [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]),
                                         (2, 3, [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)])):
             description = document(grid(2, columns, rows, extra=' J="1"'),
@@ -148,6 +261,7 @@ class IsoxmlPrescriptionTests(unittest.TestCase):
                              expected)
             self.assertEqual([r['source_raw_value'] for r in table],
                              [str(value) for value in range(10, 10 + columns * rows)])
+            # North offsets follow the row and east offsets the column, each with its own size.
             self.assertEqual([r['declared_cell_north_offset_deg'] for r in table],
                              [str(Decimal('0.00010000') * row) for row, _ in expected])
             self.assertEqual([r['declared_cell_east_offset_deg'] for r in table],
@@ -255,6 +369,9 @@ class IsoxmlPrescriptionTests(unittest.TestCase):
         self.assertEqual(self.convert(description, bytes([1]) * 1000)[1]['cells_read'], 1000)
         with mock.patch.object(convert_isoxml_rate, 'OUTPUT_LIMIT', 4096):
             self.refuses(description, bytes([1]) * 1000)
+        # Accounted cells that carry no value are on the same bounded path. Either order must be
+        # refused: a run of empty zones ahead of the valued cell, and — the case that used to build
+        # text without ever consulting the bound again — a valued cell ahead of the empty run.
         empty = document(grid(1, 200, 5), zone(1, variables), zone(2, []))
         for binary in (bytes([2]) * 999 + bytes([1]), bytes([1]) + bytes([2]) * 999):
             self.assertEqual(self.convert(empty, binary)[1]['cells_read'], 1000)
@@ -282,6 +399,7 @@ class IsoxmlPrescriptionTests(unittest.TestCase):
 
 
     def test_each_value_carries_the_references_the_document_actually_declares(self):
+        # Two zones of one gridded task, each with its own declared references.
         description = document(grid(1, 2, 2, name='GRD00007'),
                                zone(3, [('0001', 250000, ' C="PDT-1" D="DET-1" E="VPN-1"')],
                                     designator='Full rate'),
@@ -289,11 +407,14 @@ class IsoxmlPrescriptionTests(unittest.TestCase):
         rows = list(csv.DictReader(io.StringIO(
             self.convert(description, bytes([3, 7, 7, 3]), grid_name='GRD00007')[0])))
         self.assertEqual(len(rows), 4)
+        # The task reference is the document's own TSK@A, identical on every value of this task.
         self.assertEqual({r['task_id_hex'] for r in rows}, {'hex:' + b'TSK-1'.hex()})
         self.assertEqual({r['task_designator_hex'] for r in rows},
                          {'hex:' + b'North block'.hex()})
+        # The prescribed map is named by the document, not only digested.
         self.assertEqual({r['declared_grid_file_ref_hex'] for r in rows},
                          {'hex:' + b'GRD00007'.hex()})
+        # Zone references follow the cell, so two values of one map stay distinguishable.
         self.assertEqual([r['treatment_zone_code'] for r in rows], ['3', '7', '7', '3'])
         self.assertEqual([r['treatment_zone_designator_hex'] for r in rows],
                          ['hex:' + b'Full rate'.hex(), 'hex:' + b'Edge'.hex(),
@@ -303,23 +424,31 @@ class IsoxmlPrescriptionTests(unittest.TestCase):
                           'hex:' + b'PDT-2'.hex(), 'hex:' + b'PDT-1'.hex()])
         self.assertEqual(rows[0]['declared_device_element_ref_hex'], 'hex:' + b'DET-1'.hex())
         self.assertEqual(rows[1]['declared_device_element_ref_hex'], '')
+        # The exact source binding of both inputs stays on every row.
         self.assertEqual({r['device_description_sha256'] for r in rows},
                          {'sha256:' + hashlib.sha256(description).hexdigest()})
         self.assertEqual({r['grid_sha256'] for r in rows},
                          {'sha256:' + hashlib.sha256(bytes([3, 7, 7, 3])).hexdigest()})
+        # Rates, units and DDIs are untouched by the identity columns.
         self.assertEqual([r['source_ddi'] for r in rows], ['1', '6', '6', '1'])
         self.assertEqual(rows[0]['setpoint_volume_rate_l_ha'], str(250000 * .0001))
         self.assertEqual(rows[1]['setpoint_mass_rate_kg_m2'], str(12000 * .000001))
 
     def test_a_second_task_or_a_dangling_zone_reference_is_refused(self):
         variables = [('0001', 100, '')]
+        # A second gridded task in one document is ambiguous, so it is refused rather than
+        # silently attributing values to one of them.
         two = ('<ISO11783_TaskData VersionMajor="4" VersionMinor="2">'
                '<TSK A="TSK-1">' + grid(1, 2, 1) + zone(1, variables) + '</TSK>'
                '<TSK A="TSK-2">' + grid(1, 2, 1, name='GRD00002') + zone(1, variables) + '</TSK>'
                '</ISO11783_TaskData>').encode()
         self.refuses(two, bytes([1, 1]))
+        # A cell naming a zone the task does not declare is a dangling reference, and the
+        # pinned decoder drops the whole grid silently; this refuses instead.
         self.refuses(document(grid(1, 2, 1), zone(1, variables)), bytes([1, 9]))
+        # A type-2 grid whose J names no declared zone is refused the same way.
         self.refuses(document(grid(2, 2, 1, extra=' J="4"'), zone(1, variables)), cells(5, 6))
+        # The supplied binary must be the one the document names.
         self.refuses(document(grid(1, 2, 1, name='GRD00007'), zone(1, variables)),
                      bytes([1, 1]), grid_name='GRD00001')
 

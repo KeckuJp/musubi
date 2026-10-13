@@ -1,0 +1,47 @@
+{
+  "profile_id": "saved_video_detector_intervals_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "video"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "constant_zero_association_order_not_capture_or_media_time",
+    "detector_interval_index": "zero_based_order_per_detector_in_filtered_export_frame_order",
+    "interval_status": "closed_open_end_without_start_or_none_reported_by_the_filter_not_physical_state",
+    "start_tag_frame_index": "filtered_export_frame_that_carries_the_start_tag",
+    "start_frame_index": "filtered_export_frame_whose_pts_the_start_value_names_blank_if_unresolved",
+    "start_frame_resolution": "how_the_start_frame_was_identified_from_pinned_filter_semantics",
+    "start_pts": "exact_ticks_of_the_filtered_stream_timebase",
+    "start_time_text_reported": "exact_tag_text_seconds_rounded_by_av_ts2timestr",
+    "end_frame_index": "filtered_export_frame_that_carries_the_end_tag_first_frame_after_the_interval",
+    "end_pts_exclusive": "exact_ticks_of_the_filtered_stream_timebase_exclusive_end",
+    "end_time_text_reported": "exact_tag_text_seconds_rounded_by_av_ts2timestr",
+    "interval_ticks": "end_minus_start_exact_ticks_when_both_resolved",
+    "freeze_duration_text_reported": "exact_tag_text_seconds_rounded_by_av_ts2timestr",
+    "freeze_duration_us_from_reported_text": "us_parsed_from_rounded_reported_text_not_proven_original_counter_not_interval_duration",
+    "freeze_duration_precision_basis": "whether_parsed_us_reprint_the_reported_text_text_remains_authoritative",
+    "stream_index": "selected_filtered_export_stream",
+    "timebase_numerator": "filtered_stream_timebase_numerator",
+    "timebase_denominator": "filtered_stream_timebase_denominator",
+    "min_duration_basis": "whether_the_filter_applied_its_minimum_duration_before_tagging",
+    "detector_basis": "filter_metadata_report_not_physical_black_frozen_or_fault_truth",
+    "filtered_export_sha256": "sha256_filtered_ffprobe_export_bytes_not_media_authentication",
+    "declaration_sha256": "sha256_caller_declaration_bytes",
+    "filter_graph_hex": "utf8_hex_caller_declared_filter_graph_not_verified",
+    "session_id_hex": "utf8_hex_caller_declared_session_not_authenticated",
+    "camera_id_hex": "utf8_hex_caller_declared_camera_not_authenticated",
+    "citation_hex": "utf8_hex_caller_citation",
+    "unfiltered_export_sha256": "caller_declared_filter_input_export_digest_not_verified",
+    "unfiltered_relation": "caller_relation_frame_indices_not_interchangeable"
+  }
+}

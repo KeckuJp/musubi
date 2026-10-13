@@ -1,0 +1,60 @@
+{
+  "profile_id": "crsf_channels_elrs_a60b68af_16ch_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "capture_microseconds_untrusted_clock",
+    "destination_address": "CRSF_sync_or_address_not_authenticated_source_identity",
+    "source_frame_hex": "exact_supplied_complete_frame_bytes_hex",
+    "source_record_hex": "original_capture_row_JSON_hex_including_uninterpreted_columns",
+    "rc_channel_configuration_basis": "caller_declaration_of_fixed_ELRS_full_resolution_16ch_not_proven_by_frame_false_declaration_cannot_be_detected_other_configurations_may_replace_channels15_16_with_link_statistics",
+    "rc_channel_value_basis": "fixed_ELRS_a60b68af_CRSF_to_US_integer_mapping_not_TBS_formula_not_measured_PWM_not_control_execution",
+    "rc_channel_01_ticks": "unsigned_11bit_reported_channel_01_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_01_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_01_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_02_ticks": "unsigned_11bit_reported_channel_02_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_02_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_02_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_03_ticks": "unsigned_11bit_reported_channel_03_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_03_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_03_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_04_ticks": "unsigned_11bit_reported_channel_04_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_04_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_04_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_05_ticks": "unsigned_11bit_reported_channel_05_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_05_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_05_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_06_ticks": "unsigned_11bit_reported_channel_06_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_06_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_06_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_07_ticks": "unsigned_11bit_reported_channel_07_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_07_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_07_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_08_ticks": "unsigned_11bit_reported_channel_08_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_08_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_08_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_09_ticks": "unsigned_11bit_reported_channel_09_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_09_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_09_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_10_ticks": "unsigned_11bit_reported_channel_10_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_10_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_10_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_11_ticks": "unsigned_11bit_reported_channel_11_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_11_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_11_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_12_ticks": "unsigned_11bit_reported_channel_12_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_12_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_12_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_13_ticks": "unsigned_11bit_reported_channel_13_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_13_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_13_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_14_ticks": "unsigned_11bit_reported_channel_14_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_14_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_14_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_15_ticks": "unsigned_11bit_reported_channel_15_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_15_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_15_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "rc_channel_16_ticks": "unsigned_11bit_reported_channel_16_ticks_no_SI_unit_0_is_a_value_no_on_wire_missing_sentinel_no_axis_or_actuator_assignment",
+    "rc_channel_16_nominal_us": "nominal_microseconds_from_fixed_ELRS_integer_mapping_of_channel_16_ticks_not_measured_pulse_width_or_achieved_actuation",
+    "source_input_sha256": "sha256_of_the_entire_supplied_CSV_line_window_input_not_authentication",
+    "source_original_line": "one_based_physical_line_of_the_supplied_CSV_header_is_line_1",
+    "source_original_byte_offset": "byte_offset_of_that_physical_line_in_the_supplied_CSV"
+  }
+}

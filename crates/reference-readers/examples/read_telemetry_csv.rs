@@ -10,12 +10,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         || args[3..].iter().any(|a| {
             !matches!(
                 a.as_str(),
-                "--allow-equal-time" | "--preserve-nonfinite-as-text"
+                "--allow-equal-time" | "--preserve-nonfinite-as-text" | "--allow-empty-rows"
             )
         })
     {
         return Err(
-            "usage: read_telemetry_csv PROFILE.toml CONVERTED.csv [--allow-equal-time] [--preserve-nonfinite-as-text]".into(),
+            "usage: read_telemetry_csv PROFILE.toml CONVERTED.csv [--allow-equal-time] [--preserve-nonfinite-as-text] [--allow-empty-rows]".into(),
         );
     }
     let allow_equal = args[3..].iter().any(|a| a == "--allow-equal-time");
@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .iter()
         .any(|a| a == "--preserve-nonfinite-as-text");
     let options = musubi_decoded_csv::ParseOptions {
-        allow_empty_rows: false,
+        allow_empty_rows: args[3..].iter().any(|a| a == "--allow-empty-rows"),
         allow_equal_time: allow_equal,
         preserve_nonfinite_as_text: preserve_nonfinite,
     };

@@ -63,12 +63,37 @@
     },
     "map_cell_total": {
       "meaning": "map_cell_total",
-      "unit": "columns_times_rows_every_one_of_which_is_accounted_for_by_the_runs",
+      "unit": "original_columns_times_rows_including_excluded_cells_when_window_selected",
       "basis": "declared"
     },
     "map_cell_accounted": {
       "meaning": "map_cell_accounted",
-      "unit": "sum_of_run_lengths_which_must_equal_map_cell_total_or_the_conversion_is_refused_no_cell_is_sampled_or_dropped",
+      "unit": "sum_of_run_lengths_equals_selected_count_when_window_selected_else_original_total_no_silent_sampling",
+      "basis": "declared"
+    },
+    "map_cell_selection_start": {
+      "meaning": "map_cell_selection_start",
+      "unit": "inclusive_original_row_major_cell_index",
+      "basis": "declared"
+    },
+    "map_cell_selection_stop_exclusive": {
+      "meaning": "map_cell_selection_stop_exclusive",
+      "unit": "exclusive_original_row_major_cell_index",
+      "basis": "declared"
+    },
+    "map_cell_selected_count": {
+      "meaning": "map_cell_selected_count",
+      "unit": "cells_accounted_by_this_explicit_window",
+      "basis": "declared"
+    },
+    "map_cell_excluded_count": {
+      "meaning": "map_cell_excluded_count",
+      "unit": "original_cells_outside_this_window_not_decoded",
+      "basis": "declared"
+    },
+    "map_cell_selection_scope": {
+      "meaning": "map_cell_selection_scope",
+      "unit": "explicit_selected_only_meaning_accounting",
       "basis": "declared"
     },
     "map_cell_run_count": {

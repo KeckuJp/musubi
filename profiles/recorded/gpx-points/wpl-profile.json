@@ -18,6 +18,9 @@
     "record_time_us": "us_caller_capture_not_arrival",
     "latitude_deg": "deg_WGS84",
     "longitude_deg": "deg_WGS84",
-    "declared_altitude_m": "m_per_explicit_altitude_basis"
+    "declared_altitude_m": "m_per_explicit_altitude_basis",
+    "mission_parameter_basis": "passive_saved_configuration_not_instruction_or_execution",
+    "mission_parameter_definition_pin": "fixed_common_xml_parameter_and_sentinel_definition",
+    "mission_parameter_coverage": "qualified_nine_command_declaration_set_or_uninterpreted_not_all_missions"
   }
 }

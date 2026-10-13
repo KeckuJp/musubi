@@ -51,6 +51,16 @@
       "unit": "dBm_reported_possible_stale_if_no_link",
       "basis": "declared"
     },
+    "reported_antenna_1_minus_2_db": {
+      "meaning": "reported_antenna_1_minus_2_db",
+      "unit": "dB_difference_of_same_frame_reported_dBm_values_not_measured_gain_or_fault",
+      "basis": "declared"
+    },
+    "antenna_comparison_basis": {
+      "meaning": "antenna_comparison_basis",
+      "unit": "same_saved_frame_not_authenticated_sender_not_RF_freshness_or_cause",
+      "basis": "declared"
+    },
     "uplink_lq_fraction": {
       "meaning": "uplink_lq_fraction",
       "unit": "reported_packet_success_fraction",
@@ -84,6 +94,41 @@
     "tx_power_code": {
       "meaning": "tx_power_code",
       "unit": "source_enum_not_mapped_to_watts",
+      "basis": "declared"
+    },
+    "reported_rf_mode_enum": {
+      "meaning": "reported_rf_mode_enum",
+      "unit": "ELRS_a60b68af_expresslrs_RFrates_e_label_or_UNKNOWN_code_caller_declared_not_measured_packet_rate_or_frequency",
+      "basis": "declared"
+    },
+    "reported_tx_power_level_mw": {
+      "meaning": "reported_tx_power_level_mw",
+      "unit": "mW_configured_power_level_the_ELRS_a60b68af_sender_reported_not_measured_RF_output_blank_for_zero_or_unknown_code",
+      "basis": "declared"
+    },
+    "reported_tx_power_code_status": {
+      "meaning": "reported_tx_power_code_status",
+      "unit": "CONFIGURED_LEVEL_REPORTED_or_ZERO_NOT_A_LEVEL_or_UNKNOWN_CODE",
+      "basis": "declared"
+    },
+    "elrs_code_basis": {
+      "meaning": "elrs_code_basis",
+      "unit": "caller_declared_ExpressLRS_a60b68af_source_tables_not_verified_from_frame",
+      "basis": "declared"
+    },
+    "source_input_sha256": {
+      "meaning": "source_input_sha256",
+      "unit": "sha256_of_the_entire_supplied_CSV_line_window_input_not_authentication",
+      "basis": "declared"
+    },
+    "source_original_line": {
+      "meaning": "source_original_line",
+      "unit": "one_based_physical_line_of_the_supplied_CSV_header_is_line_1",
+      "basis": "declared"
+    },
+    "source_original_byte_offset": {
+      "meaning": "source_original_byte_offset",
+      "unit": "byte_offset_of_that_physical_line_in_the_supplied_CSV",
       "basis": "declared"
     }
   }

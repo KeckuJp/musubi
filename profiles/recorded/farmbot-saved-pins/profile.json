@@ -1,0 +1,31 @@
+{
+  "profile_id": "saved_farmbot_pins_e711c03_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "source_record_hex": "exact_UTF8_export_line_once_on_SNAPSHOT_including_unknown_fields",
+    "farm_source_record_index": "zero_based_input_line_index_not_a_device_identity_or_physical_order",
+    "farm_snapshot_sha256": "sha256_of_exact_source_line_joins_snapshot_and_pin_rows_not_authentication",
+    "farm_pin_record_kind": "SNAPSHOT_or_PIN_summary_is_not_a_digital_measurement",
+    "farm_pin_count": "saved_map_entries_zero_is_empty_blank_is_null_or_not_reported_not_physical_pin_count",
+    "farm_pin_number": "reported_pin_number_0_to_255_not_a_global_hardware_identity",
+    "farm_pin_mode_reported": "reported_mode_0_digital_1_analog_minus1_or_other_unknown_no_guess_from_value",
+    "farm_pin_status": "summary_presence_or_per_pin_conversion_disposition_unknown_analog_nonbinary_values_remain_in_source",
+    "digital_level_reported": "LOW_or_HIGH_saved_mode0_binary_report_can_include_write_response_not_contact_polarity_or_safety",
+    "digital_value_reported": "0_or_1_saved_digital_report_NOT_MEASURED_GPIO_voltage_or_actuation_unknown_is_blank",
+    "farm_pin_value_provenance": "opt_in_WRITE_RESPONSE_RECORDED_NOT_A_READ_for_mode_0_or_1_with_a_value_VALUE_NOT_REPORTED_without_one_FIRMWARE_REPORT_MODE_NOT_GIVEN_for_minus1_per_the_exact_e711c03e_lib_pin_writers_not_physical_success",
+    "analog_written_value_reported": "raw_value_of_a_recorded_mode1_analog_write_response_as_stored_no_range_unit_voltage_or_calibration_given_by_the_source_not_a_measurement_blank_when_missing"
+  }
+}

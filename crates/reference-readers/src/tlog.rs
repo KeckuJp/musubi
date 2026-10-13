@@ -1,23 +1,52 @@
+//! MAVLink `.tlog` reader: 「8 byte big-endian Unix µs（host 受信時刻）＋MAVLink frame」の反復。
+//!
+//! - 8 byte timestamp は本 crate が読み、MAVLink2 header は `crate::mavlink_header::parse_mavlink2_header`
+//!   （read-only decoder）を再利用する。MAVLink1（`0xFE`）frame も実 tlog には混在するので 6 byte header で読む。
+//! - payload は MAVLink2 の trailing-zero truncation を前提に **不足分を 0 で補う**（仕様どおり）。
+//! - 既知 msgid（HEARTBEAT／SYS_STATUS／SYSTEM_TIME／GPS_RAW_INT／GLOBAL_POSITION_INT／RC_CHANNELS／RADIO_STATUS／
+//!   EKF_STATUS_REPORT／STATUSTEXT）は profile channel に写し、未知 msgid は `tlog` channel（stream 生存の観測）として
+//!   **捨てずに**残す。
+//! - 時刻軸 = host 受信時刻（`clock_basis = host_received`）。`SYSTEM_TIME.time_unix_usec`（機体 RTC）と `time_boot_ms`
+//!   の対を `anchor_unix_us`／`t_boot_us` に載せる＝機体 boot→UTC offset の推定材料（`time_align` 手法 A）。
+//!   `time_unix_usec=0` は「不明」（anchor にしない）。
+//! - 既知 msgid の frame CRC（CRC-16/MCRF4XX＋CRC_EXTRA）を検証し、不一致は `Malformed`（fail-loud）。未知 msgid は
+//!   CRC_EXTRA を知らないので検証しない（記録は残す）。署名付き frame（incompat bit0）は 13 byte 署名を読み飛ばすだけで
+//!   検証しない（署名検証は sign crate の領分・honest scope）。
+//! - CRC 検証の**可否**だけでなく、その layout を**どの dialect file が定義したか**（`defining_dialect`）と
+//!   その定義 pin を観測へ載せる。msgid は wire 上 dialect を伴わないため、common 継承と vendor 定義（193 のみ）は
+//!   msgid だけでは区別できない。未対応 msgid には dialect 名を与えない（`DIALECT_UNQUALIFIED`）。
+
 use crate::mavlink_header::parse_mavlink2_header;
 use musubi_reference_types::{ChannelId, FamilyProfile};
 
 use crate::{FieldValue, Observation, ProfileReader, ReadError, observation};
 
+/// GCS `.tlog` reader。
 #[derive(Debug, Clone, Copy, Default)]
 pub struct TlogReader;
 
 const MAVLINK1_MAGIC: u8 = 0xFE;
 const MAVLINK2_MAGIC: u8 = 0xFD;
 
+/// 対応 msgid の layout を**定義している** dialect file（`DIALECT_DEFINITION_PIN` の 1 commit が唯一の出典）。
+///
+/// include 連鎖は `minimal.xml` ← `standard.xml` ← `common.xml` ← `ardupilotmega.xml`。
+/// 連鎖の上流で定義された message は、それを include する全 dialect へ**継承**されるだけで、
+/// vendor が定義し直したものではない。両者を混同しないためにこの型がある。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DefiningDialect {
+    /// `minimal.xml`（HEARTBEAT のみ）。
     Minimal,
+    /// `standard.xml`。
     Standard,
+    /// `common.xml`。
     Common,
+    /// `ardupilotmega.xml`＝vendor 拡張。common 側には存在しない。
     ArduPilotMega,
 }
 
 impl DefiningDialect {
+    /// 定義 file 名そのもの。vendor 名（"ArduPilot"）ではなく namespace を返す。
     #[must_use]
     pub const fn file(self) -> &'static str {
         match self {
@@ -28,11 +57,13 @@ impl DefiningDialect {
         }
     }
 
+    /// common include 連鎖側の定義か（＝include する dialect が継承するだけ）。
     #[must_use]
     pub const fn inherited_from_common_chain(self) -> bool {
         matches!(self, Self::Minimal | Self::Standard | Self::Common)
     }
 
+    /// 出力に載せる scope 文言。継承と vendor 定義を読み手が取り違えないための明示。
     #[must_use]
     pub const fn scope(self) -> &'static str {
         if self.inherited_from_common_chain() {
@@ -43,29 +74,49 @@ impl DefiningDialect {
     }
 }
 
+/// 下の表の唯一の出典。`message_definitions/v1.0/` をこの 1 commit で読んだ。
 pub const DIALECT_DEFINITION_PIN: &str = "mavlink/mavlink@3203f89c510337c0088244735c6a5056c52b5a28";
 
+/// 表に無い msgid。名前を捏造せず、dialect を主張しないことを明示する。
 pub const DIALECT_UNQUALIFIED: &str =
     "UNQUALIFIED_MSGID_NOT_IN_THE_PINNED_TABLE_NO_DIALECT_CLAIMED";
 
+/// 対応 msgid → それを定義している dialect file。
+///
+/// `crc_extra` と**同じ定義域**であること（対応 message はすべて provenance を持ち、
+/// 未対応 msgid はどちらも `None`）を test が保証する。
+/// 出典は `DIALECT_DEFINITION_PIN` の `<message id=…>` 行のみで、
+/// msgid の数値域からの推測ではない（HEARTBEAT は common ではなく `minimal.xml`、
+/// GLOBAL_POSITION_INT と AUTOPILOT_VERSION は `standard.xml`、
+/// EKF_STATUS_REPORT 193 だけが `ardupilotmega.xml`）。
 #[must_use]
 pub const fn defining_dialect(msgid: u32) -> Option<DefiningDialect> {
     match msgid {
         0 => Some(DefiningDialect::Minimal),
         33 | 148 => Some(DefiningDialect::Standard),
-        1 | 2 | 24 | 26 | 29 | 30 | 32 | 42 | 46 | 65 | 109 | 116 | 129 | 132 | 137 | 143 | 147
-        | 253 | 262 | 270 => Some(DefiningDialect::Common),
+        1 | 2 | 20 | 22 | 24 | 26 | 29 | 30 | 32 | 42 | 46 | 62 | 65 | 109 | 116 | 129 | 132
+        | 137 | 143 | 147 | 253 | 262 | 270 => Some(DefiningDialect::Common),
         193 => Some(DefiningDialect::ArduPilotMega),
         _ => None,
     }
 }
 
+/// 既知 msgid の CRC_EXTRA。
+///
+/// 値の出典は pymavlink で転記確認したもの。
+/// **どの dialect が定義しているかは msgid ごとに違う**ので `defining_dialect` を見る。
+/// この表自体は 1 つの dialect closure ではなく、上の include 連鎖＋ardupilotmega の
+/// 有限な混在であり、「common／ardupilotmega の 2 つ」ではない。
+/// # なぜ: writer 側 `reference-writers::mavlink` と値を二重に持つ（reader→writer 依存は逆方向で不適切、adapter-mavlink に
+/// CRC fn が無い）。両者は独立に dialect 定数を転記し、round-trip test（writer→reader）が一致を担保する。
 #[must_use]
 pub const fn crc_extra(msgid: u32) -> Option<u8> {
     match msgid {
         0 => Some(50),
         1 => Some(124),
         2 => Some(137),
+        20 => Some(214),
+        22 => Some(220),
         24 => Some(24),
         26 => Some(170),
         29 => Some(115),
@@ -74,6 +125,7 @@ pub const fn crc_extra(msgid: u32) -> Option<u8> {
         33 => Some(104),
         42 => Some(28),
         46 => Some(11),
+        62 => Some(183),
         65 => Some(118),
         109 => Some(185),
         116 => Some(76),
@@ -96,12 +148,15 @@ fn mavlink1_length(msgid: u32) -> Option<usize> {
         0 => 9,
         1 => 31,
         2 => 12,
+        20 => 20,
+        22 => 25,
         24 => 30,
         26 | 116 | 129 => 22,
         29 | 137 | 143 => 14,
         30 | 32 => 28,
         33 => 28,
         42 | 46 => 2,
+        62 => 26,
         65 => 42,
         109 => 9,
         132 => 14,
@@ -113,6 +168,7 @@ fn mavlink1_length(msgid: u32) -> Option<usize> {
     })
 }
 
+/// CRC-16/MCRF4XX（X.25）累積。
 fn crc_x25(bytes: &[u8], init: u16) -> u16 {
     let mut crc = init;
     for &b in bytes {
@@ -123,6 +179,7 @@ fn crc_x25(bytes: &[u8], init: u16) -> u16 {
     crc
 }
 
+/// payload から `n` バイトを読み、不足分は 0（MAVLink2 truncation）。
 fn bytes_at<const N: usize>(payload: &[u8], off: usize) -> [u8; N] {
     let mut b = [0u8; N];
     for (i, slot) in b.iter_mut().enumerate() {
@@ -155,6 +212,7 @@ fn f32_at(p: &[u8], off: usize) -> f64 {
     f64::from(f32::from_le_bytes(bytes_at::<4>(p, off)))
 }
 
+/// decode 結果: channel・field・stale・boot 時刻・絶対 anchor。
 struct Decoded {
     channel: ChannelId,
     fields: Vec<(String, FieldValue)>,
@@ -269,6 +327,7 @@ fn reported_sensor_status(p: &[u8], wire_v2: bool) -> Vec<(String, FieldValue)> 
     output
 }
 
+/// msgid → (channel, field 名→値)。field 名は profile 語彙（`MSG.field`）。
 fn decode(msgid: u32, p: &[u8]) -> Decoded {
     let f = |k: &str, v: i64| (k.to_string(), FieldValue::I64(v));
     let ff = |k: &str, v: f64| (k.to_string(), FieldValue::F64(v));
@@ -290,6 +349,77 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
         anchor_unix_us: None,
     };
     match msgid {
+        20 | 22 => {
+            // common@3203f89c, generated c_library_v2@04fffaab: ASCII ID and
+            // integer declarations only. PARAM_VALUE float storage may encode
+            // other types; no capability/encoding is established by this record.
+            d.channel = ChannelId::Event;
+            let (prefix, id_offset) = if msgid == 20 {
+                d.fields = vec![
+                    f("PARAM_REQUEST_READ.param_index", i16_at(p, 0)),
+                    f("PARAM_REQUEST_READ.target_system", u8_at(p, 2)),
+                    f("PARAM_REQUEST_READ.target_component", u8_at(p, 3)),
+                ];
+                ("PARAM_REQUEST_READ", 4)
+            } else {
+                d.fields = vec![
+                    f("PARAM_VALUE.param_count", u16_at(p, 4)),
+                    f("PARAM_VALUE.param_index", u16_at(p, 6)),
+                    f("PARAM_VALUE.param_type", u8_at(p, 24)),
+                    (
+                        "PARAM_VALUE.value_raw_hex".into(),
+                        FieldValue::Text(
+                            bytes_at::<4>(p, 0)
+                                .iter()
+                                .map(|v| format!("{v:02x}"))
+                                .collect(),
+                        ),
+                    ),
+                ];
+                ("PARAM_VALUE", 8)
+            };
+            let id: String = bytes_at::<16>(p, id_offset)
+                .iter()
+                .take_while(|v| **v != 0)
+                .map(|v| format!("{v:02x}"))
+                .collect();
+            d.fields
+                .push((format!("{prefix}.param_id_hex"), FieldValue::Text(id)));
+        }
+        62 => {
+            // NAV_CONTROLLER_OUTPUT at the existing common definition pin and generated
+            // c_library_v2@04fffaab. No timestamp, route ID or sign convention is declared.
+            d.channel = ChannelId::Event;
+            for (name, offset) in [
+                ("desired_roll_deg_reported", 0),
+                ("desired_pitch_deg_reported", 4),
+                ("altitude_error_m_reported", 8),
+                ("airspeed_error_m_s_reported", 12),
+                ("xtrack_error_m_reported", 16),
+            ] {
+                d.fields.push(ff(
+                    &format!("NAV_CONTROLLER_OUTPUT.{name}"),
+                    f32_at(p, offset),
+                ));
+            }
+            d.fields.extend([
+                f("NAV_CONTROLLER_OUTPUT.desired_heading_deg_reported", i16_at(p, 20)),
+                f("NAV_CONTROLLER_OUTPUT.target_bearing_deg_reported", i16_at(p, 22)),
+                f("NAV_CONTROLLER_OUTPUT.waypoint_distance_m_reported", u16_at(p, 24)),
+                (
+                    "NAV_CONTROLLER_OUTPUT.xtrack_basis".into(),
+                    FieldValue::Text("PRODUCER_REPORTED_X_Y_PLANE_CROSSTRACK_ERROR_METRES_SIGN_PRESERVED_POSITIVE_SIDE_AND_ROUTE_REFERENCE_ID_UNSPECIFIED_NOT_VERIFIED_ROUTE_DEVIATION_OR_CAUSE".into()),
+                ),
+                (
+                    "NAV_CONTROLLER_OUTPUT.clock_basis".into(),
+                    FieldValue::Text("NO_PRODUCER_TIMESTAMP_IN_THIS_MESSAGE_HOST_RECORD_TIME_IS_NOT_DEVICE_SAMPLE_TIME".into()),
+                ),
+                (
+                    "NAV_CONTROLLER_OUTPUT.controller_basis".into(),
+                    FieldValue::Text("REPORTED_DESIRED_ATTITUDE_HEADING_TARGET_BEARING_WAYPOINT_DISTANCE_AND_ERRORS_NOT_MEASURED_TRUTH_NO_ROUTE_JOIN_OR_THRESHOLD_APPLIED".into()),
+                ),
+            ]);
+        }
         270 => {
             d.channel = ChannelId::Event;
             let flags = u16_at(p, 8);
@@ -911,6 +1041,7 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                 f("SYSTEM_TIME.time_boot_ms", boot_ms),
             ];
             d.t_boot_us = Some((boot_ms as u64) * 1000);
+            // 0＝RTC 未取得＝「不明」。2000 年以前・不可能値も anchor にしない。
             d.anchor_unix_us = (unix > 946_684_800_000_000).then_some(unix as i64);
         }
         24 => {
@@ -951,6 +1082,8 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                     },
                 ),
                 (
+                    // "[cm/s] GPS ground speed. If unknown, set to: UINT16_MAX" (MAVLink common).
+                    // The unknown stays blank rather than becoming a stationary 655.35 m/s reading.
                     "gps_ground_speed_m_s_reported".into(),
                     if u16_at(p, 24) == 65535 {
                         FieldValue::Blank
@@ -967,6 +1100,10 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                     },
                 ),
             ];
+            // "[degE7] Latitude/Longitude (WGS84, EGM96 ellipsoid)" (MAVLink common): the reported integer
+            // scaled by 1e-7, nothing projected, transformed or datum-shifted. The pin declares no invalid
+            // sentinel for either field, so no value is gated out here - the fix type is what says whether
+            // a position was reported at all.
             for (name, value) in [
                 (
                     "gps_rtk_status_basis",
@@ -987,6 +1124,9 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                 ("gps_latitude_deg_reported", latitude, latitude_in_domain),
                 ("gps_longitude_deg_reported", longitude, longitude_in_domain),
             ] {
+                // Outside the geographic domain the scaled number is not a coordinate, whatever fix the
+                // sender claimed, so the derived value is withheld rather than clamped, wrapped or
+                // normalised. The raw integer emitted above is untouched.
                 d.fields.push((
                     name.into(),
                     if in_domain {
@@ -1008,6 +1148,7 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                     .into(),
                 ),
             ));
+            // "UNIX Epoch time or time since system boot… infer by checking the magnitude"（MAVLink common）。
             if t < 1_000_000_000_000_000 {
                 d.t_boot_us = Some(t);
             }
@@ -1034,10 +1175,23 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                 f("RC_CHANNELS.rssi", rssi),
             ];
             d.t_boot_us = Some((u32_at(p, 0) as u64) * 1000);
+            // chancount=0＝RC 入力無し（値レベルの不在）。rssi=255 は UINT8_MAX=invalid。
             d.stale = chancount == 0;
         }
         109 => {
             d.channel = ChannelId::LinkStats;
+            // 全 7 field。pin した dialect（c_library_v2 04fffaab）の
+            // common/mavlink_msg_radio_status.h が offset と意味を決める:
+            //   rxerrors u16@0 "Count of radio packet receive errors (since boot)"
+            //   fixed    u16@2 "Count of error corrected radio packets (since boot)"＝訂正済み数。
+            //                  失われた packet ではない。loss 率も導出しない。
+            //   rssi     u8@4 / remrssi u8@5 / noise u8@7 / remnoise u8@8
+            //                  "device-dependent units/scale", [0-254], UINT8_MAX=invalid/unknown。
+            //                  dBm へも percent へも変換しない（SiK の "approx 2x dB" は dialect 自身の
+            //                  一機種についての但し書きで、換算式ではない）。sentinel は raw のまま保持し、
+            //                  RC_CHANNELS と同じ扱い。stale にはしない＝link 健全性の判断は行わない。
+            //   txbuf    u8@6 "[%] Remaining free transmitter buffer space"＝申告された percent。
+            //                  throughput/帯域/輻輳ではない。
             d.fields = vec![
                 f("RADIO_STATUS.rxerrors", u16_at(p, 0)),
                 f("RADIO_STATUS.fixed", u16_at(p, 2)),
@@ -1083,6 +1237,29 @@ impl ProfileReader for TlogReader {
         "mavlink_tlog"
     }
     fn read(&self, profile: &FamilyProfile, bytes: &[u8]) -> Result<Vec<Observation>, ReadError> {
+        self.read_internal(profile, bytes, false)
+    }
+}
+
+impl TlogReader {
+    /// Preserve all 18 received RC channel reports and explicit unavailable values.
+    /// Does not infer operator intent, control roles or physical receiver validity.
+    pub fn read_with_reported_rc_channels(
+        &self,
+        profile: &FamilyProfile,
+        bytes: &[u8],
+    ) -> Result<Vec<Observation>, ReadError> {
+        self.read_internal(profile, bytes, true)
+    }
+
+    fn read_internal(
+        &self,
+        profile: &FamilyProfile,
+        bytes: &[u8],
+        reported_rc_channels: bool,
+    ) -> Result<Vec<Observation>, ReadError> {
+        // Bidirectional GCS logs do not encode direction. Do not call their
+        // timestamp a receipt, or infer a shared vehicle clock from senders.
         let mavproxy = profile.fields.time == "mavproxy_recorded_us";
         let recorded = profile.fields.time == "host_recorded_us" || mavproxy;
         if profile.format != self.format_id()
@@ -1100,6 +1277,9 @@ impl ProfileReader for TlogReader {
         let mut out = Vec::new();
         let mut off = 0usize;
         let mut sequences = std::collections::BTreeMap::<(u8, u8, u8), (u8, usize)>::new();
+        // Caller-declared selection of one reported sender. It decides only what is emitted: every
+        // record is still parsed and validated exactly as without it, so a selected read refuses
+        // precisely what an unselected read refuses and cannot pass a malformed file.
         let selected = profile.declared_sender;
         let mut unselected_records = 0usize;
         while off < bytes.len() {
@@ -1111,6 +1291,8 @@ impl ProfileReader for TlogReader {
                 });
             }
             let recorded_word = u64::from_be_bytes(bytes_at::<8>(rest, 0));
+            // Qualified MAVProxy writer replaces the low two bits with a tag.
+            // Recover only the remaining four-microsecond clock resolution.
             let host_us = if mavproxy {
                 recorded_word & !3
             } else {
@@ -1159,6 +1341,7 @@ impl ProfileReader for TlogReader {
                     what: "MAVLink1 payload has wrong fixed length".into(),
                 });
             }
+            // CRC 検証（既知 msgid のみ）。
             if let Some(extra) = crc_extra(msgid) {
                 let crc = crc_x25(&fr[1..hdr_len + payload_len], 0xFFFF);
                 let crc = crc_x25(&[extra], crc);
@@ -1174,6 +1357,29 @@ impl ProfileReader for TlogReader {
                 }
             }
             let payload = &fr[hdr_len..hdr_len + payload_len];
+            if matches!(msgid, 20 | 22) {
+                let (length, id_offset) = if msgid == 20 { (20, 4) } else { (25, 8) };
+                if payload_len == 0
+                    || payload_len > length
+                    || bytes_at::<16>(payload, id_offset)
+                        .iter()
+                        .take_while(|v| **v != 0)
+                        .any(|v| !v.is_ascii())
+                {
+                    return Err(ReadError::Malformed {
+                        offset: off + 8,
+                        what: "invalid parameter report length or non-ASCII identifier".into(),
+                    });
+                }
+            }
+            if msgid == 62
+                && (payload_len > 26 || (0..5).any(|index| !f32_at(payload, index * 4).is_finite()))
+            {
+                return Err(ReadError::Malformed {
+                    offset: off,
+                    what: "invalid NAV_CONTROLLER_OUTPUT length or nonfinite quantity".into(),
+                });
+            }
             if msgid == 270
                 && (payload_len > 20 || !f32_at(payload, 0).is_finite() || f32_at(payload, 0) < 0.0)
             {
@@ -1278,6 +1484,57 @@ impl ProfileReader for TlogReader {
                 });
             }
             let mut d = decode(msgid, payload);
+            if msgid == 65 && reported_rc_channels {
+                let count = u8_at(payload, 40);
+                for channel in 1..=18 {
+                    let raw = u16_at(payload, 4 + (channel - 1) * 2);
+                    let basis = if raw == i64::from(u16::MAX) {
+                        "UNUSED_UINT16_MAX"
+                    } else if count == 0 {
+                        "VALUE_PRESENT_BUT_NO_CHANNELS_REPORTED"
+                    } else {
+                        "REPORTED_DURATION_US_NOT_OPERATOR_INTENT"
+                    };
+                    d.fields.push((
+                        format!("RC_CHANNELS.channel{channel}_raw"),
+                        FieldValue::I64(raw),
+                    ));
+                    d.fields.push((
+                        format!("RC_CHANNELS.channel{channel}_basis"),
+                        FieldValue::Text(basis.into()),
+                    ));
+                    if raw != i64::from(u16::MAX) && count != 0 {
+                        d.fields.push((
+                            format!("RC_CHANNELS.channel{channel}_duration_us"),
+                            FieldValue::I64(raw),
+                        ));
+                    }
+                }
+                d.fields.push((
+                    "RC_CHANNELS.count_basis".into(),
+                    FieldValue::Text(
+                        if count > 18 {
+                            "MORE_CHANNELS_REPORTED_THAN_THIS_MESSAGE_CARRIES"
+                        } else if count == 0 {
+                            "NO_CHANNELS_AVAILABLE_REPORTED"
+                        } else {
+                            "REPORTED_CHANNEL_COUNT"
+                        }
+                        .into(),
+                    ),
+                ));
+                d.fields.push((
+                    "RC_CHANNELS.rssi_basis".into(),
+                    FieldValue::Text(
+                        if u8_at(payload, 41) == i64::from(u8::MAX) {
+                            "UNAVAILABLE_UINT8_MAX"
+                        } else {
+                            "DEVICE_DEPENDENT_RAW_SCALE"
+                        }
+                        .into(),
+                    ),
+                ));
+            }
             if msgid == 1 {
                 d.fields
                     .extend(reported_sensor_status(payload, fr[0] != MAVLINK1_MAGIC));
@@ -1293,6 +1550,8 @@ impl ProfileReader for TlogReader {
                     0
                 },
             );
+            // Recorded adjacency only: routing/merged links may omit or interleave
+            // counters. Never call the modular difference physical packet loss.
             let relation = if crc_extra(msgid).is_none() || source_key.0 == 0 || source_key.1 == 0 {
                 sequences.remove(&source_key);
                 "UNQUALIFIED_HEADER"
@@ -1360,6 +1619,9 @@ impl ProfileReader for TlogReader {
                     "MAVLINK.crc_verified".into(),
                     FieldValue::I64(i64::from(crc_extra(msgid).is_some())),
                 ),
+                // CRC_EXTRA は layout の不一致を落とすだけで、どの dialect が定義したかは名乗らない。
+                // msgid は wire 上 dialect を伴わないので、provenance は decoder 自身の有限表から載せる
+                // （caller 宣言ではない＝実 decoder と食い違うラベルが入り得ない）。
                 (
                     "MAVLINK.defining_dialect".into(),
                     FieldValue::Text(match defining_dialect(msgid) {
@@ -1428,6 +1690,8 @@ impl ProfileReader for TlogReader {
             }
             if let Some(want) = selected {
                 if source_key.0 == 0 || source_key.1 == 0 {
+                    // Such a record belongs to no addressable sender, so no selection can attribute
+                    // it. Refuse rather than drop it out of every selected read.
                     return Err(ReadError::Malformed {
                         offset: off + 8,
                         what: "record reports no addressable sender while one sender is selected"
@@ -1450,12 +1714,19 @@ impl ProfileReader for TlogReader {
             let t_ms = i64::try_from(host_us / 1000).unwrap_or(i64::MAX);
             let mut o = observation(profile, t_ms, d.channel, d.fields, d.stale);
             o.t_boot_us = d.t_boot_us;
+            // SYSTEM_TIME remains a reported field, not a clock authority for
+            // all senders in a mixed-direction GCS file.
             o.anchor_unix_us = if recorded { None } else { d.anchor_unix_us };
             out.push(o);
             off += 8 + total;
         }
         let emitted = out.len();
         if let Some(want) = selected {
+            // The counts the selected read already knows belong in its output, not only in a
+            // refusal message: the first selected row carries them for the whole recording, so a
+            // consumer of a subset can see how much of the file this read did not emit. Only one
+            // `continue` exists in the loop above, so every record that survived validation was
+            // counted exactly once here - unknown message types included.
             if let Some(first) = out.first_mut() {
                 first.fields.extend([
                     (
@@ -1474,9 +1745,11 @@ impl ProfileReader for TlogReader {
                         ),
                     ),
                 ]);
+                // The digest fingerprints the fields, so it is recomputed rather than left stale.
                 first.digest = crate::observation_digest(first.t_ms, first.channel, &first.fields);
             }
             if out.is_empty() {
+                // A selection that matches nothing is a wrong declaration, not an empty recording.
                 return Err(ReadError::Profile(format!(
                     "selected sender {}/{} reports no record in this recording ({unselected_records} \
                      records report other senders)",
@@ -1493,6 +1766,8 @@ mod tests {
     use super::*;
     use crate::profile::parse_profile;
 
+    include!("tlog_rc_tests.rs");
+
     const PROFILE: &str = r#"
 profile_id = "p"
 version = "1"
@@ -1506,7 +1781,57 @@ time = "host_us"
 "#;
 
     #[test]
+    fn navigation_report_keeps_integer_members_and_uncertain_basis() {
+        let profile = parse_profile(
+            include_str!("../../../profiles/declared/tlog-state/gcs-recorded-profile.toml"),
+            "authored",
+        )
+        .unwrap();
+        let mut payload = [0u8; 26];
+        payload[16..20].copy_from_slice(&2.5f32.to_le_bytes());
+        payload[20..22].copy_from_slice(&(-179i16).to_le_bytes());
+        payload[22..24].copy_from_slice(&180i16.to_le_bytes());
+        payload[24..26].copy_from_slice(&65535u16.to_le_bytes());
+        let rows = TlogReader
+            .read(&profile, &framed(62, &payload, true))
+            .unwrap();
+        let row = &rows[0];
+        assert_eq!(row.channel, ChannelId::Event);
+        assert_eq!(row.clock_basis, crate::ClockBasis::Unknown);
+        assert_eq!(row.t_boot_us, None);
+        assert_eq!(row.anchor_unix_us, None);
+        for (key, value) in [
+            ("desired_heading_deg_reported", -179),
+            ("target_bearing_deg_reported", 180),
+            ("waypoint_distance_m_reported", 65535),
+        ] {
+            assert_eq!(
+                crate::field(row, &format!("NAV_CONTROLLER_OUTPUT.{key}")),
+                Some(&FieldValue::I64(value))
+            );
+        }
+        assert_eq!(
+            crate::field(row, "NAV_CONTROLLER_OUTPUT.xtrack_error_m_reported"),
+            Some(&FieldValue::F64(2.5))
+        );
+        assert!(
+            matches!(crate::field(row, "NAV_CONTROLLER_OUTPUT.xtrack_basis"), Some(FieldValue::Text(text)) if text.contains("ROUTE_REFERENCE_ID_UNSPECIFIED"))
+        );
+        assert!(
+            matches!(crate::field(row, "NAV_CONTROLLER_OUTPUT.clock_basis"), Some(FieldValue::Text(text)) if text.contains("NO_PRODUCER_TIMESTAMP"))
+        );
+        assert!(
+            TlogReader
+                .read(&profile, &framed(62, &[0; 27], true))
+                .is_err()
+        );
+    }
+
+    /// A06-04-U006. The provenance table is a claim about definitions, so it is checked against
+    /// the definition set rather than against the msgid's numeric range.
+    #[test]
     fn every_supported_message_names_the_dialect_that_defines_it() {
+        // Same domain as CRC_EXTRA: a message is either supported with provenance, or neither.
         for msgid in 0..=100_000_u32 {
             assert_eq!(
                 crc_extra(msgid).is_some(),
@@ -1514,11 +1839,14 @@ time = "host_us"
                 "msgid {msgid} is supported by one table and not the other"
             );
         }
+        // Read from `<message id=…>` at DIALECT_DEFINITION_PIN. HEARTBEAT is not common, and two
+        // of the supported ids live in standard.xml, so the numeric range proves nothing.
         assert_eq!(defining_dialect(0), Some(DefiningDialect::Minimal));
         assert_eq!(defining_dialect(33), Some(DefiningDialect::Standard));
         assert_eq!(defining_dialect(148), Some(DefiningDialect::Standard));
         assert_eq!(defining_dialect(1), Some(DefiningDialect::Common));
         assert_eq!(defining_dialect(270), Some(DefiningDialect::Common));
+        // The one vendor-defined message the table carries.
         assert_eq!(defining_dialect(193), Some(DefiningDialect::ArduPilotMega));
         assert!(!DefiningDialect::ArduPilotMega.inherited_from_common_chain());
         for inherited in [
@@ -1529,12 +1857,14 @@ time = "host_us"
             assert!(inherited.inherited_from_common_chain());
             assert_ne!(inherited.scope(), DefiningDialect::ArduPilotMega.scope());
         }
+        // A namespace, never a vendor name.
         assert_eq!(DefiningDialect::ArduPilotMega.file(), "ardupilotmega.xml");
     }
 
     #[test]
     fn a_common_message_and_the_vendor_message_carry_their_own_defining_namespace() {
         let profile = parse_profile(PROFILE, "public").unwrap();
+        // ATTITUDE 30: common.xml, inherited unchanged by every dialect that includes common.
         let attitude = TlogReader
             .read(&profile, &framed(30, &[0u8; 28], true))
             .unwrap();
@@ -1552,6 +1882,7 @@ time = "host_us"
             "MAVLINK.defining_dialect_scope".into(),
             FieldValue::Text(DefiningDialect::Common.scope().into())
         )));
+        // EKF_STATUS_REPORT 193: ardupilotmega.xml, and it is NOT reported as common.
         let ekf = TlogReader
             .read(&profile, &framed(193, &[0u8; 26], true))
             .unwrap();
@@ -1574,6 +1905,7 @@ time = "host_us"
     #[test]
     fn an_unqualified_message_is_named_nothing_and_stays_unverified() {
         let profile = parse_profile(PROFILE, "public").unwrap();
+        // 11000 is inside no pinned table entry; the record is still kept, as before.
         let unknown = TlogReader
             .read(&profile, &framed(11_000, &[1, 2, 3, 4], true))
             .unwrap();
@@ -1589,6 +1921,7 @@ time = "host_us"
                 "{key} must claim no dialect for an unsupported msgid"
             );
         }
+        // No dialect file name is invented for it: not one of the four the table can name.
         for named in [
             DefiningDialect::Minimal,
             DefiningDialect::Standard,
@@ -1693,10 +2026,13 @@ time = "host_us"
         assert!(TlogReader.read(&profile, &bad).is_err());
     }
 
+    /// The case profile is what an engineer reads these rows with, so it has to carry the meaning of every
+    /// mission field the reader can emit; and the values this test pins are the ones a wrong offset or an
+    /// invented progress figure would break.
     #[test]
     fn reported_status_and_sensor_masks_carry_declared_meaning_without_a_health_verdict() {
         const CASE_PROFILE: &str =
-            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+            include_str!("../../../profiles/declared/tlog-state/profile.toml");
         let profile = parse_profile(CASE_PROFILE, "public").expect("case profile");
         for key in [
             "HEARTBEAT.reported_armed",
@@ -1727,6 +2063,7 @@ time = "host_us"
             assert!(!unit.is_empty(), "{key}");
         }
         let unit = |key: &str| profile.field_units.get(key).cloned().unwrap_or_default();
+        // The four readings this source cannot support must be refused in writing.
         assert!(unit("HEARTBEAT.system_status").contains("not_an_observed_power_state"));
         assert!(unit("HEARTBEAT.base_mode").contains("never_command_authority"));
         assert!(unit("HEARTBEAT.type").contains("never_an_identified_or_verified_platform"));
@@ -1740,6 +2077,8 @@ time = "host_us"
         );
         assert!(unit("MAVLINK.recorded_sequence_step_mod256").contains("not_a_packet_loss_count"));
 
+        // A heartbeat: the state name and the number it came from both travel, with the sender and
+        // the receive clock, on the heartbeat channel.
         let mut heartbeat = 7_u32.to_le_bytes().to_vec(); // custom_mode
         heartbeat.extend_from_slice(&[2, 3, 128 | 1, 5, 3]); // type, autopilot, base_mode, state, ver
         let observations = TlogReader
@@ -1767,6 +2106,7 @@ time = "host_us"
             "system_state_reported".into(),
             FieldValue::Text("CRITICAL".into())
         )));
+        // A state number the pinned dialect does not name stays the number, never a default.
         heartbeat[7] = 200;
         let unknown = TlogReader
             .read(&profile, &framed(0, &heartbeat, true))
@@ -1776,6 +2116,8 @@ time = "host_us"
             FieldValue::Text("UNKNOWN_200".into())
         )));
 
+        // One sensor reported present but not healthy, one never reported at all: the difference has
+        // to survive, and a zero health bit on an absent sensor is not a fault.
         let mut status = [0_u8; 31];
         status[..4].copy_from_slice(&0b100_001_u32.to_le_bytes()); // gyro3d and gps present
         status[4..8].copy_from_slice(&0b100_001_u32.to_le_bytes());
@@ -1800,6 +2142,7 @@ time = "host_us"
                 "{key} must be reported exactly as the mask says"
             );
         }
+        // The present mask is what tells the two zeros apart; nothing in the row merges them.
         assert!(fields.contains(&(
             "SYS_STATUS.onboard_control_sensors_present".into(),
             FieldValue::I64(0b100_001)
@@ -1808,6 +2151,7 @@ time = "host_us"
             "SYS_STATUS.extended_interpretation".into(),
             FieldValue::Text("NOT_DECLARED_OR_MAVLINK1".into())
         )));
+        // MAVLink 1 has no extension fields at all: blank, never a reported zero.
         for key in [
             "SYS_STATUS.present_extended_raw",
             "SYS_STATUS.healthy_extended_raw",
@@ -1818,6 +2162,7 @@ time = "host_us"
                 "{key} must be blank on MAVLink 1"
             );
         }
+        // Nothing here is a cadence, an interval or a liveness verdict.
         assert!(!fields.iter().any(|(key, _)| key.contains("timeout")
             || key.contains("expected_interval")
             || key.contains("liveness")
@@ -1827,7 +2172,7 @@ time = "host_us"
     #[test]
     fn mission_reports_carry_declared_meaning_identity_and_no_invented_progress() {
         const CASE_PROFILE: &str =
-            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+            include_str!("../../../profiles/declared/tlog-state/profile.toml");
         let profile = parse_profile(CASE_PROFILE, "public").expect("case profile");
         assert_eq!(profile.default_clock_basis, crate::ClockBasis::HostReceived);
         for key in [
@@ -1860,6 +2205,7 @@ time = "host_us"
         assert!(unit("mission_plan_id_reported").contains("not_an_authenticated_task_identity"));
         assert!(unit("MISSION_CURRENT.total").contains("omitted_mav2_extension"));
 
+        // A full report: each plan id at its own offset, the total excluding home, the current index.
         let mut payload = 5_u16.to_le_bytes().to_vec();
         payload.extend_from_slice(&11_u16.to_le_bytes());
         payload.extend_from_slice(&[3, 1]);
@@ -1894,11 +2240,13 @@ time = "host_us"
             "mission_state_reported".into(),
             FieldValue::Text("ACTIVE".into())
         )));
+        // No ratio, percentage or completion figure is ever emitted from seq and total.
         assert!(!fields.iter().any(|(key, _)| key.contains("percent")
             || key.contains("progress")
             || key.contains("fraction")
             || key.contains("complete")));
 
+        // The no-mission sentinel keeps its own disposition and no numeric total.
         let no_mission = TlogReader
             .read(&profile, &framed(42, &[0, 0, 255, 255, 1, 0], true))
             .unwrap();
@@ -1908,12 +2256,15 @@ time = "host_us"
             FieldValue::Text("NO_MISSION_REPORTED".into())
         )));
         assert!(sentinel.contains(&("mission_total_items".into(), FieldValue::Blank)));
+        // A zero current index is a reported index: it is neither an absence nor progress.
         assert!(sentinel.contains(&("mission_current_sequence".into(), FieldValue::I64(0))));
+        // state 1 is the dialect's NO_MISSION: named, and still only a report.
         assert!(sentinel.contains(&(
             "mission_state_reported".into(),
             FieldValue::Text("NO_MISSION".into())
         )));
 
+        // The reached report carries the sender, the host clock and the event channel, like every row.
         let reached = TlogReader
             .read(&profile, &framed(46, &0_u16.to_le_bytes(), true))
             .unwrap();
@@ -1939,6 +2290,7 @@ time = "host_us"
                 "{key} must reach a reached-report row"
             );
         }
+        // Refusals keep their named reasons rather than a bare error.
         match TlogReader.read(&profile, &framed(42, &[0; 19], true)) {
             Err(ReadError::Malformed { what, .. }) => {
                 assert_eq!(what, "overlong mission report payload");
@@ -1950,6 +2302,7 @@ time = "host_us"
     #[test]
     fn mavlink1_full_payload_is_read_but_truncation_is_not_zero_filled() {
         let p = parse_profile(PROFILE, "public").expect("profile");
+        // MAVLink1 always includes the fixed payload, unlike MAVLink2 truncation.
         let mut bytes = 1_700_000_000_000_000_u64.to_be_bytes().to_vec();
         let mut frame = vec![0xFE, 9, 0, 1, 1, 0];
         frame.extend_from_slice(&[0; 9]);
@@ -1983,6 +2336,7 @@ time = "host_us"
         framed_from(id, payload, v2, 42, 3)
     }
 
+    /// The same frame builder with the sender stated, so one file can carry two senders.
     fn framed_from(id: u32, payload: &[u8], v2: bool, sysid: u8, compid: u8) -> Vec<u8> {
         let mut record = 1_700_000_000_123_456_u64.to_be_bytes().to_vec();
         let mut frame = if v2 {
@@ -2109,7 +2463,7 @@ time = "host_us"
     #[test]
     fn gps_reports_carry_usable_units_unknowns_and_declared_meaning() {
         const CASE_PROFILE: &str =
-            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+            include_str!("../../../profiles/declared/tlog-state/profile.toml");
         let profile = parse_profile(CASE_PROFILE, "public").expect("case profile");
         for key in [
             "GPS_RAW_INT.time_usec",
@@ -2141,6 +2495,8 @@ time = "host_us"
             unit("gps_latitude_deg_reported")
                 .contains("nothing_projected_transformed_or_datum_shifted")
         );
+        // The correction link and authentication really are absent from this message; the uncertainty
+        // fields are not - they exist in the pinned extension region and are simply not decoded here.
         assert!(
             unit("gps_rtk_status_basis").contains("authentication_are_absent_from_GPS_RAW_INT")
         );
@@ -2154,6 +2510,8 @@ time = "host_us"
         assert!(unit("GPS_RAW_INT.time_usec").contains("never_resolves_it_into_a_utc_claim"));
         assert!(unit("gps_hdop_reported").contains("not_a_measured_error_bound"));
 
+        // A reported RTK float fix with a usable speed: degrees beside the pinned degE7 integers, the
+        // cm/s source unit converted once, and the sender's own word for the fix.
         let mut payload = [0u8; 52];
         payload[..8].copy_from_slice(&1_500_000u64.to_le_bytes()); // boot magnitude
         payload[8..12].copy_from_slice(&356_812_345i32.to_le_bytes());
@@ -2220,6 +2578,8 @@ time = "host_us"
             ))
         );
 
+        // The pinned unknowns stay blank rather than becoming 655.35 m/s or a 255 satellite count, and
+        // an epoch-magnitude timestamp is not offered as a boot time.
         payload[24..26].copy_from_slice(&65535u16.to_le_bytes());
         payload[29] = 255;
         payload[..8].copy_from_slice(&1_700_000_000_000_000u64.to_le_bytes()); // epoch magnitude
@@ -2239,6 +2599,7 @@ time = "host_us"
                 "{key} must stay blank on the pinned unknown"
             );
         }
+        // The raw values the sender actually put on the wire are still there.
         assert_eq!(
             crate::field(blanked, "GPS_RAW_INT.vel"),
             Some(&FieldValue::I64(65535))
@@ -2247,6 +2608,8 @@ time = "host_us"
             crate::field(blanked, "GPS_RAW_INT.satellites_visible"),
             Some(&FieldValue::I64(255))
         );
+        // A second authored speed through the same path, with the signed and zero coordinate endpoints
+        // that must stay reported values whatever the fix says.
         let mut second = [0u8; 52];
         second[..8].copy_from_slice(&2_000_000u64.to_le_bytes());
         second[8..12].copy_from_slice(&900_000_000i32.to_le_bytes()); // +90 exactly
@@ -2289,6 +2652,7 @@ time = "host_us"
             crate::field(endpoint, "gps_hdop_reported"),
             Some(&FieldValue::Blank)
         );
+        // Zero is a reported coordinate like any other, not an absence.
         let mut origin = second;
         origin[8..12].copy_from_slice(&0i32.to_le_bytes());
         origin[12..16].copy_from_slice(&0i32.to_le_bytes());
@@ -2303,6 +2667,8 @@ time = "host_us"
             );
         }
 
+        // Just outside and extreme: the derived coordinate is withheld with a named disposition, the raw
+        // integer is still there, and nothing is clamped or wrapped into a plausible position.
         for (lat, lon, disposition) in [
             (
                 900_000_001i32,
@@ -2364,6 +2730,7 @@ time = "host_us"
             }
         }
 
+        // Nothing in the row claims accuracy, satellites used, a correction link or an authenticated fix.
         for row in [row, blanked] {
             assert!(!row.fields.iter().any(|(key, _)| key.contains("accuracy")
                 || key.contains("satellites_used")
@@ -2491,11 +2858,15 @@ time = "host_us"
         );
     }
 
+    /// 全 7 field が pin した offset 通りに raw で出ること、sentinel を保持すること、
+    /// そして MAV1/MAV2 と長さ拒否が既存の guard のまま効くこと。
     #[test]
     fn radio_status_carries_every_pinned_field_with_raw_values_and_named_unknowns() {
         const CASE_PROFILE: &str =
-            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+            include_str!("../../../profiles/declared/tlog-state/profile.toml");
         let profile = parse_profile(CASE_PROFILE, "public").expect("case profile");
+        // rxerrors=513 u16@0, fixed=1029 u16@2, rssi=190@4, remrssi=185@5, txbuf=93@6,
+        // noise=40@7, remnoise=42@8 -- pinned pack() offsets, little endian.
         let payload = [1u8, 2, 5, 4, 190, 185, 93, 40, 42];
         for v2 in [false, true] {
             let observations = TlogReader
@@ -2520,6 +2891,8 @@ time = "host_us"
                 );
             }
         }
+        // UINT8_MAX is the dialect's invalid/unknown value: retained as the reported number,
+        // never blanked and never turned into a link-health verdict.
         let unknown = [0u8, 0, 0, 0, 255, 255, 0, 255, 255];
         let observations = TlogReader
             .read(&profile, &framed(109, &unknown, true))
@@ -2537,6 +2910,10 @@ time = "host_us"
             !o.stale,
             "a device-dependent sentinel is not a staleness finding"
         );
+        // Length: MAVLink1 requires exactly the pinned 9 bytes, so a short payload is refused by
+        // the existing rule. Under MAVLink2 a truncated trailing zero is legal wire form, so the
+        // same short payload is accepted and the missing last byte reads as the zero it encodes --
+        // that is the spec, not a silent loss. Both existing behaviours are reused, not re-written.
         assert!(
             TlogReader
                 .read(&profile, &framed(109, &payload[..8], false))
@@ -2555,6 +2932,7 @@ time = "host_us"
             crate::field(&truncated[0], "RADIO_STATUS.noise"),
             Some(&FieldValue::I64(40))
         );
+        // Every decoded field declares its meaning, with the refusals this message invites.
         let units = &profile.field_units;
         for key in [
             "RADIO_STATUS.rxerrors",
@@ -2591,7 +2969,7 @@ time = "host_us"
     #[test]
     fn camera_and_stream_reports_carry_declared_meaning_and_named_unknowns() {
         const CASE_PROFILE: &str =
-            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+            include_str!("../../../profiles/declared/tlog-state/profile.toml");
         let profile = parse_profile(CASE_PROFILE, "public").expect("case profile");
         for key in [
             "camera_image_status_raw",
@@ -2627,6 +3005,7 @@ time = "host_us"
             assert!(!unit.is_empty(), "{key}");
         }
         let unit = |key: &str| profile.field_units.get(key).cloned().unwrap_or_default();
+        // The statements a reader of these numbers has to have.
         assert!(unit("camera_recording_time_s_reported").contains("never_a_timestamp"));
         assert!(unit("camera_image_count_status").contains("truncated_mav2_frame"));
         assert!(
@@ -2637,11 +3016,14 @@ time = "host_us"
         assert!(
             unit("video_stream_framerate_hz_reported").contains("evidence_about_dropped_frames")
         );
+        // The pinned enumerator name and its own wording are both kept, because they disagree.
         assert!(
             unit("video_stream_thermal_range_capable_reported")
                 .contains("VIDEO_STREAM_STATUS_FLAGS_THERMAL_RANGE_ENABLED")
         );
 
+        // A 262 report: the still-capture status the adopted tests never read, with its raw code, the
+        // capacity status text and the camera id basis.
         let mut payload = [0u8; 23];
         payload[..4].copy_from_slice(&7_000u32.to_le_bytes());
         payload[4..8].copy_from_slice(&0.5f32.to_le_bytes());
@@ -2676,6 +3058,7 @@ time = "host_us"
             crate::field(row, "camera_image_status_raw"),
             Some(&FieldValue::I64(2))
         );
+        // A negative capacity, the zero sentinel and a zero count yield no quantity at all.
         for key in [
             "camera_available_capacity_bytes_reported",
             "camera_recording_time_s_reported",
@@ -2683,6 +3066,7 @@ time = "host_us"
         ] {
             assert!(crate::field(row, key).is_none(), "{key} must stay absent");
         }
+        // A status number the pinned dialect does not name stays named UNKNOWN, never folded to idle.
         payload[16] = 9;
         payload[17] = 4;
         let unknown = TlogReader
@@ -2699,6 +3083,8 @@ time = "host_us"
             );
         }
 
+        // A 270 report: the declared dimensions, rotation, field of view and thermal bits that the
+        // adopted test leaves unasserted, beside the unknown bits it does cover.
         let mut stream = [0u8; 20];
         stream[..4].copy_from_slice(&25.0f32.to_le_bytes());
         stream[4..8].copy_from_slice(&4_000_000u32.to_le_bytes());
@@ -2733,6 +3119,7 @@ time = "host_us"
                 "{key}"
             );
         }
+        // Nothing in either report claims a delivered stream, a stored file or a measured cadence.
         for row in [row, stream_row] {
             assert!(!row.fields.iter().any(|(key, _)| key.contains("dropped")
                 || key.contains("delivered")
@@ -2837,7 +3224,7 @@ time = "host_us"
     #[test]
     fn mavproxy_tagged_clock_reuses_frames_without_treating_tag_as_time() {
         let p = parse_profile(
-            include_str!("fixtures/unknown-adapter--tlog-state--mavproxy-recorded-profile.toml"),
+            include_str!("../../../profiles/declared/tlog-state/mavproxy-recorded-profile.toml"),
             "test",
         )
         .unwrap();
@@ -3401,12 +3788,14 @@ time = "host_us"
         assert!(TlogReader.read(&profile, &corrupt).is_err());
     }
 
+    /// `PROFILE` plus a caller-declared selection of one reported sender.
     fn selecting(system_id: u8, component_id: u8) -> String {
         format!(
             "{PROFILE}[selected_sender]\nsystem_id = {system_id}\ncomponent_id = {component_id}\n"
         )
     }
 
+    /// One HEARTBEAT payload; the sender is what varies between records.
     fn heartbeat_payload() -> [u8; 9] {
         let mut payload = [0; 9];
         payload[6] = 128;
@@ -3439,11 +3828,15 @@ time = "host_us"
     #[test]
     fn selected_sender_partitions_the_recording_without_dropping_records() {
         let payload = heartbeat_payload();
+        // Three senders in one file: two entirely distinct tuples whose packet sequence numbers
+        // and host times collide, plus a same-sysid / different-compid pair.
         let bytes = [
             framed_from(0, &payload, false, 42, 3),
             framed_from(0, &payload, true, 7, 190),
             framed_from(0, &payload, false, 42, 190),
             framed_from(0, &payload, true, 42, 3),
+            // An unknown message type from one of the other senders: it is validated and kept as an
+            // unknown record, so the accounting has to count it like any other.
             framed_from(511, &payload, true, 7, 190),
         ]
         .concat();
@@ -3454,6 +3847,9 @@ time = "host_us"
             senders_of(&unselected),
             [(42, 3), (7, 190), (42, 190), (42, 3), (7, 190)]
         );
+        // Every record shares the declared role, and the channel comes from the message rather
+        // than the sender, so without a selection a consumer that groups by them sees one source
+        // carrying five records from three senders.
         assert_eq!(
             unselected.iter().map(|o| o.channel).collect::<Vec<_>>(),
             [
@@ -3475,6 +3871,8 @@ time = "host_us"
                 vec![(42, 3), (42, 3)],
                 vec!["FIRST", "SAME_COUNTER"],
             ),
+            // The second record of this sender is the unknown message type, whose CRC extra is
+            // unknown, so the adopted reader calls its header unqualified - unchanged here.
             (
                 (7, 190),
                 vec![(7, 190), (7, 190)],
@@ -3486,6 +3884,8 @@ time = "host_us"
             let obs = TlogReader.read(&profile, &bytes).unwrap();
             assert_eq!(senders_of(&obs), expected, "selected {want:?}");
             for o in &obs {
+                // Deterministic attribution inside the declared scope, labelled as declared and
+                // reported - never as an authenticated device.
                 let Some(FieldValue::Text(label)) =
                     crate::field(o, "MAVLINK.declared_sender_selection")
                 else {
@@ -3500,6 +3900,7 @@ time = "host_us"
                 );
                 assert_eq!(o.source_role, crate::SourceRole::Gcs);
             }
+            // Same-sender continuity is the reader's existing per-sender relation, unchanged.
             for (o, expected) in obs.iter().zip(&relations) {
                 assert_eq!(
                     crate::field(o, "MAVLINK.recorded_sequence_relation"),
@@ -3507,6 +3908,7 @@ time = "host_us"
                     "selected {want:?}"
                 );
             }
+            // The first selected row carries the whole-recording accounting of this read.
             let count = |name: &str| match crate::field(&obs[0], name) {
                 Some(FieldValue::I64(v)) => *v,
                 other => panic!("missing selected-read count: {other:?}"),
@@ -3526,6 +3928,7 @@ time = "host_us"
             assert!(scope.contains("WHOLE_RECORDING_COUNTS_ON_THE_FIRST_SELECTED_ROW"));
             assert!(scope.contains("INCLUDING_UNKNOWN_MESSAGE_TYPES_COUNTED_ONCE"));
             assert!(scope.contains("THIS_READ_IS_A_SUBSET_OF_THE_RECORDING"));
+            // Only the first row carries them, and the recomputed digest covers them.
             for later in &obs[1..] {
                 for name in [
                     "MAVLINK.selected_sender_records",
@@ -3542,11 +3945,13 @@ time = "host_us"
             );
             attributed.extend(frames_of(&obs));
         }
+        // No record is dropped and none is counted twice: the three selections partition the file.
         let mut all = frames_of(&unselected);
         all.sort();
         attributed.sort();
         assert_eq!(attributed, all);
         assert_eq!(attributed.len(), 5);
+        // Without a selection no accounting field appears: the default output is unchanged.
         for o in &unselected {
             for name in [
                 "MAVLINK.selected_sender_records",
@@ -3569,12 +3974,14 @@ time = "host_us"
             framed_from(0, &payload, true, 7, 190),
         ]
         .concat();
+        // A selection that matches nothing is a wrong declaration, not an empty recording.
         let profile = parse_profile(&selecting(9, 9), "test").unwrap();
         let err = TlogReader.read(&profile, &bytes).unwrap_err();
         assert!(
             format!("{err}").contains("reports no record in this recording"),
             "{err}"
         );
+        // A record that reports no addressable sender cannot be attributed to a selection.
         let zero = [
             framed_from(0, &payload, false, 42, 3),
             framed_from(0, &payload, false, 0, 3),
@@ -3587,6 +3994,7 @@ time = "host_us"
             format!("{err}").contains("reports no addressable sender"),
             "{err}"
         );
+        // Without a selection that same file still reads exactly as before.
         assert_eq!(
             TlogReader
                 .read(&parse_profile(PROFILE, "test").unwrap(), &zero)
@@ -3594,6 +4002,7 @@ time = "host_us"
                 .len(),
             2
         );
+        // A selection decides only what is emitted: a malformed record is still refused.
         let mut corrupt = bytes.clone();
         *corrupt.last_mut().unwrap() ^= 1;
         assert!(
@@ -3601,6 +4010,7 @@ time = "host_us"
                 .read(&parse_profile(&selecting(42, 3), "test").unwrap(), &corrupt)
                 .is_err()
         );
+        // The declaration itself is fail closed.
         for (why, toml) in [
             ("zero system id", selecting(0, 3)),
             ("zero component id", selecting(42, 0)),
@@ -3624,6 +4034,7 @@ time = "host_us"
     #[test]
     fn two_senders_in_one_file_stay_separate_observations() {
         let profile = parse_profile(PROFILE, "test").unwrap();
+        // One HEARTBEAT payload, sent twice by two different senders in the same file.
         let mut heartbeat = [0; 9];
         heartbeat[6] = 128;
         heartbeat[7] = 4;
@@ -3649,6 +4060,8 @@ time = "host_us"
             ],
             [Some(&FieldValue::I64(3)), Some(&FieldValue::I64(190))]
         );
+        // The declared source role and channel are shared by both, so the senders stay
+        // distinguishable only by the reported ids — and they are not merged into one row.
         for o in &obs {
             assert_eq!(o.source_role, crate::SourceRole::Gcs);
             assert_eq!(o.channel, ChannelId::Heartbeat);
@@ -3664,6 +4077,7 @@ time = "host_us"
         let rows = TlogReader
             .read(&profile, &framed(148, &payload, true))
             .unwrap();
+        // Fixed-width hex, so a high-zero UID and a custom version are not shortened.
         for (key, value) in [
             ("uid_hex", "00000000000000ab"),
             ("flight_custom_bytes_hex", "0000000000000009"),
@@ -3844,6 +4258,7 @@ time = "host_us"
 
     #[test]
     fn reported_communication_drop_is_a_centipercent_report_not_a_measured_radio_loss() {
+        // c% at the pinned dialect: 10000 is 100.00%, so the fraction is raw/10000 exactly once.
         let profile = parse_profile(PROFILE, "test").unwrap();
         for (raw, fraction) in [(250u16, 0.025), (10000u16, 1.0), (0u16, 0.0)] {
             let mut payload = [0; 31];
@@ -3857,22 +4272,28 @@ time = "host_us"
                 crate::field(&obs[0], "SYS_STATUS.drop_rate_comm"),
                 Some(&FieldValue::I64(raw as i64))
             );
+            // The boundary is the double-conversion guard: 10000 c% is 1.0, never 100.0.
             assert_eq!(
                 crate::field(&obs[0], "communication_drop_fraction"),
                 Some(&FieldValue::F64(fraction))
             );
+            // The sender and the recording clock the report arrived on.
             assert!(crate::field(&obs[0], "MAVLINK.system_id").is_some());
             assert!(crate::field(&obs[0], "MAVLINK.component_id").is_some());
             assert_eq!(obs[0].clock_basis, crate::ClockBasis::HostReceived);
         }
+        // The decisive invalid case: a report outside the published domain is refused with a
+        // reason rather than passed through or clamped.
         let mut invalid = [0; 31];
         invalid[14..16].copy_from_slice(&24000u16.to_le_bytes());
         invalid[18..20].copy_from_slice(&10001u16.to_le_bytes());
         invalid[30] = 75;
         let refused = TlogReader.read(&profile, &framed(1, &invalid, true));
         assert!(matches!(refused, Err(ReadError::Malformed { .. })));
+        // Both columns carry their declared meaning in the case profile, and it names the scope
+        // the pinned source gives rather than leaving a bare number.
         const CASE_PROFILE: &str =
-            include_str!("fixtures/unknown-adapter--tlog-state--profile.toml");
+            include_str!("../../../profiles/declared/tlog-state/profile.toml");
         let case = parse_profile(CASE_PROFILE, "public").expect("case profile");
         let raw_meaning = case.field_units.get("SYS_STATUS.drop_rate_comm").unwrap();
         assert!(raw_meaning.contains("centipercent"));

@@ -96,6 +96,26 @@
       "unit": "declared_offset_text_retained_not_applied",
       "basis": "declared"
     },
+    "image_capture_epoch_us": {
+      "meaning": "image_capture_epoch_us",
+      "unit": "us_since_1970_01_01T00_00_00Z_exporter_derived_explicit_offset_not_trusted_capture",
+      "basis": "declared"
+    },
+    "image_capture_time_text_hex": {
+      "meaning": "image_capture_time_text_hex",
+      "unit": "hex_of_interpreted_ExifTool13_59_composite_not_raw_EXIF_recomposition",
+      "basis": "declared"
+    },
+    "image_capture_time_basis": {
+      "meaning": "image_capture_time_basis",
+      "unit": "fixed_exporter_code_qualification_not_Exif_revision_compliance",
+      "basis": "declared"
+    },
+    "image_capture_time_status": {
+      "meaning": "image_capture_time_status",
+      "unit": "derived_or_unresolved_reported_time_not_physical_clock_quality",
+      "basis": "declared"
+    },
     "camera_make_hex": {
       "meaning": "camera_make_hex",
       "unit": "declared_camera_string_not_a_platform_identity",

@@ -15,6 +15,13 @@
     "time": "record_time_us"
   },
   "units": {
+    "reported_actual_working_width_m": "m_TIM_reported_DDI67_not_a_declaration_or_verified_physical_width",
+    "reported_default_working_width_m": "m_TIM_reported_DDI68_default_width_not_an_actual_width_inference",
+    "reported_maximum_working_width_m": "m_TIM_reported_DDI70_maximum_width_not_an_actual_width_inference",
+    "reported_element_offset_x_m": "m_TIM_reported_DDI134_device_reference_point_offset_no_axis_sign_transform_or_position_qualification",
+    "reported_element_offset_y_m": "m_TIM_reported_DDI135_device_reference_point_offset_no_axis_sign_transform_or_position_qualification",
+    "reported_element_offset_z_m": "m_TIM_reported_DDI136_device_reference_point_offset_no_axis_sign_transform_or_position_qualification",
+    "reported_geometry_reference_basis": "reported_timelog_value_never_fills_DPT_declarations_or_other_records_or_devices",
     "record_time_us": "local_calendar_microseconds_since_1980_not_UTC",
     "actual_volume_rate_l_ha": "L/ha_reported_actual_volume_per_area_not_setpoint",
     "source_raw_value": "signed_integer_with_resolution_selected_by_source_ddi",
@@ -44,6 +51,9 @@
     "reported_average_crop_moisture_ppm": "ppm_reported_task_average_not_instantaneous",
     "reported_average_crop_moisture_fraction": "fraction_reported_task_average_not_instantaneous",
     "reported_moisture_status": "reported_fraction_availability_not_sensor_health",
+    "reported_crop_moisture_ppm": "ppm_reported_actual_crop_moisture_DDI99_not_task_average262_or_reference184_not_calibration_or_sampling_period",
+    "reported_crop_moisture_fraction": "fraction_from_reported_DDI99_ppm_only_within_zero_to_one_not_moisture_corrected_yield",
+    "reported_crop_moisture_status": "REPORTED_or_OUTSIDE_FRACTION_RANGE_Musubi_zero_to_one_fraction_representation_policy_raw_ppm_retained_not_source_range_violation_physical_invalidity_wet_basis_or_sensor_health",
     "reported_work_state": "reported_DDI141_enum_not_measured_material_flow",
     "first_child_ordinal": "one_based_child_block_start_not_physical_geometry_or_resolved_child_ID",
     "child_state_1": "the_two_bit_DDI161_to_163_condensed_state_reported_for_logical_ordinal_first_child_ordinal_plus_0_one_of_DISABLED_ENABLED_ERROR_or_UNDEFINED_OR_NOT_INSTALLED_where_that_last_code_is_neither_disabled_nor_a_proven_absence_of_hardware_slots_run_in_left_to_right_ordinal_order_and_the_ordinal_is_a_dictionary_position_not_physical_geometry_a_resolved_child_ID_or_a_commanded_section",

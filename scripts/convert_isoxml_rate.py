@@ -24,6 +24,8 @@ HARVEST = {84: ("reported_yield_mass_kg_m2", .000001),
 HARVEST_FIELDS = [value[0] for value in HARVEST.values()] + [
     "reported_average_crop_moisture_ppm", "reported_average_crop_moisture_fraction",
     "reported_moisture_status"]
+CROP_MOISTURE_FIELDS = ["reported_crop_moisture_ppm", "reported_crop_moisture_fraction",
+                        "reported_crop_moisture_status"]
 STATE_NAMES = ("DISABLED", "ENABLED", "ERROR", "UNDEFINED_OR_NOT_INSTALLED")
 STATE_FIELDS = ["reported_work_state", "first_child_ordinal"] + [f"child_state_{i}" for i in range(1, 17)]
 # The converter that produces these rows names itself, in the `musubi.<name>/vN` form this
@@ -34,6 +36,10 @@ STATE_FIELDS = ["reported_work_state", "first_child_ordinal"] + [f"child_state_{
 # package attestation, not a signature, and not a statement about the writer of the saved data.
 APPLIED_CONVERTER_ID = "musubi.isoxml-rate/v1"
 APPLIED_CONVERTER_REVISION = "1"
+# Only the selected prescription-reference adaptation uses revision 2; the existing
+# default prescription and timelog adaptations retain their byte-for-byte revision 1 output.
+PRESCRIPTION_DEVICE_REVISION = "2"
+CROP_MOISTURE_REVISION = "3"  # Opt-in actual99 fields only; old modes stay unchanged.
 APPLIED_CONVERTER_FIELDS = ["applied_converter_id", "applied_converter_revision"]
 APPLIED_CONVERTER_VALUES = [APPLIED_CONVERTER_ID, APPLIED_CONVERTER_REVISION]
 APPLIED_CONVERTER_BASIS = (
@@ -236,6 +242,11 @@ GEOMETRY_FIELDS = [name for name, _, _ in GEOMETRY.values()] + [
     "declared_geometry_value_presentation", "declared_geometry_value_presentation_disposition",
     "declared_referenced_property_count", "declared_unselected_property_ddis",
     "declared_unresolved_reference_ids", "declared_referenced_process_data_count"]
+REPORTED_GEOMETRY_FIELDS = [name.replace("declared_", "reported_", 1)
+                            for name, _, _ in GEOMETRY.values()] + ["reported_geometry_reference_basis"]
+REPORTED_GEOMETRY_BASIS = ("REPORTED_TIM_MILLIMETRES_TO_METRES_DEVICE_REFERENCE_POINT_"
+                           "NO_AXIS_SIGN_NO_ROTATION_NO_GROUND_DATUM_NO_PHYSICAL_POSITION_"
+                           "NO_DECLARATION_FILL_NO_FORWARD_FILL")
 # The root element carries what the file declares about its own transfer, which is the only
 # in-file evidence of which side wrote it. ISOv4Plugin 5bcf596c60fa11bcf638b308df478df906b965a5
 # declares these attributes in ISOModels/ISO11783_TaskData.cs, the origin enumeration in
@@ -406,7 +417,7 @@ def declared_geometry(references, properties, process_data, report):
         ";".join(str(item) for item in unresolved), process_count]
 
 
-def device_references(data, *, geometry=False, report=None):
+def device_references(data, *, geometry=False, report=None, allow_empty=False):
     root = task_data_root(data)
     digest = "sha256:" + hashlib.sha256(data).hexdigest()
     result, device_ids = {}, set()
@@ -462,9 +473,69 @@ def device_references(data, *, geometry=False, report=None):
                 path.add(current)
                 current = parents[current]
             done.update(path)
-    if not result:
+    if not result and not allow_empty:
         raise ValueError("no device elements in description")
     return result, digest
+
+
+PROCESS_FIELDS = ["declared_process_channels", "declared_process_property_codes",
+                  "declared_process_trigger_codes", "declared_process_designators_hex",
+                  "declared_process_value_presentations", "declared_process_unresolved_references",
+                  "declared_process_unknown_attributes_hex", "declared_process_basis"]
+
+
+def process_channels(data):
+    """Resolve declarations, never synthesize measurements or capability from DPD."""
+    result = {}
+    for device in task_data_root(data).findall("DVC"):
+        channels, presentations = {}, {}
+        for node in device.findall("DVP"):
+            oid = declared_integer(node.get("A"), 1, 65534)
+            offset = node.get("B", "")
+            if not re.fullmatch(r"-?[0-9]{1,10}", offset) or not -2**31 <= int(offset) <= 2**31 - 1:
+                raise ValueError("invalid declared presentation offset")
+            offset = int(offset)
+            try:
+                scale = Decimal(node.get("C", ""))
+            except ArithmeticError as exc:
+                raise ValueError("invalid declared presentation scale") from exc
+            if not scale.is_finite() or not Decimal("0.000000001") <= scale <= Decimal("100000000"):
+                raise ValueError("invalid declared presentation scale")
+            decimals = declared_integer(node.get("D"), 0, 7)
+            unit = node.get("E", "")
+            if len(unit) > 32:
+                raise ValueError("oversized declared presentation unit")
+            presentations[oid] = f"offset={offset}:scale={scale}:decimals={decimals}:unithex={unit.encode().hex()}"
+        for node in device.findall("DPD"):
+            oid = declared_integer(node.get("A"), 1, 65534)
+            ddi = node.get("B", "")
+            if not re.fullmatch(r"[0-9a-fA-F]{4}", ddi):
+                raise ValueError("invalid declared process DDI")
+            prop = declared_integer(node.get("C"), 0, 7)
+            trigger = declared_integer(node.get("D"), 0, 31)
+            designator = node.get("E", "")
+            if len(designator) > 32:
+                raise ValueError("oversized process designator")
+            ref = None if node.get("F") is None else declared_integer(node.get("F"), 1, 65534)
+            presentation = ("NOT_DECLARED" if ref is None else
+                            f"ref={ref}:" + presentations.get(ref, "UNRESOLVED"))
+            unknown = {key: value for key, value in node.attrib.items() if key not in "ABCDEF"}
+            channels[oid] = [f"{oid}={ddi.upper()}", f"{oid}={prop}", f"{oid}={trigger}",
+                             f"{oid}={designator.encode().hex()}", f"{oid}:{presentation}",
+                             f"{oid}:" + json.dumps(unknown, sort_keys=True).encode().hex() if unknown else ""]
+        objects = {declared_integer(n.get("A"), 1, 65534) for n in device if n.tag in ("DPT", "DPD")}
+        for element in device.findall("DET"):
+            refs = object_references(element)
+            if len(refs) != len(set(refs)):
+                raise ValueError("duplicate process object reference")
+            selected = [channels[ref] for ref in refs if ref in channels]
+            values = [";".join(row[index] for row in selected) for index in range(5)]
+            values += [";".join(str(ref) for ref in refs if ref not in objects),
+                       ";".join(row[5] for row in selected if row[5]),
+                       "DECLARED_DOR_DPD_DVP_RELATION_NOT_MEASUREMENT_PROPERTY_TRIGGER_BITS_UNQUALIFIED_"
+                       "DVP_NOT_APPLIED_NO_PHYSICAL_UNIT_OR_CAPABILITY_INFERENCE"]
+            result[element.get("A")] = values
+    return result
 
 
 def declared_decimal(value, low, high):
@@ -533,7 +604,7 @@ def treatment_zones(task, report):
     return zones
 
 
-def prescriptions(description, grid, *, capture_time_us, byte_order, grid_name):
+def prescriptions(description, grid, *, capture_time_us, byte_order, grid_name, device_reference=False):
     """Passive ingestion of declared per-cell setpoints; an intended rate is not an application."""
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
         raise ValueError("invalid caller capture clock")
@@ -555,6 +626,27 @@ def prescriptions(description, grid, *, capture_time_us, byte_order, grid_name):
     digest = "sha256:" + hashlib.sha256(description).hexdigest()
     grid_digest = "sha256:" + hashlib.sha256(grid).hexdigest()
     report.update(device_description_sha256=digest, grid_sha256=grid_digest)
+    reference_fields = []
+    elements = {}
+    if device_reference:
+        # Same document, same fixed ISOv4Plugin PDV.D -> DET.A contract. Absence is
+        # reportable here, while duplicate IDs and invalid hierarchies still fail.
+        elements, _ = device_references(description, allow_empty=True)
+        reference_fields = DEVICE_FIELDS[:-1] + ["prescription_device_reference_disposition"]
+        report["prescription_device_reference_counts"] = {
+            "RESOLVED_DECLARATION": 0, "REFERENCE_NOT_PROVIDED": 0,
+            "REFERENCED_ELEMENT_NOT_FOUND": 0}
+        report["applied_converter_revision"] = PRESCRIPTION_DEVICE_REVISION
+
+    def reference_values(reference):
+        if not device_reference:
+            return []
+        resolved = elements.get(reference)
+        disposition = ("REFERENCE_NOT_PROVIDED" if reference is None else
+                       "REFERENCED_ELEMENT_NOT_FOUND" if resolved is None else "RESOLVED_DECLARATION")
+        report["prescription_device_reference_counts"][disposition] += 1
+        return ([""] * (len(DEVICE_FIELDS) - 1) if resolved is None else resolved[:-1]) + [disposition]
+
     tasks = [task for task in root.findall("TSK") if task.find("GRD") is not None]
     if len(tasks) != 1:
         raise ValueError("requires exactly one gridded task")
@@ -617,10 +709,10 @@ def prescriptions(description, grid, *, capture_time_us, byte_order, grid_name):
         if output.tell() > OUTPUT_LIMIT:
             raise ValueError("converted CSV exceeds bound")
 
-    write(PRESCRIPTION_FIELDS)
+    write(PRESCRIPTION_FIELDS + reference_fields)
     # The trailing group every cell row shares, including this converter naming itself.
     constant = ([CELL_ORDER_BASIS, COORDINATE_BASIS, byte_order, digest, grid_digest]
-                + APPLIED_CONVERTER_VALUES)
+                + [APPLIED_CONVERTER_ID, report["applied_converter_revision"]])
     geometry = [north, east, cell_north, cell_east, columns, rows]
     used = set()
     for index in range(cells):
@@ -650,7 +742,7 @@ def prescriptions(description, grid, *, capture_time_us, byte_order, grid_name):
             # A declared zone without process data still accounts for its cell.
             write([capture_time_us] + zone_row + ["", "", "", "hex:" + span.hex(),
                   "NOT_PROVIDED", "", "", "", "ZONE_DECLARES_NO_PROCESS_DATA", "", "", "",
-                  "NOT_PROVIDED"] + geometry + constant)
+                  "NOT_PROVIDED"] + geometry + constant + reference_values(None))
             continue
         for ordinal, (ddi, declared, references) in enumerate(variables):
             if kind == 1:
@@ -672,7 +764,8 @@ def prescriptions(description, grid, *, capture_time_us, byte_order, grid_name):
                   + [status] + ["" if reference is None else "hex:" + reference.encode().hex()
                                 for reference in references]
                   + ["NOT_PROVIDED" if references[2] is None else
-                     "DECLARED_VALUE_PRESENTATION_NOT_APPLIED"] + geometry + constant)
+                     "DECLARED_VALUE_PRESENTATION_NOT_APPLIED"] + geometry + constant
+                  + reference_values(references[1]))
     if report["cells_read"] != report["declared_cells"]:
         raise ValueError("declared and read cell counts disagree")
     if not report["prescription_values"] and not report["unsupported_values"]:
@@ -686,9 +779,25 @@ def prescriptions(description, grid, *, capture_time_us, byte_order, grid_name):
     return output.getvalue(), report
 
 
+def _moisture_values(value):
+    # Keep published wire values beyond Musubi's [0, 1] fraction representation.
+    # Withholding is not physical invalidity or a sentinel, for actual99 or average262.
+    return [value, value / 1000000 if value <= 1000000 else "",
+            "REPORTED" if value <= 1000000 else "OUTSIDE_FRACTION_RANGE"]
+
+
 def convert(template, data, *, harvest=False, located=False, work_state=False, taskdata=None,
             product_allocation=False, declared_task=None,
-            section_geometry=False):
+            section_geometry=False, crop_moisture=False, reported_geometry=False, process_data=False):
+    if type(process_data) is not bool or (process_data and taskdata is None):
+        raise ValueError("process data requires explicit selection and saved device description")
+    if type(reported_geometry) is not bool:
+        raise ValueError("reported geometry requires explicit boolean selection")
+    if type(crop_moisture) is not bool:
+        raise ValueError("crop moisture requires explicit boolean selection")
+    applied_values = [APPLIED_CONVERTER_ID, CROP_MOISTURE_REVISION] if crop_moisture else APPLIED_CONVERTER_VALUES
+    if reported_geometry:
+        applied_values = [APPLIED_CONVERTER_ID, "4"]
     if (product_allocation or declared_task is not None) and taskdata is None:
         raise ValueError("declared product allocation is read from the saved TASKDATA; "
                          "--product-allocation requires --taskdata")
@@ -727,6 +836,9 @@ def convert(template, data, *, harvest=False, located=False, work_state=False, t
         "reported_geometry_updates")}
     references, description_hash = device_references(
         taskdata, geometry=section_geometry, report=geometry_report) if taskdata is not None else ({}, None)
+    if process_data:
+        for element, values in process_channels(taskdata).items():
+            references[element] += values
     provenance = transfer_provenance(task_data_root(taskdata)) if taskdata is not None else []
     allocations, allocation_absent = (
         product_allocations(task_data_root(taskdata), declared_task)
@@ -739,10 +851,13 @@ def convert(template, data, *, harvest=False, located=False, work_state=False, t
                      "source_raw_value", "actual_volume_rate_l_ha", "source_record_hex",
                      "source_ddi", "actual_mass_rate_kg_m2", "actual_count_per_m2"] +
                     (HARVEST_FIELDS if harvest else []) +
+                    (CROP_MOISTURE_FIELDS if crop_moisture else []) +
+                    (REPORTED_GEOMETRY_FIELDS if reported_geometry else []) +
                     (STATE_FIELDS if work_state else []) +
                     (["reported_latitude_deg", "reported_longitude_deg", "position_status_raw",
                       "position_disposition"] if located else [])
-                    + ((DEVICE_FIELDS + (GEOMETRY_FIELDS if section_geometry else []) + TRANSFER_FIELDS)
+                    + ((DEVICE_FIELDS + (GEOMETRY_FIELDS if section_geometry else [])
+                        + (PROCESS_FIELDS if process_data else []) + TRANSFER_FIELDS)
                        if taskdata is not None else [])
                     + (PRODUCT_FIELDS if product_allocation else [])
                     + APPLIED_CONVERTER_FIELDS)
@@ -750,13 +865,15 @@ def convert(template, data, *, harvest=False, located=False, work_state=False, t
               "unsupported_updates": 0, "records_without_supported_update": 0,
               "template_hex": template.hex(), "source_records_hex": [], "clock": "Unknown",
               "applied_converter_id": APPLIED_CONVERTER_ID,
-              "applied_converter_revision": APPLIED_CONVERTER_REVISION,
+              "applied_converter_revision": applied_values[1],
               "applied_converter_basis": APPLIED_CONVERTER_BASIS}
     if taskdata is not None:
         report.update(device_description_hex=taskdata.hex(), device_description_sha256=description_hash,
                       declared_element_count=len(references))
     if section_geometry:
         report.update(geometry_report)
+    elif reported_geometry:
+        report["reported_geometry_updates"] = 0
     offset, previous, report_bytes = 0, None, len(template) * 2
     while offset < len(data):
         start = offset
@@ -806,14 +923,22 @@ def convert(template, data, *, harvest=False, located=False, work_state=False, t
             report["source_updates"] += 1
             ddi, device = metadata[column]
             state_selected = work_state and ddi in (141, 161, 162, 163)
-            if ddi not in ACTUAL_RATES and not (harvest and (ddi in HARVEST or ddi == 262)) and not state_selected:
+            crop_selected = crop_moisture and ddi == 99
+            geometry_selected = reported_geometry and ddi in GEOMETRY
+            if (ddi not in ACTUAL_RATES and not (harvest and (ddi in HARVEST or ddi == 262))
+                    and not state_selected and not crop_selected and not geometry_selected):
                 report["unsupported_updates"] += 1
                 if section_geometry and ddi in GEOMETRY:
                     # The pinned decoder fills missing geometry from timelog values. A logged value
                     # is a report, so it is counted here and never merged into the declaration.
                     report["reported_geometry_updates"] += 1
                 continue
-            if not state_selected and value < 0:
+            if geometry_selected:
+                _, low, high = GEOMETRY[ddi]
+                if not low <= value <= high:
+                    raise ValueError("reported geometry outside the published DDI range")
+                report["reported_geometry_updates"] += 1
+            if not state_selected and not geometry_selected and value < 0:
                 raise ValueError("selected DDI outside published range; no sentinel assumed")
             state_values = [""] * len(STATE_FIELDS) if work_state else []
             if state_selected:
@@ -830,20 +955,20 @@ def convert(template, data, *, harvest=False, located=False, work_state=False, t
             if harvest:
                 harvest_values = [value * scale if ddi == key else ""
                                   for key, (_, scale) in HARVEST.items()]
-                # The published wire range exceeds a physical moisture fraction.
-                # Preserve the report, but never clamp it into a plausible value.
-                harvest_values += [value if ddi == 262 else "",
-                    value / 1000000 if ddi == 262 and value <= 1000000 else "",
-                    ("REPORTED" if value <= 1000000 else "OUTSIDE_FRACTION_RANGE") if ddi == 262 else ""]
+                harvest_values += _moisture_values(value) if ddi == 262 else [""] * 3
+            crop_values = (_moisture_values(value) if crop_selected else [""] * 3) if crop_moisture else []
+            geometry_values = ([str(Decimal(value) * MILLIMETRE) if geometry_selected and ddi == key else ""
+                                for key in GEOMETRY] +
+                               [REPORTED_GEOMETRY_BASIS if geometry_selected else ""]) if reported_geometry else []
             writer.writerow([timestamp, report["source_records"], index, column,
                              "hex:" + device.encode().hex(), value,
                              value * ACTUAL_RATES[2][1] if ddi == 2 else "", "hex:" + frame,
                              ddi, value * ACTUAL_RATES[7][1] if ddi == 7 else "",
-                             value * ACTUAL_RATES[12][1] if ddi == 12 else ""] + harvest_values + state_values + position_values
+                             value * ACTUAL_RATES[12][1] if ddi == 12 else ""] + harvest_values + crop_values + geometry_values + state_values + position_values
                             + ((references[device] + provenance) if taskdata is not None else [])
                             + (allocations.get(device, allocation_absent)
                                if product_allocation else [])
-                            + APPLIED_CONVERTER_VALUES)
+                            + applied_values)
             selected += 1
             report["decoded_updates"] += 1
             if output.tell() > OUTPUT_LIMIT:
@@ -862,11 +987,16 @@ def main():
     parser.add_argument("output_directory", type=Path)
     parser.add_argument("--prescription", action="store_true",
                         help="read declared per-cell setpoints from TASKDATA TSK/GRD/TZN/PDV plus one grid binary")
+    parser.add_argument("--prescription-device-reference", action="store_true",
+                        help="resolve prescription PDV device-element references inside the same TASKDATA; "
+                             "requires --prescription and does not identify physical equipment")
     parser.add_argument("--capture-time-us", type=int,
                         help="caller capture clock for the untimed prescription; required with --prescription")
     parser.add_argument("--grid-byte-order", choices=[GRID_BYTE_ORDER],
                         help="declared source of the cell value byte order; required with --prescription")
     parser.add_argument("--harvest", action="store_true", help="include qualified yield and average-moisture reports")
+    parser.add_argument("--crop-moisture", action="store_true",
+                        help="include DDI99 actual crop-moisture reports, not task averages or reference moisture")
     parser.add_argument("--position", action="store_true", help="attach reported same-record PTN north/east to updates")
     parser.add_argument("--work-state", action="store_true", help="include reported actual element/child work states")
     parser.add_argument("--taskdata", type=Path, help="resolve declared device elements from saved ISOXML4.2 TASKDATA")
@@ -877,25 +1007,31 @@ def main():
                                                 "one; nothing is chosen for the caller")
     parser.add_argument("--section-geometry", action="store_true",
                         help="carry declared DPT widths/offsets of each element; requires --taskdata")
+    parser.add_argument("--reported-geometry", action="store_true",
+                        help="carry six reported TIM widths/offsets separately from DPT declarations")
+    parser.add_argument("--process-data", action="store_true",
+                        help="bind declared DOR/DPD channels and DVP references; requires --taskdata")
     args = parser.parse_args()
     try:
         if args.prescription:
             # Configuration that cannot apply to the selected input is refused, never ignored.
             if args.capture_time_us is None or args.grid_byte_order is None:
                 raise ValueError("a prescription requires a declared capture clock and byte order")
-            if (args.harvest or args.position or args.work_state or args.taskdata is not None
-                    or args.section_geometry):
+            if (args.harvest or args.crop_moisture or args.position or args.work_state or args.taskdata is not None
+                    or args.section_geometry or args.reported_geometry or args.process_data):
                 raise ValueError("timelog options do not apply to a prescription")
             if args.template.stat().st_size > DESCRIPTION_LIMIT or args.data.stat().st_size > GRID_LIMIT:
                 raise ValueError("input exceeds bound")
             output, report = prescriptions(args.template.read_bytes(), args.data.read_bytes(),
                                            capture_time_us=args.capture_time_us,
-                                           byte_order=args.grid_byte_order, grid_name=args.data.stem)
+                                           byte_order=args.grid_byte_order, grid_name=args.data.stem,
+                                           device_reference=args.prescription_device_reference)
             args.output_directory.mkdir()
             (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
             (args.output_directory / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
             return
-        if args.capture_time_us is not None or args.grid_byte_order is not None:
+        if (args.capture_time_us is not None or args.grid_byte_order is not None
+                or args.prescription_device_reference):
             raise ValueError("prescription options require --prescription")
         if args.template.stat().st_size > 65536 or args.data.stat().st_size > LIMIT:
             raise ValueError("input exceeds bound")
@@ -906,7 +1042,8 @@ def main():
                                  taskdata=None if args.taskdata is None else args.taskdata.read_bytes(),
                                  product_allocation=args.product_allocation,
                                  declared_task=args.declared_task,
-                                 section_geometry=args.section_geometry)
+                                 section_geometry=args.section_geometry, crop_moisture=args.crop_moisture,
+                                 reported_geometry=args.reported_geometry, process_data=args.process_data)
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")

@@ -1,0 +1,26 @@
+{
+  "profile_id": "saved_video_pts_expectation_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "video"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "comparison_order_zero_not_capture_time",
+    "expected_pts": "exact_ticks_of_explicit_selected_stream_timebase_not_UTC",
+    "presence": "saved_record_match_to_caller_schedule_not_physical_frame_loss",
+    "matched_frame_count": "count_in_export_not_unique_physical_frames",
+    "matched_frame_indices_hex": "utf8_json_original_frame_indices_including_duplicate_PTS",
+    "start_pts": "inclusive_expected_window_ticks",
+    "stop_pts": "exclusive_expected_window_ticks"
+  }
+}

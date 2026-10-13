@@ -116,7 +116,8 @@ MOISTURE_PPM_LIMIT = 1000000
 # DDI 141 and 161/162/163 to revision 1 of 2012-04-02, DDI 2, 7, 12, 84, 87 and 90 to revision 1, and
 # DDI 262 to REVISION 3 (1 ppm). Those pointers are reused as written there; nothing is re-derived.
 DDI_ADOPTED_REVISION = {2: "REVISION_1", 7: "REVISION_1", 12: "REVISION_1", 84: "REVISION_1",
-                        87: "REVISION_1", 90: "REVISION_1", 262: "REVISION_3_UNIT_1_PPM",
+                        87: "REVISION_1", 90: "REVISION_1", 99: "REVISION_1_UNIT_1_PPM",
+                        262: "REVISION_3_UNIT_1_PPM",
                         141: "REVISION_1_OF_2012_04_02", 161: "REVISION_1_OF_2012_04_02",
                         162: "REVISION_1_OF_2012_04_02", 163: "REVISION_1_OF_2012_04_02"}
 DDI_MEANING_BASIS = ("DDI_MEANINGS_UNITS_SCALES_AND_STATE_VOCABULARY_ARE_IMPORTED_FROM_THE_ADOPTED_"
@@ -139,6 +140,10 @@ def meaning_basis_for(ddi):
     revision = DDI_ADOPTED_REVISION.get(ddi)
     text = DDI_MEANING_BASIS + (f"_THIS_ROW_USES_DDI_{ddi}_AT_ADOPTED_{revision}" if revision else
                                 f"_THIS_ROW_USES_DDI_{ddi}_WHICH_THIS_ADAPTER_DOES_NOT_QUALIFY")
+    if ddi == 99:
+        return ("THIS_ROW_USES_DDI_99_AT_ADOPTED_REVISION_1_UNIT_1_PPM_ACTUAL_CROP_MOISTURE_"
+                "DDENTITY_95_REUSES_ISOXML_MOISTURE_HELPER_NOT_TASK_AVERAGE_NO_CALIBRATION_"
+                "NO_DDOP_IDENTITY_OR_ACTUAL_DEVICE_PROOF_RAW_PPM_AND_OPTIONAL_0_TO_1_FRACTION")
     return text + MOISTURE_SCALE_BASIS if ddi == MOISTURE_DDI else text
 REQUEST_PAYLOAD_BASIS = ("A_REQUEST_VALUE_MESSAGE_IS_A_REQUEST_AND_NOT_A_REPORTED_MEASUREMENT_THE_PINNED_"
                          "TASK_CONTROLLER_SERVER_WRITES_0xFF_INTO_BYTES_4_TO_7_WHEN_IT_SENDS_ONE_AND_THE_"
@@ -172,6 +177,48 @@ FIELDS = ["record_time_us", "isobus_capture_index", "isobus_protocol_role", "iso
           "isobus_scope_basis", "source_record_hex", "source_document_sha256"]
 HEADER = "time_us,extended_id,data_hex"
 ROW = re.compile(r"(?P<time>[0-9]{1,19}),(?P<identifier>[0-9A-Fa-f]{8}),(?P<data>(?:[0-9A-Fa-f]{2})*)$")
+MACHINE_SPEED_PGN = 0xF022
+MACHINE_SPEED_FIELDS = [
+    "machine_speed_raw_mm_s", "machine_speed_m_s", "machine_speed_status",
+    "machine_distance_raw_mm", "machine_distance_m", "machine_distance_status",
+    "machine_direction_code", "machine_direction_reported", "machine_speed_source_code",
+    "machine_speed_source_reported", "machine_speed_byte6_raw", "machine_speed_byte7_raw",
+    "machine_speed_meaning_basis"]
+MACHINE_SPEED_BASIS = (
+    "AGISOSTACK_1bd6189972ef148273b31a27b281b86c91edc3d4_MACHINE_SELECTED_SPEED_F022_"
+    "WRITER_LE16_MM_PER_S_AND_LE32_ACCESSOR_STORAGE_MM_DIVIDED_BY_1000_"
+    "ABOVE_SOURCE_MAX_64255_OR_4211081215_RAW_ONLY_NO_SENTINEL_GUESS_"
+    "DIRECTION_SEPARATE_NOT_SIGNED_WORLD_VELOCITY_ZERO_SPEED_MAY_RETAIN_LAST_DIRECTION_"
+    "SOURCE_SIMULATED_IS_NOT_PHYSICAL_TRAVEL_DISTANCE_WRAP_NOTE_UNIT_CONFLICT_NO_UNWRAP_"
+    "LIMIT_STATUS_WRITER_RECEIVER_BIT_WIDTH_CONFLICT_BYTE6_AND_BYTE7_RAW_ONLY_"
+    "NO_COMMAND_NO_PHYSICAL_MOTION_OR_DEVICE_AUTHENTICATION")
+MACHINE_SPEED_SCOPE = (
+    "PASSIVE_SAVED_MACHINE_SELECTED_SPEED_REPORT_ONLY_NO_CAN_FRAME_SENT_NO_SPEED_COMMAND_"
+    "NO_IMPLEMENT_CONTROL_NO_PHYSICAL_MOTION_VALIDATION_NO_DEVICE_AUTHENTICATION_"
+    "NOT_AEF_CERTIFICATION_NOT_GENERAL_TRACTOR_SUPPORT")
+
+
+def decode_machine_speed(data, row):
+    """Fixed writer's quantities; validity bounds and enum meanings from the same pin."""
+    speed, distance = int.from_bytes(data[:2], "little"), int.from_bytes(data[2:6], "little")
+    direction, source = data[7] & 3, (data[7] >> 2) & 7
+    row.update(isobus_protocol_role="MACHINE_SELECTED_SPEED_ISO11783_7",
+               isobus_message_kind="MACHINE_SELECTED_SPEED", machine_speed_raw_mm_s=speed,
+               machine_distance_raw_mm=distance, machine_direction_code=direction,
+               machine_direction_reported=("REVERSE", "FORWARD", "ERROR", "NOT_AVAILABLE")[direction],
+               machine_speed_source_code=source,
+               machine_speed_source_reported=("WHEEL_BASED", "GROUND_BASED", "NAVIGATION_BASED",
+                                              "BLENDED", "SIMULATED", "RESERVED_5", "RESERVED_6",
+                                              "NOT_AVAILABLE")[source],
+               machine_speed_byte6_raw=data[6], machine_speed_byte7_raw=data[7],
+               machine_speed_meaning_basis=MACHINE_SPEED_BASIS,
+               isobus_scope_basis=MACHINE_SPEED_SCOPE,
+               isobus_semantic_basis=MACHINE_SPEED_BASIS)
+    for value, maximum, field, status in (
+            (speed, 64255, "machine_speed_m_s", "machine_speed_status"),
+            (distance, 4211081215, "machine_distance_m", "machine_distance_status")):
+        row[status] = "REPORTED" if value <= maximum else "OUTSIDE_SOURCE_VALID_RANGE"
+        row[field] = f"{value // 1000}.{value % 1000:03d}" if value <= maximum else ""
 
 
 def pgn_of(identifier):
@@ -248,6 +295,19 @@ def apply_ddi_meaning(ddi, value, raw, row, report):
         row["tc_child_states_named"] = "|".join(STATE_NAMES[(raw >> (2 * index)) & 3] for index in range(16))
         row["tc_ddi_quantity"] = "reported_condensed_child_states"
         row["tc_ddi_value_disposition"] = "REPORTED"
+        return
+    if ddi == 99:
+        if value < 0:
+            row["tc_ddi_value_disposition"] = "OUTSIDE_PUBLISHED_RANGE_RETAINED_RAW"
+            report["out_of_range_values"][str(ddi)] = report["out_of_range_values"].get(str(ddi), 0) + 1
+        else:
+            _, fraction, disposition = _isoxml._moisture_values(value)
+            row["tc_ddi_quantity"] = ("reported_crop_moisture_fraction" if fraction != ""
+                                      else "reported_crop_moisture_ppm")
+            row["tc_ddi_scaled_value"] = fraction
+            row["tc_ddi_value_disposition"] = disposition
+            if disposition != "REPORTED":
+                report["out_of_range_values"][str(ddi)] = report["out_of_range_values"].get(str(ddi), 0) + 1
         return
     if ddi == MOISTURE_DDI:
         if 0 <= value <= MOISTURE_PPM_LIMIT:
@@ -327,8 +387,20 @@ def decode_tc(data, row, report):
     report["uninterpreted_tc_commands"][key] = report["uninterpreted_tc_commands"].get(key, 0) + 1
 
 
-def convert(text):
+ISB_PGN = 0xFD02
+ISB_FIELDS = ["isb_switch_state_code", "isb_switch_state_reported", "isb_transition_count_reported",
+              "isb_byte7_reported", "isb_report_basis"]
+ISB_BASIS = ("AGISOSTACK_1bd6189972ef148273b31a27b281b86c91edc3d4_REPORTED_SWITCH_STATE_ONLY_"
+             "NOT_ACTUAL_STOP_OR_SAFETY_PERMISSION_OR_INTERLOCK_VERIFICATION_"
+             "TRANSITION_COUNTER_RAW_WRAP_OR_RESTART_NOT_RESOLVED")
+
+
+def convert(text, *, machine_selected_speed=False, isb_switch_state=False):
     """Selected UT/TC messages of a captured classic-CAN CSV; every other row is counted, not dropped."""
+    if type(machine_selected_speed) is not bool:
+        raise ValueError("machine_selected_speed must be an explicit boolean")
+    if type(isb_switch_state) is not bool:
+        raise ValueError("isb_switch_state must be an explicit boolean")
     raw = text.encode("utf-8")
     if not raw or len(raw) > MAX_INPUT:
         raise ValueError("empty or oversized capture CSV")
@@ -346,7 +418,16 @@ def convert(text):
               "semantics": SEMANTIC_BASIS, "tc_status_semantics": TC_STATUS_BASIS,
               "ddi_meaning": DDI_MEANING_BASIS, "request_payload": REQUEST_PAYLOAD_BASIS}
     output = io.StringIO(newline="")
-    writer = csv.DictWriter(output, FIELDS, lineterminator="\n")
+    fields = FIELDS + MACHINE_SPEED_FIELDS if machine_selected_speed else FIELDS
+    if isb_switch_state:
+        fields = fields + ISB_FIELDS
+    selected_pgns = (VT_TO_ECU_PGN, PROCESS_DATA_PGN) + ((MACHINE_SPEED_PGN,) if machine_selected_speed else ())
+    if isb_switch_state:
+        selected_pgns += (ISB_PGN,)
+        report.update(isb_switch_state_messages=0, isb_report_basis=ISB_BASIS)
+    if machine_selected_speed:
+        report.update(machine_selected_speed_messages=0, machine_speed_meaning_basis=MACHINE_SPEED_BASIS)
+    writer = csv.DictWriter(output, fields, lineterminator="\n")
     writer.writeheader()
     previous = None
     for index, line in enumerate(lines[1:], 1):
@@ -367,8 +448,10 @@ def convert(text):
         previous = timestamp
         data = bytes.fromhex(match["data"])
         pgn, destination, source = pgn_of(identifier)
-        if pgn not in (VT_TO_ECU_PGN, PROCESS_DATA_PGN):
-            if (pgn & 0x0FF00) in (VT_TO_ECU_PGN, PROCESS_DATA_PGN) and pgn >> 16:
+        if pgn not in selected_pgns:
+            if pgn >> 16 and ((pgn & 0x0FF00) in (VT_TO_ECU_PGN, PROCESS_DATA_PGN)
+                             or (machine_selected_speed and (pgn & 0xFFFF) == MACHINE_SPEED_PGN)
+                             or (isb_switch_state and (pgn & 0xFFFF) == ISB_PGN)):
                 # Same PF as a selected group but on another data page: a different parameter group
                 # entirely. It is refused for decoding and accounted apart, never read as the selected
                 # protocol, because this path pins only the page-0 groups.
@@ -384,14 +467,28 @@ def convert(text):
             report["short_selected_frames"].append({"row": index, "bytes": len(data),
                                                     "pgn": f"{pgn:#07x}"})
             continue
-        row = {name: "" for name in FIELDS}
+        row = {name: "" for name in fields}
         row.update(record_time_us=timestamp, isobus_capture_index=index, isobus_pgn=pgn,
                    isobus_source_address=source, isobus_destination_address=destination,
                    isobus_clock_basis=CLOCK_BASIS, isobus_identity_basis=IDENTITY_BASIS,
                    isobus_semantic_basis=SEMANTIC_BASIS, isobus_scope_basis=SCOPE_BASIS,
                    source_record_hex="hex:" + identifier.to_bytes(4, "big").hex() + data.hex(),
                    source_document_sha256=report["source_sha256"])
-        if pgn == VT_TO_ECU_PGN:
+        if pgn == ISB_PGN:
+            state = data[7] & 3
+            row.update(isobus_protocol_role="ISOBUS_SHORTCUT_BUTTON_REPORTED_STATE",
+                       isobus_message_kind="ALL_IMPLEMENTS_STOP_OPERATIONS_SWITCH_STATE",
+                       isb_switch_state_code=state,
+                       isb_switch_state_reported=("STOP_REPORTED", "PERMIT_REPORTED", "ERROR_REPORTED",
+                                                  "NOT_AVAILABLE_REPORTED")[state],
+                       isb_transition_count_reported=data[6], isb_byte7_reported=data[7],
+                       isb_report_basis=ISB_BASIS, isobus_scope_basis=ISB_BASIS,
+                       isobus_semantic_basis=ISB_BASIS)
+            report["isb_switch_state_messages"] += 1
+        elif pgn == MACHINE_SPEED_PGN:
+            decode_machine_speed(data, row)
+            report["machine_selected_speed_messages"] += 1
+        elif pgn == VT_TO_ECU_PGN:
             row["isobus_protocol_role"] = "UNIVERSAL_TERMINAL_ISO11783_6_VIRTUAL_TERMINAL"
             decode_vt(data, row, report)
         else:
@@ -411,12 +508,18 @@ def main():
     parser.add_argument("input", type=Path,
                         help="classic CAN CSV from scripts/convert_candump_recorded.py (extended)")
     parser.add_argument("output_directory", type=Path)
+    parser.add_argument("--machine-selected-speed", action="store_true",
+                        help="also interpret fixed AgIsoStack++ PGN F022 reports; no speed commands")
+    parser.add_argument("--isb-switch-state", action="store_true",
+                        help="also read fixed saved ISB switch state; no control or safety authorization")
     args = parser.parse_args()
     try:
         size = args.input.stat().st_size
         if size > MAX_INPUT:
             raise ValueError(f"capture CSV is {size} bytes, past the {MAX_INPUT} byte input bound")
-        converted, report = convert(args.input.read_text(encoding="utf-8"))
+        converted, report = convert(args.input.read_text(encoding="utf-8"),
+                                    machine_selected_speed=args.machine_selected_speed,
+                                    isb_switch_state=args.isb_switch_state)
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(converted, encoding="utf-8")
         (args.output_directory / "report.json").write_text(

@@ -6,6 +6,26 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "kml_track_heading_deg": {
+      "meaning": "kml_track_heading_deg",
+      "unit": "deg_KML_gx_Track_heading_declaration_not_aircraft_yaw",
+      "basis": "declared"
+    },
+    "kml_track_tilt_deg": {
+      "meaning": "kml_track_tilt_deg",
+      "unit": "deg_KML_gx_Track_tilt_declaration_not_aircraft_pitch",
+      "basis": "declared"
+    },
+    "kml_track_roll_deg": {
+      "meaning": "kml_track_roll_deg",
+      "unit": "deg_KML_gx_Track_roll_declaration_not_measured_attitude",
+      "basis": "declared"
+    },
+    "kml_track_angles_basis": {
+      "meaning": "kml_track_angles_basis",
+      "unit": "source_declaration_not_model_composition_interpolation_or_physical_attitude",
+      "basis": "declared"
+    },
     "record_time_us": {
       "meaning": "record_time_us",
       "unit": "us_caller_capture_not_point_time",
@@ -29,6 +49,16 @@
     "point_time_unix_us": {
       "meaning": "point_time_unix_us",
       "unit": "us_unix_declared_not_authenticated",
+      "basis": "declared"
+    },
+    "deere_section_id": {
+      "meaning": "deere_section_id",
+      "unit": "source_declared_SECTIONID_integer_identifier_not_quantity_or_global_physical_identity",
+      "basis": "declared"
+    },
+    "deere_section_id_basis": {
+      "meaning": "deere_section_id_basis",
+      "unit": "explicit_selected_declaration_or_missing_basis",
       "basis": "declared"
     }
   }

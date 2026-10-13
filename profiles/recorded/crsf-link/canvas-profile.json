@@ -1,0 +1,28 @@
+{
+  "profile_id": "saved_displayport_reported_canvas_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "capture_microseconds_untrusted_clock",
+    "glyph_byte": "reported_font_glyph_byte_not_Unicode",
+    "font_bank": "reported_font_bank_not_font_contents",
+    "blink_reported": "reported_attribute_not_physical_display",
+    "cell_row": "zero_based_caller_declared_canvas_row",
+    "cell_column": "zero_based_caller_declared_canvas_column",
+    "write_time_us": "capture_microseconds_untrusted_clock",
+    "draw_record_index": "zero_based_original_logical_CSV_record",
+    "write_record_index": "zero_based_original_logical_CSV_record"
+  }
+}
