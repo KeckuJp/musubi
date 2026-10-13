@@ -48,7 +48,15 @@ def utc_microseconds(text):
     if offset != "Z" and (int(offset[1:3]) > 14 or int(offset[4:]) > 59
                            or (int(offset[1:3]) == 14 and int(offset[4:]) != 0)):
         raise ValueError("invalid UTC offset")
-    value = datetime.fromisoformat(text.replace("Z", "+00:00")).astimezone(timezone.utc)
+    # The accepted grammar above allows one to six fractional digits, but `fromisoformat` only
+    # took exactly three or six before Python 3.11. Padding here keeps a legal `…:03.5Z` meaning
+    # the same on every interpreter, instead of raising an opaque parser error on one of them.
+    stamp = match[1]
+    if "." in stamp:
+        whole, fraction = stamp.split(".")
+        stamp = whole + "." + fraction.ljust(6, "0")
+    value = datetime.fromisoformat(stamp + ("+00:00" if offset == "Z" else offset))
+    value = value.astimezone(timezone.utc)
     delta = value - datetime(1970, 1, 1, tzinfo=timezone.utc)
     micros = (delta.days * 86400 + delta.seconds) * 1000000 + delta.microseconds
     if micros < 0:
@@ -164,6 +172,7 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
     if len(text.encode("utf-8")) > INPUT_LIMIT or "\x00" in text or re.search(r"<!\s*(?:DOCTYPE|ENTITY)", text, re.I):
         raise ValueError("bounded XML without DTD required")
     ns = "{http://www.opengis.net/kml/2.2}"
+    gx = "{http://www.google.com/kml/ext/2.2}"
     root = ET.fromstring(text)
     if root.tag != ns + "kml":
         raise ValueError("KML2.2 namespace required")
@@ -172,28 +181,90 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
     writer = csv.writer(output, lineterminator="\n")
     writer.writerow(["record_time_us", "geometry_index", "point_index", "geometry_role",
         "latitude_deg", "longitude_deg", "coordinate_basis", "declared_altitude_m",
-        "altitude_basis", "coordinate_text_hex", "source_sha256"])
+        "altitude_basis", "coordinate_text_hex", "source_sha256",
+        "feature_time_unix_us", "feature_time_text_hex", "feature_time_scope",
+        "feature_time_basis", "point_time_unix_us", "point_time_text_hex",
+        "point_time_basis", "position_status"])
     report = dict(points=0, selected_geometries=0, ignored_altitudes=0, unselected_subtrees=0,
         source_sha256=digest, source_retention=f"unchanged {retained_name} required",
-        clock="CALLER_CAPTURE_NOT_POINT_OR_DEVICE_TIME",
+        clock="CALLER_CAPTURE_WITH_SEPARATE_DECLARED_FEATURE_AND_TRACK_TIMES",
+        timed_features=0, timed_points=0, untimed_points=0, timespan_declarations=0,
+        gx_track_declarations=0, track_points=0, missing_track_positions=0,
         unconverted_content=f"other geometry, metadata and resources retained only in {retained_name}",
         evidence="declared-geometry-not-physical-trajectory-or-height-certification")
-    def geometries(parent):
+    # `<TimeStamp><when>` belongs to a FEATURE - Document, Folder or Placemark - and never to a
+    # geometry or a coordinate. The nearest enclosing feature that declares one supplies the
+    # instant for its geometries, every point of that feature carries the SAME value, and the
+    # scope that produced it is named. Nothing is interpolated and no per-point time is invented.
+    features = {ns + k for k in ("Document", "Folder", "Placemark")}
+
+    scopes = {ns + "Placemark": "PLACEMARK_TIMESTAMP_DECLARED",
+              ns + "Folder": "FOLDER_TIMESTAMP_DECLARED",
+              ns + "Document": "DOCUMENT_TIMESTAMP_DECLARED"}
+    time_basis = ("THE_FEATURES_OWN_DECLARED_INSTANT_SHARED_BY_EVERY_POINT_OF_THAT_FEATURE_"
+                  "NEVER_A_PER_POINT_TIME_NEVER_INTERPOLATED_AND_NEVER_A_MEASURED_FIX_TIME")
+
+    def feature_instant(node):
+        """`(text, microseconds, scope)` the feature declares, or None.
+
+        A `TimeSpan` is an interval rather than an instant: it is counted and never converted.
+        The pinned reference allows a date-only `<when>` and a `Z` or numeric offset; a date
+        alone is not an instant on a resolved clock, so the shared GPX rule refuses it instead of
+        inventing midnight in a time zone nobody wrote.
+        """
+        primitives = [c for c in node if c.tag in (ns + "TimeStamp", ns + "TimeSpan")]
+        if len(primitives) > 1:
+            raise ValueError("one TimeStamp or TimeSpan per Feature required")
+        if not primitives:
+            return None
+        stamp = primitives[0]
+        if stamp.tag == ns + "TimeSpan":
+            report["timespan_declarations"] += 1
+            # A local interval overrides an ancestor's instant, even though we do not decode it.
+            return "", "", node.tag.removeprefix(ns).upper() + "_TIMESPAN_UNCONVERTED"
+        when = stamp.find(ns + "when")
+        if when is None or not (when.text or "").strip():
+            raise ValueError("declared TimeStamp without a when value")
+        if len(stamp) != 1 or len(when):
+            raise ValueError("one scalar when per TimeStamp required")
+        text = when.text
+        report["timed_features"] += 1
+        return text, utc_microseconds(text.strip()), scopes[node.tag]
+
+    def geometries(parent, inherited):
         for child in parent:
-            if child.tag in (ns + "Point", ns + "LineString"):
-                yield child
-            elif child.tag in {ns + k for k in ("Document", "Folder", "Placemark", "MultiGeometry")}:
-                yield from geometries(child)
+            if child.tag in (ns + "Point", ns + "LineString", gx + "Track"):
+                if child.tag == gx + "Track":
+                    report["gx_track_declarations"] += 1
+                yield child, inherited
+            elif child.tag in features:
+                yield from geometries(child, feature_instant(child) or inherited)
+            elif child.tag == ns + "MultiGeometry":
+                yield from geometries(child, inherited)
+            elif child.tag in (ns + "TimeStamp", ns + "TimeSpan"):
+                if parent.tag not in features:
+                    raise ValueError("TimePrimitive must belong to a Feature")
+                # Examined by `feature_instant`, so already accounted under its own count rather
+                # than a second time as something nobody looked at.
+                continue
             else:
                 report["unselected_subtrees"] += 1
 
-    for node in geometries(root):
+    for node, instant in geometries(root, None):
+        is_track = node.tag == gx + "Track"
         allowed = {ns + k for k in ("coordinates", "altitudeMode", "extrude", "tessellate")}
+        repeated = {ns + "when", gx + "coord", gx + "angles"} if is_track else set()
+        retained = {ns + "ExtendedData", ns + "Model"} if is_track else set()
+        if is_track:
+            allowed = {ns + "altitudeMode"} | repeated | retained
         seen = set()
         for child in node:
-            if child.tag not in allowed or child.tag in seen or len(child):
+            if (child.tag not in allowed or (child.tag in seen and child.tag not in repeated)
+                    or (len(child) and child.tag not in retained)):
                 raise ValueError("unsupported selected geometry modifier")
             seen.add(child.tag)
+            if child.tag in retained or child.tag == gx + "angles":
+                report["unselected_subtrees"] += 1
         mode_node = node.find(ns + "altitudeMode")
         mode = "clampToGround" if mode_node is None else (mode_node.text or "").strip()
         bases = {"clampToGround": "GROUND_CLAMPED_NO_NUMERIC_HEIGHT",
@@ -202,23 +273,45 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
             raise ValueError("unsupported altitude mode")
         coordinates = node.find(ns + "coordinates")
         tuples = [] if coordinates is None else (coordinates.text or "").split()
+        track_times = []
+        if is_track:
+            tuples = [(c.text or "") for c in node.findall(gx + "coord")]
+            whens = node.findall(ns + "when")
+            angles = node.findall(gx + "angles")
+            if len(whens) != len(tuples) or (angles and len(angles) != len(tuples)):
+                raise ValueError("equal track when coordinate and optional angle counts required")
+            track_times = [(w.text or "", utc_microseconds((w.text or "").strip())) for w in whens]
         if not tuples or (node.tag == ns + "Point" and len(tuples) != 1):
             raise ValueError("selected geometry coordinates required")
         for number, point in enumerate(tuples):
-            cells = point.split(",")
-            if len(cells) not in (2, 3):
+            missing = is_track and not point.strip()
+            cells = point.split() if is_track else point.split(",")
+            if not missing and len(cells) not in ((3,) if is_track else (2, 3)):
                 raise ValueError("longitude latitude and optional altitude required")
-            lon = decimal_value(cells[0], -180, 180, scientific=True)
-            lat = decimal_value(cells[1], -90, 90, scientific=True)
+            lon = "" if missing else decimal_value(cells[0], -180, 180, scientific=True)
+            lat = "" if missing else decimal_value(cells[1], -90, 90, scientific=True)
             z = decimal_value(cells[2], scientific=True) if len(cells) == 3 else None
-            if mode != "clampToGround" and z is None:
+            if mode != "clampToGround" and z is None and not missing:
                 raise ValueError("explicit altitude required for selected nonclamped mode")
             if mode == "clampToGround":
                 report["ignored_altitudes"] += z is not None
                 z = ""
+            if missing:
+                z = ""
+                report["missing_track_positions"] += 1
+            report["track_points"] += is_track
             writer.writerow([capture_time_us, report["selected_geometries"], number,
-                node.tag.removeprefix(ns) + "_DECLARED", lat, lon, "WGS84_DECIMAL_DEGREES",
-                z, bases[mode], "hex:" + point.encode().hex(), digest])
+                "GX_TRACK_DECLARED" if is_track else node.tag.removeprefix(ns) + "_DECLARED",
+                lat, lon, "WGS84_DECIMAL_DEGREES",
+                z, bases[mode], "hex:" + point.encode().hex(), digest,
+                "" if instant is None else instant[1],
+                "" if instant is None or not instant[0] else "hex:" + instant[0].encode().hex(),
+                "NO_FEATURE_TIME_DECLARED" if instant is None else instant[2], time_basis,
+                track_times[number][1] if is_track else "",
+                "hex:" + track_times[number][0].encode().hex() if is_track else "",
+                "GX_TRACK_PAIRED_WHEN_DECLARED_NOT_VERIFIED_FIX_TIME" if is_track else "NO_POINT_TIME_DECLARED",
+                "MISSING_COORDINATE_NOT_INTERPOLATED" if missing else "COORDINATE_DECLARED"])
+            report["timed_points" if is_track or (instant and instant[1] != "") else "untimed_points"] += 1
             report["points"] += 1
             if output.tell() > OUTPUT_LIMIT:
                 raise ValueError("CSV exceeds bound")

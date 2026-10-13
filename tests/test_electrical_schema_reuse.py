@@ -4,6 +4,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -74,6 +75,10 @@ class ElectricalReuseTests(unittest.TestCase):
             message.update(message_over or {})
             return dict(exchange=dict(exchange_type="flight_logging", message=message))
 
+        # Two independently constructed synthetic layouts: chosen whole percentages and
+        # simple relative seconds, with explicitly synthetic integer patterns for the
+        # unqualified columns and neutral 0/1/2 for the position-shaped unknown ones.
+        # No value here is taken from any inspected document.
         first_keys = ["timestamp", "battery_percent", "battery_voltage", "battery_current", "gps_lat", "future_column"]
         first_items = [[0, 0, 111, 11, 0, 1000], [0.5, 75, 222, 22, 1, 1001], [20, 25, 333, 33, 2, 1002]]
         second_keys = ["gps_lon", "battery_cell_voltage_0", "battery_cell_voltage_1", "battery_cell_voltage_2",
@@ -93,6 +98,7 @@ class ElectricalReuseTests(unittest.TestCase):
                                 "sha256:" + hashlib.sha256(text.encode()).hexdigest() for row in rows))
             self.assertEqual(bytes.fromhex(rows[0]["gutma_logging_start_reported_hex"][4:]).decode(),
                              "2026-03-01T09:15:00+00:00")
+            # Unqualified columns keep their exact reported values and never gain a unit.
             retained = dict(zip(json.loads(bytes.fromhex(rows[2]["source_keys_hex"][4:])),
                                 json.loads(bytes.fromhex(rows[2]["source_record_hex"][4:]))))
             self.assertEqual(retained, dict(zip(keys, items[2])))
@@ -158,6 +164,8 @@ class ElectricalReuseTests(unittest.TestCase):
                         {"allow_missing_voltage": True}):
             with self.subTest(options=options), self.assertRaises(ValueError):
                 module.convert(valid, fmt, **options)
+        # The already adopted decoded Parrot event selector is unchanged, and the two
+        # saved shapes are not interchangeable.
         event = dict(arsdk_xml_commit="2299c689be5951fa2104793e0154b0b5b1896c03", event="voltage",
                      payload={"voltage": 12500}, capture_time_us=777, future=[1])
         unchanged = next(csv.DictReader(io.StringIO(module.convert(json.dumps(event), module.PARROT_FORMAT))))
@@ -172,6 +180,9 @@ class ElectricalReuseTests(unittest.TestCase):
     def test_inav_saved_logging_csv_reuses_electrical_and_attitude(self):
         import math
         fmt = module.INAV_FORMAT
+        # Authored print_head layouts: MSP_ATTITUDE+MSP_ALTITUDE+MSP_ANALOG+MSP_RC,
+        # and a second, independently authored MSP_RAW_IMU+MSP_ATTITUDE+MSP_RAW_GPS
+        # +MSP_MOTOR+MSP_DEBUG selection without any electrical group.
         first = ("timestamp,kinematicsX,kinematicsY,kinematicsZ,altitude,voltage,amperage,mAhdrawn,rssi,RC0,RC1\n"
                  "1700000000123,12.3,-4.5,359,15.25,12.3,-2.5,1234,512,1500,1000\n"
                  "1700000000223,0,0,0,0,25.5,327.67,65535,1023,1000,2000\n")
@@ -193,10 +204,12 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertAlmostEqual(float(rows[0]["reported_roll_rad"]), math.radians(12.3))
         self.assertAlmostEqual(float(rows[0]["reported_pitch_rad"]), math.radians(-4.5))
         self.assertAlmostEqual(float(rows[0]["reported_yaw_rad"]), math.radians(359))
+        # Unselected print_head columns stay exactly as written, never interpreted.
         columns = bytes.fromhex(rows[0]["source_header_hex"][4:]).decode().split(",")
         retained = dict(zip(columns, bytes.fromhex(rows[0]["source_record_hex"][4:]).decode().split(",")))
         self.assertEqual([retained["altitude"], retained["RC0"], retained["RC1"]], ["15.25", "1500", "1000"])
         self.assertNotIn("altitude", rows[0])
+        # No GPS group in this layout, so no navigation cell and no degree basis is emitted.
         self.assertEqual([rows[0]["inav_gps_latitude_deg_reported"], rows[0]["inav_gps_angle_basis"],
                           rows[0]["inav_gps_unscaled_basis"]], ["", "", ""])
         attitude = list(csv.DictReader(io.StringIO(module.convert(second, fmt))))
@@ -207,6 +220,11 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertTrue(all(attitude[0][field] == "" for field in module.INAV_FIELDS[:7]))
         self.assertEqual(bytes.fromhex(attitude[1]["source_header_hex"][4:]).decode(), second.splitlines()[0])
         self.assertIn("gpsLat", bytes.fromhex(attitude[0]["source_header_hex"][4:]).decode())
+        # The same authored file now also carries the MSP_RAW_GPS group. tabs/logging.js divides
+        # lat/lon by 1e7 itself and the MSP handler stores the int32 unscaled, so that division is
+        # the only scale; the degree unit is established separately, by the same pinned commit's
+        # gps.js displaying the identical expression as "deg". Altitude, speed and course get no
+        # unit applied here.
         self.assertEqual(float(attitude[0]["inav_gps_latitude_deg_reported"]), 35.6812)
         self.assertEqual(float(attitude[0]["inav_gps_longitude_deg_reported"]), 139.7671)
         self.assertEqual(attitude[0]["inav_gps_coordinate_disposition"], "REPORTED_WITHIN_ANGLE_DOMAIN")
@@ -217,8 +235,11 @@ class ElectricalReuseTests(unittest.TestCase):
                           attitude[0]["inav_gps_ground_course_code_reported"]], ["12", "0", "270"])
         self.assertEqual(attitude[0]["inav_gps_angle_basis"], module.INAV_ANGLE_BASIS)
         self.assertIn("NO_UNIT_APPLIED_HERE", attitude[0]["inav_gps_unscaled_basis"])
+        # The screen labels that do exist for altitude and speed are named, not adopted.
         self.assertIn("UNADOPTED", attitude[0]["inav_gps_unscaled_basis"])
 
+        # A second, differently laid out authored file: GPS group alone, other values, negative
+        # coordinates and a negative raw altitude.
         navigation = ("timestamp,gpsFix,gpsNumSat,gpsLat,gpsLon,gpsAlt,gpsSpeed,gpsGroundCourse\n"
                       "1700000000500,3,14,-33.8688,151.2093,-25,1200,3599\n"
                       "1700000000600,0,0,0,0,0,0,0\n")
@@ -226,9 +247,12 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(len(nav), 2)
         self.assertEqual(float(nav[0]["inav_gps_latitude_deg_reported"]), -33.8688)
         self.assertEqual(nav[0]["inav_gps_altitude_code_reported"], "-25")
+        # A zero row is not a fix: the globals are zero-initialised, so it may never have been
+        # received. The converter records that and never calls it valid.
         self.assertEqual(nav[1]["inav_gps_fix_code_reported"], "0")
         self.assertEqual(float(nav[1]["inav_gps_latitude_deg_reported"]), 0.0)
         self.assertIn("ZERO_MAY_BE_UNSET", nav[1]["inav_value_basis"])
+        # Out-of-domain coordinates are withheld, not clamped; the pair is still accounted for.
         for cell, bad in (("gpsLat", "95.0"), ("gpsLon", "-181.0")):
             columns = navigation.splitlines()[0].split(",")
             cells = navigation.splitlines()[1].split(",")
@@ -239,6 +263,7 @@ class ElectricalReuseTests(unittest.TestCase):
             self.assertEqual(row["inav_gps_latitude_deg_reported"], "")
             self.assertEqual(row["inav_gps_longitude_deg_reported"], "")
             self.assertEqual(row["inav_gps_fix_code_reported"], "3")
+        # Wire-type violations are refused, not coerced: the pin fixes int16 / uint16 / uint8.
         for cell, bad in (("gpsAlt", "40000"), ("gpsAlt", "-32769"), ("gpsAlt", "1.5"),
                           ("gpsSpeed", "65536"), ("gpsSpeed", "-1"), ("gpsGroundCourse", "65536"),
                           ("gpsFix", "256"), ("gpsNumSat", "-1"), ("gpsLon", "x"),
@@ -275,6 +300,10 @@ class ElectricalReuseTests(unittest.TestCase):
                         self.assertEqual(fields["inav_gps_latitude_deg_reported"], 35.6812)
                         self.assertEqual(fields["inav_gps_longitude_deg_reported"], 139.7671)
                         self.assertEqual(fields["inav_gps_angle_basis"], module.INAV_ANGLE_BASIS)
+        # The GPS-only layout must reach the **actual** common reader too: converting it to CSV
+        # says nothing about whether these navigation fields survive into an Observation. Three
+        # rows, independently valued from the layout above: a reported pair, a zero snapshot, and
+        # an out-of-domain pair.
         reader = inav_common_reader(self, "INAV saved MSP_RAW_GPS navigation")
         if reader:
             with tempfile.TemporaryDirectory() as directory:
@@ -289,6 +318,7 @@ class ElectricalReuseTests(unittest.TestCase):
                 self.assertEqual(common["platform_domain"], "Unknown")
                 self.assertTrue(all(o["clock_basis"] == "Unknown" for o in common["observations"]))
                 reported, zero, withheld = (o["fields"] for o in common["observations"])
+                # The selected navigation semantics, on the reader's own output.
                 self.assertEqual(reported["record_time_us"], 1700000000500000)
                 self.assertEqual(reported["inav_gps_latitude_deg_reported"], -33.8688)
                 self.assertEqual(reported["inav_gps_longitude_deg_reported"], 151.2093)
@@ -298,6 +328,9 @@ class ElectricalReuseTests(unittest.TestCase):
                 self.assertEqual([reported["inav_gps_altitude_code_reported"],
                                   reported["inav_gps_speed_code_reported"],
                                   reported["inav_gps_ground_course_code_reported"]], [-25, 1200, 3599])
+                # Unit basis, carried per row and declared by the profile the reader actually read:
+                # the degree comes from the pinned Configurator displaying this divided value as
+                # "deg", while altitude/speed/course get no unit here at all.
                 self.assertEqual(reported["inav_gps_angle_basis"], module.INAV_ANGLE_BASIS)
                 self.assertIn("NO_DATUM_DECLARED", reported["inav_gps_angle_basis"])
                 self.assertEqual(reported["inav_gps_unscaled_basis"], module.INAV_UNSCALED_BASIS)
@@ -306,11 +339,14 @@ class ElectricalReuseTests(unittest.TestCase):
                 self.assertTrue(declared_unit.startswith("deg_"))
                 self.assertIn("displays_that_identical_divided_value_as_deg", declared_unit)
                 self.assertIn("no_WGS84_or_world_frame_is_asserted", declared_unit)
+                # Zero row: reported, never promoted to a fix; the staleness basis travels with it.
                 self.assertEqual(zero["inav_gps_fix_code_reported"], 0)
                 self.assertEqual(zero["inav_gps_latitude_deg_reported"], 0.0)
                 self.assertEqual(zero["inav_gps_coordinate_disposition"], "REPORTED_WITHIN_ANGLE_DOMAIN")
                 self.assertIn("ZERO_MAY_BE_UNSET", zero["inav_value_basis"])
                 self.assertIn("HOST_SNAPSHOT_OF_ASYNCHRONOUS", zero["inav_value_basis"])
+                # Out-of-domain pair: withheld through the reader as blank, not clamped, while the
+                # rest of the row and the whole saved line are still there.
                 self.assertEqual(withheld["inav_gps_coordinate_disposition"], "OUTSIDE_ANGLE_DOMAIN_WITHHELD")
                 self.assertIsNone(withheld.get("inav_gps_latitude_deg_reported"))
                 self.assertIsNone(withheld.get("inav_gps_longitude_deg_reported"))
@@ -348,6 +384,7 @@ class ElectricalReuseTests(unittest.TestCase):
             cells[columns.index(column)] = value
             with self.subTest(column=column, value=value), self.assertRaises(ValueError):
                 module.convert(first.splitlines()[0] + "\n" + ",".join(cells) + "\n", fmt)
+        # The selector stays inside the existing converter contract.
         for options in ({"capture_time_us": 1}, {"bat_details": True}, {"vda_actions": True},
                         {"allow_missing_voltage": True}):
             with self.subTest(options=options), self.assertRaises(ValueError):
@@ -581,12 +618,15 @@ class ElectricalReuseTests(unittest.TestCase):
         output = module.convert(json.dumps(document), module.TRT_PROFILE_FORMAT, capture_time_us=4242)
         rows = list(csv.DictReader(io.StringIO(output)))
         self.assertEqual(len(rows), 3)  # the count header is not a layer row
+        # Milliseconds to seconds, and only that: no total/average relation is recomputed.
         self.assertEqual([float(row["trt_layer_total_time_s"]) for row in rows],
                          [2.5 / 1000, 1.5 / 1000, 1. / 1000])
         self.assertEqual(float(rows[0]["trt_layer_average_time_s"]), .625 / 1000)
         self.assertEqual(float(rows[2]["trt_layer_median_time_s"]), .24 / 1000)
+        # File order, and layer names kept verbatim - including one that is only digits.
         self.assertEqual([bytes.fromhex(row["trt_layer_name_hex"][4:]).decode() for row in rows],
                          ["conv1 + relu1", "0", "pool1"])
+        # The original array position survives: the header is index 0, so layers start at 1.
         self.assertEqual([row["source_event_index"] for row in rows], ["1", "2", "3"])
         self.assertEqual(json.loads(bytes.fromhex(rows[1]["canonical_event_hex"][4:])), document[2])
         self.assertEqual({row["trt_profile_iteration_count_text"] for row in rows}, {"i32:4"})
@@ -599,22 +639,28 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertIn("INCLUDING_WARMUP", rows[0]["trt_layer_time_basis"])
         self.assertNotIn("trt_compute_duration_s", rows[0])  # not the exportTimes layout
         self.assertNotIn("runtime_pid_text", rows[0])
+        # A zero-time layer is exported by this writer, so it is carried as the reported zero it is.
         zero = list(csv.DictReader(io.StringIO(module.convert(json.dumps(
             [{"count": 1}, {"name": "unused", "timeMs": 0., "averageMs": 0., "medianMs": 0.,
               "percentage": 0.}]), module.TRT_PROFILE_FORMAT, capture_time_us=1))))
         self.assertEqual(float(zero[0]["trt_layer_total_time_s"]), 0.)
         self.assertEqual(float(zero[0]["trt_layer_time_share"]), 0.)
+        # A share outside the reported range is withheld, never clamped or zeroed, and the
+        # reported number itself stays in the row.
         outside = list(csv.DictReader(io.StringIO(module.convert(json.dumps(
             [{"count": 2}, {**document[1], "percentage": 140.5}]),
             module.TRT_PROFILE_FORMAT, capture_time_us=1))))
         self.assertEqual(outside[0]["trt_layer_time_share"], "")
         self.assertEqual(float(outside[0]["trt_layer_reported_percentage"]), 140.5)
         self.assertEqual(outside[0]["trt_layer_share_disposition"], "OUTSIDE_REPORTED_SHARE_RANGE")
+        # An ordinary multi-layer file, because this list shape is new. The shared JSON-array
+        # bounds and their existing capacity proof are reused rather than repeated.
         many = [{"count": 50}] + [{"name": f"layer_{i}", "timeMs": 1. + i, "averageMs": (1. + i) / 50,
                                    "medianMs": (1. + i) / 50, "percentage": 100 / 64}
                                   for i in range(64)]
         self.assertEqual(len(list(csv.DictReader(io.StringIO(module.convert(
             json.dumps(many), module.TRT_PROFILE_FORMAT, capture_time_us=9))))), 64)
+        # Refusals: nothing invalid becomes a zero, and the trace format keeps its own shape.
         layer = document[1]
         for bad in ([], [{"count": 4}], [{"count": 4, "extra": 1}, layer], [[], layer],
                     [{"count": -1}, layer], [{"count": True}, layer], [{"count": 2.0}, layer],
@@ -626,16 +672,19 @@ class ElectricalReuseTests(unittest.TestCase):
                     [{"count": 1}, "conv1"]):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 module.convert(json.dumps(bad), module.TRT_PROFILE_FORMAT, capture_time_us=1)
+        # A zero denominator makes the writer print nan/inf; that is refused, not read as zero.
         for token in ("NaN", "Infinity", "-Infinity"):
             with self.subTest(token=token), self.assertRaises(ValueError):
                 module.convert('[{"count":1},{"name":"a","timeMs":1.0,"averageMs":1.0,'
                                f'"medianMs":1.0,"percentage":{token}}}]',
                                module.TRT_PROFILE_FORMAT, capture_time_us=1)
+        # Duplicate JSON keys and the missing capture clock keep their existing refusals.
         with self.assertRaises(ValueError):
             module.convert('[{"count":1,"count":1},' + json.dumps(layer) + "]",
                            module.TRT_PROFILE_FORMAT, capture_time_us=1)
         with self.assertRaises(ValueError):
             module.convert(json.dumps(document), module.TRT_PROFILE_FORMAT, capture_time_us=None)
+        # The two 10.7.0 writers stay separate selectors: neither reads the other's file.
         with self.assertRaises(ValueError):
             module.convert(json.dumps(document), module.TRT_FORMAT, capture_time_us=1)
         trace = dict(startEnqMs=1., endEnqMs=1.1, startH2dMs=10., endH2dMs=10.5, startComputeMs=10.5,
@@ -669,6 +718,7 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(second["trt_layer_time_share"], .875)
         self.assertEqual(bytes.fromhex(second["trt_layer_name_hex"][4:]).decode(), "7")
         self.assertEqual(first["trt_profile_iteration_count_text"], "i32:12")
+        # The capture clock is the caller's and stays unknown; no profile offset becomes a time.
         self.assertEqual({observation["clock_basis"] for observation in common["observations"]}, {"Unknown"})
         units = common["profile_units"]
         self.assertIn("never_a_share_of_a_measured_wall_clock", units["trt_layer_reported_percentage"])
@@ -714,10 +764,12 @@ class ElectricalReuseTests(unittest.TestCase):
         for text in ("net_name,fps\na,1\n", document().rsplit(",", 1)[0], document(count=0)):
             with self.assertRaises(ValueError): module.convert(text, module.HAILO_FORMAT, capture_time_us=1)
         with self.assertRaises(ValueError): module.convert(document(), module.HAILO_FORMAT)
+        # 5.4.0 の既存行は値が変わらず、基準だけが明示される。
         unchanged = next(csv.DictReader(io.StringIO(module.convert(document(), module.HAILO_FORMAT, capture_time_us=777))))
         self.assertEqual(unchanged["runtime_frame_count_text"], "u64:1000")
         self.assertEqual(unchanged["runtime_frame_count_basis"],
                          "REPORTED_MINIMUM_RECEIVED_ACROSS_STREAMS_IN_5_4_0_SOURCE")
+        # 4.24.0 は別に宣言された入力＝同じ writer・同じ量、基準だけが version 固有。
         older = document({"net_name": "net-424", "fps": "60.25", "num_of_frames": "2500",
                           "hw_latency": "1.5", "overall_latency": "", "average_power": "1.10"})
         row424 = next(csv.DictReader(io.StringIO(module.convert(older, module.HAILO_FORMAT_424, capture_time_us=888))))
@@ -728,6 +780,7 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(row424["runtime_frame_count_basis"],
                          "REPORTED_MINIMUM_RECEIVED_ACROSS_STREAMS_IN_4_24_0_SOURCE")
         self.assertEqual(json.loads(bytes.fromhex(row424["canonical_event_hex"][4:]))["average_power"], "1.10")
+        # 同じ bytes でも selector が違えば基準の宣言が変わる＝version は操作者の宣言。
         same = [next(csv.DictReader(io.StringIO(module.convert(older, fmt, capture_time_us=888))))
                 for fmt in (module.HAILO_FORMAT, module.HAILO_FORMAT_424)]
         self.assertEqual({k: v for k, v in same[0].items() if k != "runtime_frame_count_basis"},
@@ -895,6 +948,7 @@ class ElectricalReuseTests(unittest.TestCase):
             result = record(b""); del result["battery_protobuf_hex"]
             return dict(result, grpc_frame_hex=frame.hex())
         for voltage, current, remaining in ((24., -2., 75.), (12.5, 3., 25.)):
+            # Independent wire fixture uses published tags, not the implementation descriptor.
             wire = b"\x08\x05" + b"".join(bytes([tag]) + struct.pack("<f", value)
                 for tag, value in ((0x15, 20.), (0x1d, voltage), (0x25, current),
                                    (0x2d, 2.5), (0x35, remaining), (0x3d, 30.))) + b"\x40\x02\xa0\x06\x01"
@@ -1051,6 +1105,8 @@ class ElectricalReuseTests(unittest.TestCase):
                     self.assertEqual(common["observations"][0]["fields"]["tegrastats_reported_frequency_hz"], expected_hz)
                     self.assertAlmostEqual(common["observations"][3]["fields"]["temperature_k"], expected_k)
                     self.assertTrue(all(o["clock_basis"] == "Unknown" for o in common["observations"]))
+        # Two independent authored layouts for the documented GPU/memory/rail quantities: an AGX-style
+        # two-GPC line and a single-frequency line with different values and different rails.
         for line, gpc, fraction, rails, memory, unselected in (
             ("RAM 1024/7620MB (lfb 12x4MB) SWAP 0/3810MB (cached 0MB) GR3D_FREQ 37%@[624,624] "
              "VDD_IN 4321/3210 VDD_CPU_GPU_CV 1500/1200 EMC_FREQ 9%@2133 CPU@44.5C",
@@ -1072,6 +1128,7 @@ class ElectricalReuseTests(unittest.TestCase):
             self.assertEqual((int(row["tegrastats_reported_memory_used"]),
                               int(row["tegrastats_reported_memory_total"]),
                               row["tegrastats_reported_memory_unit_label"]), (used, total, label))
+            # A same-unit fraction only: no byte base is documented, so none is invented.
             self.assertAlmostEqual(float(row["tegrastats_reported_utilization_fraction"]), used / total)
             self.assertEqual(row["tegrastats_reported_free_block_count"],
                              "" if blocks is None else str(blocks))
@@ -1082,11 +1139,13 @@ class ElectricalReuseTests(unittest.TestCase):
                          for r in rows if r["tegrastats_record_kind"] == "POWER_RAIL"}
             self.assertEqual(set(rail_rows), set(rails))
             for name, (current, average) in rails.items():
+                # Current and average stay distinct columns; nothing is summed across rails.
                 self.assertAlmostEqual(float(rail_rows[name]["tegrastats_reported_power_current_w"]),
                                        current)
                 self.assertAlmostEqual(float(rail_rows[name]["tegrastats_reported_power_average_w"]),
                                        average)
                 self.assertIn("WINDOW_UNDOCUMENTED", rail_rows[name]["tegrastats_value_disposition"])
+            # Unselected blocks (SWAP, EMC, NVDEC, cached…) are counted on every row, never dropped.
             self.assertTrue(all(int(r["tegrastats_unselected_token_count"]) == unselected for r in rows))
             with tempfile.TemporaryDirectory() as tmp:
                 target = Path(tmp) / "resource.csv"
@@ -1118,16 +1177,22 @@ class ElectricalReuseTests(unittest.TestCase):
                                   units["tegrastats_reported_power_average_w"])
                     self.assertIn("never_summed_across_rails",
                                   units["tegrastats_reported_power_current_w"])
+        # Important failures for the new quantities.
         for line in ("GR3D_FREQ 101%@306", "GR3D_FREQ 5%@0", "GR3D_FREQ 5%@[306,0]",
                      "GR3D_FREQ 5%@306 GR3D_FREQ 6%@306", "GR3D_FREQ 5%@[306,]",
                      "RAM 0/0MB", "RAM 9/8MB", "RAM 1/2MB (lfb 4x1KB)", "RAM 1/2MB RAM 3/4MB",
                      "VDD_IN 100", "VDD_IN -1/2", "VDD_IN 1/2 VDD_IN 3/4",
+                     # The mW-suffixed variant is not on the pinned page: refused, not guessed.
                      "VDD_IN 4321mW/3210mW", "CPU [1%@100] VDD_IN 5mW",
+                     # A malformed lfb group belongs to the selected RAM report, so it is refused
+                     # rather than half-read with blank free-block cells.
                      "RAM 1/2MB (lfb broken)", "RAM 1/2MB (lfb 4x)"):
             with self.assertRaises(ValueError, msg=line):
                 module.convert(json.dumps(entry(line)), module.TEGRA_FORMAT)
         thermal = next(csv.DictReader(io.StringIO(module.convert(json.dumps(entry("GPU@30C")), module.TEGRA_FORMAT))))
         self.assertEqual(thermal["tegrastats_record_kind"], "TEMPERATURE")
+        # "RAM 1/2MB" alone is no longer refused: memory is now a selected quantity, so a line that
+        # carries only a documented memory report is a report. The refusal reason widened with it.
         for line in ("CPU [101%@100]", "CPU [1%@0]", "CPU [1%@100] CPU [2%@200]",
                      "CPU [bad]", "CPU [1%@100", "CPU [1%@100] GPU@NaNC",
                      "GPU@30C GPU@31C", "GPU@-274C", "future=kept", "CPU [1%@100]\nGPU@30C"):
@@ -1159,8 +1224,11 @@ class ElectricalReuseTests(unittest.TestCase):
             for column in group:
                 with self.subTest(column=column):
                     self.assertIn(column, declared)
+        # The two identity columns are distinct fields of the saved response and must stay so:
+        # the dictionary key is the publisher's addressing, the name is optional in the schema.
         self.assertIn("rmf_robot_key_hex", module.RMF_WEB_FIELDS)
         self.assertIn("rmf_name_hex", module.RMF_WEB_FIELDS)
+        # Absent and unknown stay different answers in the declaration, not only in the code.
         for token in ("UNAVAILABLE", "UNKNOWN_RETAINED", "SCHEMA_KNOWN_REPORTED"):
             self.assertIn(token, profile)
 
@@ -1175,6 +1243,7 @@ class ElectricalReuseTests(unittest.TestCase):
             return text, list(csv.DictReader(io.StringIO(
                 module.convert(text, module.RMF_WEB_FORMAT))))
 
+        # 1. Reported empty dictionary: a real answer, one snapshot row, nothing invented.
         text, rows = rows_for(dict(name="warehouse", robots={}))
         self.assertEqual(len(rows), 1)  # never zero: the source is not silently dropped
         row = rows[0]
@@ -1182,10 +1251,13 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(row["rmf_robot_count"], "0")
         self.assertEqual(row["rmf_robots_availability"], module.RMF_ROBOTS_EMPTY)
         self.assertEqual(bytes.fromhex(row["rmf_fleet_name_hex"][4:]).decode(), "warehouse")
+        # The snapshot evidence and the caller's capture time survive a zero-robot response.
         self.assertEqual(bytes.fromhex(row["source_record_hex"][4:]).decode(), text)
         self.assertEqual(row["rmf_snapshot_sha256"],
                          "sha256:" + hashlib.sha256(text.encode()).hexdigest())
         self.assertEqual(row["record_time_us"], "100")
+        # No robot identity, pose or battery is fabricated, and none of it reads as a robot that
+        # reported nothing: the per-robot columns are empty and say why.
         for empty in ("rmf_robot_key_hex", "rmf_name_hex", "rmf_task_id_hex",
                       "battery_remaining_fraction", "rmf_status_reported_hex",
                       "rmf_unix_millis_reported_text", "rmf_map_name_hex", "rmf_map_x_m",
@@ -1195,23 +1267,27 @@ class ElectricalReuseTests(unittest.TestCase):
             self.assertEqual(row[basis], module.RMF_SNAPSHOT_BASIS)
             self.assertNotEqual(row[basis], "UNAVAILABLE")
 
+        # 2. Absent optional dictionary is NOT the same answer as a reported empty one.
         _, absent = rows_for(dict(name="warehouse"))
         self.assertEqual(len(absent), 1)
         self.assertEqual(absent[0]["rmf_robots_availability"], module.RMF_ROBOTS_UNAVAILABLE)
         self.assertEqual(absent[0]["rmf_robot_count"], "")  # absent is not zero
         self.assertNotEqual(absent[0]["rmf_robots_availability"], row["rmf_robots_availability"])
 
+        # 3. Absent optional fleet name, and a reported empty one, stay different answers.
         _, unnamed = rows_for(dict(robots={}))
         self.assertEqual(unnamed[0]["rmf_fleet_name_hex"], "")
         _, blank = rows_for(dict(name="", robots={}))
         self.assertEqual(blank[0]["rmf_fleet_name_hex"], "hex:")
 
+        # 4. Malformed types still refuse; an Optional field is not a licence to guess.
         for bad in (dict(name=5, robots={}), dict(name=[], robots={}), dict(name=True, robots={}),
                     dict(name="f", robots=[]), dict(name="f", robots="none"),
                     dict(name="f", robots=0), dict(name="f", robots={"r": 5})):
             with self.subTest(state=bad), self.assertRaises(ValueError):
                 rows_for(bad)
 
+        # 5. Populated regression: robot rows are unchanged and carry the same three columns.
         _, populated = rows_for(dict(name="f", robots={
             "a": dict(battery=.5, status="idle"), "b": {}}))
         self.assertEqual(len(populated), 2)
@@ -1223,6 +1299,8 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(populated[1]["rmf_battery_disposition"], "UNAVAILABLE")
         self.assertNotEqual(populated[1]["rmf_battery_disposition"], module.RMF_SNAPSHOT_BASIS)
 
+        # 6. The socket selector keeps its own stricter identity rule: the event carries the room,
+        # so an absent or mismatched name there is a transport mismatch, not an optional field.
         def socket(state, room="/fleets/warehouse/state"):
             return json.dumps(dict(schema_commit=pin, capture_time_us=100, protocol_version=5,
                 transport="websocket-complete-text", direction="received",
@@ -1235,6 +1313,7 @@ class ElectricalReuseTests(unittest.TestCase):
             with self.subTest(state=wrong), self.assertRaises(ValueError):
                 module.convert(socket(wrong), module.RMF_SOCKET_FORMAT)
 
+        # 7. The common reader accepts a snapshot-only file on the existing profile.
         reader = inav_common_reader("electrical-schema-reuse", "rmf idle fleet")
         if reader:
             text, _ = rows_for(dict(name="warehouse", robots={}))
@@ -1313,6 +1392,8 @@ class ElectricalReuseTests(unittest.TestCase):
             with self.assertRaises(ValueError): module.convert(json.dumps(bad), module.RMF_WEB_FORMAT)
         for patch in ({"schema_commit": "wrong"}, {"capture_time_us": -1}):
             with self.assertRaises(ValueError): module.convert(json.dumps(dict(first, **patch)), module.RMF_WEB_FORMAT)
+        # A reported empty name and a reported empty dictionary were refused before; the pinned
+        # model declares both fields Optional, so they are now read. See the idle-fleet test.
         for patch in ({"state": {"name": "", "robots": {"r": {}}}},
                       {"state": {"name": "fleet", "robots": {}}}):
             module.convert(json.dumps(dict(first, **patch)), module.RMF_WEB_FORMAT)
@@ -1322,6 +1403,8 @@ class ElectricalReuseTests(unittest.TestCase):
 
     def test_rmf_web_pose_and_repeated_state_association(self):
         """The saved web pose under the same declaration, and plan rows that stay separable."""
+        # (1) The pinned web model has map/x/y/yaw and no path field. The pose converts under the
+        # same caller declaration; the absent path is a property of that schema, not a pose blocker.
         def web(location, declare=True, **robot):
             envelope = dict(schema_commit="a736ddebeee9eaf3970756d7dd452065273da918",
                 capture_time_us=2000,
@@ -1338,26 +1421,32 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(bytes.fromhex(row["rmf_map_name_hex"][4:]).decode(), "L7")
         self.assertEqual(row["rmf_position_basis"],
                          "CALLER_DECLARED_UNITS_IN_REPORTED_MAP_FRAME_NOT_GLOBAL_OR_GEODETIC")
+        # Identity and the adopted web columns are unchanged beside the pose.
         self.assertEqual(bytes.fromhex(row["rmf_robot_key_hex"][4:]).decode(), "amr-1")
         self.assertEqual(float(row["battery_remaining_fraction"]), .4)
         self.assertEqual(row["rmf_status_disposition"], "SCHEMA_KNOWN_REPORTED")
+        # Optional and absent is not a pose at the origin, and is distinct from not selected.
         absent = list(csv.DictReader(io.StringIO(module.convert(
             json.dumps(web(None)), module.RMF_WEB_FORMAT))))[0]
         self.assertEqual((absent["rmf_map_x_m"], absent["rmf_map_y_m"], absent["rmf_map_yaw_rad"]),
                          ("", "", ""))
         self.assertEqual(absent["rmf_position_basis"], "NOT_REPORTED")
+        # Undeclared keeps the adopted behaviour: no conversion, no refusal.
         undeclared = list(csv.DictReader(io.StringIO(module.convert(
             json.dumps(web({"map": "L7", "x": 1., "y": 2., "yaw": 0.}, declare=False)),
             module.RMF_WEB_FORMAT))))[0]
         self.assertEqual(undeclared["rmf_position_basis"], "NOT_SELECTED_WITHOUT_CALLER_UNIT_DECLARATION")
         self.assertEqual(undeclared["rmf_map_x_m"], "")
         self.assertEqual(float(undeclared["battery_remaining_fraction"]), .4)
+        # Wrong declared units and a malformed pose are refused.
         for patch in ({"location_unit": "cm"}, {"yaw_unit": "deg"}):
             with self.subTest(patch=patch), self.assertRaises(ValueError):
                 module.convert(json.dumps({**posed, **patch}), module.RMF_WEB_FORMAT)
         for pose in ({"map": "", "x": 1., "y": 2., "yaw": 0.}, {"x": 1., "y": 2., "yaw": 0.}, 5):
             with self.subTest(pose=pose), self.assertRaises(ValueError):
                 module.convert(json.dumps(web(pose)), module.RMF_WEB_FORMAT)
+        # The already adopted Socket.IO wrapper delegates to the same selected function, so the pose
+        # arrives there too without a separate path.
         packet = "42" + json.dumps(["/fleets/authored-fleet/state", posed["state"]])
         socket = {k: v for k, v in posed.items() if k != "state"}
         socket.update(protocol_version=5, transport="websocket-complete-text",
@@ -1378,6 +1467,8 @@ class ElectricalReuseTests(unittest.TestCase):
             self.assertEqual(common["observations"][0]["fields"]["rmf_map_y_m"], 3.25)
             self.assertEqual(common["observations"][0]["clock_basis"], "Unknown")
 
+        # (2) Two state records for the SAME robot at the SAME capture time: the plan rows must stay
+        # separable, which the robot name alone does not establish.
         def state(x, count, index_base):
             def point(i):
                 return {"t": {"sec": 1, "nanosec": 0}, "x": float(i), "y": 0., "yaw": 0.,
@@ -1394,6 +1485,7 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(len(rows), 7)  # 1 + 2 and 1 + 3
         self.assertEqual({row["record_time_us"] for row in rows}, {"5000"})
         self.assertEqual({row["rmf_name_hex"] for row in rows}, {rows[0]["rmf_name_hex"]})
+        # Equal time and equal name, so the record index and the record digest are what separate them.
         self.assertEqual([row["rmf_source_record_index"] for row in rows],
                          ["0", "0", "0", "1", "1", "1", "1"])
         first_sha = {row["rmf_snapshot_sha256"] for row in rows[:3]}
@@ -1401,9 +1493,12 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual((len(first_sha), len(second_sha)), (1, 1))
         self.assertNotEqual(first_sha, second_sha)
         self.assertTrue(all(sha.startswith("sha256:") for sha in first_sha | second_sha))
+        # Each group keeps its own STATE-then-PATH_POINT order and its own count.
         self.assertEqual([row["rmf_record_kind"] for row in rows],
                          ["STATE", "PATH_POINT", "PATH_POINT", "STATE", "PATH_POINT", "PATH_POINT", "PATH_POINT"])
         self.assertEqual([row["rmf_path_point_count"] for row in rows], ["2"] * 3 + ["3"] * 4)
+        # The digest is the digest of that record, so a row is bound to its source without the source
+        # being copied onto every row.
         self.assertEqual(sum(1 for row in rows if row["source_record_hex"]), 2)
         import hashlib
         self.assertEqual(rows[0]["rmf_snapshot_sha256"],
@@ -1427,6 +1522,8 @@ class ElectricalReuseTests(unittest.TestCase):
             envelope.update(extra)
             return envelope
 
+        # Two authored saved inputs: a pose with a three-point plan, and a record that reports no
+        # location and an empty plan.
         first = record(waypoint(1.5, -2.25, .5, "L1", 3),
                        [waypoint(4., 5., 1.25, "L1", 4),
                         waypoint(7.5, 8., -1.25, "L2", 5, sec=9, nanosec=0, limit=.75, obey=False),
@@ -1435,22 +1532,28 @@ class ElectricalReuseTests(unittest.TestCase):
         text = "\n".join(map(json.dumps, (first, second)))
         output = module.convert(text, module.RMF_FORMAT)
         rows = list(csv.DictReader(io.StringIO(output)))
+        # One STATE row per record plus one row per reported waypoint - nothing sampled or truncated.
         self.assertEqual(len(rows), 5)
         self.assertEqual([row["rmf_record_kind"] for row in rows],
                          ["STATE", "PATH_POINT", "PATH_POINT", "PATH_POINT", "STATE"])
         state, points, empty = rows[0], rows[1:4], rows[4]
+        # The adopted selected fields are unchanged on the state row.
         self.assertEqual(float(state["battery_remaining_fraction"]), .825)
         self.assertEqual(state["rmf_mode_reported"], "MODE_MOVING")
         self.assertEqual(json.loads(bytes.fromhex(state["source_record_hex"][4:])), first)
+        # Reported pose, in the caller-declared units and the reported map frame.
         self.assertEqual((float(state["rmf_map_x_m"]), float(state["rmf_map_y_m"])), (1.5, -2.25))
         self.assertEqual(float(state["rmf_map_yaw_rad"]), .5)
         self.assertEqual(bytes.fromhex(state["rmf_map_name_hex"][4:]).decode(), "L1")
         self.assertEqual(state["rmf_position_basis"],
                          "CALLER_DECLARED_UNITS_IN_REPORTED_MAP_FRAME_NOT_GLOBAL_OR_GEODETIC")
         self.assertEqual(state["rmf_waypoint_index_text"], "u64:3")
+        # The per-waypoint time is a reported value with its own basis, never the row clock.
         self.assertEqual(state["rmf_waypoint_time_us_reported"], "5250000")
         self.assertEqual(state["record_time_us"], "1000")
         self.assertIn("NOT_THE_ROW_CLOCK", state["rmf_waypoint_time_basis"])
+        # The plan is reconstructable from common output: count, order, every point, and the robot it
+        # belongs to - without reparsing the retained JSON.
         self.assertTrue(all(row["rmf_path_point_count"] == "3" for row in rows[:4]))
         self.assertEqual([row["rmf_path_point_index"] for row in points], ["0", "1", "2"])
         self.assertEqual([(float(row["rmf_map_x_m"]), float(row["rmf_map_y_m"])) for row in points],
@@ -1462,18 +1565,23 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual([row["rmf_waypoint_time_us_reported"] for row in points],
                          ["5250000", "9000000", "12000001"])
         self.assertTrue(all(row["rmf_name_hex"] == state["rmf_name_hex"] for row in points))
+        # A plan row is not a battery, mode or task report, and only the first row keeps the record.
         for row in points:
             self.assertEqual((row["battery_remaining_fraction"], row["rmf_mode_reported"],
                               row["rmf_task_id_hex"], row["source_record_hex"]), ("", "", "", ""))
+        # The one unit the pinned message states, and the publisher's own statement about it.
         self.assertEqual(float(points[0]["rmf_approach_speed_limit_m_s"]), 1.5)
         self.assertEqual(points[0]["rmf_approach_speed_limit_disposition"], "REPORTED_LANE_LIMIT_OBEYED")
         self.assertEqual(points[1]["rmf_approach_speed_limit_m_s"], "")
         self.assertEqual(points[1]["rmf_approach_speed_limit_disposition"],
                          "REPORTED_NOT_OBEYED_VALUE_RETAINED_IN_SOURCE")
+        # No location is not a pose at the origin, and an empty plan is a reported empty plan.
         self.assertEqual((empty["rmf_map_x_m"], empty["rmf_map_y_m"], empty["rmf_map_yaw_rad"]), ("", "", ""))
         self.assertEqual(empty["rmf_position_basis"], "NOT_REPORTED")
         self.assertEqual(empty["rmf_path_point_count"], "0")
         self.assertEqual(float(empty["battery_remaining_fraction"]), .825)
+        # Without the caller's declaration the adopted behaviour is unchanged: no conversion, no
+        # refusal, and the columns say so instead of looking like an absent location.
         undeclared = list(csv.DictReader(io.StringIO(module.convert(
             json.dumps(record({"future": 1}, [waypoint(1., 2., 0., "L", 1)], declare=False)),
             module.RMF_FORMAT))))
@@ -1506,11 +1614,16 @@ class ElectricalReuseTests(unittest.TestCase):
                 self.assertIn("never_a_global_or_geodetic_coordinate", declared["rmf_map_x_m"])
                 self.assertIn("NOT_ESTABLISHED_BY_THE_PIN", declared["rmf_waypoint_time_basis"])
                 self.assertIn("not_proven_travel_sequence", declared["rmf_path_point_index"])
+        # A practical plan: 1000 reported waypoints convert to 1001 rows and reach the common reader,
+        # under the same 512 KiB selected-record bound the RMF-web path already uses. Nothing here
+        # samples or truncates; a record above that bound is refused explicitly.
         def plan(count):
             return record(waypoint(0., 0., 0., "L1", 0),
                           [waypoint(float(i), float(-i), 0., "L1", i) for i in range(1, count + 1)])
         large = plan(1000)
         self.assertLess(len(json.dumps(large).encode()), 512 * 1024)
+        # Row 0 of the record carries the whole saved record as hex, so this reader needs the same
+        # raised field limit the action-detail test already uses; the converter itself is unaffected.
         previous_limit = csv.field_size_limit(2 * 1024 * 1024)
         self.addCleanup(csv.field_size_limit, previous_limit)
         big = list(csv.DictReader(io.StringIO(module.convert(json.dumps(large), module.RMF_FORMAT))))
@@ -1519,7 +1632,9 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual([int(row["rmf_path_point_index"]) for row in big[1:]], list(range(1000)))
         self.assertEqual((float(big[-1]["rmf_map_x_m"]), float(big[-1]["rmf_map_y_m"])), (1000., -1000.))
         self.assertEqual(big[-1]["rmf_waypoint_index_text"], "u64:1000")
+        # Only the first row of the record carries the source, so a long plan is not a per-row copy.
         self.assertEqual(sum(1 for row in big if row["source_record_hex"]), 1)
+        # Above the selected-record bound the existing refusal applies - no silent truncation.
         with self.assertRaises(ValueError) as caught:
             module.convert(json.dumps(plan(3500)), module.RMF_FORMAT)
         self.assertEqual(str(caught.exception), "empty or oversized JSON record")
@@ -1534,10 +1649,13 @@ class ElectricalReuseTests(unittest.TestCase):
             self.assertEqual(common["observations"][-1]["fields"]["rmf_path_point_index"], 999)
             self.assertEqual(common["observations"][-1]["fields"]["rmf_map_x_m"], 1000.)
 
+        # Refusals, each on its own condition.
         for label, patch in (("wrong declared unit", {"location_unit": "mm"}),
                              ("wrong yaw declaration", {"yaw_unit": "deg"})):
             with self.subTest(case=label), self.assertRaises(ValueError):
                 module.convert(json.dumps({**first, **patch}), module.RMF_FORMAT)
+        # The pinned message states no yaw interval, so a finite reported radian value is preserved
+        # exactly - not clipped, not wrapped, not rejected against a range no source defines.
         for reported in (99., -12.5, 6.5):
             kept = list(csv.DictReader(io.StringIO(module.convert(
                 json.dumps(record(waypoint(1., 2., reported, "L", 1), [])), module.RMF_FORMAT))))[0]
@@ -1623,6 +1741,7 @@ class ElectricalReuseTests(unittest.TestCase):
         for field in module.DOCKER_STATE_FIELDS + hailo:
             with self.subTest(field=field):
                 self.assertTrue(declared.get(field), f"{field} reaches common output undeclared")
+        # The pinned Moby State semantics, not softened: a daemon report is not a diagnosis.
         self.assertIn("never_an_independent_diagnosis", declared["container_oom_killed_reported"])
         self.assertIn("not_evidence_of_a_completed_successful_run",
                       declared["container_exit_code_reported"])
@@ -1630,7 +1749,9 @@ class ElectricalReuseTests(unittest.TestCase):
                       declared["container_last_lifecycle_error_hex"])
         self.assertIn("explicitly_NOT_healthy", declared["container_health_disposition"])
         self.assertIn("never_an_identity", declared["container_name_hex"])
+        # StartedAt/FinishedAt stay unresolved rather than being normalised by this declaration.
         self.assertIn("deliberately_unresolved", declared["container_state_basis"])
+        # A count stays a count; a latency states its second unit and refuses a timeline reading.
         self.assertIn("is_a_COUNT_and_not_a_quantity_with_a_unit",
                       declared["runtime_frame_count_text"])
         self.assertIn("not_a_completeness_measure", declared["runtime_frame_count_basis"])
@@ -1639,7 +1760,9 @@ class ElectricalReuseTests(unittest.TestCase):
             self.assertIn("mean_across_networks", declared[field])
         self.assertIn("not_a_capture_offset", declared["runtime_hw_latency_s"])
         self.assertIn("non_timeline_rules", declared["runtime_overall_latency_s"])
+        # A multi-network mean is not a system total, which the pin states explicitly.
         self.assertIn("not_a_system_throughput", declared["runtime_fps_reported"])
+        # Shared with the profile selectors, so neither producer's window is asserted for the other.
         self.assertIn("never_asserts_one_producers_window_for_another",
                       declared["runtime_time_basis"])
 
@@ -1662,6 +1785,7 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(rows[2]['container_running_reported'], 'True')
         self.assertEqual(rows[3]['container_status_disposition'], 'UNKNOWN_RETAINED')
         self.assertEqual(rows[3]['container_health_disposition'], 'UNKNOWN_RETAINED')
+        # 既存 export は Name を運ばない＝空欄のまま（名前の無い container ではない）。
         self.assertEqual(rows[0]['container_name_hex'], '')
         named = record(); named['inspect']['Name'] = '/web'
         row = next(csv.DictReader(io.StringIO(module.convert(json.dumps(named), module.DOCKER_STATE_FORMAT))))
@@ -1713,6 +1837,7 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(float(rows[0]["docker_network_tx_approx_bytes"]), 2000000)
         self.assertEqual(float(rows[1]["docker_block_read_approx_bytes"]), 1000)
         self.assertEqual(rows[0]["docker_pids_reported_text"], "u64:18446744073709551615")
+        # 名前は CLI が出す identity。既存 fixture は Name を持たない＝空欄のまま。
         self.assertEqual(rows[0]["docker_name_reported_hex"], "")
         named = dict(first, stats=dict(first["stats"], Container="web", Name="web"))
         unnamed = dict(first, stats=dict(first["stats"], Name="--"))
@@ -1733,6 +1858,7 @@ class ElectricalReuseTests(unittest.TestCase):
                 self.assertEqual(
                     bytes.fromhex(common["observations"][0]["fields"]["docker_name_reported_hex"][4:]).decode(),
                     "web")
+                # 空欄は reader 側で null＝「名前が無い」ではなく「報告が無い」。
                 self.assertIsNone(common["observations"][1]["fields"]["docker_name_reported_hex"])
         else:
             print("Docker reported-name common-reader integration NOT_RUN: executable not configured")
@@ -1845,6 +1971,81 @@ class ElectricalReuseTests(unittest.TestCase):
             with self.assertRaises(ValueError): module.convert(json.dumps(bad), module.ROBOTNIK_FORMAT)
         bad = dict(examples[0], schema_commit="unknown")
         with self.assertRaises(ValueError): module.convert(json.dumps(bad), module.ROBOTNIK_FORMAT)
+
+    def test_every_robotnik_battery_column_carries_a_declared_meaning_into_common_output(self):
+        """No Robotnik column may reach common output without a declared meaning.
+
+        The reader does **not** enforce that an emitted column is declared in `[units]` — an
+        undeclared column passes straight through and arrives with no stated meaning at all. So
+        this is asserted here, over the **actual CSV header** rather than a hand-kept list, and it
+        is what makes the declarations load-bearing instead of decorative.
+        """
+        def record(**battery):
+            fields = dict(voltage=24., current=-2., level=50., time_remaining=3, time_charging=2,
+                          is_charging=True, cell_voltages=[12., 12.5])
+            fields.update(battery)
+            return dict(schema_commit="012c20a589c0c180dd792f41d46bd84b7391b8ed",
+                        capture_time_us=1000, battery=fields)
+
+        # normal: the seven-field producer record, converted by the adopted path.
+        output = module.convert(json.dumps(record()), module.ROBOTNIK_FORMAT)
+        emitted = next(csv.reader(io.StringIO(output)))
+        profile = ROOT / "profiles/declared/electrical-schema-reuse/json-profile.toml"
+        units = profile.read_text(encoding="utf-8").split("[units]", 1)[1]
+        # `key ="value"` and quoted keys are both legal TOML, so match the key, not one spelling.
+        declared = dict(re.findall(r'^\s*"?([A-Za-z_][\w.-]*)"?\s*=\s*"([^"]*)"', units, re.M))
+        self.assertEqual([name for name in emitted if name not in declared], [])
+        for name in module.ROBOTNIK_FIELDS:
+            self.assertIn(name, emitted)
+            self.assertIn(name, declared)
+        # The declarations must carry the facts a reader cannot recover from the column name.
+        self.assertIn("MINUTE_GRANULARITY", declared["battery_time_remaining_reported_s"])
+        self.assertIn("WHOLE_MINUTES", declared["battery_time_remaining_reported_s"])
+        self.assertIn("minute_granularity", declared["battery_time_charging_reported_s"])
+        self.assertIn("CONNECTED", declared["battery_connection_reported"])
+        self.assertIn("NOT_as_a_measurement_of_charge_FLOW", declared["battery_connection_reported"])
+        self.assertIn("SUMMARY", declared["robotnik_row_kind"])
+        self.assertIn("CELL", declared["robotnik_row_kind"])
+        self.assertIn("never_a_verified_cell_count", declared["battery_cell_count"])
+
+        # A reported count of zero cells is a pack row alone — distinct from cells being absent.
+        no_cells = list(csv.DictReader(io.StringIO(
+            module.convert(json.dumps(record(cell_voltages=[])), module.ROBOTNIK_FORMAT))))
+        self.assertEqual([row["robotnik_row_kind"] for row in no_cells], ["SUMMARY"])
+        self.assertEqual(no_cells[0]["battery_cell_count"], "0")
+
+        # wrong type: the declared unit is whole minutes, so no string, fraction or bool passes.
+        for key, value in (("time_remaining", "3"), ("time_remaining", 3.5),
+                           ("time_remaining", True), ("time_charging", "2"),
+                           ("is_charging", "true"), ("cell_voltages", 12.)):
+            with self.assertRaises(ValueError):
+                module.convert(json.dumps(record(**{key: value})), module.ROBOTNIK_FORMAT)
+        # missing: a declared column is never filled with a substitute value.
+        for absent in ("time_remaining", "time_charging", "is_charging", "cell_voltages"):
+            short = record()
+            short["battery"].pop(absent)
+            with self.assertRaises(ValueError):
+                module.convert(json.dumps(short), module.ROBOTNIK_FORMAT)
+
+        # unknown: an unrecognised producer field is kept in the exact record and invents no column.
+        surprising = record()
+        surprising["battery"]["authoredFutureField"] = {"reported": [1, None]}
+        rows = list(csv.DictReader(io.StringIO(
+            module.convert(json.dumps(surprising), module.ROBOTNIK_FORMAT))))
+        self.assertEqual(list(rows[0]), emitted)
+        self.assertEqual(json.loads(bytes.fromhex(rows[0]["source_record_hex"][4:])), surprising)
+
+        reader = inav_common_reader(self, "robotnik battery declarations")
+        if reader:
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "out.csv"
+                path.write_text(output, encoding="utf-8")
+                common = json.loads(subprocess.run([reader, str(profile), str(path),
+                    "--allow-equal-time"], check=True, capture_output=True).stdout)
+            self.assertEqual(common["main_rows"], 3)
+            self.assertEqual(common["observations"][0]["clock_basis"], "Unknown")
+            for name in module.ROBOTNIK_FIELDS:
+                self.assertEqual(common["profile_units"][name], declared[name])
 
     def test_qualified_missing_voltage_is_opt_in_and_not_zero_power(self):
         missing = ros()
@@ -2011,12 +2212,15 @@ class ElectricalReuseTests(unittest.TestCase):
                 with self.assertRaises(ValueError): self.rows(record, fmt)
 
     def test_reported_battery_temperature_reaches_common_output_with_its_reason(self):
+        # BatteryState pins "Temperature in Degrees Celsius (If unmeasured NaN)".
         row = self.rows({**ros(), "temperature": 21.5}, "ros-battery-json")
         self.assertAlmostEqual(float(row["battery_temperature_k"]), 294.65)
         self.assertEqual(row["battery_temperature_basis"], "REPORTED")
+        # 0 degC is a measurement in this schema, not the unavailable marker it is in BAT.
         zero = self.rows({**ros(), "temperature": 0}, "ros-battery-json")
         self.assertAlmostEqual(float(zero["battery_temperature_k"]), 273.15)
         self.assertEqual(zero["battery_temperature_basis"], "REPORTED")
+        # Four distinct reasons for an empty cell, never one undifferentiated blank.
         for record, reason in (
             ({**ros(), "temperature": "NaN"}, "UNAVAILABLE_SOURCE_NAN"),
             (ros(), "ABSENT_FROM_SOURCE_RECORD"),
@@ -2025,10 +2229,12 @@ class ElectricalReuseTests(unittest.TestCase):
             row = self.rows(record, "ros-battery-json")
             self.assertEqual(row["battery_temperature_k"], "", reason)
             self.assertEqual(row["battery_temperature_basis"], reason)
+        # VDA5050 defines no battery temperature at the pinned versions: said, never invented.
         for fmt, version in (("vda-state-2.1", "2.1.0"), ("vda-state-3.0", "3.0.0")):
             row = self.rows(vda(version), fmt)
             self.assertEqual(row["battery_temperature_k"], "")
             self.assertEqual(row["battery_temperature_basis"], "NOT_PROVIDED_BY_SELECTED_SCHEMA")
+        # Important refusals: below absolute zero, and a non-numeric that is not the NaN marker.
         for bad in (-273.16, -500):
             with self.assertRaises(ValueError):
                 self.rows({**ros(), "temperature": bad}, "ros-battery-json")
@@ -2067,6 +2273,8 @@ class ElectricalReuseTests(unittest.TestCase):
             self.assertEqual(float(row["battery_current_a"]), -2)
         self.assertEqual(self.rows(vda("2.1.0"), "vda-state-2.1")["battery_current_sign_basis"], "UNSPECIFIED")
         if os.environ.get("MUSUBI_TELEMETRY_READER"):
+            # The signed current and the convention it is signed under have to arrive together:
+            # the declared meaning of battery_current_a defers to this basis column.
             with tempfile.TemporaryDirectory() as directory:
                 source = Path(directory) / "signed.csv"
                 source.write_text(module.convert(json.dumps(ros()), "ros-battery-json"))
@@ -2108,6 +2316,8 @@ class ElectricalReuseTests(unittest.TestCase):
             self.assertEqual(row["vda_error_unknown_count" if old else "vda_error_urgent_count"], "1")
 
     def test_vda_selected_reports_reach_common_output_with_their_declared_meaning(self):
+        # U001 controller status, U002 identifiers and instance, U006 action result, U005 alarm --
+        # values and meanings together, from one run of the actual common reader.
         record = vda("3.0.0")
         record.update(operatingMode="FUTURE", driving=True, paused=False,
                       safetyState={"activeEmergencyStop": "LATER", "fieldViolation": True},
@@ -2120,12 +2330,14 @@ class ElectricalReuseTests(unittest.TestCase):
                                "errorReferences": [{"referenceKey": "actionId",
                                                     "referenceValue": "act-1"}]}])
         summary = self.rows(record, "vda-state-3.0")
+        # The reported tokens survive even where the version maps them to UNKNOWN.
         self.assertEqual(summary["vda_operating_mode_reported"], "UNKNOWN")
         self.assertEqual(summary["vda_operating_mode_raw_hex"], "hex:" + b"FUTURE".hex())
         self.assertEqual(summary["vda_emergency_stop_reported"], "UNKNOWN")
         self.assertEqual(summary["vda_emergency_stop_raw_hex"], "hex:" + b"LATER".hex())
         self.assertEqual((summary["vda_driving_reported"], summary["vda_paused_reported"]), ("1", "0"))
         self.assertEqual(summary["vda_protective_field_violation_reported"], "1")
+        # The instance the report belongs to, and the four identifiers, kept distinct.
         self.assertEqual(summary["vda_instance_manufacturer_hex"],
                          "hex:" + record["manufacturer"].encode().hex())
         self.assertEqual(summary["vda_instance_serial_number_hex"],
@@ -2137,6 +2349,8 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertNotEqual(summary["vda_order_id_hex"], summary["vda_last_node_id_hex"])
         detail = list(csv.DictReader(io.StringIO(module.convert(
             json.dumps(record), "vda-state-3.0", vda_actions=True, vda_errors=True))))
+        # Detail rows and their order are checked without the reader, so this part runs in the
+        # phase that has no reader binary rather than quietly doing nothing there.
         self.assertEqual([row["vda_record_kind"] for row in detail],
                          ["SUMMARY", "ACTION", "ERROR", "ERROR_REFERENCE"])
         self.assertEqual(detail[1]["vda_action_result_hex"], "hex:" + b"reported-outcome".hex())
@@ -2170,6 +2384,7 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(error["vda_error_description_hex"], "hex:" + b"text".hex())
         self.assertEqual(error["vda_error_hint_hex"], "hex:" + b"hint".hex())
         self.assertEqual(error["vda_error_reference_count"], 1)
+        # A reference row ties back to its error by the same index, not by a fabricated link.
         self.assertEqual(reference["vda_error_index"], error["vda_error_index"])
         self.assertEqual(reference["vda_error_reference_key_hex"], "hex:" + b"actionId".hex())
         self.assertEqual(reference["vda_error_reference_value_hex"], "hex:" + b"act-1".hex())
@@ -2186,12 +2401,14 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertIn("zero_means_an_explicitly_empty_list", units["vda_error_reference_count"])
 
     def test_vda_version_specific_tokens_and_bad_records_stay_distinguishable(self):
+        # The same token means different things per version, and a wrong one is not invented.
         old = vda("2.1.0")
         old.update(operatingMode="TEACHIN", safetyState={"eStop": "AUTOACK", "fieldViolation": False})
         row = self.rows(old, "vda-state-2.1")
         self.assertEqual(row["vda_operating_mode_reported"], "TEACH_IN")
         self.assertEqual(row["vda_operating_mode_raw_hex"], "hex:" + b"TEACHIN".hex())
         self.assertEqual(row["vda_emergency_stop_reported"], "AUTOACK")
+        # 3.0 tokens under a 2.x selector, and the reverse, map to UNKNOWN with the token kept.
         modern = vda("3.0.0")
         modern.update(operatingMode="INTERVENED")
         self.assertEqual(self.rows(modern, "vda-state-3.0")["vda_operating_mode_reported"],
@@ -2200,8 +2417,10 @@ class ElectricalReuseTests(unittest.TestCase):
         stale = self.rows(old, "vda-state-2.1")
         self.assertEqual(stale["vda_operating_mode_reported"], "UNKNOWN")
         self.assertEqual(stale["vda_operating_mode_raw_hex"], "hex:" + b"INTERVENED".hex())
+        # A 3.0 record under the 2.1 selector is refused outright, not silently reinterpreted.
         with self.assertRaises(ValueError):
             module.convert(json.dumps(vda("3.0.0")), "vda-state-2.1")
+        # Wrong type, duplicate key and a missing required identity each refuse.
         with self.assertRaises(ValueError):
             module.convert(json.dumps({**modern, "operatingMode": 5}), "vda-state-3.0")
         duplicated = json.dumps(modern)
@@ -2244,6 +2463,7 @@ class ElectricalReuseTests(unittest.TestCase):
             record.update(extra)
             return record
 
+        # Two authored 1.1.0 records: different battery, velocity, position and mode values.
         second = state(operatingMode="TEACHIN", driving=False, paused=True)
         second["batteryState"] = {"batteryCharge": 20, "charging": True}
         second["velocity"] = {"vx": -.25, "omega": -1.5}
@@ -2252,6 +2472,7 @@ class ElectricalReuseTests(unittest.TestCase):
         for record, charge, mode, vx in ((state(), .75, "AUTOMATIC", 1.25),
                                          (second, .2, "TEACH_IN", -.25)):
             row = self.rows(record, "vda-state-1.1")
+            # The adopted battery, clock, velocity and identity functions, unchanged.
             self.assertEqual(row["record_time_us"], "1767225600123456")
             self.assertEqual(float(row["battery_remaining_fraction"]), charge)
             self.assertEqual(row["battery_current_sign_basis"], "UNSPECIFIED")
@@ -2260,6 +2481,7 @@ class ElectricalReuseTests(unittest.TestCase):
             self.assertEqual(row["vda_operating_mode_reported"], mode)
             self.assertEqual(bytes.fromhex(row["vda_instance_serial_number_hex"][4:]).decode(),
                              "authored-agv-1")
+            # Which version's semantics produced the row now travels with it.
             self.assertEqual(bytes.fromhex(row["vda_selected_version_hex"][4:]).decode(), "1.1.0")
         first = self.rows(state(), "vda-state-1.1")
         self.assertEqual(float(first["battery_voltage_v"]), 24)
@@ -2270,26 +2492,37 @@ class ElectricalReuseTests(unittest.TestCase):
         self.assertEqual(float(first["vda_localization_score_reported"]), .8)
         self.assertEqual(float(first["vda_deviation_range_m"]), .2)
         self.assertEqual(first["vda_position_initialized_reported"], "1")
+        # batteryHealth and reach are retained in the raw record, not converted - as at 2.0.
         self.assertEqual(first["battery_stored_charge_ah"], "")
+        # The 1.1 document's lowercase eStop tokens are not the 2.0 uppercase set, so they stay
+        # UNKNOWN with the publisher's token retained - never reported as NONE.
         self.assertEqual(first["vda_emergency_stop_reported"], "UNKNOWN")
         self.assertEqual(bytes.fromhex(first["vda_emergency_stop_raw_hex"][4:]).decode(), "none")
         self.assertEqual(first["vda_protective_field_violation_reported"], "0")
+        # The same for the 6.10.6 table's TEACHING spelling, which the 1.1 state table does not
+        # define: unknown plus raw, not silently equated with TEACHIN.
         teaching = self.rows(state(operatingMode="TEACHING"), "vda-state-1.1")
         self.assertEqual(teaching["vda_operating_mode_reported"], "UNKNOWN")
         self.assertEqual(bytes.fromhex(teaching["vda_operating_mode_raw_hex"][4:]).decode(), "TEACHING")
+        # Version selectors still match exactly, in both directions, and the document pins no patch
+        # digit so a bare "1.1" is refused rather than assumed.
         for version, fmt in (("2.1.0", "vda-state-1.1"), ("1.1.0", "vda-state-2.0"),
                              ("1.1.0", "vda-state-3.0"), ("1.1", "vda-state-1.1"),
                              ("1.1.1", "vda-state-1.1")):
             with self.subTest(version=version, fmt=fmt), self.assertRaises(ValueError):
                 module.convert(json.dumps(state(version)), fmt)
+        # A 3.0-only property inside a 1.1 record is a version mixture, not a bonus field.
         for extra in ({"mobileRobotPosition": {"x": 0}},
                       {"agvPosition": {"x": 0., "y": 0., "theta": 0., "mapId": "m",
                                        "localized": True}}):
             with self.assertRaises(ValueError):
                 module.convert(json.dumps(state(**extra)), "vda-state-1.1")
+        # A 1.1 record whose position object uses the document's own typo'd key reports no position
+        # instead of a guessed one; the raw record still carries it.
         typo = state()
         typo["agyPosition"] = typo.pop("agvPosition")
         self.assertEqual(self.rows(typo, "vda-state-1.1")["vda_position_state"], "NOT_REPORTED")
+        # 1.1 action and error detail enums are not qualified, so the detail modes refuse by name.
         for flag in ({"vda_actions": True}, {"vda_errors": True}):
             with self.assertRaises(ValueError):
                 module.convert(json.dumps(state()), "vda-state-1.1", **flag)
@@ -2399,6 +2632,7 @@ class VdaConnectionTests(unittest.TestCase):
         return rows, common
 
     def test_each_pinned_version_reports_its_own_states_with_an_explicit_basis(self):
+        # 2.1.0 has three states; the broken one is the broker's last will, not a vehicle report.
         rows, _ = self.rows_of([connection("2.1.0", "ONLINE", header=1),
                                 connection("2.1.0", "OFFLINE", header=2,
                                            stamp="2026-01-01T00:00:01.00Z"),
@@ -2414,12 +2648,15 @@ class VdaConnectionTests(unittest.TestCase):
             self.assertIn("NOT_PHYSICAL_RF_CONNECTIVITY", row["vda_connection_basis"])
         self.assertIn("BROKER_LAST_WILL", rows[2]["vda_connection_basis"])
         self.assertIn("ALWAYS_OUTDATED", rows[2]["vda_connection_basis"])
+        # Identity travels with the state, hex-transported so the reader cannot retype it.
         self.assertEqual(bytes.fromhex(rows[0]["vda_connection_manufacturer_hex"][4:]).decode(),
                          "authored-maker")
         self.assertEqual(bytes.fromhex(rows[0]["vda_connection_serial_hex"][4:]).decode(),
                          "authored-serial-1")
+        # No boolean `connected` is synthesised anywhere in the row.
         self.assertNotIn("connected", ",".join(rows[0]))
 
+        # 3.0.0 renames the broken state and adds HIBERNATING; the enums are not interchangeable.
         rows, _ = self.rows_of([connection("3.0.0", "ONLINE"),
                                 connection("3.0.0", "HIBERNATING", header=2,
                                            stamp="2026-01-01T00:00:01.000Z"),
@@ -2442,10 +2679,12 @@ class VdaConnectionTests(unittest.TestCase):
         for name, (states, version, selector) in cases.items():
             with self.subTest(name):
                 rows, _ = self.rows_of([connection(version, states[0])], selector)
+                # Retained with its text, marked unsupported, and given no publisher or meaning.
                 self.assertEqual(rows[0]["vda_connection_state_reported"], states[0])
                 self.assertEqual(rows[0]["vda_connection_state_status"],
                                  "UNSUPPORTED_STATE_VALUE_RETAINED")
                 self.assertIn("NO_PUBLISHER_OR_MEANING_IS_INFERRED", rows[0]["vda_connection_basis"])
+        # A payload whose version disagrees with the declared selector is refused outright.
         for version, selector in (("3.0.0", "vda-connection-2.1"), ("2.1.0", "vda-connection-3.0"),
                                   ("2.0.0", "vda-connection-2.1"), ("2.1", "vda-connection-2.1")):
             with self.subTest(version + " via " + selector), self.assertRaises(ValueError):
@@ -2472,15 +2711,18 @@ class VdaConnectionTests(unittest.TestCase):
                     record[key] = value
             with self.subTest(name), self.assertRaises(ValueError):
                 self.rows_of([record], "vda-connection-3.0")
+        # An export that only ever says ONLINE never produces an OFFLINE row: absence is absence.
         rows, _ = self.rows_of([connection("3.0.0", "ONLINE", header=n,
                                            stamp=f"2026-01-01T00:00:0{n}.000Z") for n in (1, 2)],
                                "vda-connection-3.0")
         self.assertEqual({r["vda_connection_state_reported"] for r in rows}, {"ONLINE"})
+        # Equal stamps and a repeated headerId stay separate rows rather than being merged away.
         rows, _ = self.rows_of([connection("3.0.0", "ONLINE", header=9),
                                 connection("3.0.0", "OFFLINE", header=9)], "vda-connection-3.0")
         self.assertEqual(len(rows), 2)
         self.assertEqual([r["vda_connection_header_id"] for r in rows], ["9", "9"])
         self.assertEqual(rows[0]["record_time_us"], rows[1]["record_time_us"])
+        # A decreasing payload clock is still refused, exactly as for the adopted state path.
         with self.assertRaises(ValueError):
             self.rows_of([connection("3.0.0", "ONLINE", stamp="2026-01-01T00:00:02.000Z"),
                           connection("3.0.0", "OFFLINE", stamp="2026-01-01T00:00:01.000Z")],
@@ -2491,6 +2733,7 @@ class VdaConnectionTests(unittest.TestCase):
                    connection("3.0.0", "CONNECTION_BROKEN", header=2,
                               stamp="2026-01-01T00:00:05.000Z")]
         rows, common = self.observations(records, "vda-connection-3.0")
+        # The schema constrains no additional properties, so an unknown field is kept in the exact record.
         self.assertIn("authoredExtra", bytes.fromhex(rows[0]["source_record_hex"][4:]).decode())
         self.assertEqual(common["main_rows"], 2)
         self.assertEqual(common["observations"][0]["clock_basis"], "Unknown")

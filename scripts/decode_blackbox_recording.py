@@ -244,7 +244,8 @@ def main():
     argv = [str(a.decoder.resolve()), "--stdout", "--index", "1", "--unit-vbat", "raw",
             "--unit-amperage", "raw", "--unit-flags", "raw"]
     if motion:
-        argv += ["--unit-rotation", "rad/s", "--unit-acceleration", "m/s/s"]
+        # The pinned decoder parses m/s2; its CSV header spells the same unit m/s/s.
+        argv += ["--unit-rotation", "rad/s", "--unit-acceleration", "m/s2"]
     argv.append(str(decoder_input.resolve()))
     if a.stream == "gps":
         decoder_output = a.output / "decoder-output"

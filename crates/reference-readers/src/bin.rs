@@ -31,6 +31,157 @@ struct Fmt {
     labels: Vec<String>,
 }
 
+struct ReportedUnits {
+    labels: Vec<Option<String>>,
+    multipliers: Vec<Option<FieldValue>>,
+    bindings: Vec<Option<(Vec<u8>, Vec<u8>)>>,
+}
+
+impl ReportedUnits {
+    fn new() -> Self {
+        Self {
+            labels: vec![None; 256],
+            multipliers: vec![None; 256],
+            bindings: vec![None; 256],
+        }
+    }
+
+    fn apply(
+        &mut self,
+        id: u8,
+        fmt: &Fmt,
+        fmts: &[Option<Fmt>],
+        fields: &mut Vec<(String, FieldValue)>,
+        offset: usize,
+    ) -> Result<(), ReadError> {
+        let malformed = || ReadError::Malformed {
+            offset,
+            what: "invalid UNIT/MULT/FMTU metadata binding".into(),
+        };
+        let metadata = match fmt.name.as_str() {
+            "UNIT" => Some(("QbZ", "TimeUS,Id,Label")),
+            "MULT" => Some(("Qbd", "TimeUS,Id,Mult")),
+            "FMTU" => Some(("QBNN", "TimeUS,FmtType,UnitIds,MultIds")),
+            _ => None,
+        };
+        if let Some((format, labels)) = metadata {
+            if fmt.format != format.as_bytes() || fmt.labels.join(",") != labels {
+                return Err(malformed());
+            }
+            let FieldValue::I64(target) = fields[1].1 else {
+                return Err(malformed());
+            };
+            let target = usize::try_from(target)
+                .ok()
+                .filter(|n| *n < 256)
+                .ok_or_else(malformed)?;
+            match fmt.name.as_str() {
+                "UNIT" => {
+                    let FieldValue::Text(label) = &fields[2].1 else {
+                        return Err(malformed());
+                    };
+                    self.labels[target] = Some(label.clone());
+                }
+                "MULT" => self.multipliers[target] = Some(fields[2].1.clone()),
+                _ => {
+                    let (FieldValue::Text(units), FieldValue::Text(mults)) =
+                        (&fields[2].1, &fields[3].1)
+                    else {
+                        return Err(malformed());
+                    };
+                    let Some(target_fmt) = &fmts[target] else {
+                        return Err(malformed());
+                    };
+                    if !units.is_ascii()
+                        || !mults.is_ascii()
+                        || units.len() != target_fmt.format.len()
+                        || mults.len() != target_fmt.format.len()
+                    {
+                        return Err(malformed());
+                    }
+                    self.bindings[target] =
+                        Some((units.as_bytes().to_vec(), mults.as_bytes().to_vec()));
+                }
+            }
+            return Ok(());
+        }
+        for (index, (label, format)) in fmt.labels.iter().zip(&fmt.format).enumerate() {
+            if label == "TimeUS" || matches!(format, b'a' | b'n' | b'N' | b'Z' | b'M') {
+                continue;
+            }
+            let key = format!("{}.{label}", fmt.name);
+            let raw = fields
+                .iter()
+                .find(|(name, _)| name == &key)
+                .expect("decoded scalar")
+                .1
+                .clone();
+            let binding = self.bindings[usize::from(id)]
+                .as_ref()
+                .map(|(u, m)| (u[index], m[index]));
+            let mut derived = FieldValue::Blank;
+            let mut unit = FieldValue::Blank;
+            let mut multiplier = FieldValue::Blank;
+            let mut status = "FMTU_NOT_AVAILABLE";
+            if let Some((unit_id, mult_id)) = binding {
+                let expected = match unit_id {
+                    b'A' => Some("A"),
+                    b'v' => Some("V"),
+                    b'm' => Some("m"),
+                    b's' => Some("s"),
+                    b'E' => Some("rad/s"),
+                    b'o' => Some("m/s/s"),
+                    _ => None,
+                };
+                if let Some(label) = &self.labels[usize::from(unit_id)] {
+                    unit = FieldValue::Text(label.clone());
+                }
+                if let Some(factor) = &self.multipliers[usize::from(mult_id)] {
+                    multiplier = factor.clone();
+                }
+                status = "UNIT_UNQUALIFIED";
+                if expected.is_some() && self.labels[usize::from(unit_id)].as_deref() == expected {
+                    status = "MULTIPLIER_UNQUALIFIED";
+                    if !matches!(mult_id, b'-' | b'?')
+                        && let FieldValue::F64(factor) = multiplier
+                        && factor.is_finite()
+                        && factor > 0.0
+                    {
+                        let number = match raw {
+                            FieldValue::I64(n) if n.unsigned_abs() <= (1_u64 << 53) => {
+                                Some(n as f64)
+                            }
+                            FieldValue::F64(n) if n.is_finite() => Some(n),
+                            _ => None,
+                        };
+                        status = "VALUE_NONFINITE_OR_PRECISION_UNQUALIFIED";
+                        if let Some(value) = number {
+                            let scaled = value * factor;
+                            status = "DERIVED_OVERFLOW";
+                            if scaled == 0.0 && value != 0.0 {
+                                status = "DERIVED_UNDERFLOW";
+                            } else if scaled.is_finite() {
+                                derived = FieldValue::F64(scaled);
+                                status = "REPORTED_RAW_TIMES_MULT_NO_FORMAT_SCALING";
+                            }
+                        }
+                    }
+                }
+            }
+            fields.extend([
+                (format!("{key}.reported_unit_value"), derived),
+                (format!("{key}.reported_unit"), unit),
+                (format!("{key}.reported_multiplier"), multiplier),
+                (
+                    format!("{key}.reported_unit_disposition"),
+                    FieldValue::Text(status.into()),
+                ),
+            ]);
+        }
+        Ok(())
+    }
+}
+
 fn cstr(b: &[u8]) -> String {
     let end = b.iter().position(|&c| c == 0).unwrap_or(b.len());
     String::from_utf8_lossy(&b[..end]).into_owned()
@@ -103,10 +254,28 @@ impl ArduPilotBinReader {
         profile: &FamilyProfile,
         bytes: &[u8],
     ) -> Result<ReadReport, ReadError> {
+        self.read_report_impl(profile, bytes, false)
+    }
+
+    pub fn read_report_with_units(
+        &self,
+        profile: &FamilyProfile,
+        bytes: &[u8],
+    ) -> Result<ReadReport, ReadError> {
+        self.read_report_impl(profile, bytes, true)
+    }
+
+    fn read_report_impl(
+        &self,
+        profile: &FamilyProfile,
+        bytes: &[u8],
+        reported_units: bool,
+    ) -> Result<ReadReport, ReadError> {
         if profile.format != "ardupilot_dataflash_bin" {
             return Err(ReadError::Profile("expected DataFlash profile".into()));
         }
         let mut fmts: Vec<Option<Fmt>> = vec![None; 256];
+        let mut units = ReportedUnits::new();
         let mut out = Vec::new();
         let mut untimed_records = Vec::new();
         let mut data_records = 0;
@@ -175,6 +344,7 @@ impl ArduPilotBinReader {
                     format,
                     labels,
                 });
+                units.bindings[usize::from(ty)] = None;
                 off += FMT_LEN;
                 continue;
             }
@@ -232,6 +402,9 @@ impl ArduPilotBinReader {
                 let value = decode_value(c, &payload[p..p + n]);
                 fields.push((format!("{}.{label}", f.name), value));
                 p += n;
+            }
+            if reported_units {
+                units.apply(msgid, &f, &fmts, &mut fields, off)?;
             }
             if fields
                 .iter()

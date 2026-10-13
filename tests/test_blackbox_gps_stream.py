@@ -1,6 +1,7 @@
 """Authored synthetic tests for explicitly selecting an offline GPS decoder stream.
 
-External decoder calls are stubbed; these are not real-log acceptance tests.
+Ordinary decoder calls are stubbed. The explicitly gated saved-SI test consumes a real
+decoder export separately produced by the CLI; private records are never bundled into CI.
 Existing default-main compatibility tests must also remain in the ordinary suite.
 """
 import importlib.util
@@ -13,6 +14,8 @@ import tempfile
 import unittest
 import csv
 import io
+import hashlib
+import math
 from unittest.mock import patch
 
 
@@ -44,7 +47,87 @@ class BlackboxGpsStreamContract(unittest.TestCase):
             header += b"H acc_1G:2048\n"
         return self.module.MAGIC + header + self.module.END
 
+    @unittest.skipUnless(all(os.environ.get(name) for name in (
+        "MUSUBI_BLACKBOX_SI_EXPORT", "MUSUBI_BLACKBOX_NATIVE_EXPORT", "MUSUBI_TELEMETRY_READER")),
+        "explicit saved SI/native exports and actual reader required")
+    def test_saved_pinned_si_export_reaches_common_without_second_scaling(self):
+        # No decoder rerun: the preceding CLI execution has its own exit status/stderr evidence.
+        spec = importlib.util.spec_from_file_location("si_angles", ROOT / "scripts/convert_recorded_angles_csv.py")
+        angles = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(angles)
+        export = Path(os.environ["MUSUBI_BLACKBOX_SI_EXPORT"])
+        metadata = json.loads((export.parent / "decode.json").read_text())
+        self.assertEqual(metadata["input_sha256"],
+                         "5fb78729580c414f41654d3b2103417088a972c9049ce873303835fc5c66c8f2")
+        self.assertEqual(metadata["decoder_sha256"],
+                         "13eefdb1c18c99f2da3923b279a6995a2f5f83f462097094b0a964fe48d9ca17")
+        self.assertEqual(metadata["main_frames"], 16774)
+        self.assertEqual(metadata["missing_loop_iterations"], 117376)
+        self.assertEqual(metadata["motion_scaling_headers"],
+                         {"gyro_scale": "0x3f800000", "acc_1G": "2048"})
+        text = export.read_text()
+        lines = text.splitlines()
+        decoded = list(csv.DictReader(io.StringIO(text), skipinitialspace=True))
+        native = list(csv.DictReader(io.StringIO(
+            Path(os.environ["MUSUBI_BLACKBOX_NATIVE_EXPORT"]).read_text()), skipinitialspace=True))
+        self.assertEqual(len(decoded), len(native))
+        self.assertEqual(len(decoded), metadata["main_frames"])
+        # Retaining every original column makes this whole-table output exceed the existing cap.
+        # Existing explicit intervals cover every row; no trimming or bound relaxation.
+        with self.assertRaisesRegex(ValueError, "output exceeds bound"):
+            angles.convert(text, "betaflight-4.2.0-si-motion")
+        names = [f"reported_angular_velocity_{a}_rad_s" for a in "xyz"] + [
+            f"reported_acceleration_{a}_m_s2" for a in "xyz"]
+        fields = [f"gyroADC[{i}] (rad/s)" for i in range(3)] + [
+            f"accSmooth[{i}] (m/s/s)" for i in range(3)]
+        source_sha = hashlib.sha256(export.read_bytes()).hexdigest()
+        total, manifests = 0, []
+        with tempfile.TemporaryDirectory() as temporary:
+            proof = Path(os.environ.get("MUSUBI_BLACKBOX_SI_PROOF_DIR", temporary))
+            proof.mkdir(parents=True, exist_ok=True)
+            for start in range(0, len(decoded), 4000):
+                stop = min(start + 4000, len(decoded))
+                output, report = angles.convert_path(export, "betaflight-4.2.0-si-motion",
+                                                      start_record=start, stop_record=stop)
+                path = proof / f"motion-{start}-{stop}.csv"
+                with path.open("x") as target:
+                    target.write(output)
+                common_run = subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                    str(ROOT / "profiles/declared/recorded-angles/profile.toml"),
+                    str(path), "--allow-equal-time"], check=True, capture_output=True)
+                common = json.loads(common_run.stdout)
+                self.assertEqual(common["main_rows"], stop - start)
+                self.assertEqual(common["platform_domain"], "Unknown")
+                observations = common["observations"]
+                self.assertEqual(len(observations), stop - start)
+                for index, observation in enumerate(observations, start):
+                    values = observation["fields"]
+                    self.assertEqual(observation["clock_basis"], "BootRelative")
+                    self.assertEqual(values["source_record_index"], index)
+                    self.assertEqual(values["source_file_sha256"], "sha256:" + source_sha)
+                    self.assertEqual(values["record_time_us"], int(decoded[index]["time (us)"]))
+                    self.assertEqual(decoded[index]["time (us)"], native[index]["time (us)"])
+                    self.assertEqual(bytes.fromhex(values["source_record_hex"][4:]).decode(),
+                                     lines[index + 1])
+                    for offset, (name, field) in enumerate(zip(names, fields)):
+                        expected = float(decoded[index][field])
+                        self.assertEqual(values[name], expected)
+                        raw_field = (f"gyroADC[{offset}]" if offset < 3
+                                     else f"accSmooth[{offset - 3}]")
+                        scale = math.pi / 180 if offset < 3 else 9.80665 / 2048
+                        self.assertAlmostEqual(expected, float(native[index][raw_field]) * scale,
+                                               delta=0.0051)
+                report["common_rows"] = len(observations)
+                report["common_sha256"] = hashlib.sha256(common_run.stdout).hexdigest()
+                (proof / f"report-{start}-{stop}.json").write_text(json.dumps(report, indent=2) + "\n")
+                manifests.append(report)
+                total += len(observations)
+            self.assertEqual(total, metadata["main_frames"])
+            (proof / "summary.json").write_text(json.dumps({"records": total,
+                "quantities_checked": total * 6, "parts": manifests}, indent=2) + "\n")
+
     def test_si_motion_export_is_opt_in_and_refuses_unguessable_scaling(self):
+        # The default path keeps its native columns and asks the decoder for no motion units.
         with tempfile.TemporaryDirectory() as tmp:
             output, calls = self.run_stub(Path(tmp), mode="main",
                                           recording=self.motion_recording())
@@ -52,11 +135,14 @@ class BlackboxGpsStreamContract(unittest.TestCase):
             self.assertNotIn("--unit-acceleration", calls[0])
             self.assertEqual(json.loads((output / "decode.json").read_text())["motion_units"],
                              "native")
+        # The opt-in asks the pinned decoder for SI rotation and acceleration and records the
+        # scaling headers it relied on, plus the fact that no body frame is established.
         with tempfile.TemporaryDirectory() as tmp:
             output, calls = self.run_stub(Path(tmp), mode="main",
                                           recording=self.motion_recording(), motion="si")
             self.assertEqual(calls[0][calls[0].index("--unit-rotation") + 1], "rad/s")
-            self.assertEqual(calls[0][calls[0].index("--unit-acceleration") + 1], "m/s/s")
+            # Fixed units.c parses m/s2; m/s/s is its CSV label, not an accepted CLI token.
+            self.assertEqual(calls[0][calls[0].index("--unit-acceleration") + 1], "m/s2")
             decode = json.loads((output / "decode.json").read_text())
             self.assertEqual(decode["motion_units"], "si")
             self.assertEqual(decode["motion_scaling_headers"],
@@ -64,10 +150,13 @@ class BlackboxGpsStreamContract(unittest.TestCase):
             self.assertEqual(decode["source_units"]["gyroADC[0]"], "rad/s")
             self.assertEqual(decode["source_units"]["accSmooth[2]"], "m/s/s")
             self.assertIn("no body frame is established", decode["motion_axis_basis"])
+        # 4.2.0 writes acc_1G only under USE_ACC, and the pinned decoder silently substitutes 1
+        # for a missing scaling line. Missing metadata is refused here instead of guessed.
         for missing, name in ((dict(acc=False), "acc_1G"), (dict(gyro=False), "gyro_scale")):
             with self.subTest(name=name), self.assertRaises(ValueError) as refusal:
                 self.module.motion_scaling_headers(self.motion_recording(**missing))
             self.assertIn(name, str(refusal.exception))
+        # The exact metadata the pinned 4.2.0 writer produces is accepted, and only that.
         self.assertEqual(self.module.motion_scaling_headers(self.motion_recording()),
                          {"gyro_scale": "0x3f800000", "acc_1G": "2048"})
         header = b"H Firmware revision:Betaflight 4.2.0 (authored) GENERIC\n"
@@ -81,11 +170,14 @@ class BlackboxGpsStreamContract(unittest.TestCase):
                  "a repeated required header"),
                 (b"H gyro_scale:0x3f800000\nH acc_1G:2048\nH acc_1G:1024\n",
                  "contradictory repeated acc_1G"),
+                # A header-looking sequence after the header block is payload, not metadata.
                 (b"I authored frame line\nH gyro_scale:0x3f800000\nH acc_1G:2048\n",
                  "scaling lines only in the body")):
             with self.subTest(why=why), self.assertRaises(ValueError):
                 self.module.motion_scaling_headers(
                     self.module.MAGIC + header + body + self.module.END)
+        # The SI schema is qualified for 4.2.0; a 4.2.x sibling is not quietly accepted under it,
+        # and the native/GPS version scopes are untouched.
         self.assertEqual(self.module.require_si_firmware("Betaflight 4.2.0 (authored) GENERIC"),
                          "4.2.0")
         for revision in ("Betaflight 4.2.11 (authored) GENERIC",
@@ -93,6 +185,7 @@ class BlackboxGpsStreamContract(unittest.TestCase):
             with self.subTest(revision=revision), self.assertRaises(ValueError):
                 self.module.require_si_firmware(revision)
         self.assertIn("4.2.11", self.module.inspect_recording(self.recording("4.2.11")))
+        # The refusal happens before the external decoder is ever invoked.
         with tempfile.TemporaryDirectory() as tmp:
             recording = (self.module.MAGIC
                          + b"H Firmware revision:Betaflight 4.2.11 (authored) GENERIC\n"
@@ -219,6 +312,7 @@ class BlackboxGpsStreamContract(unittest.TestCase):
         for malformed in (dump[:-1], dump + b"\xff", first + self.recording("4.4.0")):
             with tempfile.TemporaryDirectory() as tmp, self.assertRaises(ValueError):
                 self.run_stub(Path(tmp), mode="main", recording=malformed, log_index=2)
+        # Selecting a complete first log does not certify the incomplete unselected second one.
         self.assertEqual(self.module.select_recording(dump[:-1], 1)[0], first)
         with tempfile.TemporaryDirectory() as tmp:
             output, calls = self.run_stub(Path(tmp), recording=dump, log_index=2)
@@ -235,6 +329,7 @@ class BlackboxGpsStreamContract(unittest.TestCase):
         root = Path(destination); root.mkdir()
         original = Path(source).read_bytes()
         self.module.inspect_recording(original)
+        # Constructed two-entry container, NOT a new real multi-flight recording.
         dump = root / "constructed-two-log.bbl"; dump.write_bytes(original + original)
         output = root / "selected-second"
         with patch.object(sys, "argv", [str(SCRIPT), decoder, str(dump), str(output), "--log-index", "2"]):

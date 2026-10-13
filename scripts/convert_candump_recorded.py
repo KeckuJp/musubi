@@ -17,7 +17,9 @@ def convert(text, interface, *, extended=False, fd=False):
     writer = csv.writer(output, lineterminator="\n")
     writer.writerow(["time_us", "extended_id" if extended else "standard_id", *(["fd_flags"] if fd else []), "data_hex"])
     report = dict(source_lines=0, selected_frames=0, unconverted_lines=0,
-                  clock="CAPTURE_REPORTED_NOT_AUTHENTICATED", records=[])
+                  clock="CAPTURE_REPORTED_NOT_AUTHENTICATED",
+                  time_order_scope="SELECTED_INTERFACE_ONLY_OTHER_INTERFACES_RANGE_CHECKED_NOT_ORDERED",
+                  records=[])
     previous, retained = None, 0
     for index, line in enumerate(text.splitlines(), 1):
         report["source_lines"] += 1
@@ -31,9 +33,12 @@ def convert(text, interface, *, extended=False, fd=False):
         else:
             seconds, micros, device, identifier, body, direction = match.groups()
             timestamp = int(seconds) * 1000000 + int(micros)
-            if timestamp > 2**63 - 1 or (previous is not None and timestamp < previous):
-                raise ValueError("out-of-range or decreasing capture time")
-            previous = timestamp
+            if timestamp > 2**63 - 1:
+                raise ValueError("out-of-range capture time")
+            if device == interface:
+                if previous is not None and timestamp < previous:
+                    raise ValueError("decreasing capture time on the selected interface")
+                previous = timestamp
             number, is_extended = int(identifier, 16), len(identifier) == 8
             if number > (0x3fffffff if is_extended else 0x7ff):
                 raise ValueError("invalid CAN identifier")
