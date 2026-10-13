@@ -25,6 +25,46 @@
       "meaning": "declared_altitude_m",
       "unit": "m_per_explicit_altitude_basis",
       "basis": "declared"
+    },
+    "feature_time_unix_us": {
+      "meaning": "feature_time_unix_us",
+      "unit": "us_since_epoch_of_the_instant_the_FEATURE_declared_in_its_own_TimeStamp_when_blank_when_no_feature_time_was_declared_it_is_the_features_time_not_a_per_point_time_and_never_interpolated",
+      "basis": "declared"
+    },
+    "feature_time_text_hex": {
+      "meaning": "feature_time_text_hex",
+      "unit": "utf8_hex_of_the_exact_when_value_as_written_so_the_original_form_and_its_timezone_designator_stay_recoverable",
+      "basis": "declared"
+    },
+    "feature_time_scope": {
+      "meaning": "feature_time_scope",
+      "unit": "PLACEMARK_or_FOLDER_or_DOCUMENT_TIMESTAMP_DECLARED_naming_which_feature_level_supplied_the_instant_or_NO_FEATURE_TIME_DECLARED_which_is_an_explicit_absence_and_never_a_fabricated_time",
+      "basis": "declared"
+    },
+    "feature_time_basis": {
+      "meaning": "feature_time_basis",
+      "unit": "the_fixed_statement_that_the_instant_belongs_to_the_FEATURE_is_shared_unchanged_by_every_point_of_that_feature_is_never_a_per_point_or_measured_fix_time_and_is_never_interpolated_between_points",
+      "basis": "declared"
+    },
+    "point_time_unix_us": {
+      "meaning": "point_time_unix_us",
+      "unit": "us_since_unix_epoch_from_the_paired_gx_Track_when_not_a_verified_device_clock",
+      "basis": "declared"
+    },
+    "point_time_text_hex": {
+      "meaning": "point_time_text_hex",
+      "unit": "utf8_hex_of_the_paired_gx_Track_when_text_including_timezone_and_whitespace",
+      "basis": "declared"
+    },
+    "point_time_basis": {
+      "meaning": "point_time_basis",
+      "unit": "GX_TRACK_PAIRED_WHEN_DECLARED_NOT_VERIFIED_FIX_TIME_or_NO_POINT_TIME_DECLARED",
+      "basis": "declared"
+    },
+    "position_status": {
+      "meaning": "position_status",
+      "unit": "COORDINATE_DECLARED_or_MISSING_COORDINATE_NOT_INTERPOLATED",
+      "basis": "declared"
     }
   }
 }

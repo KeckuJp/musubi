@@ -10,11 +10,13 @@ const COUNTER_PROFILE: &str =
     include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml");
 const ALTERNATIVES_PROFILE: &str =
     include_str!("fixtures/edgetx-handset-clock--time-alternatives.profile.toml");
-const RTC_CSV: &[u8] = include_bytes!("fixtures/authored-rtc.csv");
-const COUNTER_CSV: &[u8] = include_bytes!("fixtures/authored-boot-counter.csv");
-const AMBIGUOUS_CSV: &[u8] = include_bytes!("fixtures/authored-ambiguous-refused.csv");
+const RTC_CSV: &[u8] = include_bytes!("fixtures/edgetx-handset-clock--authored-rtc.csv");
+const COUNTER_CSV: &[u8] =
+    include_bytes!("fixtures/edgetx-handset-clock--authored-boot-counter.csv");
+const AMBIGUOUS_CSV: &[u8] =
+    include_bytes!("fixtures/edgetx-handset-clock--authored-ambiguous-refused.csv");
 const SYNTH_PROFILE: &str = include_str!("fixtures/profile-synth-v1--candidate--profile.toml");
-const SYNTH_CSV: &[u8] = include_bytes!("fixtures/sample.csv");
+const SYNTH_CSV: &[u8] = include_bytes!("fixtures/profile-synth-v1--input--sample.csv");
 
 fn load(text: &str, name: &str) -> FamilyProfile {
     parse_profile(text, name).expect("the shipped profile must load through the existing loader")
@@ -82,6 +84,33 @@ fn the_alternatives_profile_reads_either_header_and_refuses_both_at_once() {
         format!("{failure:?}").contains("ambiguous"),
         "expected an ambiguity refusal, got {failure:?}"
     );
+}
+
+#[test]
+fn the_alternatives_profile_reads_the_pinned_writer_rtc_less_time_header() {
+    let profile = load(
+        ALTERNATIVES_PROFILE,
+        &format!("{CASE}/time-alternatives.profile.toml"),
+    );
+    let input = b"Time,RQly(%),RxBt(V),TxBat(V)\n3000,98,12.3,7.9\n3000,97,,7.9\n3010,0,0,7.8\n";
+    let rows = EdgeTxCsvReader.read(&profile, input.as_slice()).unwrap();
+    assert_eq!(
+        rows.iter().map(|o| o.t_ms).collect::<Vec<_>>(),
+        vec![30_000, 30_000, 30_100]
+    );
+    assert!(
+        rows.iter()
+            .all(|o| o.clock_basis == ClockBasis::BootRelative
+                && o.wall_ms.is_none()
+                && o.fields.len() == 4)
+    );
+    for bad in [
+        b"Time,RQly(%)\n3000,98\n10,97\n".as_slice(),
+        b"Date,Time,tmr10ms,RQly(%)\n2026-09-01,10:11:12.340,1,98\n",
+        b"Time,tmr10ms,RQly(%)\n1,1,98\n",
+    ] {
+        assert!(EdgeTxCsvReader.read(&profile, bad).is_err());
+    }
 }
 
 #[test]

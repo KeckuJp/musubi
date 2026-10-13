@@ -43,6 +43,7 @@ class GpxRecordedTests(unittest.TestCase):
         bare_output, bare_report = convert_kml(document, 777)
         zip_output, zip_report = convert_kmz(archive_bytes, 777)
 
+        # The declared geometry reaches common output unchanged by the container it arrived in.
         strip = lambda text: [{k: v for k, v in row.items() if k != "source_sha256"}
                               for row in csv.DictReader(io.StringIO(text))]
         self.assertEqual(strip(bare_output), strip(zip_output))
@@ -57,6 +58,7 @@ class GpxRecordedTests(unittest.TestCase):
         self.assertEqual(rows[1]["altitude_basis"], "SEA_LEVEL_DECLARED")
         self.assertEqual(rows[3]["altitude_basis"], "GROUND_RELATIVE_DECLARED")
 
+        # Each container binds the digest of the bytes the caller actually supplied.
         self.assertEqual(bare_report["source_sha256"], "sha256:" + hashlib.sha256(document).hexdigest())
         self.assertEqual(zip_report["source_sha256"], "sha256:" + hashlib.sha256(archive_bytes).hexdigest())
         self.assertNotEqual(bare_report["source_sha256"], zip_report["source_sha256"])
@@ -64,6 +66,9 @@ class GpxRecordedTests(unittest.TestCase):
         self.assertEqual(zip_report["source_retention"], "unchanged source.kmz required")
         self.assertTrue(all(row["source_sha256"] == bare_report["source_sha256"] for row in rows))
 
+        # The bare path keeps every refusal the adopted contract already makes.
+        # Attributed on purpose: a foreign namespace also yields no selected geometry, so only the
+        # message distinguishes the namespace guard from the empty-result refusal.
         with self.assertRaisesRegex(ValueError, "KML2.2 namespace required"):
             convert_kml(document.replace(b"kml/2.2", b"kml/2.3"), 777)
         for bad in (b'<?xml version="1.0"?><!DOCTYPE kml SYSTEM "kml.dtd">' + document,
@@ -76,6 +81,7 @@ class GpxRecordedTests(unittest.TestCase):
                 convert_kml(bad, 777)
         with self.assertRaises(ValueError):
             convert_kml(document, True)
+        # A ZIP is not silently accepted on the bare selector, and a bare document is not zipped.
         with self.assertRaises((ValueError, UnicodeDecodeError)):
             convert_kml(archive_bytes, 777)
 
@@ -96,6 +102,151 @@ class GpxRecordedTests(unittest.TestCase):
             self.assertEqual(common["main_rows"], 4)
             self.assertEqual(common["observations"][1]["fields"]["declared_altitude_m"], 12.5)
             self.assertTrue(all(o["clock_basis"] == "Unknown" for o in common["observations"]))
+
+    def test_declared_feature_time_reaches_common_output_and_absence_stays_absent(self):
+        """A feature's own TimeStamp becomes a declared clock; static geometry stays untimed."""
+        from scripts.convert_gpx_recorded import convert_kml, convert_kmz, utc_microseconds
+        # The shared timestamp rule already accepts one to six fractional digits; it must mean
+        # the same on every interpreter, not only where `fromisoformat` happens to be lenient.
+        self.assertEqual(utc_microseconds("2026-09-23T01:02:03.5Z"), 1790125323500000)
+        self.assertEqual(utc_microseconds("2026-09-23T01:02:03.500000Z"), 1790125323500000)
+        point = "139.25,35.5,12.5"
+        timed = ('<Placemark><TimeStamp><when>2026-09-23T01:02:03Z</when></TimeStamp>'
+                 '<Point><altitudeMode>absolute</altitudeMode><coordinates>' + point
+                 + '</coordinates></Point></Placemark>')
+        # A second, distinct timed shape: a folder-level instant, a numeric offset rather than Z,
+        # and a LineString, so every point of that feature shares the one declared instant.
+        folder = ('<Folder><TimeStamp><when>2026-09-23T10:00:00.5+09:00</when></TimeStamp>'
+                  '<Placemark><LineString><altitudeMode>absolute</altitudeMode><coordinates>'
+                  + point + ' ' + point + '</coordinates></LineString></Placemark></Folder>')
+        untimed = '<Placemark><Point><coordinates>1,2</coordinates></Point></Placemark>'
+        # Track pair times remain distinct from a Feature's declared visibility time.
+        # An empty coordinate is retained as a missing position, never interpolated.
+        track = ('<Placemark><gx:Track><when>2026-09-23T01:02:04Z</when>'
+                 '<when>2026-09-23T10:02:04.000001+09:00</when>'
+                 '<gx:coord>1 2 3</gx:coord><gx:coord/></gx:Track></Placemark>')
+        document = ('<kml xmlns="http://www.opengis.net/kml/2.2" '
+                    'xmlns:gx="http://www.google.com/kml/ext/2.2"><Document>'
+                    + timed + folder + untimed + track + '</Document></kml>').encode()
+        text, report = convert_kml(document, 777)
+        rows = list(csv.DictReader(io.StringIO(text)))
+        self.assertEqual([row["feature_time_scope"] for row in rows],
+                         ["PLACEMARK_TIMESTAMP_DECLARED", "FOLDER_TIMESTAMP_DECLARED",
+                          "FOLDER_TIMESTAMP_DECLARED", "NO_FEATURE_TIME_DECLARED",
+                          "NO_FEATURE_TIME_DECLARED", "NO_FEATURE_TIME_DECLARED"])
+        # The Z instant, and the offset instant resolved to the same epoch the GPX path uses.
+        self.assertEqual(rows[0]["feature_time_unix_us"], "1790125323000000")
+        self.assertEqual(rows[0]["feature_time_text_hex"],
+                         "hex:" + b"2026-09-23T01:02:03Z".hex())
+        self.assertEqual(rows[1]["feature_time_unix_us"], rows[2]["feature_time_unix_us"])
+        # +09:00 is resolved, not stripped: 10:00:00.5+09:00 is 01:00:00.5Z, which is earlier
+        # than the first feature's 01:02:03Z rather than nine hours later.
+        self.assertEqual(rows[1]["feature_time_unix_us"], "1790125200500000")
+        self.assertLess(int(rows[1]["feature_time_unix_us"]),
+                        int(rows[0]["feature_time_unix_us"]))
+        # Absence is absence: no time is invented for static geometry.
+        self.assertEqual((rows[3]["feature_time_unix_us"], rows[3]["feature_time_text_hex"]),
+                         ("", ""))
+        self.assertIn("NEVER_INTERPOLATED", rows[0]["feature_time_basis"])
+        self.assertEqual((report["timed_features"], report["timed_points"],
+                          report["untimed_points"], report["gx_track_declarations"]), (2, 5, 1, 1))
+        self.assertEqual(report["missing_track_positions"], 1)
+        self.assertEqual(rows[4]["point_time_unix_us"], "1790125324000000")
+        self.assertEqual(rows[5]["point_time_unix_us"], "1790125324000001")
+        self.assertEqual(rows[5]["latitude_deg"], "")
+        self.assertEqual(rows[5]["position_status"], "MISSING_COORDINATE_NOT_INTERPOLATED")
+        # The KMZ container carries the identical semantics.
+        packed = io.BytesIO()
+        with zipfile.ZipFile(packed, "w") as archive:
+            archive.writestr("doc.kml", document.decode())
+        zip_text, zip_report = convert_kmz(packed.getvalue(), 777)
+        strip = lambda t: [{k: v for k, v in row.items() if k != "source_sha256"}
+                           for row in csv.DictReader(io.StringIO(t))]
+        self.assertEqual(strip(text), strip(zip_text))
+        self.assertEqual(zip_report["timed_points"], 5)
+
+        # Important failures: a valid-KML date-only value, a value with no timezone designator,
+        # finer-than-microsecond precision, an out-of-range offset and an empty TimeStamp are all
+        # refused rather than resolved to a clock nobody wrote.
+        for bad in ("2026-09-23", "2026-09-23T01:02:03", "2026-09-23T01:02:03.1234567Z",
+                    "2026-09-23T01:02:03+25:00"):
+            broken = document.replace(b"2026-09-23T01:02:03Z", bad.encode())
+            with self.subTest(when=bad), self.assertRaises(ValueError):
+                convert_kml(broken, 777)
+        empty = document.replace(b"<TimeStamp><when>2026-09-23T01:02:03Z</when></TimeStamp>",
+                                 b"<TimeStamp/>")
+        with self.assertRaisesRegex(ValueError, "TimeStamp without a when value"):
+            convert_kml(empty, 777)
+
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory); path = base / "timed.kml"; out = base / "out"
+            path.write_bytes(document)
+            subprocess.run([sys.executable, str(ROOT / "scripts/convert_gpx_recorded.py"),
+                str(path), str(out), "--source-format", "kml22", "--capture-time-us", "777"],
+                check=True, capture_output=True)
+            reader = os.environ.get("MUSUBI_TELEMETRY_READER")
+            if not reader:
+                self.skipTest("MUSUBI_TELEMETRY_READER is not configured; common proof NOT RUN")
+            common = json.loads(subprocess.run([reader,
+                str(ROOT / "profiles/declared/gpx-points/kmz-profile.toml"),
+                str(out / "observations.csv"), "--allow-equal-time"],
+                check=True, capture_output=True).stdout)
+        self.assertEqual(common["main_rows"], 6)
+        fields = [o["fields"] for o in common["observations"]]
+        self.assertEqual(fields[0]["feature_time_unix_us"], 1790125323000000)
+        self.assertEqual(fields[1]["feature_time_unix_us"], fields[2]["feature_time_unix_us"])
+        self.assertIsNone(fields[3]["feature_time_unix_us"])
+        self.assertEqual(fields[3]["feature_time_scope"], "NO_FEATURE_TIME_DECLARED")
+        self.assertEqual(fields[4]["point_time_unix_us"], 1790125324000000)
+        self.assertEqual(fields[5]["point_time_unix_us"], 1790125324000001)
+        self.assertIsNone(fields[5]["latitude_deg"])
+        self.assertIsNone(fields[5]["longitude_deg"])
+        self.assertEqual(fields[5]["position_status"], "MISSING_COORDINATE_NOT_INTERPOLATED")
+        self.assertTrue(all(o["clock_basis"] == "Unknown" for o in common["observations"]))
+
+    def test_kml_time_conflicts_and_track_boundaries(self):
+        from scripts.convert_gpx_recorded import convert_kml
+        def doc(body):
+            return ('<kml xmlns="http://www.opengis.net/kml/2.2" '
+                    'xmlns:gx="http://www.google.com/kml/ext/2.2">' + body + '</kml>').encode()
+        stamp = '<TimeStamp><when>2026-09-23T01:02:03Z</when></TimeStamp>'
+        point = '<Point><coordinates>1,2</coordinates></Point>'
+        for time in (stamp + stamp, stamp + '<TimeSpan/>',
+                     stamp.replace('</when>', '</when><when>2026-09-23T01:02:04Z</when>'),
+                     stamp.replace('03Z</when>', '03Z<bad/></when>')):
+            with self.subTest(time=time), self.assertRaises(ValueError):
+                convert_kml(doc('<Placemark>' + time + point + '</Placemark>'), 777)
+        text, report = convert_kml(doc('<Folder>' + stamp + '<Placemark><TimeSpan/>'
+                                      + point + '</Placemark></Folder>'), 777)
+        row = next(csv.DictReader(io.StringIO(text)))
+        self.assertEqual(row['feature_time_unix_us'], '')
+        self.assertIn('TIMESPAN_UNCONVERTED', row['feature_time_scope'])
+        self.assertEqual(report['untimed_points'], 1)
+        with self.assertRaisesRegex(ValueError, 'TimePrimitive must belong to a Feature'):
+            convert_kml(doc(stamp + '<Placemark>' + point + '</Placemark>'), 777)
+        padded = stamp.replace('>2026', '> 2026').replace('03Z</when>', '03Z </when>')
+        text, _ = convert_kml(doc('<Placemark>' + padded + point + '</Placemark>'), 777)
+        self.assertEqual(next(csv.DictReader(io.StringIO(text)))['feature_time_text_hex'],
+                         'hex:' + b' 2026-09-23T01:02:03Z '.hex())
+        when = '<when>2026-09-23T01:02:03Z</when>'
+        coords = '<gx:coord>1 2 3</gx:coord><gx:coord>4 5 6</gx:coord>'
+        track = '<gx:Track>' + when * 2 + coords + '</gx:Track>'
+        text, report = convert_kml(doc('<Placemark>' + stamp + track + '</Placemark>'), 777)
+        rows = list(csv.DictReader(io.StringIO(text)))
+        self.assertEqual([row['point_index'] for row in rows], ['0', '1'])
+        self.assertEqual([row['longitude_deg'] for row in rows], ['1.0', '4.0'])
+        self.assertEqual(rows[0]['point_time_unix_us'], rows[1]['point_time_unix_us'])
+        for broken in (track.replace(when, '', 1), track.replace(coords, ''),
+                       track.replace('1 2 3', '1,2,3'), track.replace('1 2 3', '1 2'),
+                       track.replace('1 2 3', 'NaN 2 3'),
+                       track.replace('03Z', '03.0000001Z'),
+                       track.replace('03Z', '03+25:00'),
+                       track.replace(when, '<when/>', 1),
+                       track.replace('</gx:Track>', '<gx:angles>0 0 0</gx:angles></gx:Track>'),
+                       track.replace('</gx:Track>', '<altitudeMode>absolute</altitudeMode>'
+                                     '<altitudeMode>relativeToGround</altitudeMode></gx:Track>')):
+            with self.subTest(track=broken), self.assertRaises(ValueError):
+                convert_kml(doc('<Placemark>' + broken + '</Placemark>'), 777)
 
     def test_kmz_declared_geometry_reuses_common_output(self):
         from scripts.convert_gpx_recorded import convert_kmz
@@ -287,6 +438,7 @@ class GpxRecordedTests(unittest.TestCase):
         def track(name, heading, a, b, nudge, mode, visible, points):
             return "\n".join([name, heading, a, b, nudge, mode, visible, str(len(points)), *points])
 
+        # First authored file: an AB track with no curve points, then a Curve track with three.
         first = ("$TrackLines\n"
                  + track("AB east", "1.5708", "10.5,20.25", "110.5,20.25", "0", "2", "True", [])
                  + "\n"
@@ -304,6 +456,7 @@ class GpxRecordedTests(unittest.TestCase):
         common = self.common(output, 7, "track-profile.toml")
         ab_a, ab_b, curve_a = (o["fields"] for o in common["observations"][:3])
         curve_points = [o["fields"] for o in common["observations"][4:]]
+        # The AB track: its two reference points, its declared mode and its own heading.
         self.assertEqual((ab_a["easting_m"], ab_a["northing_m"]), (10.5, 20.25))
         self.assertEqual((ab_b["easting_m"], ab_b["northing_m"]), (110.5, 20.25))
         self.assertEqual(ab_a["track_mode_reported"], "AB")
@@ -312,8 +465,10 @@ class GpxRecordedTests(unittest.TestCase):
         self.assertEqual(ab_a["track_curve_point_count"], 0)
         self.assertEqual(ab_a["track_visible_reported"], 1)
         self.assertEqual(bytes.fromhex(ab_a["track_name_hex"][4:]).decode(), "AB east")
+        # A reference point never borrows the track heading as its own.
         self.assertIsNone(ab_a["heading_rad"])
         self.assertIsNone(ab_b["heading_rad"])
+        # The curve track: the curve list is the declared geometry, in saved order, with headings.
         self.assertEqual(curve_a["track_mode_reported"], "Curve")
         self.assertEqual(curve_a["track_geometry_basis"], "CURVE_POINT_LIST_DECLARED")
         self.assertEqual(curve_a["track_nudge_distance_m"], -1.25)
@@ -330,6 +485,9 @@ class GpxRecordedTests(unittest.TestCase):
         self.assertIn("never_a_measured_vehicle_heading", units["track_heading_rad"])
         self.assertIn("never_an_executed_movement", units["track_nudge_distance_m"])
 
+        # Second authored file, held out from the implementation: different values, counts and
+        # order - a pivot track first, a mode the pinned enumeration does not define, and a
+        # boundary-derived track last, with negative and exponent-form numerals.
         second = ("$TrackLines\n"
                   + track("pivot", "-2.5", "-7.25,-8.5", "1E-05,9", "0.5", "64", "True",
                           ["-1.5,-2.5,3.14159", "2E-05,0,-1.00000"]) + "\n"
@@ -345,6 +503,7 @@ class GpxRecordedTests(unittest.TestCase):
         self.assertEqual((fields[0]["easting_m"], fields[0]["northing_m"]), (-7.25, -8.5))
         self.assertEqual(fields[1]["easting_m"], 1e-05)
         self.assertEqual((fields[2]["easting_m"], fields[2]["heading_rad"]), (-1.5, 3.14159))
+        # The unrecognised mode keeps its points and its raw code, and claims no geometry role.
         unknown = [row for row in fields if row["track_index"] == 1]
         self.assertEqual({row["track_mode_code"] for row in unknown}, {7})
         self.assertEqual({row["track_mode_reported"] for row in unknown}, {"UNKNOWN_7"})
@@ -354,6 +513,8 @@ class GpxRecordedTests(unittest.TestCase):
         self.assertEqual(fields[-1]["track_mode_reported"], "bndTrackOuter")
         self.assertEqual(fields[-1]["track_geometry_basis"],
                          "CURVE_POINT_LIST_DECLARED_FROM_OUTER_BOUNDARY")
+        # Original-file provenance: one digest for the file, on every row, and the saved bytes are
+        # kept beside the output by the CLI.
         self.assertEqual({row["source_sha256"] for row in fields},
                          {"sha256:" + hashlib.sha256(second).hexdigest()})
         with tempfile.TemporaryDirectory() as directory:
@@ -366,6 +527,7 @@ class GpxRecordedTests(unittest.TestCase):
             self.assertEqual((out / "source.tracklines.txt").read_bytes(), second)
             self.assertEqual((out / "observations.csv").read_text(), output)
 
+        # A modest ordinary file: 250 curve points must all reach the common output.
         many = ["$TrackLines", track("long curve", "0.75", "0,0", "0,1", "0", "4", "True",
                                      [f"{index}.5,{index}.25,0.00100" for index in range(250)]), ""]
         output, report = convert_track("\n".join(many).encode(), 7)
@@ -380,6 +542,7 @@ class GpxRecordedTests(unittest.TestCase):
         for raw in (
                 b"$TrackLines\n",                                   # header only, no track
                 b"$Boundary\nname\n0\n1,2\n3,4\n0\n2\nTrue\n0\n",   # wrong header
+                # The pinned loader accepts this header and discards two declared lines per track.
                 b"$TwolTracks\nname\n0\n1,2\n3,4\n0\n2\nTrue\n0\nTrue\n1.5\n",
                 ("$TrackLines\n\n" + body).encode(),                # empty name line
                 b"$TrackLines\nname\n0\n1,2\n3,4\n0\n2\nTrue\n",    # truncated block

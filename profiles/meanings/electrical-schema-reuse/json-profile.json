@@ -1285,6 +1285,21 @@
       "meaning": "runtime_overall_latency_s",
       "unit": "s_of_the_reported_overall_latency_under_exactly_the_same_optional_nanosecond_source_conversion_mean_across_networks_and_non_timeline_rules",
       "basis": "declared"
+    },
+    "robotnik_row_kind": {
+      "meaning": "robotnik_row_kind",
+      "unit": "SUMMARY_for_the_one_pack_row_this_producer_reports_per_record_or_CELL_for_each_reported_cell_voltage_beside_it_so_a_reader_can_tell_a_pack_quantity_from_a_per_cell_one_and_a_CELL_row_deliberately_carries_no_pack_voltage_current_or_power",
+      "basis": "declared"
+    },
+    "battery_time_charging_reported_s": {
+      "meaning": "battery_time_charging_reported_s",
+      "unit": "SECONDS_CONVERTED_FROM_THE_PRODUCERS_MINUTES_in_exactly_the_same_way_as_the_remaining_duration_beside_it_it_is_the_producers_own_estimate_of_charging_time_with_minute_granularity_and_is_never_a_measured_or_verified_duration",
+      "basis": "declared"
+    },
+    "battery_cell_count": {
+      "meaning": "battery_cell_count",
+      "unit": "how_many_cell_voltages_the_producer_reported_in_this_record_repeated_on_the_summary_row_and_on_every_cell_row_so_a_reader_of_one_row_can_tell_whether_sibling_cell_rows_exist_it_counts_REPORTED_entries_and_is_never_a_verified_cell_count_of_any_physical_pack",
+      "basis": "declared"
     }
   }
 }

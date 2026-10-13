@@ -22,7 +22,10 @@ def normalize(value, unit):
     identity = scale == 1 and offset == 0
     if not identity and type(value) is int and abs(value) > 2**53:
         raise ValueError("scaled integer exceeds exact conversion input bound")
-    result = value if identity else value * scale + offset
+    scaled = value if identity else value * scale
+    if value != 0 and scaled == 0:
+        raise ValueError("engineering quantity underflow during unit scaling")
+    result = scaled if identity else scaled + offset
     if (not math.isfinite(result) or (field == "temperature_k" and result < 0)
             or (type(result) is int and not -(2**63) <= result < 2**63)):
         raise ValueError("normalized engineering quantity exceeds common range")

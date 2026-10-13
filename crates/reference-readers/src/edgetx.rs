@@ -1,5 +1,10 @@
 use musubi_reference_types::{ChannelId, ClockBasis, FamilyProfile};
 use std::collections::BTreeSet;
+use std::io::BufRead;
+
+#[path = "handset_controls.rs"]
+mod handset_controls;
+pub use handset_controls::{HandsetControlKind, HandsetWriter};
 
 use crate::{
     FieldValue, Observation, ProfileReader, ReadError, default_time_confidence, observation,
@@ -7,6 +12,696 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct EdgeTxCsvReader;
+
+#[derive(Debug, Clone, Copy)]
+pub enum HandsetCompoundKind {
+    GpsPair,
+    SensorCalendar,
+}
+
+fn compound_fields(
+    mut row: Observation,
+    selected: &[(&str, HandsetCompoundKind)],
+) -> Result<Observation, ReadError> {
+    if selected.len() > 32
+        || selected
+            .iter()
+            .map(|(name, _)| name)
+            .collect::<BTreeSet<_>>()
+            .len()
+            != selected.len()
+        || selected.iter().any(|(name, _)| name.is_empty())
+        || row
+            .fields
+            .iter()
+            .any(|(name, _)| name.starts_with("handset_reported."))
+    {
+        return Err(ReadError::Profile(
+            "invalid or colliding handset compound selection".into(),
+        ));
+    }
+    let mut added = Vec::new();
+    for (name, kind) in selected {
+        let raw = &row
+            .fields
+            .iter()
+            .find(|(key, _)| key == name)
+            .ok_or_else(|| ReadError::Profile("selected handset compound column absent".into()))?
+            .1;
+        let prefix = format!("handset_reported.{name}");
+        let mut values = Vec::new();
+        let disposition = match (kind, raw) {
+            (_, FieldValue::Blank) => "BLANK_REPORTED",
+            (HandsetCompoundKind::GpsPair, FieldValue::Text(text)) => {
+                let parts = text.split(' ').collect::<Vec<_>>();
+                let coordinate = |s: &str| -> Option<f64> {
+                    let body = s.strip_prefix('-').unwrap_or(s);
+                    let (whole, fraction) = body.split_once('.')?;
+                    if whole.is_empty()
+                        || fraction.len() != 6
+                        || !whole
+                            .bytes()
+                            .chain(fraction.bytes())
+                            .all(|b| b.is_ascii_digit())
+                    {
+                        return None;
+                    }
+                    s.parse::<f64>().ok().filter(|n| n.is_finite())
+                };
+                match parts.as_slice() {
+                    [lat, lon] => match (coordinate(lat), coordinate(lon)) {
+                        (Some(lat), Some(lon)) if lat.abs() <= 90.0 && lon.abs() <= 180.0 => {
+                            if lat == 0.0 || lon == 0.0 {
+                                "ZERO_PAIR_NOT_EMITTED_BY_FIXED_WRITER"
+                            } else {
+                                values.push(("latitude_deg", FieldValue::F64(lat)));
+                                values.push(("longitude_deg", FieldValue::F64(lon)));
+                                "REPORTED_COORDINATES_DATUM_UNQUALIFIED"
+                            }
+                        }
+                        _ => "INVALID_COORDINATE_PAIR",
+                    },
+                    _ => "INVALID_COORDINATE_PAIR",
+                }
+            }
+            (HandsetCompoundKind::SensorCalendar, FieldValue::Text(text)) => {
+                if text.len() == 19
+                    && text.is_ascii()
+                    && text.as_bytes()[10] == b' '
+                    && text.as_bytes()[4] == b'-'
+                    && text.as_bytes()[7] == b'-'
+                    && text.as_bytes()[13] == b':'
+                    && text.as_bytes()[16] == b':'
+                    && parse_date_time(&text[..10], &text[11..]).is_some()
+                {
+                    for (key, start, end) in [
+                        ("year", 0, 4),
+                        ("month", 5, 7),
+                        ("day", 8, 10),
+                        ("hour", 11, 13),
+                        ("minute", 14, 16),
+                        ("second", 17, 19),
+                    ] {
+                        values.push((
+                            key,
+                            FieldValue::I64(text[start..end].parse().map_err(|_| {
+                                ReadError::Profile("invalid fixed calendar layout".into())
+                            })?),
+                        ));
+                    }
+                    "REPORTED_CALENDAR_TIMEZONE_UNQUALIFIED"
+                } else {
+                    "INVALID_SENSOR_CALENDAR"
+                }
+            }
+            _ => "UNQUALIFIED_COMPOUND_REPRESENTATION",
+        };
+        added.push((
+            format!("{prefix}.disposition"),
+            FieldValue::Text(disposition.into()),
+        ));
+        added.push((
+            format!("{prefix}.basis"),
+            FieldValue::Text(
+                "CALLER_SELECTED_FIXED_WRITER_SENSOR_ROLE_NOT_PHYSICAL_VALIDITY".into(),
+            ),
+        ));
+        for (key, value) in values {
+            added.push((format!("{prefix}.{key}"), value));
+        }
+    }
+    row.fields.extend(added);
+    Ok(row)
+}
+
+fn scale_for(text: &str) -> Option<(&'static str, f64, f64)> {
+    Some(match text {
+        "V" => ("V", 1.0, 0.0),
+        "A" => ("A", 1.0, 0.0),
+        "mA" => ("A", 0.001, 0.0),
+        "W" => ("W", 1.0, 0.0),
+        "mW" => ("W", 0.001, 0.0),
+        "kts" => ("m/s", 1852.0 / 3600.0, 0.0),
+        "m/s" => ("m/s", 1.0, 0.0),
+        "f/s" => ("m/s", 0.3048, 0.0),
+        "kmh" => ("m/s", 1.0 / 3.6, 0.0),
+        "mph" => ("m/s", 0.44704, 0.0),
+        "m" => ("m", 1.0, 0.0),
+        "ft" => ("m", 0.3048, 0.0),
+        "km" => ("m", 1000.0, 0.0),
+        "°C" | "@C" => ("K", 1.0, 273.15),
+        "°F" | "@F" => ("K", 5.0 / 9.0, 459.67),
+        "%" => ("ratio", 0.01, 0.0),
+        "mAh" => ("C", 3.6, 0.0),
+        "°" | "@" => ("rad", std::f64::consts::PI / 180.0, 0.0),
+        "rad" => ("rad", 1.0, 0.0),
+        "ml" => ("m3", 0.000001, 0.0),
+        "mlm" => ("m3/s", 0.000001 / 60.0, 0.0),
+        "Hz" => ("Hz", 1.0, 0.0),
+        "ms" | "mS" => ("s", 0.001, 0.0),
+        "us" | "uS" => ("s", 0.000001, 0.0),
+        "dB" => ("dB", 1.0, 0.0),
+        "dBm" | "dbm" => ("dBm", 1.0, 0.0),
+        "g" => ("g_acceleration_reported", 1.0, 0.0),
+        "fOz" => ("fOz_reported_volume", 1.0, 0.0),
+        _ => return None,
+    })
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum UnitMeaning {
+    Text(&'static str),
+    RotationPerMinute,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HandsetUnitTable {
+    EdgeTx65bb97dbEnglish,
+    EdgeTx65bb97dbTw,
+    OpenTxFb8622ddEnglish,
+}
+
+impl HandsetUnitTable {
+    fn id(self) -> &'static str {
+        match self {
+            Self::EdgeTx65bb97dbEnglish => "EDGETX_65BB97DB_EN",
+            Self::EdgeTx65bb97dbTw => "EDGETX_65BB97DB_TW",
+            Self::OpenTxFb8622ddEnglish => "OPENTX_FB8622DD_EN",
+        }
+    }
+
+    fn entries(self) -> [(&'static str, UnitMeaning); 29] {
+        use UnitMeaning::{RotationPerMinute as Rpm, Text as T};
+        let (g, deg_c, deg_f, deg, ms, us, dbm) = match self {
+            Self::EdgeTx65bb97dbEnglish => ("g", "°C", "°F", "°", "ms", "us", "dBm"),
+            Self::EdgeTx65bb97dbTw => ("rpm", "°C", "°F", "°", "mS", "uS", "dBm"),
+            Self::OpenTxFb8622ddEnglish => ("g", "@C", "@F", "@", "mS", "uS", "dbm"),
+        };
+        [
+            ("V", T("V")),
+            ("A", T("A")),
+            ("mA", T("mA")),
+            ("kts", T("kts")),
+            ("m/s", T("m/s")),
+            ("f/s", T("f/s")),
+            ("kmh", T("kmh")),
+            ("mph", T("mph")),
+            ("m", T("m")),
+            ("ft", T("ft")),
+            (deg_c, T(deg_c)),
+            (deg_f, T(deg_f)),
+            ("%", T("%")),
+            ("mAh", T("mAh")),
+            ("W", T("W")),
+            ("mW", T("mW")),
+            ("dB", T("dB")),
+            ("rpm", Rpm),
+            (g, T("g")),
+            (deg, T(deg)),
+            ("rad", T("rad")),
+            ("ml", T("ml")),
+            ("fOz", T("fOz")),
+            ("mlm", T("mlm")),
+            ("Hz", T("Hz")),
+            (ms, T(ms)),
+            (us, T(us)),
+            ("km", T("km")),
+            (dbm, T(dbm)),
+        ]
+    }
+}
+
+fn header_unit(key: &str) -> Option<(&str, bool)> {
+    let body = key.strip_suffix(')')?;
+    let (label, text) = body.rsplit_once('(')?;
+    Some((text, label.contains(['(', ')'])))
+}
+
+fn scaled(raw: &FieldValue, unit: &str, factor: f64, offset: f64) -> (FieldValue, &'static str) {
+    let numeric = match raw {
+        FieldValue::I64(n) if n.unsigned_abs() <= (1_u64 << 53) => Some(*n as f64),
+        FieldValue::F64(n) if n.is_finite() => Some(*n),
+        _ => None,
+    };
+    let converted = numeric.map(|n| {
+        if unit == "K" {
+            (n + offset) * factor
+        } else {
+            n * factor
+        }
+    });
+    match converted {
+        Some(n) if unit == "K" && n < 0.0 => (FieldValue::Blank, "BELOW_ABSOLUTE_ZERO"),
+        Some(n) if n.is_finite() && (unit == "K" || numeric == Some(0.0) || n != 0.0) => {
+            (FieldValue::F64(n), "REPORTED_VALUE")
+        }
+        Some(_) => (FieldValue::Blank, "DERIVED_NONFINITE_OR_UNDERFLOW"),
+        None if matches!(raw, FieldValue::Blank) => (FieldValue::Blank, "BLANK"),
+        None => (FieldValue::Blank, "NONNUMERIC_OR_PRECISION_UNQUALIFIED"),
+    }
+}
+
+fn push_si(
+    added: &mut Vec<(String, FieldValue)>,
+    key: &str,
+    (value, disposition): (FieldValue, &str),
+    unit: &str,
+    basis: &str,
+) {
+    for (suffix, value) in [
+        ("value", value),
+        ("unit", FieldValue::Text(unit.into())),
+        ("disposition", FieldValue::Text(disposition.into())),
+        ("basis", FieldValue::Text(basis.into())),
+    ] {
+        added.push((format!("handset_si.{key}.{suffix}"), value));
+    }
+}
+
+fn reject_reserved(row: &Observation) -> Result<(), ReadError> {
+    if row
+        .fields
+        .iter()
+        .any(|(key, _)| key.starts_with("handset_si."))
+    {
+        return Err(ReadError::Profile(
+            "reserved handset_si source column".into(),
+        ));
+    }
+    Ok(())
+}
+
+const HEADER_BASIS: &str = "REPORTED_HEADER_UNIT_VALIDITY_UNQUALIFIED";
+
+fn reported_units(mut row: Observation) -> Result<Observation, ReadError> {
+    reject_reserved(&row)?;
+    let mut added = Vec::new();
+    for (key, raw) in &row.fields {
+        let Some((text, label_parenthesis)) = header_unit(key) else {
+            continue;
+        };
+        if label_parenthesis && (scale_for(text).is_some() || text == "rpm") {
+            let withheld = (FieldValue::Blank, "LABEL_PARENTHESIS_UNIT_UNATTRIBUTABLE");
+            push_si(&mut added, key, withheld, "UNQUALIFIED", HEADER_BASIS);
+            continue;
+        }
+        if text == "rpm" {
+            let withheld = (FieldValue::Blank, "WRITER_UNIT_TEXT_SHARED_BY_RPM_AND_G");
+            push_si(&mut added, key, withheld, "UNQUALIFIED", HEADER_BASIS);
+            continue;
+        }
+        let Some((unit, factor, offset)) = scale_for(text) else {
+            continue;
+        };
+        push_si(
+            &mut added,
+            key,
+            scaled(raw, unit, factor, offset),
+            unit,
+            HEADER_BASIS,
+        );
+    }
+    row.fields.extend(added);
+    Ok(row)
+}
+
+fn declared_units(
+    mut row: Observation,
+    table: HandsetUnitTable,
+    columns: &[&str],
+) -> Result<Observation, ReadError> {
+    reject_reserved(&row)?;
+    if columns.is_empty()
+        || columns.len() > 64
+        || columns.iter().collect::<BTreeSet<_>>().len() != columns.len()
+    {
+        return Err(ReadError::Profile(
+            "invalid declared handset unit column selection".into(),
+        ));
+    }
+    let basis = format!(
+        "CALLER_DECLARED_WRITER_TABLE_{}_AND_UNIT_COLUMN",
+        table.id()
+    );
+    let entries = table.entries();
+    let mut added = Vec::new();
+    for column in columns {
+        let raw = &row
+            .fields
+            .iter()
+            .find(|(key, _)| key == column)
+            .ok_or_else(|| ReadError::Profile("declared handset unit column absent".into()))?
+            .1;
+        let (text, _) = header_unit(column).ok_or_else(|| {
+            ReadError::Profile("declared handset unit column has no writer unit suffix".into())
+        })?;
+        let meanings = entries
+            .iter()
+            .filter(|(spelling, _)| *spelling == text)
+            .map(|(_, meaning)| *meaning)
+            .collect::<BTreeSet<_>>();
+        let mut meanings = meanings.into_iter();
+        match (meanings.next(), meanings.next()) {
+            (None, _) => {
+                return Err(ReadError::Profile(
+                    "unit text contradicts the declared handset writer table".into(),
+                ));
+            }
+            (Some(_), Some(_)) => {
+                let withheld = (FieldValue::Blank, "DECLARED_TABLE_TEXT_HAS_TWO_MEANINGS");
+                push_si(&mut added, column, withheld, "UNQUALIFIED", &basis);
+            }
+            (Some(UnitMeaning::RotationPerMinute), None) => {
+                push_si(
+                    &mut added,
+                    column,
+                    scaled(raw, "Hz", 1.0 / 60.0, 0.0),
+                    "Hz",
+                    &basis,
+                );
+            }
+            (Some(UnitMeaning::Text(spelling)), None) => {
+                let (unit, factor, offset) = scale_for(spelling).ok_or_else(|| {
+                    ReadError::Profile("declared writer table entry has no scale".into())
+                })?;
+                push_si(
+                    &mut added,
+                    column,
+                    scaled(raw, unit, factor, offset),
+                    unit,
+                    &basis,
+                );
+            }
+        }
+    }
+    row.fields.extend(added);
+    Ok(row)
+}
+
+impl EdgeTxCsvReader {
+    pub fn read_with_reported_controls(
+        &self,
+        profile: &FamilyProfile,
+        input: &[u8],
+        writer: HandsetWriter,
+        selected: &[(&str, HandsetControlKind)],
+    ) -> Result<Vec<Observation>, ReadError> {
+        self.read(profile, input)?
+            .into_iter()
+            .map(|row| handset_controls::enrich(row, writer, selected))
+            .collect()
+    }
+
+    pub fn read_stream_with_reported_controls<
+        R: BufRead,
+        F: FnMut(Observation) -> Result<(), String>,
+    >(
+        &self,
+        profile: &FamilyProfile,
+        input: &mut R,
+        writer: HandsetWriter,
+        selected: &[(&str, HandsetControlKind)],
+        mut emit: F,
+    ) -> Result<HandsetStreamCounts, HandsetStreamError> {
+        self.read_stream(profile, input, |row| {
+            emit(handset_controls::enrich(row, writer, selected).map_err(|e| format!("{e:?}"))?)
+        })
+    }
+
+    pub fn read_with_reported_fields(
+        &self,
+        profile: &FamilyProfile,
+        input: &[u8],
+        selected: &[(&str, HandsetCompoundKind)],
+    ) -> Result<Vec<Observation>, ReadError> {
+        self.read_with_reported_units(profile, input)?
+            .into_iter()
+            .map(|row| compound_fields(row, selected))
+            .collect()
+    }
+
+    pub fn read_stream_with_reported_fields<
+        R: BufRead,
+        F: FnMut(Observation) -> Result<(), String>,
+    >(
+        &self,
+        profile: &FamilyProfile,
+        input: &mut R,
+        selected: &[(&str, HandsetCompoundKind)],
+        mut emit: F,
+    ) -> Result<HandsetStreamCounts, HandsetStreamError> {
+        self.read_stream_with_reported_units(profile, input, |row| {
+            emit(compound_fields(row, selected).map_err(|error| format!("{error:?}"))?)
+        })
+    }
+    pub fn read_with_reported_units(
+        &self,
+        profile: &FamilyProfile,
+        input: &[u8],
+    ) -> Result<Vec<Observation>, ReadError> {
+        self.read(profile, input)?
+            .into_iter()
+            .map(reported_units)
+            .collect()
+    }
+
+    pub fn read_with_declared_units(
+        &self,
+        profile: &FamilyProfile,
+        input: &[u8],
+        table: HandsetUnitTable,
+        columns: &[&str],
+    ) -> Result<Vec<Observation>, ReadError> {
+        self.read(profile, input)?
+            .into_iter()
+            .map(|row| declared_units(row, table, columns))
+            .collect()
+    }
+
+    pub fn read_stream_with_declared_units<
+        R: BufRead,
+        F: FnMut(Observation) -> Result<(), String>,
+    >(
+        &self,
+        profile: &FamilyProfile,
+        input: &mut R,
+        table: HandsetUnitTable,
+        columns: &[&str],
+        mut emit: F,
+    ) -> Result<HandsetStreamCounts, HandsetStreamError> {
+        self.read_stream(profile, input, |row| {
+            emit(declared_units(row, table, columns).map_err(|error| format!("{error:?}"))?)
+        })
+    }
+
+    pub fn read_stream_with_reported_units<
+        R: BufRead,
+        F: FnMut(Observation) -> Result<(), String>,
+    >(
+        &self,
+        profile: &FamilyProfile,
+        input: &mut R,
+        mut emit: F,
+    ) -> Result<HandsetStreamCounts, HandsetStreamError> {
+        self.read_stream(profile, input, |row| {
+            emit(reported_units(row).map_err(|error| format!("{error:?}"))?)
+        })
+    }
+}
+
+pub const HANDSET_STREAM_LINE_BYTES: usize = 64 * 1024;
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct HandsetStreamCounts {
+    pub bytes_read: u64,
+    pub records_read: u64,
+    pub emitted_records: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HandsetStreamFailure {
+    Input(String),
+    Decode(ReadError),
+    Output(String),
+    Limit(&'static str),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HandsetStreamError {
+    pub counts: HandsetStreamCounts,
+    pub line_number: u64,
+    pub reason: HandsetStreamFailure,
+}
+
+impl std::fmt::Display for HandsetStreamError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "handset stream failed at line {} after {} acknowledged records: {:?}",
+            self.line_number, self.counts.emitted_records, self.reason
+        )
+    }
+}
+
+impl std::error::Error for HandsetStreamError {}
+
+fn stream_error(
+    counts: HandsetStreamCounts,
+    line_number: u64,
+    reason: HandsetStreamFailure,
+) -> HandsetStreamError {
+    HandsetStreamError {
+        counts,
+        line_number,
+        reason,
+    }
+}
+
+fn stream_line<R: BufRead>(
+    input: &mut R,
+    counts: &mut HandsetStreamCounts,
+    line: u64,
+) -> Result<Vec<u8>, HandsetStreamError> {
+    let mut bytes = Vec::new();
+    loop {
+        let chunk = match input.fill_buf() {
+            Ok(chunk) => chunk,
+            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(error) => {
+                return Err(stream_error(
+                    *counts,
+                    line,
+                    HandsetStreamFailure::Input(error.to_string()),
+                ));
+            }
+        };
+        if chunk.is_empty() {
+            return Ok(bytes);
+        }
+        let available = chunk.len().min(HANDSET_STREAM_LINE_BYTES + 1 - bytes.len());
+        let n = chunk[..available]
+            .iter()
+            .position(|b| *b == b'\n')
+            .map_or(available, |index| index + 1);
+        let next = counts.bytes_read.checked_add(n as u64).ok_or_else(|| {
+            stream_error(
+                *counts,
+                line,
+                HandsetStreamFailure::Limit("input byte counter overflow"),
+            )
+        })?;
+        let ended = chunk[n - 1] == b'\n';
+        bytes.extend_from_slice(&chunk[..n]);
+        input.consume(n);
+        counts.bytes_read = next;
+        if bytes.len() > HANDSET_STREAM_LINE_BYTES {
+            return Err(stream_error(
+                *counts,
+                line,
+                HandsetStreamFailure::Limit("handset line exceeds 64KiB"),
+            ));
+        }
+        if ended {
+            return Ok(bytes);
+        }
+    }
+}
+
+impl EdgeTxCsvReader {
+    pub fn read_stream<R: BufRead, F: FnMut(Observation) -> Result<(), String>>(
+        &self,
+        profile: &FamilyProfile,
+        input: &mut R,
+        mut emit: F,
+    ) -> Result<HandsetStreamCounts, HandsetStreamError> {
+        let mut counts = HandsetStreamCounts::default();
+        if profile.format != self.format_id() {
+            return Err(stream_error(
+                counts,
+                1,
+                HandsetStreamFailure::Decode(ReadError::Profile(
+                    "handset reader requires its own format".into(),
+                )),
+            ));
+        }
+        let header = stream_line(input, &mut counts, 1)?;
+        let mut line_number = 2_u64;
+        let mut previous = None;
+        loop {
+            let row = stream_line(input, &mut counts, line_number)?;
+            if row.is_empty() {
+                if counts.records_read == 0 {
+                    let error = self
+                        .read(profile, &header)
+                        .err()
+                        .unwrap_or(ReadError::Malformed {
+                            offset: 0,
+                            what: "no handset records".into(),
+                        });
+                    return Err(stream_error(counts, 1, HandsetStreamFailure::Decode(error)));
+                }
+                return Ok(counts);
+            }
+            counts.records_read = counts.records_read.checked_add(1).ok_or_else(|| {
+                stream_error(
+                    counts,
+                    line_number,
+                    HandsetStreamFailure::Limit("record counter overflow"),
+                )
+            })?;
+            let mut single = Vec::with_capacity(header.len() + row.len());
+            single.extend_from_slice(&header);
+            single.extend_from_slice(&row);
+            let decoded = self.read(profile, &single).map_err(|error| {
+                stream_error(counts, line_number, HandsetStreamFailure::Decode(error))
+            })?;
+            let mut records = decoded.into_iter();
+            let Some(record) = records.next() else {
+                return Err(stream_error(
+                    counts,
+                    line_number,
+                    HandsetStreamFailure::Limit("no record in decoded line"),
+                ));
+            };
+            if records.next().is_some() {
+                return Err(stream_error(
+                    counts,
+                    line_number,
+                    HandsetStreamFailure::Limit("multiple records in decoded line"),
+                ));
+            }
+            if previous.is_some_and(|time| record.t_ms < time) {
+                return Err(stream_error(
+                    counts,
+                    line_number,
+                    HandsetStreamFailure::Decode(ReadError::Malformed {
+                        offset: usize::try_from(line_number).unwrap_or(usize::MAX),
+                        what: "decreasing handset clock; split sessions explicitly".into(),
+                    }),
+                ));
+            }
+            previous = Some(record.t_ms);
+            let acknowledged = counts.emitted_records.checked_add(1).ok_or_else(|| {
+                stream_error(
+                    counts,
+                    line_number,
+                    HandsetStreamFailure::Limit("emission counter overflow"),
+                )
+            })?;
+            emit(record).map_err(|error| {
+                stream_error(counts, line_number, HandsetStreamFailure::Output(error))
+            })?;
+            counts.emitted_records = acknowledged;
+            line_number = line_number.checked_add(1).ok_or_else(|| {
+                stream_error(
+                    counts,
+                    line_number,
+                    HandsetStreamFailure::Limit("line counter overflow"),
+                )
+            })?;
+        }
+    }
+}
 
 fn row_cells(line: &str) -> Option<Vec<&str>> {
     let mut cells = Vec::new();
