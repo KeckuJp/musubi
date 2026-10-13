@@ -2,8 +2,8 @@
   "schemaVersion": "musubi.sbom.source/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "inventoryDigest": "sha256:7a3d566367130622894b9ed53ed5ca88d242c87eae69001b87562353277de13e",
-    "inventoryFileCount": 837,
+    "inventoryDigest": "sha256:ae1d488dfbc209f1b20da240ae3209a72ee48ffa94c653b741865de8f4ee0d78",
+    "inventoryFileCount": 960,
     "inventoryCoveragePolicy": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
     "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
     "excludedPaths": [
@@ -20,8 +20,8 @@
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "sha256:3fc13e7b70098f5cf683fd621cdd72132da59491d3f73002e3dbd87a2b3afdea",
-      "bytes": 12740,
+      "sha256": "sha256:38c16aba9def83e63c0bfdeedb8dc549de1af76c5b05898a88f19d5f7fb278cb",
+      "bytes": 13037,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -56,8 +56,8 @@
     },
     {
       "path": "Cargo.lock",
-      "sha256": "sha256:4be1a2b850f0e2dcdceae955992a7628ef7ccc38709494e0d7e530fbc1e49cae",
-      "bytes": 86307,
+      "sha256": "sha256:af26019cad8e081a82e45e4d882680cc9dd196b078e70d9e543ea1429a5cdac6",
+      "bytes": 86339,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -80,8 +80,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "sha256:42817ccfb89102f4b4fbdd1361463d7bd34f533a2385035ee652701006d7ca77",
-      "bytes": 8842,
+      "sha256": "sha256:e10be77a2b4ecdd4f650e95d3df019e2aeb46b389f1cd956b5fe5a0d19f0ece7",
+      "bytes": 8995,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -122,8 +122,8 @@
     },
     {
       "path": "crates/adapter-spi/examples/ingest_recorded_observations.rs",
-      "sha256": "sha256:055260f9859a6dc4d1cc89c58eb8850d17c6560a5219efad7aede556c3ac448d",
-      "bytes": 1814,
+      "sha256": "sha256:8e0f1c7719e234ea8a2a5cc237dfc4374c99efec2bc60f081431ff73904d28f3",
+      "bytes": 1851,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -182,8 +182,8 @@
     },
     {
       "path": "crates/adapter-spi/tests/recorded_csv.rs",
-      "sha256": "sha256:81da1bf1f42721166ab8b6d720548d89de279020e8bcf54fd15499d0d090eeb7",
-      "bytes": 13151,
+      "sha256": "sha256:88bd36b329e8b43350e1dce4af9458b7ed42173c675b622edc392c7f0b534dff",
+      "bytes": 13192,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -266,8 +266,8 @@
     },
     {
       "path": "crates/core/src/lib.rs",
-      "sha256": "sha256:7821ac78ccbac625457d15fa14db614010106db9651874084af19f36b3611e32",
-      "bytes": 64430,
+      "sha256": "sha256:07adfdddb845cb4da7182df98267fd61e3b5fb20f23e9fee06b29869af032572",
+      "bytes": 64880,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -314,8 +314,14 @@
     },
     {
       "path": "crates/decoded-csv/src/lib.rs",
-      "sha256": "sha256:22962b614f9ecd3ddc8299f73b9e2a021a242e46e16307012242b672504a5a9b",
-      "bytes": 7102,
+      "sha256": "sha256:42c3a647a79d458dbec36a8a2d69c38c51a15632a9fcba82e5f7e52cb0ed0510",
+      "bytes": 7163,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/decoded-csv/tests/empty_rows.rs",
+      "sha256": "sha256:3e68b9ed2c56c3d5b6a5fd81046099478306c5711a83858f88e856de080fe4e1",
+      "bytes": 902,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -326,8 +332,8 @@
     },
     {
       "path": "crates/decoded-csv/tests/nonfinite_text.rs",
-      "sha256": "sha256:78216c601ba02568e0a038b8989603ec9027ea36055bc61c0412a15a4d4b4dbc",
-      "bytes": 1790,
+      "sha256": "sha256:3b58f43759c64c787717ab948502956ff3f87844eedd3f2ee600acdb0b1b8162",
+      "bytes": 1881,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -554,8 +560,8 @@
     },
     {
       "path": "crates/reference-pipeline/Cargo.toml",
-      "sha256": "sha256:bc56040e07d7f17472c9081d39c1e4e9145353408146f64c877300f07da0ef74",
-      "bytes": 600,
+      "sha256": "sha256:c1603f03b521f336f93babc4ed1d15447a1608fa314717755fe8218aa7cacfee",
+      "bytes": 654,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -566,14 +572,14 @@
     },
     {
       "path": "crates/reference-pipeline/src/export.rs",
-      "sha256": "sha256:b615f8c9e2d262c75635ec1ddf73484b6f2cd92a4464fd89a0ca080312a59cf6",
-      "bytes": 28646,
+      "sha256": "sha256:7771e83551a638847ba81461fd78c274aba734d32a1c502cbfb07028f2ae5883",
+      "bytes": 32359,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "crates/reference-pipeline/src/lib.rs",
-      "sha256": "sha256:188637976dc122ca064da0f0867f4c27bb44d59cba5fef9fcaf48e99ea9380e1",
-      "bytes": 22832,
+      "sha256": "sha256:89d03a9613c508a4396e29e1bb9b133fdb3084cc5d564c480b2d88636efb0eb8",
+      "bytes": 24793,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -595,6 +601,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "crates/reference-pipeline/src/tlog_asset_batch.rs",
+      "sha256": "sha256:91c2aeca819b7a8ab027a078d92f5f616b43c5d786d7ec5a5f9fbb830ab71b9f",
+      "bytes": 4672,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "crates/reference-pipeline/tests/cause_eval.rs",
       "sha256": "sha256:ce1028dcbc4628646c08126310e552ebaa97bd7ad097e43a0d147753eac14827",
       "bytes": 10816,
@@ -607,9 +619,21 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "crates/reference-pipeline/tests/declared_domain_export.rs",
+      "sha256": "sha256:b3d47412f4437ed89a06868056182dbed42e26929c00562294a93448ddbc780f",
+      "bytes": 8476,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "crates/reference-pipeline/tests/declared_window.rs",
       "sha256": "sha256:25cf8daa883f76b4e0d92c8eea04eeeab28057e11762bd446d7506bdd2bd2ed9",
       "bytes": 6349,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-pipeline/tests/domain_export_default.rs",
+      "sha256": "sha256:ed5c2adb7cedc0836abc395724b4f09a50954e52e3e73777c6edb9f81a343665",
+      "bytes": 794,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -649,6 +673,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "crates/reference-pipeline/tests/fixtures/unknown-adapter--surface-usv--survey-boat-profile.toml",
+      "sha256": "sha256:2b5abc945e96a5664ded2569824b36fa0bf2050c49911af64d1bf8388688bc03",
+      "bytes": 596,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "crates/reference-pipeline/tests/prereg_metrics.rs",
       "sha256": "sha256:f24edd408383c99fe19a3f188aaa2aa479852cf4ae25b8af3f80fe5fd0fff0e7",
       "bytes": 5345,
@@ -661,6 +691,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "crates/reference-pipeline/tests/tlog_asset_batch.rs",
+      "sha256": "sha256:1f9fbdfcf42e1c8f8f6a3c5b4bcb145e6a2d29d2a381a4029b0c76cbf52c73b5",
+      "bytes": 5642,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "crates/reference-readers/Cargo.toml",
       "sha256": "sha256:5bd63153e0b45632f07c0d8774c44a6b018024473e40849a441776ea4795b78d",
       "bytes": 830,
@@ -668,8 +704,8 @@
     },
     {
       "path": "crates/reference-readers/examples/read_blackbox_csv.rs",
-      "sha256": "sha256:5c83144a39b6771c7a4c1b5d00bb3ceb6c7c360effad97a39054caa6788bfc55",
-      "bytes": 1829,
+      "sha256": "sha256:37d986dd9f4d2f6ee385629623bdb57ffd79a71bbd82f9add5e2823733ae2ae9",
+      "bytes": 2300,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -686,8 +722,8 @@
     },
     {
       "path": "crates/reference-readers/examples/read_telemetry_csv.rs",
-      "sha256": "sha256:c628c5cbfd5a416692c2e18f7a4404a8b262cd0b29f9a164f8c75d5ffea2a712",
-      "bytes": 3743,
+      "sha256": "sha256:e12fb2c09916dc26ffa6b0cf71be9922deba55ffeb443ff2cc8265144c94ac47",
+      "bytes": 3776,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -704,8 +740,8 @@
     },
     {
       "path": "crates/reference-readers/src/blackbox.rs",
-      "sha256": "sha256:a3219815a0f0998f504e1c9501c72bd23ea1f15826ca5369ca4d70a3d334f01d",
-      "bytes": 6816,
+      "sha256": "sha256:044030d0b9893534ff71b9fff1ea3c39a841b89a5659f99f0e399db136752d7c",
+      "bytes": 7591,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -770,8 +806,8 @@
     },
     {
       "path": "crates/reference-readers/src/lib.rs",
-      "sha256": "sha256:f03bfc575f63ac708160038fe36203d2363b7dfe56db33b2b5ccd895557c439a",
-      "bytes": 7187,
+      "sha256": "sha256:8fb844749012f732ddffc6830be649000b819ab4f738ed220f76d3f7244c86be",
+      "bytes": 7214,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -794,8 +830,8 @@
     },
     {
       "path": "crates/reference-readers/src/profile.rs",
-      "sha256": "sha256:7542291a666cd8a0e367546ead1d57251be3b4f9497ed8569b128f201bcb6b75",
-      "bytes": 16417,
+      "sha256": "sha256:01b581218f6da3e973677fdb159e5e5380faacaf80c751e6467b1feeb03b157b",
+      "bytes": 16479,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -814,6 +850,12 @@
       "path": "crates/reference-readers/src/tlog.rs",
       "sha256": "sha256:e42b2a5feb6cfcef9117043047e125e35b2c73603d3ccdb72b7b19f7f2a3e02d",
       "bytes": 158320,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-readers/src/tlog_sender_batch.rs",
+      "sha256": "sha256:0a6b3afe39c7d96def0c796025a58cf154335b35488b92e090aeece411dc338d",
+      "bytes": 4298,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -848,14 +890,14 @@
     },
     {
       "path": "crates/reference-readers/tests/declared_platform_domain.rs",
-      "sha256": "sha256:22bdcfd323a2eaa6c204146091e84af5b32272c2c949f9aa8bf29d863224bbe4",
-      "bytes": 9238,
+      "sha256": "sha256:46462cf3c359d62bdc9ddd80f541fa5ed372260e46ff2768ff07ff6b2cc60a2f",
+      "bytes": 9746,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "crates/reference-readers/tests/electrical_schema_reuse.rs",
-      "sha256": "sha256:0bcb0436b7002df7add1efbe1d8b20477cab28caed189b2346c93b83a47d021f",
-      "bytes": 6550,
+      "sha256": "sha256:5a39c5e995f89bc9086d5d55615c3e2d4b60d136d8d68d09d5bcef51aeab76e8",
+      "bytes": 6591,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1082,8 +1124,8 @@
     },
     {
       "path": "crates/reference-readers/tests/fixtures/unknown-adapter--nmea-wind--profile.toml",
-      "sha256": "sha256:4008474c7ba14f05e74a11f23e294bf837f2156932ed13b7d14b80bdcd4ba136",
-      "bytes": 7530,
+      "sha256": "sha256:2fea024ade2e917bbb2564ef465e69f972f0e9e218698264105cb780133a0e18",
+      "bytes": 9533,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1108,6 +1150,12 @@
       "path": "crates/reference-readers/tests/fixtures/unknown-adapter--surface-usv--survey-boat-profile.toml",
       "sha256": "sha256:2b5abc945e96a5664ded2569824b36fa0bf2050c49911af64d1bf8388688bc03",
       "bytes": 596,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-readers/tests/fixtures/unknown-adapter--tlog-state--selected-sender-profile.toml",
+      "sha256": "sha256:0eea3a46440c53a8262d7d8fc28b5f9e22601b4289eceb500cee1ac706f925f5",
+      "bytes": 1358,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1166,8 +1214,8 @@
     },
     {
       "path": "crates/reference-readers/tests/link_cue_join.rs",
-      "sha256": "sha256:4c22d6470522f639eeac5d6db61cec57f5abf626e978c49a560391cd29945347",
-      "bytes": 7666,
+      "sha256": "sha256:b7500b76bd56e7cbc645510e65adbab9b6bcd190808ad35c789c7e8351760646",
+      "bytes": 7748,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1208,8 +1256,8 @@
     },
     {
       "path": "crates/reference-readers/tests/telemetry_csv_contract.rs",
-      "sha256": "sha256:1d86edd1e506150136f2602547a2899c47fc655ac624e716106db543e1924195",
-      "bytes": 5257,
+      "sha256": "sha256:a160601f88031aeed791876ca8b82bcc6a4d58f0b22e8306c41b72c3f4c8ea97",
+      "bytes": 5290,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1220,14 +1268,20 @@
     },
     {
       "path": "crates/reference-readers/tests/telemetry_nonfinite.rs",
-      "sha256": "sha256:c7a9742af27267770964c2ccc6e9a49a13055a3d16b2ec2966f7f1eb298ea1d5",
-      "bytes": 3170,
+      "sha256": "sha256:6d30de11e1d94cab71fa7913c40401977976bf1ba6e4f0c5233b42e6ac18fa80",
+      "bytes": 3203,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "crates/reference-readers/tests/telemetry_single_channel.rs",
       "sha256": "sha256:eb1be34e27caea514019672d6c2a1fdad41dd477cf89a0b872b2e0c22b9d7715",
       "bytes": 1254,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-readers/tests/tlog_sender_batch.rs",
+      "sha256": "sha256:15b939e2dde5743395ad8cf34bd1e00df30d2e409b3e686693c73b7f4fa7088f",
+      "bytes": 4223,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1412,8 +1466,8 @@
     },
     {
       "path": "crates/types/src/com.rs",
-      "sha256": "sha256:77db10f6229343dcaa1c62d87e354ad349dc4a36095c4ec91990c62282bf0bc0",
-      "bytes": 6288,
+      "sha256": "sha256:3d633d85178e8c1f2123e02e3011f1b3b3567f5464fc500a93bb8f33a87e3a7b",
+      "bytes": 6360,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1519,6 +1573,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "docs/saved-input-windows.md",
+      "sha256": "sha256:125475f338ace84debf10f94a9c7636a525f5e7adc49d06dbefe3dfeadf0712b",
+      "bytes": 5776,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "docs/saved-inputs.md",
       "sha256": "sha256:6b5c75bf81eb74e52348455a803a5d28ecd9b326802ee0a35f6bc1986d0b392c",
       "bytes": 6868,
@@ -1540,6 +1600,12 @@
       "path": "examples/px4-position-csv/position.json",
       "sha256": "sha256:24627256f9ddaa52e5dd0072c14c3d71c9a5f48d634f28504078dbafed4ac86e",
       "bytes": 190,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/saved-inputs/authored-can-window.candump",
+      "sha256": "sha256:f998b8bed610cc7fe58db92badea3bc96592a870e2c666439206e4bf1135a5dc",
+      "bytes": 136,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1591,6 +1657,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/ardupilot-imu-batch/profile.toml",
+      "sha256": "sha256:d7fc6267391ae1b669c028d450798dfe626f4d49403f725546105d593de76597",
+      "bytes": 1442,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/ardupilot-mode/imu-profile.toml",
       "sha256": "sha256:345c9c2cf4a2241443af62200e3337963290bd32dc320833dfac18df5a8fbc9f",
       "bytes": 881,
@@ -1621,21 +1693,57 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/ardupilot-mode/performance-profile.toml",
+      "sha256": "sha256:cf68c4b9a24f5eaf567bf8c822d47c27ffe3eae6c35ddd86b424a44c2d1e1463",
+      "bytes": 2493,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/ardupilot-mode/profile.toml",
       "sha256": "sha256:71a1f23de430b5de34425fd5f2a6bf9ab3643694abaed39e0ab3ded1eb791795",
       "bytes": 528,
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/ardupilot-mode/quadplane-context-profile.toml",
+      "sha256": "sha256:0f806bb637189ef4220d8d62ffbf9c7a0e1be9a519b54b4788546f6a3161523b",
+      "bytes": 2101,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/ardupilot-mode/vehicle-profile.toml",
-      "sha256": "sha256:29094af3568f5e2ba39985da13c1c7d60ae766d8f76d67032fc9691ef0901c1e",
-      "bytes": 2119,
+      "sha256": "sha256:f656c0d98d675e81b8322f8cd2d825c9a7c66b6ab22ce734c964a4af908e0d35",
+      "bytes": 3959,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/ardupilot-rcout/profile.toml",
+      "sha256": "sha256:3ba9416dfae8dcc1036c28a0d71219a548b1e7d1f3d900cda6474af47e9e4e7c",
+      "bytes": 2807,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/declared/arduplane-jsonl/profile.toml",
       "sha256": "sha256:811e9c8592699adcb8b557960e1992889cb59fb5b18dcf85d2823cc631a05c3b",
       "bytes": 547,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/ardusub-session/imu-profile.toml",
+      "sha256": "sha256:56961444d56192a497431f8eadc9aecef2b4d4d4383c98a3033878c5a7407c6f",
+      "bytes": 351,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/ardusub-vertical/profile.toml",
+      "sha256": "sha256:2ef03fb263d35c880a96940f14729d98300774b15e5267e39083880ad4576561",
+      "bytes": 1416,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/ardusub-vertical/underwater-profile.toml",
+      "sha256": "sha256:5735aa80b9924df2a77251ec55fe03229e0c16a5bd845e3c6ef6228d50031345",
+      "bytes": 2109,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1688,8 +1796,14 @@
     },
     {
       "path": "profiles/declared/controller-reported-failure/profile.toml",
-      "sha256": "sha256:8830f3e1aa3efee25e00268f51fd75a9f97ea10d18b77e876510cf7b5e072dc4",
-      "bytes": 13467,
+      "sha256": "sha256:2d2ac938e176028832490ac252440bc9dacb8064281ac8263bdce140ed751e85",
+      "bytes": 14214,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/copter-saved-bundle/profile.toml",
+      "sha256": "sha256:bf45172a8644fc829667c974b500b88cfd9af3298d69fb998a085658eb723f71",
+      "bytes": 844,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1723,6 +1837,24 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/dronecan-recorded/canopen-configured-profile.toml",
+      "sha256": "sha256:bb2c4c75f833b262980e4e71111c359200fba6669fc6f08aa6955cc6503b515a",
+      "bytes": 2103,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/dronecan-recorded/canopen-consumer-profile.toml",
+      "sha256": "sha256:69d45e8d7bd28e0f6c0fbd0b0c2c4de536c81802aa50561e1e0592f531ab4030",
+      "bytes": 1865,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/dronecan-recorded/canopen-guarding-profile.toml",
+      "sha256": "sha256:cc12632d6a5201b130509021f9e0c40f4b0ca2af156fd87e0045162530bc0456",
+      "bytes": 1028,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/dronecan-recorded/dictionary-profile.toml",
       "sha256": "sha256:f14d5cc862024d9ed87375d790bac2c2226d2407b04ead0cc65efde21680af47",
       "bytes": 1870,
@@ -1736,8 +1868,8 @@
     },
     {
       "path": "profiles/declared/dronecan-recorded/profile.toml",
-      "sha256": "sha256:a00e82b4667bc6493a1e57fa133e95c91689206292a7059b40eb43f14f127204",
-      "bytes": 17415,
+      "sha256": "sha256:ae4449c7513be752fe722283aadc265b3dadc6d3b4c9580933de51af2468743e",
+      "bytes": 21321,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1766,14 +1898,14 @@
     },
     {
       "path": "profiles/declared/electrical-schema-reuse/farmbot-profile.toml",
-      "sha256": "sha256:f54fbaf8d3155f4bddd80103af99caf3d4443a387e26b611a803700dedbbf6ae",
-      "bytes": 1121,
+      "sha256": "sha256:928603f0b68992e9e5476bd52617bc1f9a2df06a29d4c7fe4b77f3f3336c7b0b",
+      "bytes": 2277,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/declared/electrical-schema-reuse/json-profile.toml",
-      "sha256": "sha256:d76f5cbe58ea34ba52e7e633b21bb3ff02c601ba04ced12ad82dcd8217d5867c",
-      "bytes": 55028,
+      "sha256": "sha256:c22a417a355438166de01bae2da1bcb801f16abd8e858ca22e3ab3366c158060",
+      "bytes": 65212,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1856,8 +1988,8 @@
     },
     {
       "path": "profiles/declared/ground-message-closure/profile.toml",
-      "sha256": "sha256:ea8e261da0496c788d4b27eafb4763ea6d86abe3d01f41d165a040679337e47c",
-      "bytes": 4492,
+      "sha256": "sha256:b0233494bbbd019cebe5e6a56b0c4435253cbcc300ab7254b103dc63f6eb8450",
+      "bytes": 6451,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1886,8 +2018,8 @@
     },
     {
       "path": "profiles/declared/imc-sensors/profile.toml",
-      "sha256": "sha256:441a8f2eee935868edce94958ee7f8da3b6f9eb8282a1e2b4efe8f505478adc9",
-      "bytes": 8610,
+      "sha256": "sha256:ee08279909aab6dfe4836078dc3742b66af213b13be9b20f037090478101631c",
+      "bytes": 12709,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1939,9 +2071,27 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/marine-ardu-reuse/gps-fix-mapping.json",
+      "sha256": "sha256:6bc5d2897793264f4af7e2f8f5bd6fb271db575055e3f13b088ac4d08b1f29b8",
+      "bytes": 219,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/marine-ardu-reuse/profile.toml",
       "sha256": "sha256:3eb7a17b058b61b385b850a1c2d8d833332e014c9d06651f9f6ae1408358fc63",
       "bytes": 2969,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/mavlogdump-position-csv/position.json",
+      "sha256": "sha256:24627256f9ddaa52e5dd0072c14c3d71c9a5f48d634f28504078dbafed4ac86e",
+      "bytes": 190,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/mavlogdump-position-csv/profile.json",
+      "sha256": "sha256:4fe2283b8731c489afa9a985be055e350e1f6e2d54c9acaedc5d557fbe1ccd35",
+      "bytes": 255,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1964,8 +2114,8 @@
     },
     {
       "path": "profiles/declared/nmea-wind/profile.toml",
-      "sha256": "sha256:4008474c7ba14f05e74a11f23e294bf837f2156932ed13b7d14b80bdcd4ba136",
-      "bytes": 7530,
+      "sha256": "sha256:2fea024ade2e917bbb2564ef465e69f972f0e9e218698264105cb780133a0e18",
+      "bytes": 9533,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2086,6 +2236,18 @@
       "path": "profiles/declared/robotnik-dashboard-reuse/profile.toml",
       "sha256": "sha256:67b2fbd8e2c5b083c8348094e146119618d52d2ad84b98d7762ed40f8a3c0cd9",
       "bytes": 1755,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/rosbag-electrical/topic-expectations.toml",
+      "sha256": "sha256:7fd605323bc077fbcb2f78612424483fa9c1c50b63378fa9d5214ea707739810",
+      "bytes": 1166,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/declared/rover-saved-bundle/profile.toml",
+      "sha256": "sha256:4362759c81ebe66da438efddb2a547214220561fa5b28980a4079ec5a97ea00e",
+      "bytes": 843,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2222,8 +2384,8 @@
     },
     {
       "path": "profiles/declared/tlog-state/gcs-recorded-profile.toml",
-      "sha256": "sha256:bbef862a43490f42480dcd6496a7ad5ee4a581b86ebc275df2b16cd025bc4b41",
-      "bytes": 493,
+      "sha256": "sha256:fe24cb7f578d154785d57ea7900397ba732b8c2441b6d771cf9a7555dc9b032b",
+      "bytes": 960,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2245,6 +2407,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/declared/tlog-state/statustext-profile.toml",
+      "sha256": "sha256:c534e467ac12fbd853b9f56072e26d8627d8d22920115a5d067777ea35ef1a9c",
+      "bytes": 1531,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/declared/turtlebot3-trajectory/profile.toml",
       "sha256": "sha256:6029b55119ecc56e0d8fc770ce5fbac347b08302b906cc1fba23602e5c8cfc0b",
       "bytes": 543,
@@ -2252,8 +2420,8 @@
     },
     {
       "path": "profiles/declared/vda-load-report/profile.toml",
-      "sha256": "sha256:1688daffd689e2d858ae37c67abca9941cf6718e1e5dc36d00b6c8b95e95d771",
-      "bytes": 6656,
+      "sha256": "sha256:62314201833100fcd89a129a296e245ed9371e58f4f8ea492bd6caacd6b9a3d7",
+      "bytes": 8687,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2329,6 +2497,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/meanings/ardupilot-imu-batch/profile.json",
+      "sha256": "sha256:f9bdbb8c7fd653be58ccb8795faf411f90530315dd6ec32936b8ca80a2a7566f",
+      "bytes": 2804,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/meanings/ardupilot-mode/imu-profile.json",
       "sha256": "sha256:a2056b023de6fe7efbceb3d9ae26574e0dadb9ddc463747384cd0d7c81eac387",
       "bytes": 3229,
@@ -2359,21 +2533,57 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/meanings/ardupilot-mode/performance-profile.json",
+      "sha256": "sha256:0de7291555a9e1a2fccfff359f77e0612a7db4f1db6ffa4b2f8a82d246bf1344",
+      "bytes": 4647,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/meanings/ardupilot-mode/profile.json",
       "sha256": "sha256:ae27bf31489f1f941f9f9bf85399cfbe634f58d1f3f132f3398a836f00a74a34",
       "bytes": 996,
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/meanings/ardupilot-mode/quadplane-context-profile.json",
+      "sha256": "sha256:e839c97c31de9efd785036f87450de8d4a42dc66e82f27b7dff7e1dfbc8dfe4a",
+      "bytes": 4121,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/meanings/ardupilot-mode/vehicle-profile.json",
-      "sha256": "sha256:a209f23f9d122b24a10f5ac268e601fde238a871d778d0013087f57af0e21c59",
-      "bytes": 2761,
+      "sha256": "sha256:a3d95a9d9c04181fce299bc8d25e2b61f807fde17be764f9d229b72898701f78",
+      "bytes": 6313,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/ardupilot-rcout/profile.json",
+      "sha256": "sha256:d9661b8f48712bacb24ec7c6c4d51ef41e3ce8552ead7d88e94d602812ac669f",
+      "bytes": 4774,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/meanings/arduplane-jsonl/profile.json",
       "sha256": "sha256:de68e526d7e9ac49487f7977f7a80eaf7a79ee6af57ce448793243aaf9f4620d",
       "bytes": 1033,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/ardusub-session/imu-profile.json",
+      "sha256": "sha256:206dedf69413d1b1b5a1d3d8b77764822acbead333f47b40a406909b32058edf",
+      "bytes": 971,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/ardusub-vertical/profile.json",
+      "sha256": "sha256:461f950b6d6c368b0d514f9add371708eeee6d36fe6d312ee623025934182978",
+      "bytes": 2269,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/ardusub-vertical/underwater-profile.json",
+      "sha256": "sha256:ce9b555992b1d611d0e7e8ec6e5e559c5d95cb7df8f3769c666d0ba77ad8aa46",
+      "bytes": 4395,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2426,8 +2636,14 @@
     },
     {
       "path": "profiles/meanings/controller-reported-failure/profile.json",
-      "sha256": "sha256:cffc0cedcdffaed70543c7e211978b7c4b7684a6090eda4f2ac773a96691bfc4",
-      "bytes": 9793,
+      "sha256": "sha256:830d9775e10b116feda45a427884d9dcf9b9ffd75dfac702107d4736c30dd9f6",
+      "bytes": 11233,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/copter-saved-bundle/profile.json",
+      "sha256": "sha256:5e699a6fd1bdfb55bb667f09f914a67d47728ad57d972162aa0f9a04010a405d",
+      "bytes": 1808,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2461,6 +2677,24 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/meanings/dronecan-recorded/canopen-configured-profile.json",
+      "sha256": "sha256:01d2076d8f5bf33dd5df7424dd49c9d8c1b62f15fa1099f763bd915c9b2d670f",
+      "bytes": 4100,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/dronecan-recorded/canopen-consumer-profile.json",
+      "sha256": "sha256:e2ffc569b21cb727ba954abcc003e27a6860346ef40b9029e5d06b491bbab644",
+      "bytes": 3378,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/dronecan-recorded/canopen-guarding-profile.json",
+      "sha256": "sha256:1f9237f5448adbbfcf4a75c7b40de191388e5f519d4264addfc5a0e9fa82d812",
+      "bytes": 1752,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/meanings/dronecan-recorded/dictionary-profile.json",
       "sha256": "sha256:43506a30b41e13fa528f92727c8771b041394b589da81b3d84505721cb2c92d1",
       "bytes": 2620,
@@ -2474,8 +2708,8 @@
     },
     {
       "path": "profiles/meanings/dronecan-recorded/profile.json",
-      "sha256": "sha256:b475979a9240d3336a8efdf667da2a44efcfe36857ccdc930f4034e7b825edba",
-      "bytes": 24240,
+      "sha256": "sha256:27f45b3b88ef0c54ac454f46e218a1550d08b69d75704080a4ca75625bab9515",
+      "bytes": 31797,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2504,14 +2738,14 @@
     },
     {
       "path": "profiles/meanings/electrical-schema-reuse/farmbot-profile.json",
-      "sha256": "sha256:6069ac06a03e53baa6df35e7ece6aa3bccfb56c8752939c74d2a3fc727335587",
-      "bytes": 2503,
+      "sha256": "sha256:bebd4c21a2760ee5f898550edb1fb647d8545a246a751bcf8223a839e3eded09",
+      "bytes": 4140,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/meanings/electrical-schema-reuse/json-profile.json",
-      "sha256": "sha256:6c2c3889ec03487c9b2d3eba368891f1bd882d11976be400068d0cc11f9dfc46",
-      "bytes": 59597,
+      "sha256": "sha256:8f52b3b231e8940ce73df71ea9aa4450753995caae5073819dac606bbc3a54a5",
+      "bytes": 80015,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2594,8 +2828,8 @@
     },
     {
       "path": "profiles/meanings/ground-message-closure/profile.json",
-      "sha256": "sha256:bdbc5efdd88fd2b3fd73a10a7329428035f63113e9ff587fd7f5ab507d8d7ce2",
-      "bytes": 8355,
+      "sha256": "sha256:ceff73f27323f6fb0fb2ce278dccf150729f8fa0a245f736e1157e3b39b92bca",
+      "bytes": 11751,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2624,8 +2858,8 @@
     },
     {
       "path": "profiles/meanings/imc-sensors/profile.json",
-      "sha256": "sha256:b00545d3370a5a2c692ba6264797edab8cc281d3d34cc3d69246e599329db786",
-      "bytes": 11902,
+      "sha256": "sha256:e2d0ae06323f8bfaac2245068c52a3d466ea43b9fea70a0c07f4b95fcc9604e5",
+      "bytes": 20371,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2702,8 +2936,8 @@
     },
     {
       "path": "profiles/meanings/nmea-wind/profile.json",
-      "sha256": "sha256:6d7184cc6833a640f3dec983581ef0166a470485e9f609ef7d0817d1c50e2b7a",
-      "bytes": 11659,
+      "sha256": "sha256:19f4fa3fce014351d19a5c4890cbfeeaabbada35b0e41aecd88d25db194f4723",
+      "bytes": 15289,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2818,6 +3052,18 @@
       "path": "profiles/meanings/robotnik-dashboard-reuse/profile.json",
       "sha256": "sha256:c492fda2be279f5f6037ce7aee4ea2e058e82e9f17d1ab83b0bfe5b24880a570",
       "bytes": 3262,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/rosbag-electrical/topic-expectations.json",
+      "sha256": "sha256:a43893a565fd130ad1355ec307dae91cb8e63b886ea82912d69b2b601d0068ff",
+      "bytes": 2285,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/meanings/rover-saved-bundle/profile.json",
+      "sha256": "sha256:5e699a6fd1bdfb55bb667f09f914a67d47728ad57d972162aa0f9a04010a405d",
+      "bytes": 1808,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2960,8 +3206,8 @@
     },
     {
       "path": "profiles/meanings/tlog-state/gcs-recorded-profile.json",
-      "sha256": "sha256:799891af20f84614b935bf960fd51a27301b8764eca2b104d4d7c7eba63cc71c",
-      "bytes": 865,
+      "sha256": "sha256:0d98efca4627e25a69e2fb69869a9bd0a38e93b6d2270d7f0692110a4477020d",
+      "bytes": 2309,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -2983,6 +3229,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/meanings/tlog-state/statustext-profile.json",
+      "sha256": "sha256:81913247e3391332e91235eb630d6d3628cdc7098e73c43ff48a9bc0cc70b2d3",
+      "bytes": 3034,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/meanings/turtlebot3-trajectory/profile.json",
       "sha256": "sha256:608950413f358fcaa80154f9b03a82141499cebce9da198034f3464a4ad95d29",
       "bytes": 1339,
@@ -2990,8 +3242,8 @@
     },
     {
       "path": "profiles/meanings/vda-load-report/profile.json",
-      "sha256": "sha256:020d6680a00c79477af28dea7e323e2d8d646c33b55116235b359a38a1208fed",
-      "bytes": 5462,
+      "sha256": "sha256:029021f4de7c988bda9bc8c2ae55438ba65b6bd38ced68516776c4a31bdc80e5",
+      "bytes": 9029,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3121,6 +3373,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/recorded/ardupilot-imu-batch/profile.json",
+      "sha256": "sha256:7780042a66c851006efbecaa22ed9b65011c1dea8b26320b876324c433fc97aa",
+      "bytes": 1607,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/recorded/ardupilot-mode/imu-profile.json",
       "sha256": "sha256:01ea0d32af86ace29e3c67b2ae3ca3318f8fc3a2d96af70eb1300cddd57964ab",
       "bytes": 1078,
@@ -3151,21 +3409,57 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/recorded/ardupilot-mode/performance-profile.json",
+      "sha256": "sha256:968207be9dbe2f13545f49d755d7bc74e0dff2a0758f0a2d78873c182ebc2c69",
+      "bytes": 2718,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/recorded/ardupilot-mode/profile.json",
       "sha256": "sha256:376636edc93ed46abcd41196e2650a30ccddd168fcc18101e9b130a585dda484",
       "bytes": 637,
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/recorded/ardupilot-mode/quadplane-context-profile.json",
+      "sha256": "sha256:29f2475554576db1bc2bcf3a9d6586c45a0c819ebaba2190447a51a2c72104a8",
+      "bytes": 2302,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/recorded/ardupilot-mode/vehicle-profile.json",
-      "sha256": "sha256:5e6272d4e28640e705d374cebbc0872354b69771110518227e52de731253b738",
-      "bytes": 2290,
+      "sha256": "sha256:6074bfb0e46806c2a5ac67758cdb043dc49b0c87a443dced4d0b1e4a90142e69",
+      "bytes": 4244,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/ardupilot-rcout/profile.json",
+      "sha256": "sha256:0bd1770fb253be05ea440e28762927bd8b8aa36ded888fbbe5acd1539d454518",
+      "bytes": 3006,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/recorded/arduplane-jsonl/profile.json",
       "sha256": "sha256:e98e93e90c18c0e3d8df03e93f2d8616386297ead11fcb404f584b1a290f63cc",
       "bytes": 688,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/ardusub-session/imu-profile.json",
+      "sha256": "sha256:337997a096f38b0a9287bb728db91f0316f5c7f6c06a68b8d459cb5772dbb270",
+      "bytes": 474,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/ardusub-vertical/profile.json",
+      "sha256": "sha256:50c5a38d5dd9402988d1b69e487fc798b1eefbb9256cd81051836da90789c93a",
+      "bytes": 1543,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/ardusub-vertical/underwater-profile.json",
+      "sha256": "sha256:1ff811b7747389491087fff912c43a43ef7ff87f1fff3d6001a587f7d8372715",
+      "bytes": 2295,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3218,8 +3512,14 @@
     },
     {
       "path": "profiles/recorded/controller-reported-failure/profile.json",
-      "sha256": "sha256:45a3ddb34aa7456c3e4face956e64871fd149751827ac7af645ab55beb6383d8",
-      "bytes": 13828,
+      "sha256": "sha256:f1ab9d9180056e2b4df4e9f30cc66343a39690c9014dd0b63053dc8b578e40d9",
+      "bytes": 14617,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/copter-saved-bundle/profile.json",
+      "sha256": "sha256:f0a1ff9491521ff0e4ea73fe8dc99d6b77f3e40ac1e80d3975c4bf7a16b42ee8",
+      "bytes": 991,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3253,6 +3553,24 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/recorded/dronecan-recorded/canopen-configured-profile.json",
+      "sha256": "sha256:fb4a5369dcf3548e8e7f1ec02dc7724e0e6b8b201f2bc26c056f08c316adf84e",
+      "bytes": 2298,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/dronecan-recorded/canopen-consumer-profile.json",
+      "sha256": "sha256:0369e7bfcbff993a3993048da52bad45a6478ddad63d80b3b386f5896ad84853",
+      "bytes": 2036,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/dronecan-recorded/canopen-guarding-profile.json",
+      "sha256": "sha256:c2a32f596b2b0e8939c589a4361c7c944fc0ca474de792184c1f4a2e4d309c93",
+      "bytes": 1151,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/recorded/dronecan-recorded/dictionary-profile.json",
       "sha256": "sha256:d212eff4effbc436140d05179663e7862ff467df9fe257a0a90294982579db98",
       "bytes": 2023,
@@ -3266,8 +3584,8 @@
     },
     {
       "path": "profiles/recorded/dronecan-recorded/profile.json",
-      "sha256": "sha256:1917ff05315e32eae228607d9f4121113940c592f090311395b6de18fa070fb8",
-      "bytes": 18156,
+      "sha256": "sha256:4d9da4b2f1e08b61e4e38952333a0614c6e67cd8dca630e65b90821eb5cfd1d0",
+      "bytes": 22278,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3296,14 +3614,14 @@
     },
     {
       "path": "profiles/recorded/electrical-schema-reuse/farmbot-profile.json",
-      "sha256": "sha256:1e12aeb0f800cd14d81dc72e180e2536d392513a89c5245928f7009a727a6f93",
-      "bytes": 1286,
+      "sha256": "sha256:d9e42fe642f3e1fe5b4979536cbd18444c7a0348240cf082058e5c78f90e6af0",
+      "bytes": 2472,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "profiles/recorded/electrical-schema-reuse/json-profile.json",
-      "sha256": "sha256:1e9a8232e2129492caa1101bde10f068f8d989bd47ded116cc25b9405ec76b44",
-      "bytes": 56992,
+      "sha256": "sha256:40239b2db5e0f6489da88decdc25cc3dd1d56b6019a6bde565b94932592db1ed",
+      "bytes": 67758,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3386,8 +3704,8 @@
     },
     {
       "path": "profiles/recorded/ground-message-closure/profile.json",
-      "sha256": "sha256:1af0b6ed5d7d59e9523c118821e685df86cbfc6f3045aeaa584887bf8a7bbcbc",
-      "bytes": 4799,
+      "sha256": "sha256:3ca952906bd2b25330557af6410578336834cef37f55d58b6abc00310c3acd34",
+      "bytes": 6842,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3416,8 +3734,8 @@
     },
     {
       "path": "profiles/recorded/imc-sensors/profile.json",
-      "sha256": "sha256:db7d64bbec327997d8fcb78110d86d8100ea65790acbe89094fc76b6551a4e9b",
-      "bytes": 9033,
+      "sha256": "sha256:98ff26ae335fb3331e127f5930a2c83ff4e45bde3ca35378b4eead378405a789",
+      "bytes": 13396,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3494,8 +3812,8 @@
     },
     {
       "path": "profiles/recorded/nmea-wind/profile.json",
-      "sha256": "sha256:2d0b7d65b765a5d04b0210177cf3352a8b55e3e12253670ed6ef59aafab03abb",
-      "bytes": 7928,
+      "sha256": "sha256:7066a20e6f2588031079a286c95234c936129fa605ec54e5cd232bff6cae8962",
+      "bytes": 10033,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3610,6 +3928,18 @@
       "path": "profiles/recorded/robotnik-dashboard-reuse/profile.json",
       "sha256": "sha256:cdf3c4ebbe4e8040f3f8759eb41cc59ecae7282d27426cad4b657b7c8c96e7ce",
       "bytes": 1926,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/rosbag-electrical/topic-expectations.json",
+      "sha256": "sha256:a3e0e3f325c10aab82a67e74c2894c5319cc798d160236dd0ac13f808c5a377d",
+      "bytes": 1317,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/recorded/rover-saved-bundle/profile.json",
+      "sha256": "sha256:1b37bee9ff9f5bf00055258d0f26b981fee818a3bbc6da9a926863992605ffa0",
+      "bytes": 990,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3746,8 +4076,8 @@
     },
     {
       "path": "profiles/recorded/tlog-state/gcs-recorded-profile.json",
-      "sha256": "sha256:fac9f6ce63c3382670768552ad71461e8e8fd9493f7f15ea131b191e8b813acf",
-      "bytes": 572,
+      "sha256": "sha256:d3a72afa386dd54e5584a5bbc384dc021c11e638a09fa9dacf3ac49f17b8ba81",
+      "bytes": 1071,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3769,6 +4099,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/recorded/tlog-state/statustext-profile.json",
+      "sha256": "sha256:c5bed6a47e44f8f5167264cc5c5e05e6a38eb680b711b8b222a09148a40b0cce",
+      "bytes": 1708,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/recorded/turtlebot3-trajectory/profile.json",
       "sha256": "sha256:41b6f0fa1aeaad749c765fc1f7ddcd5db80101f25b6ddeacd7e93a7809cf8784",
       "bytes": 658,
@@ -3776,8 +4112,8 @@
     },
     {
       "path": "profiles/recorded/vda-load-report/profile.json",
-      "sha256": "sha256:61b8bc1e93a87c1dc582e657341493172ee5bcbd9c5d836c78d2e3422431a506",
-      "bytes": 6879,
+      "sha256": "sha256:e4b6141cc757bca8638709043935277726fe60a3b633b32f872474c7f7cb011c",
+      "bytes": 9006,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3884,32 +4220,62 @@
     },
     {
       "path": "scripts/convert_agopen_steering.py",
-      "sha256": "sha256:445c697f47eba01ddf7539d4814f41b396f39612101078b2a0d8a3ffe697a350",
-      "bytes": 13848,
+      "sha256": "sha256:8555496ca3897697b7b8c24971607caa0611882c3c01471e21104dcbae4c3cc5",
+      "bytes": 15605,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "scripts/convert_ardupilot_battery_csv.py",
-      "sha256": "sha256:7ea9b2e80dfc5d87bf461321732bc83ad980b9d1eb91ef26216f90bbfad13269",
-      "bytes": 139515,
+      "sha256": "sha256:065c2a1a547f5c056abef048181f25d2695e3ddf2fe79f1c9de84bdf1bbd37bd",
+      "bytes": 164309,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "scripts/convert_ardupilot_controller_reports.py",
-      "sha256": "sha256:99a80d32aa39017dc9c7ec01febb4fe05a9fca58475da47aa563cc3f82286143",
-      "bytes": 38685,
+      "sha256": "sha256:c12d681473583fa000164f594d9ed1566cad2aa258be7473c5e864d4d8242ad7",
+      "bytes": 44178,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_ardupilot_imu_batch.py",
+      "sha256": "sha256:c9fc76e0b0d08db39d64e34dd3b46cfa56e079c4928eb15a065004302e75343e",
+      "bytes": 9569,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "scripts/convert_ardupilot_mode_csv.py",
-      "sha256": "sha256:a9aeb5d1f24f4246538ef30dd68a2ab153d037f663f4decf37addfd974f0d71c",
-      "bytes": 25114,
+      "sha256": "sha256:4bdd0bc65b5ee2a2ff95fca613a4dc1b5acd1efd0103e70645e65c5f24848142",
+      "bytes": 26542,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "scripts/convert_ardupilot_safety_reports.py",
       "sha256": "sha256:9603c524665a9b38a64a52113383172e46d87035092d5f75011460b4999b9f32",
       "bytes": 20209,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_ardusub_bin_window.py",
+      "sha256": "sha256:d37217870751a79e2905ec536e7bdcfc178d18b02046a38004386202d93c16dc",
+      "bytes": 10382,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_ardusub_session.py",
+      "sha256": "sha256:5147238085ca0aa449624250b0ea1d85ed2a26c7b34eb103c9bc2238473d0181",
+      "bytes": 9665,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_ardusub_session_window.py",
+      "sha256": "sha256:5367d8bb0f02fdceb5c91382fe26ebd53d3ac868356d5f801091a133a216dc44",
+      "bytes": 12108,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_ardusub_vertical_reports.py",
+      "sha256": "sha256:025e34b21e6b20fd60b1c7219fae3ac1cd2f794c9b88bda44036c638b73db3b3",
+      "bytes": 13782,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3932,8 +4298,8 @@
     },
     {
       "path": "scripts/convert_candump_recorded.py",
-      "sha256": "sha256:7b347b8ce52c5308fc52e1a6fc88151fccf63cd773ef610dc83e640f6041fe39",
-      "bytes": 8329,
+      "sha256": "sha256:316204fd77b8da2ebfe29b28686bcedf4fc3803d30a205f5f75647635020947f",
+      "bytes": 11990,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3962,8 +4328,8 @@
     },
     {
       "path": "scripts/convert_dataflash_text.py",
-      "sha256": "sha256:b308e552445e55820b9cd5fc23dda660748a9a51519711c2a9aac6eb0b2bf802",
-      "bytes": 5950,
+      "sha256": "sha256:d042edfe98d9f15a0e1249ad87cb178e4580fbec83aacc336c07dd12ec1827b2",
+      "bytes": 7351,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3974,14 +4340,14 @@
     },
     {
       "path": "scripts/convert_declared_expectation_check.py",
-      "sha256": "sha256:6e6f92a614e1172769889eea6dd63f67be3ea0cc5181db4261edf9ac33bdc700",
-      "bytes": 20617,
+      "sha256": "sha256:583ac4c26156ab2ebe321736646a19f0400812c71b43777652abf311c2a435ab",
+      "bytes": 28303,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "scripts/convert_dronecan_capture.py",
-      "sha256": "sha256:38a30ac5bbfa58735fb5d3f2c99a0ed3f65f9b7529e0f5e622ac047453acbf58",
-      "bytes": 59780,
+      "sha256": "sha256:e5575f49550105c4fc3b2fbc3ffd30479c6839e86a2c05626b78fb5a75529129",
+      "bytes": 89515,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -3994,6 +4360,12 @@
       "path": "scripts/convert_elrs_settings.py",
       "sha256": "sha256:3389182835e8eaaf70e2f34bab563af81bf6f2103fefcdbece158c5159186838",
       "bytes": 20341,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_farmbot_saved_pins.py",
+      "sha256": "sha256:a51b7e0cea32e64abf9f1b1a8e19c2778867b73978b0b0d3aad58cbceb6bea12",
+      "bytes": 8136,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4010,8 +4382,8 @@
     },
     {
       "path": "scripts/convert_gpx_recorded.py",
-      "sha256": "sha256:3b9b2a66040e7a279fc64e7b57f49c28b8e71161ddf545a0e83c7f5ad03a3bf1",
-      "bytes": 38197,
+      "sha256": "sha256:98ae40c9062f7edc37377d4d73894d62385e13c3f843bff21bfe2d7df8b62fd0",
+      "bytes": 57763,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4021,9 +4393,21 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_imc_gzip_window.py",
+      "sha256": "sha256:81c945f967894e7f70fd6066392f76e87ec0c58efbd00b21aa5742390b842d8e",
+      "bytes": 7281,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_imc_sensors.py",
-      "sha256": "sha256:ee1a026911c65fa56c26b8604c9bde341e9dbb6991e0ff636dbf8ad49b1d3a68",
-      "bytes": 59727,
+      "sha256": "sha256:6de38112309c15ba87d5f64c6634698e1ba98d5bbcacaf7e46e4b6fcdf91a13a",
+      "bytes": 88820,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_imc_tcp_recorded.py",
+      "sha256": "sha256:a9d83b64ec4c181dd75abc9be69e19168dec3b197a3d361cf9dc0ac3948a2724",
+      "bytes": 9595,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4081,21 +4465,39 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_moos_alog_window.py",
+      "sha256": "sha256:803c451170b1699475f096142f984135977a228280a5f1f4b4a894487ee7c978",
+      "bytes": 10172,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_moos_declarations.py",
       "sha256": "sha256:66d37f72ac97dae20746747b8dbbcdb8d5b10668b74e98fe21e619ffab5f5f92",
       "bytes": 29022,
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_mqtt_publish_packets.py",
+      "sha256": "sha256:2d5312da0bcc2c6a1dde539e994ba2880a313abc6b4c0359b31577e9c150d804",
+      "bytes": 8602,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_mqtt_recorded.py",
-      "sha256": "sha256:9b25394fe14e8a00dbd1cc34e00cfde73fae96402ec6310122cd2fbc795688b1",
-      "bytes": 24148,
+      "sha256": "sha256:0999a8c12548d7a0bc83dcf8a5c744cda731ffdb5e3c0ecd8f651cb4b129e79b",
+      "bytes": 29941,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_nmea_ascii_window.py",
+      "sha256": "sha256:21d154de0563d85702b37452d94c28ec299d29ed8928e965f4abd2810ab4b866",
+      "bytes": 5117,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "scripts/convert_nmea_wind.py",
-      "sha256": "sha256:ece4e367e374f3f2efe2262352bd989e352098f6912478616cc214777a014b2e",
-      "bytes": 25750,
+      "sha256": "sha256:03ed22bd57ee6efb316051eef4a74efdf601aa0bb11fe907fcbb68c4c1a0b40c",
+      "bytes": 35229,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4114,6 +4516,12 @@
       "path": "scripts/convert_parrot_telemetry_export.py",
       "sha256": "sha256:02eaabecee728e6fead9a89f9e015ffa716ebc5ef6c2ee69896235e56d08ec05",
       "bytes": 11800,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_pcapng_udp.py",
+      "sha256": "sha256:720ca909f6212158198400bef54d7b60f7d2c65ebf07a88b167f94016d91fe72",
+      "bytes": 11029,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4142,8 +4550,8 @@
     },
     {
       "path": "scripts/convert_recorded_angles_csv.py",
-      "sha256": "sha256:54219fd7633a60ea6d439711813b60fd6d7dd17f4224a40edc5870bc4cc5c0a9",
-      "bytes": 4880,
+      "sha256": "sha256:a3c55c42d68b59336ce30e89c1b990b06de74a441ef372c7ee6d4a76861c3600",
+      "bytes": 13568,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4159,6 +4567,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_rmf_websocket_recorded.py",
+      "sha256": "sha256:0127d3e237cbdd879b43ea8622e464f08bbec02aa51a3bfeaeed6f1c11a98c28",
+      "bytes": 9846,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_robotnik_dashboard_state.py",
       "sha256": "sha256:b69e3fd55f6e545a5a9c96526381778ccd2c89b2718e2e75666077111f15a6c8",
       "bytes": 9886,
@@ -4166,8 +4580,20 @@
     },
     {
       "path": "scripts/convert_rosbag_observations.py",
-      "sha256": "sha256:54f9ba61a34f8a99aee0dd0c23309459108da8d9bb146c45b71d9742e63b52e6",
-      "bytes": 158654,
+      "sha256": "sha256:66bef5cd1ac5f499ace27388e2fcd189b40478559dc47b71267bd341e813aed3",
+      "bytes": 193851,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_rosbag_zstd_window.py",
+      "sha256": "sha256:ac7c7ff5ce41bfab21b0fa018f833b23f55ca064a1df85b7e9dec2e06fd348ac",
+      "bytes": 13705,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/convert_rover_saved_bundle.py",
+      "sha256": "sha256:a65a7f96b101b190b2efdfde93c51fd2168c34d38a18b7cdef906954376e36b3",
+      "bytes": 14126,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4250,8 +4676,8 @@
     },
     {
       "path": "scripts/convert_signalk_recorded.py",
-      "sha256": "sha256:7912b1cf55d001b8e6b2b50024ecf976655211e12e424a8ffd6ecc19ece5fedf",
-      "bytes": 10896,
+      "sha256": "sha256:ef4c6c9da509a11abb2322e1ca936832c8ef4f8f8e884365c00977f826c09fdd",
+      "bytes": 18244,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4273,9 +4699,15 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/convert_udp_payload_window.py",
+      "sha256": "sha256:b2f1e90fccfd8973386fe06eb1aebdd9b0e57ffdce97d0cb8a2e1d745c843a1d",
+      "bytes": 6290,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/convert_vda_load_report.py",
-      "sha256": "sha256:97691982d4c6b4df7599efeace4210524323d6398a74b6b82f3469d5e5160a23",
-      "bytes": 23472,
+      "sha256": "sha256:a656cd9bbc8f1fb32c703eda44985ebededab9b564400f5da6b419d5643015c8",
+      "bytes": 35624,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4303,9 +4735,21 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/export_ardupilot_records.py",
+      "sha256": "sha256:d529d312ae35759cbc24ad90c8e5d80784fa61d01ac7d9639b7ab365808d5803",
+      "bytes": 20413,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/export_farmng_eventlog_filter_state.py",
-      "sha256": "sha256:525ec0938ac3834269fb517708e876b72854160c90f01b4e3cae0f2db4109a2d",
-      "bytes": 17594,
+      "sha256": "sha256:a35f2c8b79ac92d2effd9008e4ac86f3f0ad6f0daba50e1126c3d14b86ef921b",
+      "bytes": 18058,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/export_farmng_eventlog_window.py",
+      "sha256": "sha256:a36322aaf0fcbd182f32ced7cf73bc511df32b1bb40541922c1c1eb438e6f0cb",
+      "bytes": 7357,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4339,9 +4783,15 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/recorded_mission_parameters.py",
+      "sha256": "sha256:accb40ea47f7e01a6ac794123bd3f7c1b5927fdb8c1d9eee0555789f265fde78",
+      "bytes": 7397,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "scripts/recorded_units.py",
-      "sha256": "sha256:cce6fd38d67aeff054b5d16e6e8d04dc54850ad25e8ce713e3e722fdb86365fa",
-      "bytes": 1862,
+      "sha256": "sha256:67d3743b78904e50b81908fcdca2dfe4b162cc3bfe15c7991341e8712881d9c1",
+      "bytes": 1902,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4399,9 +4849,33 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "scripts/saved_binary_snapshot.py",
+      "sha256": "sha256:d560740c79f36ee7f7fe234ffafab4f679de481ea5249ee04597c56ad5d94009",
+      "bytes": 2366,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "scripts/select_blackbox_csv_window.py",
+      "sha256": "sha256:f785c9b54303675dcecf8b584995adfacf81552f46c1d7b2024cb3b58acdbbe1",
+      "bytes": 2755,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/__init__.py",
       "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "bytes": 0,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/saved_ardupilot_profiles.py",
+      "sha256": "sha256:a194f57c866ce8d489b0cc809de9fed9de728882195d2872ca997d323bd032a1",
+      "bytes": 306,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/saved_can_window_helpers.py",
+      "sha256": "sha256:7b1d21ec421f2b3a132184a31223935e11547618213dd0d1f3add99e57780b6b",
+      "bytes": 922,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4420,6 +4894,12 @@
       "path": "tests/test_agopen_steering.py",
       "sha256": "sha256:d889e4f942676716a27fbd10818bf1a7bc9e30b67784748a323a46a2d9700375",
       "bytes": 16301,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_agopen_steering_window.py",
+      "sha256": "sha256:5d8bba382eee18e1903d08a3de74c7eae2924100b0ec0fbae7b916a4ba503a23",
+      "bytes": 11330,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4447,15 +4927,93 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_ardupilot_imu_batch.py",
+      "sha256": "sha256:a50acae9844e884ffe4614344eda6f748f93321ebf8c17533f87d97fd2b37d5d",
+      "bytes": 5023,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_ardupilot_mode_conversion.py",
-      "sha256": "sha256:e88b0ff1c88560696b1994e94f86fdc9330a98b7d32023365be6127e5bcd152d",
-      "bytes": 81253,
+      "sha256": "sha256:0de6085ad7fac97abc7128ffe4cb767c0783924c9ad17b6d30c3cb605dda6ad0",
+      "bytes": 83075,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardupilot_record_export.py",
+      "sha256": "sha256:b05f6da374eb42de21a930e4929fec5c050e47ea754d0f3d596715b0d725c0bd",
+      "bytes": 27302,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "tests/test_ardupilot_safety_reports.py",
       "sha256": "sha256:55a8586752ac91354ee207daa9a576f0c5c0c4c4b16cbab3a11d30f334f27b09",
       "bytes": 16323,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardusub_453_session.py",
+      "sha256": "sha256:069a4b81f335752e55b9caab32074b0680e75b1f67dfa462b1ce1607fbee17e0",
+      "bytes": 4450,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardusub_bin_anchor.py",
+      "sha256": "sha256:96408ba3c2a6425b9ed8bf6bf42d44b3fe0d235d37a049de4a3ac81ac6023cf9",
+      "bytes": 4113,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardusub_bin_window.py",
+      "sha256": "sha256:1fef963d1e79b9fb30dad0cd4d829d654348a47512a7af82bde3830087742698",
+      "bytes": 5207,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardusub_session.py",
+      "sha256": "sha256:554e8ef6ca9696b478aec3756dc36dec0b3c58140e94c4ff0256b905293c03f0",
+      "bytes": 5047,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardusub_session_domain.py",
+      "sha256": "sha256:a5374f50ef6c7d8dd7f65d8a069ce01f5c06f742f922b248018c558e76fa4618",
+      "bytes": 3312,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardusub_session_window.py",
+      "sha256": "sha256:6b6f7b7136360232d6348c73c099904ca81426ae6ce6e04f90ea3b99b2cd1caa",
+      "bytes": 4797,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardusub_version_windows.py",
+      "sha256": "sha256:7e0df695d6795c2c4c9fca5f1f7536497f16030f27b99bdc1b92d909273868d0",
+      "bytes": 3823,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardusub_vertical_reports.py",
+      "sha256": "sha256:c1741013fcedcc9cbabb9811ca3946ba9415d250d14983030246f5ab9b684ed4",
+      "bytes": 12935,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardusub_window_anchor.py",
+      "sha256": "sha256:0b016e21a72c8c793f3ee94da960d66853e70d2825e0c116d16c87dc309cb533",
+      "bytes": 5566,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ardusub_window_domain.py",
+      "sha256": "sha256:2d9a5f3e5e4812c226946125ff90be00096c4f105269095661f114244b9b3775",
+      "bytes": 3283,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_blackbox_csv_window.py",
+      "sha256": "sha256:6eaa4238efd90c72c39ef1d6107bcf272c912a8e507a1ec0a0c9c51a31e5765a",
+      "bytes": 6940,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4490,8 +5048,8 @@
     },
     {
       "path": "tests/test_candump_recorded.py",
-      "sha256": "sha256:9b257c32e0c189fcb804ff9d37a1101f5f871ba5dc090845019c9068aced3b2f",
-      "bytes": 6685,
+      "sha256": "sha256:bce9061b4ece1f718adabad10882272587c339f1f36293dc2fef4a3084623f2d",
+      "bytes": 11692,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4531,6 +5089,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_dataflash_text_batch.py",
+      "sha256": "sha256:fb6d34e5d6489461efec3221f67431d23ea7da855848154a7e41088b855499f2",
+      "bytes": 4463,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_dbc_recorded.py",
       "sha256": "sha256:d8dd93689302956d1230d3b5dc893ab226131fca8ed57b9abf976143135aa6eb",
       "bytes": 15377,
@@ -4562,8 +5126,8 @@
     },
     {
       "path": "tests/test_electrical_schema_reuse.py",
-      "sha256": "sha256:a384c8cc768ea35bc1e305fcacaf74a89ab260bebf654031ec9233b4339317f2",
-      "bytes": 205123,
+      "sha256": "sha256:d49c551ad3ec97d5e5153c60eb3b8cc5cf268fa15e4fe39ddc900571a7a04e81",
+      "bytes": 205045,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4582,6 +5146,12 @@
       "path": "tests/test_farmng_eventlog.py",
       "sha256": "sha256:ae3cade11528629d74539b36a130be38a8146c918b1b8075443277a91844934a",
       "bytes": 21418,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_farmng_eventlog_window.py",
+      "sha256": "sha256:1f82d5c6a24ba829fd404c4683f0b57780fc113ad709e49597faece559dbb04a",
+      "bytes": 8499,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4627,6 +5197,24 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_imc_estimated_state.py",
+      "sha256": "sha256:45e510023e1f445e58d3ec936fbe1ac1bdce6f718b462e51669bdddbd323dddc",
+      "bytes": 6256,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_imc_gzip_window.py",
+      "sha256": "sha256:177c116cc232471529c67eb9a7e957a88248ab3b64ace2c0c43f81c26f20c4a9",
+      "bytes": 11200,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_imc_record_window.py",
+      "sha256": "sha256:3562474eb231773a75479adbbfb3ef70b2527d5779932c454319fe260a69de6a",
+      "bytes": 14489,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_imc_schema_application.py",
       "sha256": "sha256:86343082b6d0f63bf55fe8ee30dd1cdf0a55e344e070f023710da300d3f7f127",
       "bytes": 12711,
@@ -4634,8 +5222,26 @@
     },
     {
       "path": "tests/test_imc_sensors.py",
-      "sha256": "sha256:e062202f22cfa522bec389113d2c598999b5bb33db1200db2a65a5a9f23ce392",
-      "bytes": 69764,
+      "sha256": "sha256:234d817f98b243b128874a75f44b4155ec4403e33ad39fdff4190c7483fdc76f",
+      "bytes": 82225,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_imc_source_selection.py",
+      "sha256": "sha256:08c35d6b735ba7ccc70f0fb5bcd28e4869afcf0c9ef357b28b204b8a6644cca7",
+      "bytes": 7990,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_imc_tcp_recorded.py",
+      "sha256": "sha256:8c44d147edbeba328ff09d62afd8537480a1bcc29d0d5e9d91b07c3e8d643d64",
+      "bytes": 6529,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_inav_csv_window.py",
+      "sha256": "sha256:7c6327debc85fc0d5487856ebdc6ee52d8fef2ceebd4df1820768e3b19b04a65",
+      "bytes": 8642,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4717,15 +5323,39 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_mcap_unknown_size.py",
+      "sha256": "sha256:fbe41fdd7168fd41abaf2babdfaaa70c192a3878c241eac059db52011637b5c3",
+      "bytes": 7858,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_moos_alog_window.py",
+      "sha256": "sha256:055e1a373b78af061350248db1b94a631e613a530b7b3ffd5a026bba46d9e3bc",
+      "bytes": 9413,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_moos_declarations.py",
       "sha256": "sha256:bcd0adadda23991751b06b4b80a878c0dae01463a365be1ae538e0305d158575",
       "bytes": 31629,
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_moos_klog_window.py",
+      "sha256": "sha256:555ff3551debc4f1b2216adaad37be115646f477ffaa19e8d6c7fe15971308aa",
+      "bytes": 5014,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_motion_report_composition.py",
       "sha256": "sha256:2e89a57d5342e26a01a873255fb2d9119313b00c0e61e50144d30366b7e488c8",
       "bytes": 9039,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_mqtt_publish_packets.py",
+      "sha256": "sha256:8f38b1756db5403b1a55cd722a9130d7cfd29c24e03c99b29470569f82e5b0ee",
+      "bytes": 9539,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4759,6 +5389,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_nmea_ascii_window.py",
+      "sha256": "sha256:c0d10f2903d5b004297e8fd49a4d701f42ac70a251fa3b161b6665727b8e1f26",
+      "bytes": 4629,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_nmea_wind_conversion.py",
       "sha256": "sha256:9c640ac4f03e5f58d8b4c86a0e8491f3f9cdb4240f9415285b0dda5169570e3d",
       "bytes": 10923,
@@ -4783,9 +5419,39 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_pcapng_udp.py",
+      "sha256": "sha256:b8fe434bfb1a7dc64a9d17ba2ff5905e6963994b4727d05e0c895e8cabfd742d",
+      "bytes": 4396,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_pcapng_window.py",
+      "sha256": "sha256:c28877a52be995a76d37b442c235dd4b1bfd07d82ffa72928b9d854aa0b8f009",
+      "bytes": 4532,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_ping_saved_frames.py",
       "sha256": "sha256:a689d1bef4f35197d2e596367248f5fc178da6435d4348cc5e262eff97a891be",
       "bytes": 11819,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_plane_455_source_binding.py",
+      "sha256": "sha256:ec912608eac850c2bca2d55b6eef8f4c71c862fec86c904c0af05bed49679429",
+      "bytes": 9181,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_plane_copter_att.py",
+      "sha256": "sha256:90f9de132fdb47cc182ee955deeb483c315b3a00ad7709b4e40a5fa09a00202f",
+      "bytes": 2575,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_plane_safety_reports.py",
+      "sha256": "sha256:07c86f769d81719f767f35958fd7ae92138f6350c84360951acbb057aecf8ef2",
+      "bytes": 6187,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4837,6 +5503,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_public_window_samples.py",
+      "sha256": "sha256:6c38cde753280f7760c7e7976ae16048cf9e9f9cdc9c8cb29f214af7c1a571a8",
+      "bytes": 2138,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_px4_battery_conversion.py",
       "sha256": "sha256:4a7e38370ae35800727aad95537d1d78033df06c55def6e0f3855de50dcf535d",
       "bytes": 5399,
@@ -4885,9 +5557,21 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_rmf_websocket_recorded.py",
+      "sha256": "sha256:3945ce9f35830cd21fc6e0b3ec23d5d67db9a1e324a99589b53156f775d74a83",
+      "bytes": 5088,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_robotnik_dashboard_state.py",
       "sha256": "sha256:9f64ec81eda7dc7b6f8d8d4876f9db8eef77295f2d6ab6a3dab9c5107e187d3f",
       "bytes": 14777,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_ros1_window_contract.py",
+      "sha256": "sha256:d3f0223c330f9794007af70c3e16cb2f3ab82cc39cd857ac62e2e76075448d8c",
+      "bytes": 10428,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4898,14 +5582,44 @@
     },
     {
       "path": "tests/test_rosbag_observations.py",
-      "sha256": "sha256:6fb3917ae51359edfba35567e456aa52cd2cbf255ba2dd48d3b3389080b7dc0f",
-      "bytes": 203105,
+      "sha256": "sha256:ba074a6fd1502ab26d05756bb20973a8539f49739b2adaccf179c0eed34b12cf",
+      "bytes": 205909,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_rosbag_zstd_covariance.py",
+      "sha256": "sha256:6141fb0dab841e57de80d758f2c27e2b33c7a1ddcf5f72e8673c0733c546b7d0",
+      "bytes": 8520,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_rosbag_zstd_sensors.py",
+      "sha256": "sha256:413f973f1d2b1fe2d329da4935f2b0ae942bd5ad27b108d319a815ff183a37d1",
+      "bytes": 7849,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_rosbag_zstd_window.py",
+      "sha256": "sha256:c4ed7792146bd45d3565fd89ebba6b37b467cd9e3bd600760c4019827be13e46",
+      "bytes": 10525,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "tests/test_rover_battery_domain.py",
       "sha256": "sha256:139b4e78b399a6919fcd549b0b8bbb88643ee2c4785b1ecee9cbf6faf78b8782",
       "bytes": 6617,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_rover_bundle_surface.py",
+      "sha256": "sha256:976cfa2e3fced8f555ed0de3ac833413d178fdd90848b2586bbfd1d1eb457636",
+      "bytes": 13344,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_rover_saved_bundle.py",
+      "sha256": "sha256:2eaad23d1cd26e5d919648be5b7294b9d1fb173b11d8a66eb3318dfa071d586f",
+      "bytes": 7866,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4975,6 +5689,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_saved_transport_window.py",
+      "sha256": "sha256:a564a25e7f55d54d195cc6ac8aee9da3ff6bc5f05d9f7ad4079b2c8e7b7d0d56",
+      "bytes": 6510,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_saved_video_conditions.py",
       "sha256": "sha256:26b11fd9a04ab1d712b6719d5d14491c1c1ec0dcae5c397b1e4b4ce1472dbec7",
       "bytes": 19428,
@@ -4999,6 +5719,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_signalk_window.py",
+      "sha256": "sha256:be9250896338f3882993245dc09dd93cbb3c45482e7cc2444b8de80261910681",
+      "bytes": 12295,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_skydio_flight_telemetry.py",
       "sha256": "sha256:b725e9ea8d17fa83c608d76554ab7a1c8a67043eea3bfb9cea3985e161442ab4",
       "bytes": 22948,
@@ -5017,9 +5743,21 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "tests/test_udp_payload_window.py",
+      "sha256": "sha256:6a87727b597a2cc80c37a5693895af059fe77fecbd99aeb5d70d24e1ff6b3252",
+      "bytes": 11961,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "tests/test_vda_load_report.py",
-      "sha256": "sha256:514d75ac91f9d387346248619d336e90a328e46e1e848cec2bd3e345fd02cbf4",
-      "bytes": 15861,
+      "sha256": "sha256:6ecb5fec9855d860a1b8d5a4872462b4637c9db42e20bf611a8bc49a9482813c",
+      "bytes": 21644,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "tests/test_vda_load_window.py",
+      "sha256": "sha256:ef8f3fce09e275b3f8b540a06e7cc0ad9dd37eaba1f7a209fe22adcb6d612cb2",
+      "bytes": 10784,
       "spdxLicenseId": "Apache-2.0"
     },
     {

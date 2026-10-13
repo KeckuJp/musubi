@@ -35,9 +35,111 @@ ENGINE_TRIM_SCALE_BASIS = ("PERCENT_AT_SCALE_ONE_ESTABLISHED_BY_THE_PINNED_DECOD
                            "HAS_NONE_SO_THE_REPORTED_SIGNED_COUNT_IS_THE_PERCENT_VALUE")
 ATTITUDE_REFERENCE_BASIS = ("REPORTED_YAW_PITCH_ROLL_RADIANS_THE_PINNED_DECLARATION_STATES_NO_"
                             "REFERENCE_FRAME_NO_AXIS_CONVENTION_AND_NO_TRUE_OR_MAGNETIC_REFERENCE")
+ENGINE_DYNAMIC_SCALARS = (
+    ("engine_oil_pressure_pa", 1, 100, 2, False),
+    ("engine_oil_temperature_k", 3, .1, 2, False),
+    ("engine_temperature_k", 5, .01, 2, False),
+    ("engine_alternator_potential_v", 7, .01, 2, True),
+    ("engine_fuel_rate_l_h", 9, .1, 2, True),
+    ("engine_total_runtime_s", 11, 1, 4, False),
+    ("engine_coolant_pressure_pa", 15, 100, 2, False),
+    ("engine_fuel_pressure_pa", 17, 1000, 2, False),
+    ("engine_load_percent", 24, 1, 1, True),
+    ("engine_torque_percent", 25, 1, 1, True),
+)
+ENGINE_STATUS_1 = ("Check Engine", "Over Temperature", "Low Oil Pressure", "Low Oil Level",
+                   "Low Fuel Pressure", "Low System Voltage", "Low Coolant Level", "Water Flow",
+                   "Water In Fuel", "Charge Indicator", "Preheat Indicator", "High Boost Pressure",
+                   "Rev Limit Exceeded", "EGR System", "Throttle Position Sensor", "Emergency Stop")
+ENGINE_STATUS_2 = ("Warning Level 1", "Warning Level 2", "Power Reduction", "Maintenance Needed",
+                   "Engine Comm Error", "Sub or Secondary Throttle", "Neutral Start Protect", "Engine Shutting Down")
 
 
-def convert_canopen_dictionary(text, capture_time_us):
+COMPACT_PDO_BASIS = "LELY_3_2_0_463cc5bd_COMPACT_DECLARATIONS_NOT_DEVICE_VERIFIED"
+NODEID_EXPRESSION = re.compile(r"\$NODEID(?:\s*\+\s*(-?(?:0[xX][0-9a-fA-F]+|[0-9]+)))?", re.I)
+
+
+def expand_compact_pdo(parser, node_id, number):
+    """Finite saved declaration expansion; no Lely runtime or CAN access."""
+    if type(node_id) is not int or not 1 <= node_id <= 127:
+        raise ValueError("explicit CompactPDO NodeID1..127 required")
+    names = {s.lower(): s for s in parser.sections()}
+    if len(names) != len(parser.sections()) or any(
+            len({k.lower() for k in parser[s]}) != len(parser[s]) for s in parser.sections()):
+        raise ValueError("ambiguous case-insensitive dictionary names")
+    info = parser[names.get("deviceinfo", "DeviceInfo")]
+    for section, keys in ((info, ("CompactPDO", "NrOfRxPDO", "NrOfTxPDO")),
+                          (parser[names["devicecomissioning"]] if "devicecomissioning" in names else {}, ("NodeID",))):
+        for key in keys:
+            source = next((k for k in section if k.lower() == key.lower()), None)
+            if source is not None and source != key:
+                section[key] = section.pop(source)
+    mask = number(info.get("CompactPDO", "0"), 63)
+    if not mask:
+        raise ValueError("nonzero CompactPDO required for selected expansion")
+    commissioning = names.get("devicecomissioning")
+    if commissioning and parser[commissioning].get("NodeID"):
+        if number(parser[commissioning]["NodeID"], 127) != node_id:
+            raise ValueError("NodeID contradicts saved commissioning declaration")
+    generated = []
+    for base, mapping, count_key, direction in ((0x1400, 0x1600, "NrOfRxPDO", "RPDO"),
+                                               (0x1800, 0x1a00, "NrOfTxPDO", "TPDO")):
+        count = number(info.get(count_key, "0"), 512)
+        explicit = {i for i in range(512) if f"{base+i:04x}" in names}
+        if count < len(explicit):
+            raise ValueError("CompactPDO count below explicit objects")
+        needed = count - len(explicit)
+        for i in range(512):
+            if not needed:
+                break
+            if i in explicit:
+                continue
+            name = f"{base+i:04X}"
+            if any(s.startswith(name.lower() + "sub") for s in names):
+                raise ValueError("implicit communication has orphan subobjects")
+            selected = [bit + 1 for bit in range(6) if mask & (1 << bit)]
+            parser[name] = dict(ParameterName=direction + " communication parameter",
+                                ObjectType="9", SubNumber=str(1 + len(selected)))
+            parser[name + "sub0"] = dict(ParameterName="highest sub-index supported",
+                DataType="5", AccessType="const", DefaultValue=str(max(selected)))
+            labels = ("COB-ID", "transmission type", "inhibit time", "reserved or compatibility",
+                      "event timer", "SYNC start value")
+            for sub in selected:
+                value = "0"
+                if sub == 1:
+                    value = (f"$NODEID+0x{(i+1)*256 + (256 if direction == 'RPDO' else 128):X}"
+                             if i < 4 else "0x80000000")
+                parser[name + f"sub{sub}"] = dict(ParameterName=labels[sub - 1],
+                    DataType=str((7, 5, 6, 5, 6, 5)[sub - 1]), AccessType="rw", DefaultValue=value)
+            generated.append(name)
+            map_name = f"{mapping+i:04X}"
+            if map_name.lower() not in names:
+                if any(s.startswith(map_name.lower() + "sub") for s in names):
+                    raise ValueError("implicit mapping has orphan subobjects")
+                parser[map_name] = dict(ParameterName=direction + " mapping parameter",
+                    ObjectType="9", DataType="7", AccessType="rw", CompactSubObj="64", DefaultValue="0")
+                generated.append(map_name)
+            needed -= 1
+    if len(parser.sections()) > 4096:
+        raise ValueError("expanded dictionary section bound")
+    for section in parser.sections():
+        for key in ("DefaultValue", "ParameterValue"):
+            value = parser[section].get(key, "")
+            if "$" not in value:
+                continue
+            match = NODEID_EXPRESSION.fullmatch(value)
+            if not match:
+                raise ValueError("unsupported NodeID expression")
+            offset = match[1] or "0"
+            resolved = node_id + int(offset, 16 if "x" in offset.lower() else 10)
+            if not 0 <= resolved <= 0xffffffff:
+                raise ValueError("NodeID expression outside uint32")
+            parser[section]["MusubiOriginal" + key] = value
+            parser[section][key] = str(resolved)
+    return generated
+
+
+def convert_canopen_dictionary(text, capture_time_us, *, compact_pdo_node_id=None):
     """Read object declarations only; never evaluate expressions or access a node."""
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63 or len(text.encode()) > 256000:
         raise ValueError("bounded dictionary and explicit capture clock required")
@@ -63,14 +165,17 @@ def convert_canopen_dictionary(text, capture_time_us):
              16: ("INTEGER24", 24), 17: ("REAL64", 64), 18: ("INTEGER40", 40), 19: ("INTEGER48", 48),
              20: ("INTEGER56", 56), 21: ("INTEGER64", 64), 22: ("UNSIGNED24", 24),
              24: ("UNSIGNED40", 40), 25: ("UNSIGNED48", 48), 26: ("UNSIGNED56", 56), 27: ("UNSIGNED64", 64)}
+    compact_generated = []
+    if compact_pdo_node_id is not None:
+        try:
+            compact_generated = expand_compact_pdo(parser, compact_pdo_node_id, number)
+        except KeyError as error:
+            raise ValueError("CompactPDO DeviceInfo missing") from error
     for section in parser.sections():
         if section.lower() != "deviceinfo":
             continue
         for option, value in parser.items(section):
-            # DS306 4.6.3.4.1/5.3.3.1: a non-zero CompactPDO bitmask means PDO objects are *implicit* -
-            # their mapping words are not in the file and their types/defaults come from CiA301, which
-            # this repo does not pin. Refuse rather than emit a dictionary with those objects missing.
-            if option.lower() == "compactpdo" and number(value, 255):
+            if option.lower() == "compactpdo" and number(value, 255) and compact_pdo_node_id is None:
                 raise ValueError("implicit CompactPDO definitions are not expanded")
     entries = {}
     for section in parser.sections():
@@ -139,6 +244,8 @@ def convert_canopen_dictionary(text, capture_time_us):
     fields = ["record_time_us", "object_index", "object_subindex", "object_name_hex", "object_kind",
               "object_type_code", "data_type_code", "data_type_reported", "declared_bit_width",
               "access_reported", "pdo_mappable_declared", "declaration_status", "source_section_hex"]
+    if compact_pdo_node_id is not None:
+        fields += ["compact_pdo_basis", "compact_pdo_node_id"]
     writer = csv.DictWriter(output, fields, lineterminator="\n"); writer.writeheader()
     for (index, subindex), (values, kind) in entries.items():
         if subindex is not None and ((index, None) not in entries or entries[index, None][1] not in (8, 9)):
@@ -147,7 +254,7 @@ def convert_canopen_dictionary(text, capture_time_us):
         if kind in (2, 7) and (data_type is None or "AccessType" not in values):
             raise ValueError("variable declaration lacks type or access")
         if "SubNumber" in values and not number(values.get("CompactSubObj", "0"), 255):
-            count = sum(i == index and s is not None for i, s in entries)
+            count = sum(i == index and s is not None and s != 255 for i, s in entries)
             if number(values["SubNumber"], 256) != count:
                 raise ValueError("declared subentry count mismatch")
         name, width = types.get(data_type, ("UNKNOWN" if data_type is not None else "NOT_DECLARED", None))
@@ -157,15 +264,23 @@ def convert_canopen_dictionary(text, capture_time_us):
             data_type_code=data_type, data_type_reported=name, declared_bit_width=width,
             access_reported=values.get("AccessType", "").lower(),
             pdo_mappable_declared=number(values.get("PDOMapping", "0"), 1),
-            declaration_status=("COMPACT_EXPANDED_NOT_DEVICE_VERIFIED" if (index, subindex) in expanded
+            declaration_status=("UNQUALIFIED_SUBINDEX_FF" if subindex == 255
+                else "COMPACT_EXPANDED_NOT_DEVICE_VERIFIED" if (index, subindex) in expanded
                 else "COMPACT_TEMPLATE_EXPANDED" if (index, 0) in expanded and subindex is None
                 else "COMPACT_NOT_EXPANDED" if number(values.get("CompactSubObj", "0"), 255)
                 else "DECLARED_NOT_DEVICE_VERIFIED"),
-            source_section_hex="hex:" + json.dumps(values, ensure_ascii=False, separators=(",", ":")).encode().hex()))
+            source_section_hex="hex:" + json.dumps(values, ensure_ascii=False, separators=(",", ":")).encode().hex(),
+            **({"compact_pdo_basis": COMPACT_PDO_BASIS, "compact_pdo_node_id": compact_pdo_node_id}
+               if compact_pdo_node_id is not None else {})))
     if not entries:
         raise ValueError("no explicit dictionary entries")
-    return output.getvalue(), dict(observations=len(entries), sections=len(parser.sections()),
+    report = dict(observations=len(entries), sections=len(parser.sections()),
         source_document_hex="hex:" + text.encode().hex(), scope="declarations only; no expressions or node access")
+    if compact_pdo_node_id is not None:
+        report.update(compact_pdo_basis=COMPACT_PDO_BASIS, compact_pdo_node_id=compact_pdo_node_id,
+                      compact_generated_objects=compact_generated,
+                      scope="fixed decoder declarations; finite NodeID expression; no node access")
+    return output.getvalue(), report
 FIELDS = list(NORMALIZED) + [
     "battery_temperature_k", "battery_remaining_energy_j", "battery_health_fraction",
     "node_uptime_s", "node_reported_health", "node_health_code", "node_reported_mode",
@@ -192,15 +307,14 @@ IDENTITY_BASIS = ("SELF_REPORTED_DECLARATION_BY_THE_SOURCE_NODE_NOT_AUTHENTICATE
                   "VERIFIED_FIRMWARE_IMAGE_BOUND_ONLY_BY_SOURCE_NODE_ID_WITHIN_THIS_CAPTURE")
 
 
-def convert_canopen_pdo(text, dictionary, cob_id, mapping_index, *, bit_fields=False, booleans=False):
+def convert_canopen_pdo(text, dictionary, cob_id, mapping_index, *, bit_fields=False, booleans=False,
+                        compact_pdo_node_id=None):
     """Caller-qualified saved TPDO; no node, SDO or configuration application."""
     if type(booleans) is not bool:
         raise ValueError("explicit Boolean selection required")
     if type(cob_id) is not int or not 1 <= cob_id <= 0x7ff or type(mapping_index) is not int or not 0x1a00 <= mapping_index <= 0x1bff:
         raise ValueError("explicit standard COB-ID and TPDO map required")
-    # Reuse the adopted dictionary validation; its capture zero is internal only,
-    # never an Observation time. Actual rows use the saved frame's capture clock.
-    declared, dictionary_report = convert_canopen_dictionary(dictionary, 0)
+    declared, dictionary_report = convert_canopen_dictionary(dictionary, 0, compact_pdo_node_id=compact_pdo_node_id)
     entries = {}
     for row in csv.DictReader(io.StringIO(declared)):
         key = (int(row["object_index"]), int(row["object_subindex"]) if row["object_subindex"] else None)
@@ -213,7 +327,29 @@ def convert_canopen_pdo(text, dictionary, cob_id, mapping_index, *, bit_fields=F
         if result > 0xffffffff:
             raise ValueError("mapping value exceeds uint32")
         return result
+    communication_check = None
     try:
+        if compact_pdo_node_id is not None:
+            if literal(entries[mapping_index - 0x200, 1][1]) != cob_id:
+                raise ValueError("selected COB-ID contradicts expanded communication declaration")
+        elif (mapping_index - 0x200, 1) in entries:
+            row, values = entries[mapping_index - 0x200, 1]
+            if row["data_type_code"] != "7":
+                raise ValueError("declared TPDO COB-ID must be UNSIGNED32")
+            if NODEID_EXPRESSION.fullmatch(values.get("ParameterValue", values.get("DefaultValue", ""))):
+                communication_check = "DECLARED_EXPRESSION_NOT_EVALUATED_CALLER_QUALIFIED"
+            else:
+                try:
+                    declared = literal(values)
+                except ValueError as error:
+                    raise ValueError("declared TPDO COB-ID is not a uint32 literal or NodeID expression") from error
+                if declared & 0x80000000:
+                    raise ValueError("selected TPDO is declared not valid")
+                if declared & 0x3ffff800:
+                    raise ValueError("declared TPDO COB-ID is not a classic 11-bit identifier")
+                if declared & 0x7ff != cob_id:
+                    raise ValueError("selected COB-ID contradicts declared TPDO communication parameter")
+                communication_check = "DECLARED_COB_ID_MATCHES_SELECTION"
         if entries[mapping_index, 0][0]["data_type_code"] != "5":
             raise ValueError("mapping count must be UNSIGNED8")
         count = literal(entries[mapping_index, 0][1])
@@ -268,6 +404,8 @@ def convert_canopen_pdo(text, dictionary, cob_id, mapping_index, *, bit_fields=F
     fields += ["mapped_bit_offset", "mapped_bit_width"]
     if booleans:
         fields += ["boolean_reported"]
+    if compact_pdo_node_id is not None:
+        fields += ["compact_pdo_basis", "compact_pdo_node_id"]
     output = io.StringIO(newline=""); writer = csv.DictWriter(output, fields, lineterminator="\n"); writer.writeheader()
     report = dict(dictionary_report, dictionary_sha256=digest, frames=0, decoded_frames=0,
                   output_records=0, unsupported_frames=[], qualification="caller-configured TPDO and python Unit/Factor extensions; not device verified")
@@ -275,6 +413,8 @@ def convert_canopen_pdo(text, dictionary, cob_id, mapping_index, *, bit_fields=F
     # retained padding. In the byte-aligned float mode the padding is zero, and saying so is what
     # makes "no unmapped loss" checkable rather than assumed.
     report.update(mapped_bits=total, retained_padding_bits=(-total) % 8)
+    if communication_check is not None:
+        report.update(pdo_communication_check=communication_check)
     report_bytes = len(json.dumps(report).encode())
     for line, original, timestamp, identifier, payload in capture_rows(text, extended=False):
         report["frames"] += 1
@@ -301,6 +441,8 @@ def convert_canopen_pdo(text, dictionary, cob_id, mapping_index, *, bit_fields=F
                        data_type_code=datatype, raw_value=value if math.isfinite(value) else "NONFINITE",
                        configured_unit=unit, configured_factor=factor, quantity_status="NONFINITE_RETAINED")
             row.update(mapped_bit_offset=offset, mapped_bit_width=bits)
+            if compact_pdo_node_id is not None:
+                row.update(compact_pdo_basis=COMPACT_PDO_BASIS, compact_pdo_node_id=compact_pdo_node_id)
             offset += bits
             if datatype == 1:
                 row.update(boolean_reported="TRUE" if value else "FALSE",
@@ -439,18 +581,23 @@ def meanings(type_id, payload, actuator_layout=None):
     return [result[key] for key in FIELDS]
 
 
-def capture_rows(text, *, extended, fd=False):
+def capture_rows(text, *, extended, fd=False, data_only=False):
     """Shared bounded selected-frame export parsing; never opens a CAN device."""
     if len(text.encode()) > 16 * 1024 * 1024 or '"' in text:
         raise ValueError("unsupported capture representation or size")
     rows = list(csv.reader(io.StringIO(text)))
     id_column = "extended_id" if extended else "standard_id"
-    if len(rows) < 2 or rows[0] != ["time_us", id_column, *(["fd_flags"] if fd else []), "data_hex"]:
+    if data_only and (extended or fd):
+        raise ValueError("explicit DATA selection requires classic standard frames")
+    extra = ["frame_type"] if data_only else ["fd_flags"] if fd else []
+    if len(rows) < 2 or rows[0] != ["time_us", id_column, *extra, "data_hex"]:
         raise ValueError("expected explicit selected CAN export")
     previous = None
     for line, row in enumerate(rows[1:], 2):
-        if len(row) != (4 if fd else 3):
+        if len(row) != (4 if fd or data_only else 3):
             raise ValueError("ragged frame record")
+        if data_only and row[2] != "DATA":
+            raise ValueError("explicit DATA frame required; RTR is not a response")
         timestamp = integer(row[0], 2**63 - 1, "capture time")
         if previous is not None and timestamp < previous:
             raise ValueError("decreasing capture time")
@@ -555,8 +702,44 @@ def parse_layout(entries):
     return layout
 
 
-def convert_canopen(text, *, include_emergency=False):
+CANOPEN_CONSUMER_SOURCE = "canopennode-v4.1-hbconsumer"
+CANOPEN_GUARDING_SOURCE = "canopennode-v4.1-node-guarding"
+CANOPEN_CONFIGURED_BASIS = ("CALLER_QUALIFIED_CANopenNode_v4.1_CONFIGURABLE_EFFECTIVE_OD1014_READ_"
+                            "NODE_MAPPING_NOT_PAYLOAD_REPORTED_OR_AUTHENTICATED")
+
+
+def configured_emergency_layout(entries):
+    """Explicit enabled OD1014 read values, never stored default-base inference."""
+    if not isinstance(entries, (list, tuple)) or not 1 <= len(entries) <= 127:
+        raise ValueError("configured emergency requires 1..127 explicit node:value entries")
+    layout = {}
+    for entry in entries:
+        if not isinstance(entry, str) or not re.fullmatch(
+                r"(?:[0-9]{1,3}|0x[0-9a-fA-F]{1,2}):(?:[0-9]{1,10}|0x[0-9a-fA-F]{1,8})", entry):
+            raise ValueError("configured emergency expects NODE:OD1014_READ_VALUE")
+        node, value = (int(part, 16 if part.startswith("0x") else 10) for part in entry.split(":"))
+        restricted = (value <= 0x7f or 0x101 <= value <= 0x180 or 0x581 <= value <= 0x5ff
+                      or 0x601 <= value <= 0x67f or 0x6e0 <= value <= 0x6ff or value >= 0x701)
+        if not 1 <= node <= 127 or value > 0x7ff or value == 0x80 or restricted:
+            raise ValueError("disabled, flagged, restricted or ambiguous effective EMCY configuration")
+        if node in layout.values() or value in layout:
+            raise ValueError("duplicate configured node or emergency CAN-ID")
+        layout[value] = node
+    return layout
+
+
+def convert_canopen(text, *, include_emergency=False, emergency_source=None, guarding_source=None,
+                    emergency_layout=None):
     """Explicit CANopen CC heartbeat data-frame export; no node/transport creation."""
+    if emergency_source is not None and (emergency_source != CANOPEN_CONSUMER_SOURCE or not include_emergency):
+        raise ValueError("consumer meaning requires the exact source and emergency selection")
+    if guarding_source is not None and (guarding_source != CANOPEN_GUARDING_SOURCE
+                                        or include_emergency or emergency_source is not None):
+        raise ValueError("guarding requires its exact source without emergency selection")
+    configured = emergency_layout is not None
+    if configured and (not include_emergency or emergency_source is not None or guarding_source is not None):
+        raise ValueError("configured emergency requires emergency selection without other source modes")
+    layout = configured_emergency_layout(emergency_layout) if configured else {}
     output = io.StringIO(newline="")
     fields = ["record_time_us", "source_node_id", "node_reported_mode", "canopen_state_code", "source_frames_hex"]
     error_names = ["generic", "current", "voltage", "temperature", "communication", "device_profile", "reserved", "manufacturer"]
@@ -569,24 +752,58 @@ def convert_canopen(text, *, include_emergency=False):
     # is nonconformant, so the bit is retained and labelled as such, never discarded and never read as a
     # vendor fault.
     error_fields += ["canopen_error_" + name + "_reported" for name in error_names]
+    consumer_fields = (["canopen_source_basis", "canopen_error_condition_index", "canopen_info_code",
+                        "canopen_consumer_event", "canopen_monitored_slot", "canopen_consumer_scope"]
+                       if emergency_source is not None else [])
     if include_emergency:
-        fields += error_fields
+        fields += error_fields + consumer_fields
+    if guarding_source is not None:
+        fields += ["canopen_guarding_source_basis", "canopen_guarding_toggle", "canopen_guarding_raw_byte"]
+    if configured:
+        fields += ["canopen_emergency_cob_id", "canopen_address_basis"]
     writer = csv.writer(output, lineterminator="\n")
     writer.writerow(fields)
     report = {"frames": 0, "decoded_frames": 0, "unsupported_frames": []}
-    for _line, row, timestamp, identifier, payload in capture_rows(text, extended=False):
+    if emergency_source is not None:
+        report.update(canopen_emergency_source=emergency_source, consumer_event_rows=0,
+                      consumer_uninterpreted_rows=0)
+    if guarding_source is not None:
+        report["guarding_source"] = guarding_source
+    if configured:
+        report.update(configured_emergency_source=CANOPEN_CONFIGURED_BASIS,
+                      configured_emergency_layout=[dict(node_id=node, effective_cob_id=canid)
+                                                   for canid, node in layout.items()])
+    for _line, row, timestamp, identifier, payload in capture_rows(
+            text, extended=False, data_only=guarding_source is not None or configured):
         report["frames"] += 1
         retained = "hex:" + json.dumps([row], separators=(",", ":")).encode().hex()
-        if include_emergency and 0x81 <= identifier <= 0xff:
-            if len(row[2]) != 16:
+        if include_emergency and (identifier in layout if configured else 0x81 <= identifier <= 0xff):
+            if len(payload) != 8:
                 raise ValueError("invalid emergency payload length")
             code, register = int.from_bytes(payload[:2], "little"), payload[2]
-            writer.writerow([timestamp, identifier - 0x80, "", "", retained,
+            consumer = []
+            if emergency_source is not None:
+                condition, info = payload[3], int.from_bytes(payload[4:], "little")
+                event, slot, scope = "UNINTERPRETED_SOURCE_PATTERN", "", "UNINTERPRETED"
+                if condition in (0x1b, 0x1c):
+                    if code == 0x8130 and info <= 254:
+                        event = ("HEARTBEAT_CONSUMER_TIMEOUT_REPORTED" if condition == 0x1b
+                                 else "REMOTE_RESET_REPORTED")
+                        slot, scope = info, "MONITORED_ARRAY_SLOT_NOT_NODE_ID"
+                    elif code == 0 and info == 0:
+                        event = ("HEARTBEAT_CONSUMER_TIMEOUT_RESET_REPORTED" if condition == 0x1b
+                                 else "REMOTE_RESET_CONDITION_RESET_REPORTED")
+                        scope = "AGGREGATE_CONDITION_RESET_NOT_NODE_RECOVERY"
+                key = "consumer_uninterpreted_rows" if event == "UNINTERPRETED_SOURCE_PATTERN" else "consumer_event_rows"
+                report[key] += 1
+                consumer = [emergency_source, condition, info, event, slot, scope]
+            writer.writerow([timestamp, layout[identifier] if configured else identifier - 0x80, "", "", retained,
                 code, "ERROR_RESET_REPORTED" if code == 0 else "ERROR_REPORTED", register,
                 "RESERVED_BIT6_SET_NONCONFORMANT_TRANSMITTER_REPORT_RETAINED" if register & 0x40
                 else "ALL_DEFINED_REGISTER_BITS",
                 "hex:" + payload[3:].hex()]
-                + [int(bool(register & (1 << bit))) for bit in range(8)])
+                + [int(bool(register & (1 << bit))) for bit in range(8)] + consumer
+                + ([identifier, CANOPEN_CONFIGURED_BASIS] if configured else []))
             report["decoded_frames"] += 1
             if output.tell() > 16 * 1024 * 1024:
                 raise ValueError("converted CSV too large")
@@ -594,14 +811,19 @@ def convert_canopen(text, *, include_emergency=False):
         if not 0x701 <= identifier <= 0x77f:
             report["unsupported_frames"].append(row)
             continue
-        if len(row[2]) != 2:
+        if len(payload) != 1:
             raise ValueError("invalid heartbeat payload length")
-        code = int(row[2], 16)
-        if code & 0x80:
+        raw_code = payload[0]
+        if raw_code & 0x80 and guarding_source is None:
             raise ValueError("reserved heartbeat bit or node-guarding frame")
+        code = raw_code & 0x7f if guarding_source is not None else raw_code
         state = {0: "BOOT_UP", 4: "STOPPED", 5: "OPERATIONAL", 127: "PRE_OPERATIONAL"}.get(code, f"UNKNOWN_{code}")
+        if guarding_source is not None and code == 0:
+            state = "INITIALIZING"
         writer.writerow([timestamp, identifier - 0x700, state, code, retained]
-                        + ([""] * len(error_fields) if include_emergency else []))
+                        + ([""] * (len(error_fields) + len(consumer_fields)) if include_emergency else [])
+                        + ([guarding_source, raw_code >> 7, raw_code] if guarding_source is not None else [])
+                        + (["", "DEFAULT_HEARTBEAT_WIRE_ADDRESS_NOT_AUTHENTICATED"] if configured else []))
         report["decoded_frames"] += 1
         if output.tell() > 16 * 1024 * 1024:
             raise ValueError("converted CSV too large")
@@ -610,8 +832,48 @@ def convert_canopen(text, *, include_emergency=False):
     return output.getvalue(), report
 
 
+def _bam_step(pending, row, timestamp, identifier, payload, select, valid, error):
+    """One frame of the adopted global BAM reconstruction (Open-SAE-J1939 4360e08b).
+
+    Returns None when the frame is not BAM traffic for a known transfer, "unselected" for an
+    announcement of an unselected PGN, "consumed", or the completed transfer dict.
+    """
+    pgn = (identifier >> 8) & 0x3ffff
+    source = identifier & 255
+    if pgn == 0xecff:
+        if source in pending:
+            raise ValueError("overlapping source transport")
+        if len(payload) != 8:
+            raise ValueError("invalid transport announcement length")
+        target = int.from_bytes(payload[5:8], "little")
+        if payload[0] != 32 or not select(target):
+            return "unselected"
+        size = int.from_bytes(payload[1:3], "little")
+        if not valid(target, size, payload[3], payload[4]):
+            raise ValueError(error)
+        pending[source] = dict(size=size, packets=payload[3], pgn=target,
+                               first=timestamp, rows=[row], data=bytearray(), next=1)
+        return "consumed"
+    if pgn == 0xebff and source in pending:
+        transfer = pending[source]
+        if len(payload) != 8 or payload[0] != transfer["next"]:
+            raise ValueError("missing, duplicate or reordered transport packet")
+        transfer["rows"].append(row)
+        transfer["data"].extend(payload[1:])
+        transfer["next"] += 1
+        if payload[0] == transfer["packets"]:
+            if any(value != 255 for value in transfer["data"][transfer["size"]:]):
+                raise ValueError("non-reserved transport padding")
+            del pending[source]
+            return dict(transfer, source=source)
+        return "consumed"
+    return None
+
+
 def diagnostic_messages(text, report, bam):
     pending = {}
+    dm_valid = lambda target, size, count, reserved: (
+        10 <= size <= 1785 and not (size - 2) % 4 and count == (size + 6) // 7 and reserved == 255)
     for line, row, timestamp, identifier, payload in capture_rows(text, extended=True):
         report["frames"] += 1
         pgn = (identifier >> 8) & 0x3ffff
@@ -619,42 +881,125 @@ def diagnostic_messages(text, report, bam):
         if pgn in (65226, 65227):
             if len(payload) != 8 or payload[6:] != b"\xff\xff":
                 raise ValueError("not the selected single-frame DM layout")
-            yield timestamp, timestamp, source, pgn, payload[:6], [row], line
-        elif bam and pgn == 0xecff:
-            if source in pending:
-                raise ValueError("overlapping source transport")
-            if len(payload) != 8:
-                raise ValueError("invalid transport announcement length")
-            target = int.from_bytes(payload[5:8], "little")
-            if payload[0] != 32 or target not in (65226, 65227):
-                report["unsupported_frames"].append(dict(line=line, source=row, reason="unselected transport"))
-                continue
-            size = int.from_bytes(payload[1:3], "little")
-            if not 10 <= size <= 1785 or (size - 2) % 4 or payload[3] != (size + 6) // 7 or payload[4] != 255:
-                raise ValueError("invalid diagnostic BAM declaration")
-            pending[source] = dict(size=size, packets=payload[3], pgn=target,
-                                   first=timestamp, rows=[row], data=bytearray(), next=1)
-        elif bam and pgn == 0xebff and source in pending:
-            transfer = pending[source]
-            if len(payload) != 8 or payload[0] != transfer["next"]:
-                raise ValueError("missing, duplicate or reordered transport packet")
-            transfer["rows"].append(row)
-            transfer["data"].extend(payload[1:])
-            transfer["next"] += 1
-            if payload[0] == transfer["packets"]:
-                size = transfer["size"]
-                if any(value != 255 for value in transfer["data"][size:]):
-                    raise ValueError("non-reserved transport padding")
-                del pending[source]
-                yield timestamp, transfer["first"], source, transfer["pgn"], bytes(transfer["data"][:size]), transfer["rows"], line
-        else:
+            yield timestamp, timestamp, source, pgn, payload[:6], [row], line, None
+            continue
+        step = (_bam_step(pending, row, timestamp, identifier, payload, lambda target: target in (65226, 65227),
+                          dm_valid, "invalid diagnostic BAM declaration") if bam else None)
+        if step == "unselected":
+            report["unsupported_frames"].append(dict(line=line, source=row, reason="unselected transport"))
+        elif isinstance(step, dict):
+            yield (timestamp, step["first"], source, step["pgn"], bytes(step["data"][:step["size"]]),
+                   step["rows"], line, None)
+        elif step is None:
             report["unsupported_frames"].append(dict(line=line, source=row, reason="unselected PGN or orphan transport"))
     if pending:
         raise ValueError("incomplete selected diagnostic transport")
 
 
-def convert_j1939(text, *, bam=False):
+RTS_BASIS = "SAVED_RTS_CTS1_ACK_NOT_PHYSICAL_DELIVERY"
+RTS_GRANT_BASIS = "SAVED_RTS_CTS_GRANTS_ACK_NOT_PHYSICAL_DELIVERY"
+MAX_J1939_REPORT = 16 * 1024 * 1024
+
+
+class _RtsTransfer:
+    """Adopted addressed RTS/CTS-grant/EndOfMsgACK reconstruction for one sender/receiver pair."""
+
+    def __init__(self, source, destination, select, valid):
+        self.source, self.destination = source, destination
+        self.select, self.valid = select, valid
+        self.forward_cm = 0x1cec0000 | destination << 8 | source
+        self.reverse_cm = 0x1cec0000 | source << 8 | destination
+        self.forward_dt = 0x1ceb0000 | destination << 8 | source
+        self.pending = None
+
+    def step(self, row, timestamp, identifier, payload, report):
+        """Returns "unselected", "consumed" or the completed transfer tuple; refuses otherwise."""
+        pending = self.pending
+        if identifier not in (self.forward_cm, self.reverse_cm, self.forward_dt) or len(payload) != 8:
+            raise ValueError("selected transport direction, priority or length mismatch")
+        if (identifier >> 16) & 255 == 0xec:
+            target = int.from_bytes(payload[5:8], "little")
+            if not self.select(target):
+                if pending:
+                    raise ValueError("selected pending transfer PGN mismatch")
+                return "unselected"
+            code = payload[0]
+            if code == 16:
+                size = int.from_bytes(payload[1:3], "little")
+                count = payload[3]
+                if (pending or identifier != self.forward_cm or count != (size + 6) // 7 or payload[4] == 0
+                        or not self.valid(target, size)):
+                    raise ValueError("overlap or invalid selected RTS")
+                self.pending = dict(size=size, packets=count, pgn=target, first=timestamp, maximum=payload[4],
+                                    rows=[row], data=bytearray(), next=1, granted=0, grants=[], state="CTS")
+                return "consumed"
+            if not pending or target != pending["pgn"] or identifier != self.reverse_cm:
+                raise ValueError("orphan or mismatched selected control")
+            if code == 17:
+                if (pending["state"] != "CTS" or not 1 <= payload[1] <= pending["maximum"]
+                        or payload[1] > pending["packets"] - pending["next"] + 1
+                        or payload[2] != pending["next"] or payload[3:5] != b"\xff\xff"):
+                    raise ValueError("missing, duplicate or unsupported CTS window")
+                pending["rows"].append(row)
+                pending["grants"].append([payload[2], payload[1]])
+                pending["granted"] = payload[1]
+                pending["state"] = "DT"
+                return "consumed"
+            if code == 19:
+                if (pending["state"] != "ACK" or int.from_bytes(payload[1:3], "little") != pending["size"]
+                        or payload[3] != pending["packets"] or payload[4] != 255):
+                    raise ValueError("incomplete or mismatched end acknowledgment")
+                pending["rows"].append(row)
+                report["completed_transfers"] += 1
+                single = pending["maximum"] == 1 and len(pending["grants"]) == pending["packets"]
+                self.pending = None
+                return (timestamp, pending["first"], self.source, target,
+                        bytes(pending["data"][:pending["size"]]), pending["rows"],
+                        dict(basis=RTS_BASIS if single else RTS_GRANT_BASIS, packets=pending["packets"],
+                             maximum=pending["maximum"], grants=pending["grants"], completion=pending["completion"]))
+            raise ValueError("aborted or unsupported selected control")
+        if not pending or pending["state"] != "DT" or payload[0] != pending["next"]:
+            raise ValueError("orphan, missing, duplicate or reordered selected data")
+        pending["rows"].append(row)
+        pending["data"].extend(payload[1:])
+        pending["next"] += 1
+        pending["granted"] -= 1
+        if not pending["granted"]:
+            pending["state"] = "CTS"
+        if payload[0] == pending["packets"]:
+            if any(value != 255 for value in pending["data"][pending["size"]:]):
+                raise ValueError("non-reserved selected transport padding")
+            pending["completion"] = row[0]
+            pending["state"] = "ACK"
+        return "consumed"
+
+
+def diagnostic_rts_messages(text, report, pair):
+    """Strict saved RTS/CTS-grant/ACK exchanges at the reference pin; never creates control frames."""
+    transfer = _RtsTransfer(pair[0], pair[1], lambda target: target in (65226, 65227),
+                            lambda target, size: 10 <= size <= 1782 and not (size - 2) % 4)
+    for line, row, timestamp, identifier, payload in capture_rows(text, extended=True):
+        report["frames"] += 1
+        address_pair = (identifier & 255, (identifier >> 8) & 255)
+        transport = (identifier >> 16) & 255
+        if address_pair not in (pair, pair[::-1]) or transport not in (0xec, 0xeb):
+            report["unsupported_frames"].append(dict(line=line, source=row, reason="unselected addressed transport"))
+            continue
+        result = transfer.step(row, timestamp, identifier, payload, report)
+        if result == "unselected":
+            report["unsupported_frames"].append(dict(line=line, source=row, reason="unselected transported PGN"))
+        elif isinstance(result, tuple):
+            yield result[:6] + (line,) + result[6:]
+    if transfer.pending:
+        raise ValueError("incomplete selected RTS/CTS diagnostic transfer")
+
+
+def convert_j1939(text, *, bam=False, rts_pair=None):
     """Fixed single-frame DM1/DM2, method0, recorded reports (not diagnosis)."""
+    if rts_pair is not None and (bam or type(rts_pair) is not tuple or len(rts_pair) != 2
+            or any(type(value) is not int or not 0 <= value <= 253 for value in rts_pair)
+            or rts_pair[0] == rts_pair[1]):
+        raise ValueError("explicit distinct source/destination pair required without BAM")
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
     lamps = ["malfunction_indicator", "red_stop", "amber_warning", "protect"]
@@ -670,11 +1015,29 @@ def convert_j1939(text, *, bam=False):
               "fmi_reported", "fmi_reported_name", "occurrence_count_code", "source_frames_hex",
               "dtc_index", "declared_dtc_count", "first_frame_time_us"]
     fields += [f"{name}_{kind}_code" for kind in ("lamp", "flash") for name in lamps]
+    if rts_pair is not None:
+        fields += ["j1939_destination_node_id", "transport_basis", "transport_packet_count", "payload_completion_time_us",
+                   "source_transfer_index", "source_transfer_sha256"]
     writer.writerow(fields)
     report = {"frames": 0, "decoded_frames": 0, "unsupported_frames": [],
               "observations": 0, "unsupported_dtcs": [], "zero_spn_reports": 0}
-    for timestamp, first, source, pgn, payload, rows, line in diagnostic_messages(text, report, bam):
+    if rts_pair is not None:
+        report.update(completed_transfers=0, transport_basis=RTS_BASIS, clock="Unknown", transfers=[])
+    messages = (diagnostic_messages(text, report, bam) if rts_pair is None
+                else diagnostic_rts_messages(text, report, rts_pair))
+    for timestamp, first, source, pgn, payload, rows, line, transport in messages:
         retained = "hex:" + json.dumps(rows, separators=(",", ":")).encode().hex()
+        if rts_pair is not None:
+            transfer_index = len(report["transfers"])
+            transfer_sha = "sha256:" + hashlib.sha256(bytes.fromhex(retained[4:])).hexdigest()
+            report["transfers"].append(dict(source_transfer_index=transfer_index,
+                source_transfer_sha256=transfer_sha, source_frames_hex=retained,
+                source_node_id=source, j1939_destination_node_id=rts_pair[1], j1939_pgn=pgn,
+                first_frame_time_us=first, payload_completion_time_us=int(transport["completion"]), record_time_us=timestamp,
+                transport_basis=transport["basis"], rts_max_packets=transport["maximum"], cts_grants_next_count=transport["grants"]))
+            if transport["basis"] != RTS_BASIS:
+                report["transport_basis"] = RTS_GRANT_BASIS
+            retained = ""
         count = (len(payload) - 2) // 4
         decoded = False
         for index in range(count):
@@ -697,7 +1060,9 @@ def convert_j1939(text, *, bam=False):
             meaning = fmi_names[fmi] if fmi < len(fmi_names) else ("NOT_AVAILABLE" if fmi == 31 else f"UNKNOWN_{fmi}")
             writer.writerow([timestamp, source, pgn, kind, spn, fmi, meaning, dtc[3] & 127,
                              retained, index, count, first]
-                            + [(value >> shift) & 3 for value in payload[:2] for shift in (6,4,2,0)])
+                            + [(value >> shift) & 3 for value in payload[:2] for shift in (6,4,2,0)]
+                            + ([] if rts_pair is None else
+                               [rts_pair[1], transport["basis"], transport["packets"], transport["completion"], transfer_index, transfer_sha]))
             decoded = True
             report["observations"] += 1
             if output.tell() > 16 * 1024 * 1024:
@@ -708,6 +1073,105 @@ def convert_j1939(text, *, bam=False):
             report["unsupported_frames"].extend(dict(completed_at_line=line, source=row, reason="no qualified DTC") for row in rows)
     if not report["decoded_frames"]:
         raise ValueError("no qualified diagnostic report")
+    if rts_pair is not None and len((json.dumps(report, indent=2) + "\n").encode()) > MAX_J1939_REPORT:
+        raise ValueError("RTS accounting report exceeds bound")
+    return output.getvalue(), report
+
+
+def nmea2000_scalar(row, payload, name, offset, scale, *, size=2, signed=False):
+    """Shared selected NUMBER/TopOfRange quantity; never applied to BITLOOKUP."""
+    raw = int.from_bytes(payload[offset:offset + size], "little", signed=signed)
+    missing = (1 << (size * 8 - int(signed))) - 1
+    status = ("NOT_AVAILABLE" if raw == missing
+              else "OUT_OF_RANGE_REPORTED" if raw == missing - 1
+              else "RESERVED_RANGE_REPORTED" if raw == missing - 2
+              else "REPORTED")
+    row[name + "_status"] = status
+    if status == "REPORTED":
+        row[name] = raw * scale
+
+
+def convert_nmea2000_engine_dynamic(text):
+    """Only saved PGN127489 ordered four-fragment reports; no general Fast Packet engine."""
+    fields = ["record_time_us", "first_frame_time_us", "source_node_id", "nmea2000_pgn",
+              "fast_packet_sequence", "packet_index", "packet_frame_count", "source_packet_hex",
+              "source_frames_hex", "instance_code", "engine_instance_reported",
+              "engine_percent_scale_basis", "reserved_field_code", "reserved_field_disposition",
+              "engine_discrete_status_1_code", "engine_discrete_status_1_reported_hex",
+              "engine_discrete_status_2_code", "engine_discrete_status_2_reported_hex",
+              "engine_discrete_status_2_unknown_bits"]
+    fields += [field for name, *_ in ENGINE_DYNAMIC_SCALARS for field in (name, name + "_status")]
+    output = io.StringIO(newline="")
+    writer = csv.DictWriter(output, fields, lineterminator="\n")
+    writer.writeheader()
+    report = dict(frames=0, decoded_frames=0, completed_packets=0, observations=0,
+                  unsupported_frames=[], clock="Unknown")
+    pending, retained_size = {}, 0
+
+    def encoded(value):
+        return "hex:" + json.dumps(value, separators=(",", ":")).encode().hex()
+
+    for line, original, timestamp, identifier, frame in capture_rows(text, extended=True):
+        report["frames"] += 1
+        pgn, source = (identifier >> 8) & 0x3ffff, identifier & 255
+        if pgn != 127489:
+            entry = dict(line=line, source=original, reason="unselected PGN")
+            retained_size += len(json.dumps(entry))
+            if retained_size > 16 * 1024 * 1024:
+                raise ValueError("unsupported report exceeds bound")
+            report["unsupported_frames"].append(entry)
+            continue
+        if len(frame) != 8:
+            raise ValueError("selected dynamic fragment requires eight bytes")
+        sequence, index = frame[0] >> 5, frame[0] & 31
+        key = (source, sequence)
+        if index == 0:
+            if frame[1] != 26 or key in pending:
+                raise ValueError("wrong dynamic packet size or overlapping start")
+            if len(pending) >= 64:
+                raise ValueError("dynamic pending packet bound")
+            pending[key] = dict(identifier=identifier, next=1, first=timestamp,
+                                rows=[original], data=bytearray(frame[2:]))
+            continue
+        transfer = pending.get(key)
+        if transfer is None or index != transfer["next"] or identifier != transfer["identifier"]:
+            raise ValueError("orphan, duplicate, reordered or crossed dynamic fragment")
+        transfer["rows"].append(original)
+        transfer["data"].extend(frame[1:7] if index == 3 else frame[1:])
+        transfer["next"] += 1
+        if index != 3:
+            continue
+        payload = bytes(transfer["data"])
+        if len(payload) != 26:
+            raise ValueError("dynamic payload length mismatch")
+        row = dict(record_time_us=timestamp, first_frame_time_us=transfer["first"],
+            source_node_id=source, nmea2000_pgn=pgn, fast_packet_sequence=sequence,
+            packet_index=report["completed_packets"], packet_frame_count=4,
+            source_packet_hex="hex:" + payload.hex(), source_frames_hex=encoded(transfer["rows"]),
+            instance_code=payload[0], engine_instance_reported=ENGINE_INSTANCE.get(
+                payload[0], f"UNKNOWN_INSTANCE_CODE_{payload[0]}"),
+            engine_percent_scale_basis=ENGINE_TRIM_SCALE_BASIS,
+            reserved_field_code=payload[19], reserved_field_disposition="ALL_BITS_SET_AS_DECLARED"
+            if payload[19] == 255 else "NONCONFORMANT_RESERVED_BITS_RETAINED")
+        for name, offset, scale, size, signed in ENGINE_DYNAMIC_SCALARS:
+            nmea2000_scalar(row, payload, name, offset, scale, size=size, signed=signed)
+        for number, offset, labels in ((1, 20, ENGINE_STATUS_1), (2, 22, ENGINE_STATUS_2)):
+            mask = int.from_bytes(payload[offset:offset + 2], "little")
+            row[f"engine_discrete_status_{number}_code"] = mask
+            row[f"engine_discrete_status_{number}_reported_hex"] = encoded(
+                [label for bit, label in enumerate(labels) if mask & (1 << bit)])
+        row["engine_discrete_status_2_unknown_bits"] = row["engine_discrete_status_2_code"] & 0xff00
+        writer.writerow(row)
+        if output.tell() > 16 * 1024 * 1024:
+            raise ValueError("converted CSV exceeds bound")
+        report["decoded_frames"] += 4
+        report["completed_packets"] += 1
+        report["observations"] += 1
+        del pending[key]
+    if pending:
+        raise ValueError("incomplete selected dynamic packet at EOF")
+    if not report["completed_packets"]:
+        raise ValueError("no selected dynamic packet")
     return output.getvalue(), report
 
 
@@ -782,15 +1246,7 @@ def convert_nmea2000_weather(text, *, heading=False, battery=False, attitude=Fal
             applied to every group here rather than to the engine group alone. Enumerated code
             fields are untouched: this rule is about numbers.
             """
-            raw = int.from_bytes(payload[offset:offset + size], "little", signed=signed)
-            missing = (1 << (size * 8 - int(signed))) - 1
-            status = ("NOT_AVAILABLE" if raw == missing
-                      else "OUT_OF_RANGE_REPORTED" if raw == missing - 1
-                      else "RESERVED_RANGE_REPORTED" if raw == missing - 2
-                      else "REPORTED")
-            row[name + "_status"] = status
-            if status == "REPORTED":
-                row[name] = raw * scale
+            nmea2000_scalar(row, payload, name, offset, scale, size=size, signed=signed)
 
         if pgn == 127250:
             scalar("heading_rad", 1, .0001)
@@ -869,21 +1325,36 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("new_output_directory", type=Path)
-    parser.add_argument("--protocol", choices=("dronecan", "canopen-heartbeat", "canopen-default-status", "canopen-dictionary", "canopen-pdo-python", "j1939-dm-single", "j1939-dm-bam", "nmea2000-weather", "nmea2000-heading", "nmea2000-battery", "nmea2000-attitude", "nmea2000-engine-rapid"), default="dronecan")
+    parser.add_argument("--protocol", choices=("dronecan", "canopen-heartbeat", "canopen-default-status", "canopen-node-guarding", "canopen-dictionary", "canopen-pdo-python", "j1939-dm-single", "j1939-dm-bam", "j1939-dm-rts", "nmea2000-weather", "nmea2000-heading", "nmea2000-battery", "nmea2000-attitude", "nmea2000-engine-rapid", "nmea2000-engine-dynamic"), default="dronecan")
+    parser.add_argument("--rts-source", type=int, help="explicit recorded sender address, not authentication")
+    parser.add_argument("--rts-destination", type=int, help="explicit recorded receiver address, never contacted")
     parser.add_argument("--pdo-dictionary", type=Path)
     parser.add_argument("--pdo-id", type=lambda value: int(value, 0))
     parser.add_argument("--pdo-map", type=lambda value: int(value, 0))
     parser.add_argument("--pdo-bit-fields", action="store_true", help="explicit configured integer bit mappings; no device access")
     parser.add_argument("--pdo-boolean", action="store_true", help="explicit saved Boolean reports; no physical-state inference")
+    parser.add_argument("--compact-pdo-node-id", type=int, help="opt-in fixed Lely3.2.0 declaration expansion, NodeID1..127")
     parser.add_argument("--capture-time-us", type=int, help="explicit capture clock for untimed dictionary only")
+    parser.add_argument("--canopen-emergency-source", choices=(CANOPEN_CONSUMER_SOURCE,),
+                        help="explicit caller-qualified HBconsumer writer; not firmware authentication")
+    parser.add_argument("--canopen-emergency-layout", action="append", metavar="NODE:OD1014_READ_VALUE",
+                        help="caller-qualified v4.1 configurable effective EMCY mapping; saved DATA only")
     parser.add_argument("--actuator", action="append", default=[], metavar="ID:linear|angular",
                         help="explicit configured feedback units; never sends actuator commands")
     args = parser.parse_args()
     try:
+        if args.protocol != "j1939-dm-rts" and (args.rts_source is not None or args.rts_destination is not None):
+            raise ValueError("RTS address selection requires its explicit protocol")
+        if args.canopen_emergency_source is not None and args.protocol != "canopen-default-status":
+            raise ValueError("CANopen consumer source applies only to default emergency status")
+        if args.canopen_emergency_layout is not None and args.protocol != "canopen-default-status":
+            raise ValueError("configured emergency layout requires CANopen status selection")
         with args.input.open(encoding="utf-8", newline="") as source:
             text = source.read(256001 if args.protocol == "canopen-dictionary" else 16 * 1024 * 1024 + 1)
         if args.capture_time_us is not None and args.protocol != "canopen-dictionary":
             raise ValueError("capture override is not valid for recorded frames")
+        if args.compact_pdo_node_id is not None and args.protocol not in ("canopen-dictionary", "canopen-pdo-python"):
+            raise ValueError("CompactPDO option requires dictionary or PDO selector")
         if args.protocol != "canopen-pdo-python" and (args.pdo_bit_fields or args.pdo_boolean or any(value is not None for value in (args.pdo_dictionary, args.pdo_id, args.pdo_map))):
             raise ValueError("PDO configuration requires its explicit selector")
         if args.protocol == "canopen-pdo-python":
@@ -892,11 +1363,16 @@ def main():
             with args.pdo_dictionary.open(encoding="utf-8", newline="") as source:
                 dictionary = source.read(256001)
             converted, report = convert_canopen_pdo(text, dictionary, args.pdo_id, args.pdo_map,
-                                                  bit_fields=args.pdo_bit_fields, booleans=args.pdo_boolean)
+                bit_fields=args.pdo_bit_fields, booleans=args.pdo_boolean, compact_pdo_node_id=args.compact_pdo_node_id)
         elif args.protocol == "canopen-dictionary":
             if args.actuator:
                 raise ValueError("actuator mapping is not a dictionary option")
-            converted, report = convert_canopen_dictionary(text, args.capture_time_us)
+            converted, report = convert_canopen_dictionary(text, args.capture_time_us,
+                compact_pdo_node_id=args.compact_pdo_node_id)
+        elif args.protocol == "nmea2000-engine-dynamic":
+            if args.actuator:
+                raise ValueError("actuator layout is not a dynamic engine option")
+            converted, report = convert_nmea2000_engine_dynamic(text)
         # nmea2000-attitude was reachable as a choice but missing from this guard, so the CLI sent
         # it to the DroneCAN converter and it failed; nmea2000-engine-rapid is added with it.
         elif args.protocol in ("nmea2000-weather", "nmea2000-heading", "nmea2000-battery",
@@ -908,14 +1384,18 @@ def main():
                 battery=args.protocol == "nmea2000-battery",
                 attitude=args.protocol == "nmea2000-attitude",
                 engine=args.protocol == "nmea2000-engine-rapid")
-        elif args.protocol in ("j1939-dm-single", "j1939-dm-bam"):
+        elif args.protocol in ("j1939-dm-single", "j1939-dm-bam", "j1939-dm-rts"):
             if args.actuator:
                 raise ValueError("actuator layout is not a diagnostic option")
-            converted, report = convert_j1939(text, bam=args.protocol == "j1939-dm-bam")
+            converted, report = convert_j1939(text, bam=args.protocol == "j1939-dm-bam",
+                rts_pair=(args.rts_source, args.rts_destination) if args.protocol == "j1939-dm-rts" else None)
         elif args.protocol.startswith("canopen-"):
             if args.actuator:
                 raise ValueError("actuator layout is not a CANopen heartbeat option")
-            converted, report = convert_canopen(text, include_emergency=args.protocol == "canopen-default-status")
+            converted, report = convert_canopen(text, include_emergency=args.protocol == "canopen-default-status",
+                                               emergency_source=args.canopen_emergency_source,
+                                               emergency_layout=args.canopen_emergency_layout,
+                                               guarding_source=CANOPEN_GUARDING_SOURCE if args.protocol == "canopen-node-guarding" else None)
         else:
             converted, report = convert(text, actuator_layout=parse_layout(args.actuator))
         args.new_output_directory.mkdir()  # Preserve existing inputs and evidence.

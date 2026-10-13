@@ -1,0 +1,50 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "capture_microseconds_unknown_basis_not_guard_time_or_event_onset",
+      "basis": "declared"
+    },
+    "source_node_id": {
+      "meaning": "source_node_id",
+      "unit": "reported_default_CAN_address_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "node_reported_mode": {
+      "meaning": "node_reported_mode",
+      "unit": "reported_NMT_state_not_physical_liveness_INITIALIZING_is_not_heartbeat_BOOT_UP",
+      "basis": "declared"
+    },
+    "canopen_state_code": {
+      "meaning": "canopen_state_code",
+      "unit": "reported_lower7bit_NMT_state_unknown_codes_retained_not_command",
+      "basis": "declared"
+    },
+    "source_frames_hex": {
+      "meaning": "source_frames_hex",
+      "unit": "hex_UTF8_JSON_original_four_column_DATA_capture_rows",
+      "basis": "declared"
+    },
+    "canopen_guarding_source_basis": {
+      "meaning": "canopen_guarding_source_basis",
+      "unit": "caller_qualified_CANopenNode_v4.1_default_node_guarding_DATA_response_not_auto_detected_from_heartbeat_or_firmware_authenticated",
+      "basis": "declared"
+    },
+    "canopen_guarding_toggle": {
+      "meaning": "canopen_guarding_toggle",
+      "unit": "reported_bit7_0_or_1_not_loss_liveness_recovery_or_request_response_validation",
+      "basis": "declared"
+    },
+    "canopen_guarding_raw_byte": {
+      "meaning": "canopen_guarding_raw_byte",
+      "unit": "reported_entire_response_byte_including_toggle",
+      "basis": "declared"
+    }
+  }
+}

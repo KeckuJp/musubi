@@ -60,6 +60,8 @@ pub enum PlatformDomain {
     Surface,
     /// On the ground: uncrewed ground vehicles, fixed sensors and the like.
     Ground,
+    /// Underwater, explicitly declared by the adapter.
+    Subsurface,
     /// Domain not declared by the adapter.
     #[default]
     Unknown,

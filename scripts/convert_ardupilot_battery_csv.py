@@ -8,6 +8,7 @@ import csv
 import io
 import json
 import hashlib
+from decimal import Decimal
 from datetime import datetime, timezone
 import math
 from pathlib import Path
@@ -21,11 +22,11 @@ except ModuleNotFoundError:
 DJI_FORMAT = "dji-m3-osd-4ec6"
 ROBOTNIK_FORMAT = "robotnik-battery-status-json"
 FACTSHEET_FORMAT = "vda-factsheet-3.0"
-# VDA5050 connection topic, one explicit selector per pinned version. The two versions do NOT share an
-# enum - 2.1.0 has ONLINE/OFFLINE/CONNECTIONBROKEN, 3.0.0 renames the last one and adds HIBERNATING - so a
-# version is always declared and never inferred from a payload that merely looks similar.
-CONNECTION_FORMATS = {"vda-connection-2.1": "2.1.0", "vda-connection-3.0": "3.0.0"}
-CONNECTION_STATES = {"2.1.0": ("ONLINE", "OFFLINE", "CONNECTIONBROKEN"),
+FACTSHEET_21_FORMAT = "vda-factsheet-2.1"
+FACTSHEET_FORMATS = {FACTSHEET_FORMAT: "3.0.0", FACTSHEET_21_FORMAT: "2.1.0"}
+CONNECTION_FORMATS = {"vda-connection-2.0": "2.0.0", "vda-connection-2.1": "2.1.0", "vda-connection-3.0": "3.0.0"}
+CONNECTION_STATES = {"2.0.0": ("ONLINE", "OFFLINE", "CONNECTIONBROKEN"),
+                     "2.1.0": ("ONLINE", "OFFLINE", "CONNECTIONBROKEN"),
                      "3.0.0": ("ONLINE", "OFFLINE", "HIBERNATING", "CONNECTION_BROKEN")}
 DOCKER_FORMAT = "docker-stats-27.3.1-linux"
 DOCKER_STATE_FORMAT = "docker-inspect-state-27.3.1"
@@ -44,6 +45,11 @@ TEGRA_FIELDS = ("tegrastats_record_kind", "tegrastats_cpu_index", "tegrastats_bl
     "tegrastats_reported_power_average_w", "tegrastats_unselected_token_count",
     "tegrastats_value_disposition", "tegrastats_source_sha256")
 ORT_FORMAT = "onnxruntime-profile-1.20.1"
+NVDLA_FIELDS = ("nvdla_instance_index", "nvdla_utilization_fraction", "nvdla_frequency_hz",
+                "nvdla_field_presence", "nvdla_basis")
+NVDLA_BASIS = ("REPORTED_NVDLA_UTILIZATION_AND_OR_FREQUENCY_NOT_PERFORMANCE_"
+               "period_and_model_UNSPECIFIED_missing_is_not_zero_or_disabled_"
+               "caller_capture_clock_Unknown_not_inference_execution_proof")
 TRT_FORMAT = "tensorrt-times-10.7"
 HAILO_FORMAT = "hailort-infer-csv-5.4.0"
 HAILO_FORMAT_424 = "hailort-infer-csv-4.24.0"
@@ -141,6 +147,9 @@ ATTITUDE_PROTO = "mavsdk-attitude-protobuf"
 ATTITUDE_GRPC = "mavsdk-attitude-grpc"
 ATTITUDE_FORMATS = (ATTITUDE_JSON, ATTITUDE_PROTO, ATTITUDE_GRPC)
 ATTITUDE_WIRE = (ATTITUDE_PROTO, ATTITUDE_GRPC)
+VELOCITY_GRPC = "mavsdk-velocity-ned-grpc"
+VELOCITY_FIELDS = ("reported_velocity_north_m_s", "reported_velocity_east_m_s",
+                   "reported_velocity_down_m_s", "velocity_ned_basis")
 ATTITUDE_FIELDS = ("attitude_roll_rad", "attitude_pitch_rad", "attitude_yaw_rad",
                    "attitude_angle_basis", "attitude_device_time_us", "attitude_device_time_basis")
 # EulerAngle at the pinned proto states its unit, a per-axis sign and its rotation sequence, and
@@ -171,12 +180,8 @@ INAV_GPS = ("gpsFix", "gpsNumSat", "gpsLat", "gpsLon", "gpsAlt", "gpsSpeed", "gp
 # frame nor fix validity follows from it.
 INAV_ANGLE_BASIS = ("DEG_FROM_THE_SAME_PINNED_CONFIGURATOR_GPS_TAB_DISPLAY_OF_THIS_DIVIDED_VALUE"
                     "_NO_DATUM_DECLARED_ANYWHERE_AND_NOT_A_FIX_VALIDITY_STATEMENT")
-# gps.js labels `GPS_DATA.alt` "m" (line 163) and `GPS_DATA.speed` "cm/s" (line 166) and displays
-# ground course nowhere. Those labels exist but are deliberately not applied here, so the three
-# cells stay raw and the altitude datum stays unverified; this states that rather than claiming
-# the pin is silent about all three.
-INAV_UNSCALED_BASIS = ("ALTITUDE_SPEED_COURSE_RAW_NO_UNIT_APPLIED_HERE_SAME_PIN_DISPLAYS_ALT_AS_M"
-                       "_AND_SPEED_AS_CM_PER_S_UNADOPTED_COURSE_NEVER_DISPLAYED_NO_DATUM")
+INAV_UNSCALED_BASIS = ("RAW_CODE_CELLS_NO_UNIT_APPLIED_HERE_ALT_M_AND_SPEED_CM_PER_S"
+                       "_QUALIFIED_SEPARATELY_COURSE_NEVER_DISPLAYED_NO_DATUM")
 INAV_FIELDS = ("battery_voltage_v", "battery_current_a", "battery_consumed_ah", "battery_power_w",
                "battery_current_sign_basis", "inav_rssi_code_reported", "inav_rssi_basis",
                "reported_roll_rad", "reported_pitch_rad", "reported_yaw_rad",
@@ -186,6 +191,8 @@ INAV_FIELDS = ("battery_voltage_v", "battery_current_a", "battery_consumed_ah", 
                "inav_gps_satellites_reported", "inav_gps_altitude_code_reported",
                "inav_gps_speed_code_reported", "inav_gps_ground_course_code_reported",
                "inav_gps_unscaled_basis",
+               "inav_gps_altitude_m_reported", "inav_gps_speed_m_s_reported",
+               "inav_gps_altitude_datum", "inav_gps_navigation_unit_basis",
                "inav_value_basis", "source_header_hex")
 PING_FIELDS = ("sonar_reported_distance_m", "sonar_confidence_code", "sonar_reported_confidence_fraction",
     "sonar_confidence_status", "sonar_message_id", "sonar_source_device_id", "sonar_transmit_duration_s",
@@ -217,6 +224,14 @@ FACTSHEET_QUANTITIES = (("minimumSpeed", "minimum_speed_m_s"), ("maximumSpeed", 
     ("minimumAngularSpeed", "minimum_angular_speed_rad_s"), ("maximumAngularSpeed", "maximum_angular_speed_rad_s"))
 FACTSHEET_FIELDS = ("factsheet_basis", "factsheet_manufacturer_hex", "factsheet_serial_hex",
     *["declared_" + name for _, name in FACTSHEET_QUANTITIES], "declared_maximum_load_mass_kg")
+GEOMETRY_FIELDS = ("geometry_row_kind", "geometry_source_record_index", "geometry_source_sha256",
+    "geometry_status", "geometry_wheel_count", "geometry_envelope_count", "geometry_unconverted_3d_count",
+    "geometry_unknown_key_count", "geometry_item_index", "geometry_vertex_index", "geometry_vertex_count",
+    "geometry_id_hex", "geometry_description_hex", "geometry_frame_basis", "geometry_topology_basis",
+    "geometry_wheel_type_hex", "geometry_wheel_type_status", "geometry_active_driven", "geometry_active_steered",
+    "geometry_x_m", "geometry_y_m", "geometry_theta_rad", "geometry_diameter_m", "geometry_width_m",
+    "geometry_center_displacement_reported_m", "geometry_center_displacement_effective_m",
+    "geometry_center_displacement_basis", "geometry_constraints_hex")
 CONNECTION_BASIS_VEHICLE = ("REPORTED_BY_THE_VEHICLE_ON_THE_CONNECTION_TOPIC_NOT_PHYSICAL_RF_CONNECTIVITY_"
                             "NOT_LIVENESS_NOW_NOT_AUTHENTICATION_AND_NOT_A_DELIVERY_GUARANTEE")
 CONNECTION_BASIS_BROKER = ("BROKER_LAST_WILL_REGISTERED_BY_THE_VEHICLE_AT_CONNECT_SO_THE_SPEC_SAYS_ITS_"
@@ -249,10 +264,10 @@ CELL_REQUIRED = ("TimeUS", "Volt", *[f"V{i}" for i in range(1, 11)])
 CELL_FIELDS = ("battery_bank_selected", *[f"battery_cell_{i}_v" for i in range(1, 11)],
                *[f"battery_cell_{i}_status" for i in range(1, 11)])
 FORMATS = ("ardupilot-bat", "ardupilot-bat-inst", "ardupilot-bat-4.3", "px4-battery",
-           "vda-state-1.1", "vda-state-2.0", "vda-state-2.1", "vda-state-3.0", *CONNECTION_FORMATS, "ros-battery-json", "farmbot-state", "mavsdk-battery-json", INAV_FORMAT, GUTMA_FORMAT, DJI_FORMAT, ROBOTNIK_FORMAT, FACTSHEET_FORMAT, DOCKER_FORMAT, DOCKER_STATE_FORMAT, TEGRA_FORMAT, ORT_FORMAT, TRT_FORMAT, TRT_PROFILE_FORMAT, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, MIR_FORMAT, FARM_POINT_FORMAT, FARM_DIGITAL_FORMAT, FARMDUINO_FORMAT, PING_FORMAT, PARROT_FORMAT, MSDK_FORMAT, PROTO_FORMAT, GRPC_FORMAT, *ATTITUDE_FORMATS, *CELL_FORMATS, *CELL43_FORMATS)
+           "vda-state-1.1", "vda-state-2.0", "vda-state-2.1", "vda-state-3.0", *CONNECTION_FORMATS, "ros-battery-json", "farmbot-state", "mavsdk-battery-json", INAV_FORMAT, GUTMA_FORMAT, DJI_FORMAT, ROBOTNIK_FORMAT, FACTSHEET_FORMAT, FACTSHEET_21_FORMAT, DOCKER_FORMAT, DOCKER_STATE_FORMAT, TEGRA_FORMAT, ORT_FORMAT, TRT_FORMAT, TRT_PROFILE_FORMAT, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, MIR_FORMAT, FARM_POINT_FORMAT, FARM_DIGITAL_FORMAT, FARMDUINO_FORMAT, PING_FORMAT, PARROT_FORMAT, MSDK_FORMAT, PROTO_FORMAT, GRPC_FORMAT, *ATTITUDE_FORMATS, *CELL_FORMATS, *CELL43_FORMATS)
 MAVSDK_FIELDS = ("battery_id_reported", "battery_temperature_k", "battery_time_remaining_s",
                  "battery_function_reported")
-FORMATS += (HAILO_FORMAT, HAILO_FORMAT_424)
+FORMATS += (HAILO_FORMAT, HAILO_FORMAT_424, VELOCITY_GRPC)
 BAT_DETAIL_FIELDS = ("battery_resting_voltage_estimate_v", "battery_resistance_estimate_ohm",
                      "battery_temperature_k", "battery_temperature_state",
                      "battery_health_reported", "battery_state_of_health_fraction")
@@ -296,9 +311,26 @@ def number(value, name):
 
 
 def convert(text: str, source_format: str = "ardupilot-bat", *, vda_actions=False, vda_errors=False,
-            bat_details=False, allow_missing_voltage=False, capture_time_us=None) -> str:
+            bat_details=False, allow_missing_voltage=False, capture_time_us=None, vda_geometry=False,
+            tegrastats_nvdla=False, px4_remaining_time=False, inav_course_basis=None,
+            gutma_position_basis=None, ros_battery_basis=None) -> str:
+    if ros_battery_basis is not None and (source_format != "ros-battery-json" or
+            ros_battery_basis != "clearpath-estimator-ac11c88a"):
+        raise ValueError("battery basis requires explicit fixed Clearpath estimator selection")
+    if gutma_position_basis is not None and (source_format != GUTMA_FORMAT or
+            gutma_position_basis != "openflight-fe9ca495"):
+        raise ValueError("position requires explicit qualified OpenFlight consumer")
+    if inav_course_basis is not None and (source_format != INAV_FORMAT or
+            inav_course_basis != "inav-7.1.0-aa854365-ublox"):
+        raise ValueError("course requires explicit qualified INAV UBLOX source pair")
     if source_format not in FORMATS:
         raise ValueError("unsupported source format")
+    if type(px4_remaining_time) is not bool or (px4_remaining_time and source_format != "px4-battery"):
+        raise ValueError("remaining time requires explicit PX4 battery selection")
+    if type(tegrastats_nvdla) is not bool or (tegrastats_nvdla and source_format != TEGRA_FORMAT):
+        raise ValueError("NVDLA requires selected tegrastats format and boolean option")
+    if type(vda_geometry) is not bool or (vda_geometry and source_format not in FACTSHEET_FORMATS):
+        raise ValueError("geometry requires selected VDA3.0 factsheet and boolean option")
     if allow_missing_voltage and source_format != "ros-battery-json":
         raise ValueError("missing voltage policy requires qualified ROS BatteryState")
     if bat_details and source_format not in ("ardupilot-bat-4.3", "ardupilot-bat-inst"):
@@ -309,8 +341,8 @@ def convert(text: str, source_format: str = "ardupilot-bat", *, vda_actions=Fals
         raise ValueError("selected VDA 1.1 action details are not qualified")
     if vda_actions and not source_format.startswith("vda-state-"):
         raise ValueError("action expansion requires selected VDA state version")
-    if vda_errors and source_format not in ("vda-state-2.1", "vda-state-3.0"):
-        raise ValueError("error detail expansion requires VDA2.1 or3.0")
+    if vda_errors and source_format not in ("vda-state-2.0", "vda-state-2.1", "vda-state-3.0"):
+        raise ValueError("error detail expansion requires VDA2.0,2.1 or3.0")
     if source_format in HAILO_FRAME_BASIS:
         return convert_hailo_profile(text, capture_time_us, source_format)
     if source_format in (ORT_FORMAT, TRT_FORMAT, TRT_PROFILE_FORMAT):
@@ -318,12 +350,15 @@ def convert(text: str, source_format: str = "ardupilot-bat", *, vda_actions=Fals
     if capture_time_us is not None:
         raise ValueError("capture time option requires runtime profile")
     if source_format == INAV_FORMAT:
-        return convert_inav_logging(text)
+        return convert_inav_logging(text, course_basis=inav_course_basis)
+    if source_format == VELOCITY_GRPC:
+        return convert_json(text, source_format)
     if source_format == GUTMA_FORMAT:
-        return convert_gutma_flight_logging(text)
-    if source_format.startswith("vda-state-") or source_format in (*CONNECTION_FORMATS, "ros-battery-json", "farmbot-state", "mavsdk-battery-json", DJI_FORMAT, ROBOTNIK_FORMAT, FACTSHEET_FORMAT, DOCKER_FORMAT, DOCKER_STATE_FORMAT, TEGRA_FORMAT, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, MIR_FORMAT, FARM_POINT_FORMAT, FARM_DIGITAL_FORMAT, FARMDUINO_FORMAT, PING_FORMAT, PARROT_FORMAT, MSDK_FORMAT, PROTO_FORMAT, GRPC_FORMAT, *ATTITUDE_FORMATS):
+        return convert_gutma_flight_logging(text, position_basis=gutma_position_basis)
+    if source_format.startswith("vda-state-") or source_format in (*CONNECTION_FORMATS, "ros-battery-json", "farmbot-state", "mavsdk-battery-json", DJI_FORMAT, ROBOTNIK_FORMAT, *FACTSHEET_FORMATS, DOCKER_FORMAT, DOCKER_STATE_FORMAT, TEGRA_FORMAT, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, MIR_FORMAT, FARM_POINT_FORMAT, FARM_DIGITAL_FORMAT, FARMDUINO_FORMAT, PING_FORMAT, PARROT_FORMAT, MSDK_FORMAT, PROTO_FORMAT, GRPC_FORMAT, *ATTITUDE_FORMATS):
         return convert_json(text, source_format, vda_actions=vda_actions, vda_errors=vda_errors,
-                            allow_missing_voltage=allow_missing_voltage)
+                            allow_missing_voltage=allow_missing_voltage, vda_geometry=vda_geometry,
+                            tegrastats_nvdla=tegrastats_nvdla, ros_battery_basis=ros_battery_basis)
     cells_layout = source_format in (*CELL_FORMATS, *CELL43_FORMATS)
     cells43 = source_format in CELL43_FORMATS
     extension_cells = source_format == "ardupilot-bcl2-4.3"
@@ -345,6 +380,8 @@ def convert(text: str, source_format: str = "ardupilot-bat", *, vda_actions=Fals
     if len(rows) < 2:
         raise ValueError("missing header or data")
     header = rows[0]
+    if px4_remaining_time and "time_remaining_s" not in header:
+        raise ValueError("selected PX4 writer remaining-time column required")
     if (len(set(header)) != len(header) or any(not c or c != c.strip() for c in header)
             or any(c.startswith("battery_") or '(' in c or ')' in c for c in header)
             or not set(required).issubset(header)):
@@ -352,7 +389,8 @@ def convert(text: str, source_format: str = "ardupilot-bat", *, vda_actions=Fals
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
     writer.writerow(header + list(NORMALIZED) + (list(cell_fields) if cells_layout else [])
-                    + (list(BAT_DETAIL_FIELDS) if bat_details else []))
+                    + (list(BAT_DETAIL_FIELDS) if bat_details else [])
+                    + (["battery_time_remaining_s", "battery_time_remaining_basis"] if px4_remaining_time else []))
     previous = None
     for row in rows[1:]:
         if len(row) != len(header):
@@ -400,6 +438,14 @@ def convert(text: str, source_format: str = "ardupilot-bat", *, vda_actions=Fals
         if not all(v is None or math.isfinite(v) for v in normalized):
             raise ValueError("normalized value overflow")
         details = bat_reported_details(values, source_format) if bat_details else []
+        if px4_remaining_time:
+            raw_time = values["time_remaining_s"]
+            reserve = None if raw_time.lower() == "nan" else number(raw_time, "time_remaining_s")
+            if reserve is not None and (reserve < 0 or reserve > 3.4028234663852886e38
+                                        or (reserve == 0 and Decimal(raw_time) != 0)):
+                raise ValueError("invalid reported PX4 remaining-time estimate")
+            details += [reserve, "UNAVAILABLE_NAN" if reserve is None else
+                        "REPORTED_CAPACITY_CURRENT_ESTIMATE_SECONDS_NOT_SAFE_OPERATING_TIME"]
         writer.writerow(row + ["" if v is None else repr(v) for v in normalized] + cell_values
                         + ["" if v is None else v for v in details])
     return output.getvalue()
@@ -443,6 +489,8 @@ def quantity(value, name, *, missing=False):
 
 
 def json_time(record, source_format):
+    if source_format == VELOCITY_GRPC:
+        return json_time(record, ATTITUDE_GRPC)
     if source_format in ("farmbot-state", "mavsdk-battery-json", DJI_FORMAT, ROBOTNIK_FORMAT, DOCKER_FORMAT, DOCKER_STATE_FORMAT, TEGRA_FORMAT, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, MIR_FORMAT, FARM_POINT_FORMAT, FARM_DIGITAL_FORMAT, FARMDUINO_FORMAT, PING_FORMAT, PARROT_FORMAT, MSDK_FORMAT, PROTO_FORMAT, GRPC_FORMAT, *ATTITUDE_FORMATS):
         time = record["capture_time_us"]
         if type(time) is not int or not 0 <= time <= 2**63 - 1:
@@ -838,6 +886,7 @@ def mavsdk_protobuf(record, *, grpc=False):
         raise ValueError("bounded complete protobuf hex required")
     payload = bytes.fromhex(wire)
     if grpc:
+        # The adopted non-compressed Length-Prefixed-Message check, reused unchanged.
         if len(payload) < 5 or payload[0] != 0 or int.from_bytes(payload[1:5], "big") != len(payload) - 5:
             raise ValueError("one complete noncompressed gRPC message required")
         payload = payload[5:]
@@ -879,8 +928,10 @@ def mavsdk_protobuf(record, *, grpc=False):
         "GRPC_MESSAGE_NOT_RPC_SUCCESS" if grpc else "PROTO3_DECODED_NOT_SENSOR_VALIDATED"]
 
 
-def mavsdk_attitude_protobuf(record, *, grpc=False):
-    """Fixed standalone EulerAngle descriptor, built in code; no runtime schema loading."""
+def mavsdk_attitude_protobuf(record, *, grpc=False, velocity_ned=False):
+    """Two fixed selected vector descriptors; no runtime schema loading."""
+    if velocity_ned and (not grpc or record["sdk_version"] != "3.17.4"):
+        raise ValueError("qualified saved MAVSDK velocity response required")
     if record["proto_commit"] != "d3cb35f49d1379d2d95a6d22cdbe40ff4074e9bf":
         raise ValueError("unqualified protobuf schema")
     try:
@@ -896,36 +947,41 @@ def mavsdk_attitude_protobuf(record, *, grpc=False):
         raise ValueError("bounded complete protobuf hex required")
     payload = bytes.fromhex(wire)
     if grpc:
-        # The adopted non-compressed Length-Prefixed-Message check, reused unchanged.
         if len(payload) < 5 or payload[0] != 0 or int.from_bytes(payload[1:5], "big") != len(payload) - 5:
             raise ValueError("one complete noncompressed gRPC message required")
         payload = payload[5:]
     schema = descriptor_pb2.FileDescriptorProto(name="selected_attitude.proto", package="selected", syntax="proto3")
-    descriptor = schema.message_type.add(name="EulerAngle")
-    names = ("rollDeg", "pitchDeg", "yawDeg", "timestampUs")
+    vector_type = "VelocityNed" if velocity_ned else "EulerAngle"
+    response_type = "VelocityNedResponse" if velocity_ned else "AttitudeEulerResponse"
+    response_field = "velocityNed" if velocity_ned else "attitudeEuler"
+    descriptor = schema.message_type.add(name=vector_type)
+    names = ("north_m_s", "east_m_s", "down_m_s") if velocity_ned else ("rollDeg", "pitchDeg", "yawDeg", "timestampUs")
     for number, name in enumerate(names, 1):
         descriptor.field.add(name=name, number=number, label=1, type=4 if number == 4 else 2)
     if grpc:
-        response = schema.message_type.add(name="AttitudeEulerResponse")
-        response.field.add(name="attitudeEuler", number=1, label=1, type=11, type_name=".selected.EulerAngle")
+        response = schema.message_type.add(name=response_type)
+        response.field.add(name=response_field, number=1, label=1, type=11, type_name=".selected." + vector_type)
     pool = descriptor_pool.DescriptorPool(); pool.Add(schema)
     message = message_factory.GetMessageClass(pool.FindMessageTypeByName(
-        "selected.AttitudeEulerResponse" if grpc else "selected.EulerAngle"))()
+        "selected." + (response_type if grpc else vector_type)))()
     try:
         message.ParseFromString(payload)
     except DecodeError as exc:
         raise ValueError("malformed protobuf message") from exc
     outer_unknown = 0
     if grpc:
-        if not message.HasField("attitudeEuler"):
-            raise ValueError("AttitudeEulerResponse has no selected EulerAngle")
+        if not message.HasField(response_field):
+            raise ValueError("selected response has no selected vector")
         outer_unknown = len(unknown_fields.UnknownFieldSet(message))
-        message = message.attitudeEuler
+        message = getattr(message, response_field)
     present = {field.name for field, _ in message.ListFields()}
     values = {name: getattr(message, name) for name in names}
     values = {name: "NaN" if isinstance(value, float) and math.isnan(value) else value
               for name, value in values.items()}
-    return mavsdk_attitude(dict(sdk_version=record["sdk_version"], attitude_euler=values)) + [
+    converted = ([quantity(values[name], name, missing=True) for name in names] + [
+        "REPORTED_NORTH_EAST_DOWN_M_S_NOT_PHYSICALLY_VERIFIED_NO_MESSAGE_CLOCK"]
+        if velocity_ned else mavsdk_attitude(dict(sdk_version=record["sdk_version"], attitude_euler=values)))
+    return converted + [
         # proto3 gives an absent float and a reported 0.0 the same bytes, and a level attitude is a
         # real 0.0, so the value is kept and the ambiguity is named in this adopted column instead.
         # The pin's default_value="NaN" option is an SDK-side default, not a wire sentinel.
@@ -1006,7 +1062,7 @@ VDA_ERROR_FIELDS = ("vda_error_index", "vda_error_type_hex", "vda_error_level_re
 
 
 def vda_error_rows(record, source_format):
-    known = {"WARNING", "FATAL"} if source_format == "vda-state-2.1" else set(ERROR_LEVELS) - {"UNKNOWN"}
+    known = {"WARNING", "FATAL"} if source_format in ("vda-state-2.0", "vda-state-2.1") else set(ERROR_LEVELS) - {"UNKNOWN"}
     def text(value):
         if not isinstance(value, str):
             raise ValueError("invalid error detail text")
@@ -1018,7 +1074,7 @@ def vda_error_rows(record, source_format):
             raise ValueError("invalid error reference list")
         base = [index, text(error["errorType"]), level if level in known else "UNKNOWN", text(level),
                 text(error["errorDescription"]) if "errorDescription" in error else None,
-                text(error["errorHint"]) if "errorHint" in error else None,
+                text(error["errorHint"]) if "errorHint" in error and source_format != "vda-state-2.0" else None,
                 len(references) if "errorReferences" in error else None]
         yield "ERROR", base + [None] * 3
         for reference_index, reference in enumerate(references):
@@ -1074,17 +1130,101 @@ def robotnik_battery(record):
     return rows
 
 
-def factsheet_quantities(record):
+_V21_ACTION_PARAMETER = {"key": "key", "valueDataType": "valueDataType", "description": "description",
+                         "isOptional": "isOptional"}
+FACTSHEET_21_KEYS = {
+    "headerId": "headerId", "timestamp": "timestamp", "version": "version",
+    "manufacturer": "manufacturer", "serialNumber": "serialNumber",
+    "typeSpecification": ("typeSpecification", {"seriesName": "seriesName", "seriesDescription": "seriesDescription",
+        "agvKinematic": "mobileRobotKinematics", "agvClass": "mobileRobotClass", "maxLoadMass": "maximumLoadMass",
+        "localizationTypes": "localizationTypes", "navigationTypes": "navigationTypes"}),
+    "physicalParameters": ("physicalParameters", {"speedMin": "minimumSpeed", "speedMax": "maximumSpeed",
+        "accelerationMax": "maximumAcceleration", "decelerationMax": "maximumDeceleration",
+        "heightMin": "minimumHeight", "heightMax": "maximumHeight", "width": "width", "length": "length",
+        "angularSpeedMin": "minimumAngularSpeed", "angularSpeedMax": "maximumAngularSpeed"}),
+    "protocolLimits": ("protocolLimits", {
+        "maxStringLens": ("maximumStringLengths", {"msgLen": "maximumMessageLength",
+            "topicSerialLen": "maximumTopicSerialLength", "topicElemLen": "maximumTopicElementLength",
+            "idLen": "maximumIdLength", "idNumericalOnly": "idNumericalOnly", "enumLen": "enumLen",
+            "loadIdLen": "maximumLoadIdLength"}),
+        "maxArrayLens": ("maximumArrayLengths", {key: key for key in ("order.nodes", "order.edges",
+            "node.actions", "edge.actions", "actions.actionsParameters", "instantActions",
+            "trajectory.knotVector", "trajectory.controlPoints", "state.nodeStates", "state.edgeStates",
+            "state.loads", "state.actionStates", "state.errors", "state.information",
+            "error.errorReferences", "information.infoReferences")}),
+        "timing": ("timing", {"minOrderInterval": "minimumOrderInterval", "minStateInterval": "minimumStateInterval",
+            "defaultStateInterval": "defaultStateInterval", "visualizationInterval": "visualizationInterval"})}),
+    "protocolFeatures": ("protocolFeatures", {
+        "optionalParameters": ("optionalParameters", ("[]", {"parameter": "parameter", "support": "support",
+                                                            "description": "description"})),
+        "agvActions": ("mobileRobotActions", ("[]", {"actionType": "actionType",
+            "actionDescription": "actionDescription", "actionScopes": "actionScopes",
+            "actionParameters": ("actionParameters", ("[]", _V21_ACTION_PARAMETER)),
+            "resultDescription": "actionResult", "blockingTypes": "blockingTypes"}))}),
+    "agvGeometry": ("mobileRobotGeometry", {"wheelDefinitions": "wheelDefinitions",
+        "envelopes2d": ("envelopes2d", ("[]", {"set": "envelope2dId", "polygonPoints": "vertices",
+                                              "description": "description"})),
+        "envelopes3d": ("envelopes3d", ("[]", {"set": "envelope3dId", "format": "format", "data": "data",
+                                              "url": "url", "description": "description"}))}),
+    "loadSpecification": ("loadSpecification", {"loadPositions": "loadPositions",
+        "loadSets": ("loadSets", ("[]", {"setName": "setName", "loadType": "loadType",
+            "loadPositions": "loadPositions", "boundingBoxReference": "boundingBoxReference",
+            "loadDimensions": "loadDimensions", "maxWeight": "maximumWeight",
+            "minLoadhandlingHeight": "minimumLoadhandlingHeight", "maxLoadhandlingHeight": "maximumLoadhandlingHeight",
+            "minLoadhandlingDepth": "minimumLoadhandlingDepth", "maxLoadhandlingDepth": "maximumLoadhandlingDepth",
+            "minLoadhandlingTilt": "minimumLoadhandlingTilt", "maxLoadhandlingTilt": "maximumLoadhandlingTilt",
+            "agvSpeedLimit": "maximumSpeed", "agvAccelerationLimit": "maximumAcceleration",
+            "agvDecelerationLimit": "maximumDeceleration", "pickTime": "pickTime", "dropTime": "dropTime",
+            "description": "description"}))}),
+    "vehicleConfig": ("mobileRobotConfiguration", {"versions": "versions", "network": "network"}),
+}
+FACTSHEET_30_ONLY = {"": {"mobileRobotGeometry", "mobileRobotConfiguration"},
+    "typeSpecification": {"supportedZones", "mobileRobotKinematic"},
+    "mobileRobotActions[]": {"pauseAllowed", "cancelAllowed"},
+    "maximumArrayLengths": {"state.instantActionStates", "state.zoneActionStates", "zoneSet.zones"},
+    "mobileRobotConfiguration": {"batteryCharging", "batteryCharging "}}
+UNMAPPED_PREFIX = "\x00unmapped:"
+
+
+def factsheet_21_view(record, table=None, owner=""):
+    """3.0-named view of a 2.1 object, for reading only; never the source, its SHA or its label."""
+    table = FACTSHEET_21_KEYS if table is None else table
+    if not isinstance(record, dict):
+        raise ValueError("invalid VDA2.1 factsheet object")
+    targets = {(entry if isinstance(entry, str) else entry[0]) for entry in table.values()}
+    view = {}
+    for key, value in record.items():
+        if key not in table:
+            if key in targets - set(table) or key in FACTSHEET_30_ONLY.get(owner, ()):
+                raise ValueError("VDA3.0 key in a VDA2.1 factsheet object is ambiguous")
+            view[UNMAPPED_PREFIX + key] = value
+            continue
+        entry = table[key]
+        if isinstance(entry, str):
+            view[entry] = value
+            continue
+        name, child = entry
+        if isinstance(child, tuple):
+            if not isinstance(value, list):
+                raise ValueError("invalid VDA2.1 factsheet list")
+            view[name] = [factsheet_21_view(item, child[1], name + "[]") for item in value]
+        else:
+            view[name] = factsheet_21_view(value, child, name)
+    return view
+
+
+def factsheet_quantities(record, source_format=FACTSHEET_FORMAT):
     """Declared operating quantities, never measured motion or certified capacity."""
-    if record["version"] != "3.0.0":
+    if record["version"] != FACTSHEET_FORMATS[source_format]:
         raise ValueError("wrong factsheet version")
     identity = [record[key] for key in ("manufacturer", "serialNumber")]
     if any(not isinstance(value, str) or not value for value in identity):
         raise ValueError("invalid factsheet identity")
     physical = record["physicalParameters"]
     values = {}
+    optional = ("minimumHeight",) if source_format == FACTSHEET_21_FORMAT else ()
     for index, (key, _) in enumerate(FACTSHEET_QUANTITIES):
-        if index >= 8 and key not in physical:
+        if (index >= 8 or key in optional) and key not in physical:
             values[key] = None
             continue
         value = quantity(physical[key], key)
@@ -1098,8 +1238,86 @@ def factsheet_quantities(record):
     mass = quantity(record["typeSpecification"]["maximumLoadMass"], "maximum load mass")
     if mass < 0:
         raise ValueError("negative declared load mass")
-    return ["DECLARED_NOT_MEASURED_OR_CERTIFIED", *["hex:" + value.encode().hex() for value in identity],
+    basis = ("DECLARED_NOT_MEASURED_OR_CERTIFIED" if source_format == FACTSHEET_FORMAT else
+             "DECLARED_NOT_MEASURED_OR_CERTIFIED_VDA2_1_0_KEYS_READ_UNDER_3_0_MEANING_ENVELOPE_ID_IS_SET_NAME")
+    return [basis, *["hex:" + value.encode().hex() for value in identity],
             *[values[key] for key, _ in FACTSHEET_QUANTITIES], mass]
+
+
+def factsheet_geometry(record, values, record_index, line):
+    """VDA3.0 e9ba560b declarations, not measured shape or validated safety polygons."""
+    present = "mobileRobotGeometry" in record
+    geometry = record.get("mobileRobotGeometry", {})
+    if not isinstance(geometry, dict):
+        raise ValueError("invalid factsheet geometry object")
+    counts = {}
+    for key in ("wheelDefinitions", "envelopes2d", "envelopes3d"):
+        if key in geometry and (not isinstance(geometry[key], list) or len(geometry[key]) > 1024):
+            raise ValueError("invalid or oversized geometry array")
+        counts[key] = len(geometry[key]) if key in geometry else None
+    common = dict(geometry_source_record_index=record_index,
+        geometry_source_sha256="sha256:" + hashlib.sha256(line.encode("utf-8")).hexdigest(),
+        geometry_status="PRESENT" if present else "ABSENT",
+        geometry_wheel_count=counts["wheelDefinitions"], geometry_envelope_count=counts["envelopes2d"],
+        geometry_unconverted_3d_count=counts["envelopes3d"],
+        geometry_unknown_key_count=len(set(geometry) - set(counts)))
+
+    def text(value):
+        if not isinstance(value, str) or len(value.encode("utf-8")) > 4096:
+            raise ValueError("invalid or oversized geometry text")
+        return "hex:" + value.encode("utf-8").hex()
+
+    def row(kind, **fields):
+        data = dict(common, geometry_row_kind=kind, **fields)
+        base = values if kind == "SUMMARY" else values[:3] + [None] * (len(values) - 3)
+        return base + [data.get(key) for key in GEOMETRY_FIELDS]
+
+    rows = [row("SUMMARY")]
+    for index, wheel in enumerate(geometry.get("wheelDefinitions", [])):
+        if not isinstance(wheel, dict) or not isinstance(wheel.get("position"), dict):
+            raise ValueError("invalid wheel declaration")
+        kind = wheel["type"]
+        kind_hex = text(kind)
+        if not kind or any(type(wheel[key]) is not bool for key in ("isActiveDriven", "isActiveSteered")):
+            raise ValueError("invalid wheel type or active declaration")
+        position = wheel["position"]
+        theta = quantity(position["theta"], "wheel theta") if "theta" in position else None
+        if kind == "FIXED" and theta is None:
+            raise ValueError("fixed wheel requires declared theta")
+        diameter, width = [quantity(wheel[key], key) for key in ("diameter", "width")]
+        if diameter < 0 or width < 0:
+            raise ValueError("negative wheel dimension")
+        center = quantity(wheel["centerDisplacement"], "center displacement") if "centerDisplacement" in wheel else None
+        rows.append(row("WHEEL", geometry_item_index=index, geometry_frame_basis="DECLARED_MOBILE_ROBOT_FRAME",
+            geometry_wheel_type_hex=kind_hex,
+            geometry_wheel_type_status="KNOWN" if kind in ("DRIVE", "CASTER", "FIXED", "MECANUM") else "EXTENSIBLE_UNRECOGNIZED",
+            geometry_active_driven=int(wheel["isActiveDriven"]), geometry_active_steered=int(wheel["isActiveSteered"]),
+            geometry_x_m=quantity(position["x"], "wheel x"), geometry_y_m=quantity(position["y"], "wheel y"),
+            geometry_theta_rad=theta, geometry_diameter_m=diameter, geometry_width_m=width,
+            geometry_center_displacement_reported_m=center,
+            geometry_center_displacement_effective_m=0 if center is None else center,
+            geometry_center_displacement_basis="SPEC_DEFAULT_IF_ABSENT" if center is None else "REPORTED",
+            geometry_constraints_hex=text(wheel["constraints"]) if "constraints" in wheel else None))
+    total_vertices = 0
+    for index, envelope in enumerate(geometry.get("envelopes2d", [])):
+        if not isinstance(envelope, dict) or not isinstance(envelope.get("vertices"), list):
+            raise ValueError("invalid envelope declaration")
+        vertices = envelope["vertices"]
+        total_vertices += len(vertices)
+        if total_vertices > 4096:
+            raise ValueError("geometry vertex bound exceeded")
+        shared = dict(geometry_item_index=index, geometry_vertex_count=len(vertices),
+            geometry_id_hex=text(envelope["envelope2dId"]),
+            geometry_description_hex=text(envelope["description"]) if "description" in envelope else None,
+            geometry_frame_basis="ENVELOPE_FRAME_UNSPECIFIED",
+            geometry_topology_basis="DECLARED_CLOSED_SIMPLE_POLYGON_NOT_VALIDATED")
+        rows.append(row("ENVELOPE2D", **shared))
+        for point_index, point in enumerate(vertices):
+            if not isinstance(point, dict):
+                raise ValueError("invalid envelope point")
+            rows.append(row("VERTEX", **shared, geometry_vertex_index=point_index,
+                geometry_x_m=quantity(point["x"], "envelope x"), geometry_y_m=quantity(point["y"], "envelope y")))
+    return rows
 
 
 def vda_connection_state(record, source_format):
@@ -1264,10 +1482,12 @@ def _tegra_row(kind, disposition, source_sha, **cells):
     return [values[name] for name in TEGRA_FIELDS]
 
 
-def tegrastats_quantities(record, source_sha):
-    """Only the CPU/thermal/GPU/memory/rail tokens the r36.4.3 page documents; the rest stays raw."""
+def tegrastats_quantities(record, source_sha, *, tegrastats_nvdla=False):
+    """Documented r36.4.3 quantities, with optional NVDLA; unselected tokens stay raw."""
     if record["exporter_version"] != "l4t-36.4.3":
         raise ValueError("unqualified tegrastats exporter")
+    if type(tegrastats_nvdla) is not bool:
+        raise ValueError("NVDLA option must be boolean")
     report = record["report"]
     if not isinstance(report, str) or not report or any(c in report for c in "\r\n\x00"):
         raise ValueError("one saved tegrastats line required")
@@ -1380,12 +1600,39 @@ def tegrastats_quantities(record, source_sha):
             # builds print, which this pinned page does not show - is refused rather than guessed.
             raise ValueError("undocumented power rail token shape")
 
+    nvdla = []
+    if tegrastats_nvdla:
+        nvdla = list(re.finditer(
+            r"(?<!\S)NVDLA([01]) (?:(\d+)%(?:@(\d+))?|(\d+))(?=\s|$)", report,
+            flags=re.ASCII))
+        named = re.findall(r"(?<!\S)NVDLA[01](?=\s|$)", report)
+        if len(named) != len(nvdla) or len({m[1] for m in nvdla}) != len(nvdla):
+            raise ValueError("malformed or duplicate NVDLA group")
+        for row in rows:
+            row.extend([None] * len(NVDLA_FIELDS))
+        for match in nvdla:
+            utilization = int(match[2]) if match[2] is not None else None
+            mhz_text = match[3] if match[3] is not None else match[4]
+            mhz = int(mhz_text) if mhz_text is not None else None
+            if utilization is not None and utilization > 100:
+                raise ValueError("invalid NVDLA utilization")
+            if mhz is not None and mhz > (2**53 - 1) // 1000000:
+                raise ValueError("NVDLA frequency outside exact Hz range")
+            presence = ("UTILIZATION_ONLY" if mhz is None else "FREQUENCY_ONLY"
+                        if utilization is None else "UTILIZATION_AND_FREQUENCY")
+            values = _tegra_row("NVDLA", "REPORTED_ACCELERATOR_QUANTITIES_NOT_PERFORMANCE",
+                                source_sha, tegrastats_block_hex="hex:" +
+                                ("NVDLA" + match[1]).encode().hex())
+            rows.append(values + [int(match[1]), None if utilization is None else utilization / 100,
+                                  None if mhz is None else mhz * 1000000, presence, NVDLA_BASIS])
+
     if not rows:
         raise ValueError("no selected tegrastats report in this line")
     # Whatever the selection did not consume is counted on every row, so no block disappears quietly.
     selected = sum(len(match[0].split()) for match in cpu) + len(blocks)
     selected += sum(len(match[0].split()) for match in gpu)
     selected += sum(len(match[0].split()) for match in memory) + 2 * len(rails)
+    selected += sum(len(match[0].split()) for match in nvdla)
     unselected = len(report.split()) - selected
     if unselected < 0:
         raise ValueError("token accounting disagrees with the reported line")
@@ -1806,8 +2053,50 @@ def gutma_flight_logging(document):
     return keys, items, start
 
 
-def convert_gutma_flight_logging(text):
+GUTMA_POSITION_FIELDS = ("reported_latitude_deg", "reported_longitude_deg",
+    "reported_position_disposition", "reported_position_basis",
+    "reported_aircraft_serial_number_hex", "reported_aircraft_product_id_hex",
+    "reported_aircraft_model_hex", "reported_aircraft_firmware_version_hex")
+
+
+def gutma_position_identity(document):
+    flight = document["exchange"]["message"].get("flight_data")
+    if flight is None:
+        flight = {}
+    if not isinstance(flight, dict):
+        raise ValueError("GUTMA flight_data object required")
+    aircraft = flight.get("aircraft")
+    if aircraft is None:
+        aircraft = {}
+    if not isinstance(aircraft, dict):
+        raise ValueError("GUTMA aircraft object required")
+    result = []
+    for name in ("serial_number", "product_id", "model", "firmware_version"):
+        value = aircraft.get(name)
+        if value is not None and not isinstance(value, str):
+            raise ValueError("reported aircraft identity must be text or null")
+        result.append("" if value is None else "hex:" + value.encode("utf-8").hex())
+    return result
+
+
+def gutma_reported_position(keys, item):
+    basis = "OPENFLIGHT_FE9CA495_CLLOCATION_DEGREES_DATUM_NOT_ATTESTED"
+    if not {"gps_lat", "gps_lon"} <= set(keys):
+        return ["", "", "COLUMNS_UNAVAILABLE", basis]
+    lat, lon = (number(item[keys.index(key)], key) for key in ("gps_lat", "gps_lon"))
+    if lat == 500 or lon == 500:
+        return ["", "", "CONSUMER_SENTINEL_UNAVAILABLE", basis]
+    if not -90 <= lat <= 90 or not -180 <= lon <= 180:
+        raise ValueError("reported coordinate outside consumer range")
+    if lat == 0 and lon == 0:
+        return ["", "", "CONSUMER_ZERO_PAIR_UNAVAILABLE", basis]
+    return [lat, lon, "REPORTED_VALID_CONSUMER_COORDINATE", basis]
+
+
+def convert_gutma_flight_logging(text, *, position_basis=None):
     """Saved OpenFlight/GroundSdk GUTMA_DX flight log, not a live drone connection."""
+    if position_basis not in (None, "openflight-fe9ca495"):
+        raise ValueError("unqualified OpenFlight position basis")
     raw = text.encode("utf-8")
     if len(raw) > 16 * 1024 * 1024:
         raise ValueError("GUTMA document exceeds bound; split at flight boundaries")
@@ -1822,7 +2111,9 @@ def convert_gutma_flight_logging(text):
     time_index, percent_index = keys.index("timestamp"), keys.index("battery_percent")
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
-    writer.writerow(["record_time_us", "source_record_hex", *GUTMA_FIELDS])
+    identity = gutma_position_identity(document) if position_basis is not None else []
+    writer.writerow(["record_time_us", "source_record_hex", *GUTMA_FIELDS,
+                     *(GUTMA_POSITION_FIELDS if position_basis is not None else ())])
     encoded = ("hex:" + json.dumps(keys, ensure_ascii=True, separators=(",", ":")).encode().hex(),
                "sha256:" + hashlib.sha256(raw).hexdigest(), "hex:" + start.encode("utf-8").hex())
     previous = None
@@ -1848,7 +2139,8 @@ def convert_gutma_flight_logging(text):
             # The source reader treats a leading zero as not yet known; keep the value, flag it.
             "ZERO_REPORTED_MAY_BE_UNSET" if percent == 0 else "REPORTED", encoded[2],
             "REPORTED_SECONDS_FROM_DECLARED_LOGGING_START_NOT_UTC_OR_ATTESTED_ANCHOR",
-            "DECLARED_METRIC_PERCENT_ONLY_VOLTAGE_CURRENT_CAPACITY_UNITS_NOT_DECLARED_IN_SOURCE"])
+            "DECLARED_METRIC_PERCENT_ONLY_VOLTAGE_CURRENT_CAPACITY_UNITS_NOT_DECLARED_IN_SOURCE",
+            *(gutma_reported_position(keys, item) + identity if position_basis is not None else [])])
         if output.tell() > 128 * 1024 * 1024:
             raise ValueError("converted CSV too large; split at flight boundaries")
     return output.getvalue()
@@ -1918,6 +2210,12 @@ def inav_reported_values(values):
             inav_gps_ground_course_code_reported=integer(
                 values["gpsGroundCourse"], 65535, "gpsGroundCourse"),
             inav_gps_unscaled_basis=INAV_UNSCALED_BASIS)
+        result.update(
+            inav_gps_altitude_m_reported=result["inav_gps_altitude_code_reported"],
+            inav_gps_speed_m_s_reported=result["inav_gps_speed_code_reported"] / 100,
+            inav_gps_altitude_datum="UNKNOWN",
+            inav_gps_navigation_unit_basis="CONFIGURATOR_ddf18258_gps_js_ALT_M_SPEED_CM_PER_S"
+            "_HOST_SNAPSHOT_ZERO_MAY_BE_UNSET_NO_FIX_OR_DATUM_QUALIFICATION")
         if inside:
             result.update(inav_gps_latitude_deg_reported=latitude,
                           inav_gps_longitude_deg_reported=longitude)
@@ -1925,8 +2223,10 @@ def inav_reported_values(values):
     return [result[field] for field in INAV_FIELDS]
 
 
-def convert_inav_logging(text):
+def convert_inav_logging(text, *, course_basis=None):
     """Saved Configurator logging CSV (tabs/logging.js), not onboard Blackbox .TXT."""
+    if course_basis not in (None, "inav-7.1.0-aa854365-ublox"):
+        raise ValueError("unqualified course basis")
     if (len(text.encode("utf-8")) > 16 * 1024 * 1024 or '"' in text
             or any(ord(c) < 32 and c not in "\r\n" for c in text)):
         raise ValueError("unsupported INAV logging CSV representation or size")
@@ -1937,6 +2237,8 @@ def convert_inav_logging(text):
             or len(set(header)) != len(header) or any(not c or c != c.strip() for c in header)):
         raise ValueError("selected INAV logging header required")
     present = set(header)
+    if course_basis is not None and not present >= set(INAV_GPS):
+        raise ValueError("qualified course requires complete saved GPS group")
     # A partial group is not a print_head output; never convert half a message.
     if any(0 < len(present & set(group)) < len(group)
            for group in (INAV_ANALOG, INAV_ATTITUDE, INAV_GPS)):
@@ -1945,7 +2247,8 @@ def convert_inav_logging(text):
         raise ValueError("no qualified MSP_ANALOG, MSP_ATTITUDE or MSP_RAW_GPS column group")
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
-    writer.writerow(["record_time_us", "source_record_hex", *INAV_FIELDS])
+    extra_fields = ("inav_gps_ground_course_deg_reported", "inav_gps_ground_course_basis") if course_basis else ()
+    writer.writerow(["record_time_us", "source_record_hex", *INAV_FIELDS, *extra_fields])
     header_hex = "hex:" + lines[0].encode("utf-8").hex()
     previous, count = None, 0
     for index, row in enumerate(rows, 1):
@@ -1959,6 +2262,12 @@ def convert_inav_logging(text):
         previous = milliseconds
         selected = inav_reported_values(values)
         selected[-1] = header_hex
+        if course_basis:
+            selected.extend([
+                integer(values["gpsGroundCourse"], 65535, "gpsGroundCourse") / 10,
+                "INAV_AA854365_UBLOX_VELNED_PVT_TO_CONFIGURATOR_DDF18258_DEG_X10"
+                "_REPORTED_COURSE_NOT_YAW_REFERENCE_UNKNOWN_ZERO_MAY_BE_UNSET",
+            ])
         writer.writerow([milliseconds * 1000, "hex:" + lines[index].encode("utf-8").hex()]
                         + ["" if value is None else value for value in selected])
         count += 1
@@ -2063,7 +2372,13 @@ def convert_runtime_profile(text, capture_time_us, source_format=ORT_FORMAT):
     return output.getvalue()
 
 
-def convert_json(text, source_format, *, vda_actions=False, vda_errors=False, allow_missing_voltage=False):
+def convert_json(text, source_format, *, vda_actions=False, vda_errors=False, allow_missing_voltage=False,
+                 vda_geometry=False, tegrastats_nvdla=False, ros_battery_basis=None):
+    if ros_battery_basis is not None and (source_format != "ros-battery-json" or
+            ros_battery_basis != "clearpath-estimator-ac11c88a"):
+        raise ValueError("battery basis requires explicit fixed Clearpath estimator selection")
+    if type(tegrastats_nvdla) is not bool or (tegrastats_nvdla and source_format != TEGRA_FORMAT):
+        raise ValueError("NVDLA requires selected tegrastats format and boolean option")
     if len(text.encode("utf-8")) > 16 * 1024 * 1024:
         raise ValueError("JSON export too large; split at record boundaries")
     output = io.StringIO(newline="")
@@ -2076,8 +2391,8 @@ def convert_json(text, source_format, *, vda_actions=False, vda_errors=False, al
         + (list(DJI_FIELDS) if source_format == DJI_FORMAT else [])
         + (list(ROBOTNIK_FIELDS) if source_format == ROBOTNIK_FORMAT else []))
     detailed = vda_actions or vda_errors
-    if source_format == FACTSHEET_FORMAT:
-        selected_fields = list(FACTSHEET_FIELDS)
+    if source_format in FACTSHEET_FORMATS:
+        selected_fields = list(FACTSHEET_FIELDS) + (list(GEOMETRY_FIELDS) if vda_geometry else [])
     if source_format in CONNECTION_FORMATS:
         selected_fields = list(CONNECTION_FIELDS)
     if source_format == DOCKER_FORMAT:
@@ -2085,7 +2400,7 @@ def convert_json(text, source_format, *, vda_actions=False, vda_errors=False, al
     if source_format == DOCKER_STATE_FORMAT:
         selected_fields = list(DOCKER_STATE_FIELDS)
     if source_format == TEGRA_FORMAT:
-        selected_fields = list(TEGRA_FIELDS)
+        selected_fields = list(TEGRA_FIELDS) + (list(NVDLA_FIELDS) if tegrastats_nvdla else [])
     if source_format == RMF_FORMAT:
         selected_fields = list(RMF_FIELDS) + list(RMF_LOCATION_FIELDS)
     if source_format in (RMF_WEB_FORMAT, RMF_SOCKET_FORMAT):
@@ -2106,12 +2421,17 @@ def convert_json(text, source_format, *, vda_actions=False, vda_errors=False, al
         selected_fields = list(MSDK_FIELDS)
     if source_format in ATTITUDE_FORMATS:
         selected_fields = list(ATTITUDE_FIELDS)
-    if source_format in (PROTO_FORMAT, GRPC_FORMAT, *ATTITUDE_WIRE):
+    if source_format == VELOCITY_GRPC:
+        selected_fields = list(VELOCITY_FIELDS)
+    if source_format in (PROTO_FORMAT, GRPC_FORMAT, *ATTITUDE_WIRE, VELOCITY_GRPC):
         selected_fields += ["protobuf_zero_or_absent_fields_hex", "protobuf_unknown_fields", "protobuf_value_basis"]
     if allow_missing_voltage:
         if source_format != "ros-battery-json":
             raise ValueError("missing voltage policy requires ROS BatteryState")
         selected_fields += ["battery_voltage_disposition"]
+    if ros_battery_basis is not None:
+        selected_fields += ["battery_producer_basis", "battery_estimate_basis", "battery_cell_basis",
+                            "battery_power_basis", "battery_charging_state_basis"]
     detail_fields = (list(VDA_ACTION_FIELDS[:3]) + (list(VDA_ACTION_FIELDS[3:]) if vda_actions else [])
                      + (list(VDA_ERROR_FIELDS) if vda_errors else [])) if detailed else []
     writer.writerow(["record_time_us", "source_record_hex"] + selected_fields + detail_fields)
@@ -2120,8 +2440,7 @@ def convert_json(text, source_format, *, vda_actions=False, vda_errors=False, al
     if not lines:
         raise ValueError("empty JSON export")
     for record_index, line in enumerate(lines):
-        # Hex keeps exact unknown/nested source data, without CSV quoting ambiguity.
-        if not line.strip() or len(line.encode("utf-8")) > (512 * 1024 if detailed or source_format in (FACTSHEET_FORMAT, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, DOCKER_STATE_FORMAT) else 30000):
+        if not line.strip() or len(line.encode("utf-8")) > (512 * 1024 if detailed or source_format in (*FACTSHEET_FORMATS, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, DOCKER_STATE_FORMAT) else 30000):
             raise ValueError("empty or oversized JSON record")
         try:
             record = json.loads(line, object_pairs_hook=unique_object,
@@ -2152,15 +2471,23 @@ def convert_json(text, source_format, *, vda_actions=False, vda_errors=False, al
             elif source_format == DOCKER_STATE_FORMAT:
                 values = docker_state(record)
             elif source_format == TEGRA_FORMAT:
-                values = tegrastats_quantities(record, "sha256:" + hashlib.sha256(line.encode("utf-8")).hexdigest())
-            elif source_format == FACTSHEET_FORMAT:
-                values = factsheet_quantities(record)
+                values = tegrastats_quantities(record, "sha256:" + hashlib.sha256(line.encode("utf-8")).hexdigest(),
+                                               tegrastats_nvdla=tegrastats_nvdla)
+            elif source_format in FACTSHEET_FORMATS:
+                if source_format == FACTSHEET_21_FORMAT and record.get("version") != "2.1.0":
+                    raise ValueError("wrong factsheet version")
+                view = factsheet_21_view(record) if source_format == FACTSHEET_21_FORMAT else record
+                values = factsheet_quantities(view, source_format)
+                if vda_geometry:
+                    values = factsheet_geometry(view, values, record_index, line)
             elif source_format in CONNECTION_FORMATS:
                 values = vda_connection_state(record, source_format)
             elif source_format == DJI_FORMAT:
                 values = dji_batteries(record)
             elif source_format == ROBOTNIK_FORMAT:
                 values = robotnik_battery(record)
+            elif source_format == VELOCITY_GRPC:
+                values = mavsdk_attitude_protobuf(record, grpc=True, velocity_ned=True)
             elif source_format in ATTITUDE_WIRE:
                 values = mavsdk_attitude_protobuf(record, grpc=source_format == ATTITUDE_GRPC)
             elif source_format == ATTITUDE_JSON:
@@ -2171,6 +2498,21 @@ def convert_json(text, source_format, *, vda_actions=False, vda_errors=False, al
                 values = mavsdk_battery(record)
             else:
                 values = farmbot_reported_state(record) if source_format == "farmbot-state" else json_quantities(record, source_format, allow_missing_voltage=allow_missing_voltage)
+            if ros_battery_basis is not None:
+                if (record.get("temperature", "NaN") != "NaN" or
+                        record["power_supply_status"] not in (1, 2, 4) or not record["present"]):
+                    raise ValueError("saved report contradicts selected estimator temperature/status/presence")
+                for field in ("battery_remaining_fraction", "battery_stored_charge_ah"):
+                    values[selected_fields.index(field)] = None
+                values[selected_fields.index("battery_current_sign_basis")] = "UNQUALIFIED_COPIED_POWER"
+                reported = ";".join(key + "=" + ("MISSING_NAN" if record[key] == "NaN" else
+                    "REPORTED_ZERO" if record[key] == 0 else "REPORTED_NONZERO")
+                    for key in ("percentage", "charge"))
+                values += ["CALLER_SELECTED_CLEARPATH_ac11c88a_REPORTED_V_A_NOT_CALIBRATED",
+                           reported + ";MODEL_CONFIG_UNQUALIFIED_RAW_IN_source_record_hex",
+                           "CONFIGURED_PACK_DIVIDED_DUPLICATES_NOT_MEASURED_RAW_IN_source_record_hex",
+                           "ARITHMETIC_REPORTED_V_TIMES_A_POLARITY_UNQUALIFIED",
+                           "REPORTED_CHARGER_FLAG_OR_LUT_FULL_NOT_PHYSICAL_STATE_PROOF"]
             if source_format.startswith("vda-state-"):
                 values += vda_reported_state(record, source_format)
         except (KeyError, TypeError, OverflowError, RecursionError) as exc:
@@ -2180,11 +2522,11 @@ def convert_json(text, source_format, *, vda_actions=False, vda_errors=False, al
         previous = time
         digest = hashlib.sha256(line.encode()).hexdigest() if detailed else None
         extra = (["SUMMARY", record_index, "sha256:" + digest] + [""] * (len(detail_fields) - 3)) if detailed else []
-        for row_index, row_values in enumerate(values if source_format in (DJI_FORMAT, ROBOTNIK_FORMAT, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, TEGRA_FORMAT) else [values]):
-            source_hex = "" if source_format in (RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, TEGRA_FORMAT) and row_index else "hex:" + line.encode("utf-8").hex()
+        for row_index, row_values in enumerate(values if vda_geometry or source_format in (DJI_FORMAT, ROBOTNIK_FORMAT, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, TEGRA_FORMAT) else [values]):
+            source_hex = "" if (vda_geometry or source_format in (RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, TEGRA_FORMAT)) and row_index else "hex:" + line.encode("utf-8").hex()
             writer.writerow([time, source_hex]
                             + ["" if v is None else v for v in row_values] + extra)
-            if output.tell() > 128 * 1024 * 1024:
+            if output.tell() > (16 if vda_geometry else 128) * 1024 * 1024:
                 raise ValueError("converted CSV too large; split at record boundaries")
         if vda_actions:
             for action in vda_action_rows(record, source_format):
@@ -2213,16 +2555,27 @@ def main():
     parser.add_argument("output", type=Path)
     parser.add_argument("--source-format", choices=FORMATS, default="ardupilot-bat")
     parser.add_argument("--capture-time-us", type=int, help="explicit capture clock for selected runtime profile only")
+    parser.add_argument("--inav-course-basis", choices=("inav-7.1.0-aa854365-ublox",),
+                        help="explicit saved INAV UBLOX/Configurator pair; reported course, not yaw")
+    parser.add_argument("--gutma-position-basis", choices=("openflight-fe9ca495",),
+                        help="fixed saved OpenFlight consumer position/identity; not installed app proof")
     parser.add_argument("--allow-missing-voltage", action="store_true",
                         help="qualified ROS publisher NaN voltage is explicitly unavailable; default rejects")
+    parser.add_argument("--ros-battery-basis", choices=("clearpath-estimator-ac11c88a",),
+                        help="caller-selected saved estimator; current polarity and model estimates unqualified")
     parser.add_argument("--bat-details", action="store_true",
                         help="include qualified BAT reported estimates/temperature/health")
     parser.add_argument("--vda-actions", action="store_true",
                         help="emit individually reported VDA actions; retain equal-time rows")
-    parser.add_argument("--vda-errors", action="store_true", help="emit reported error details/references for VDA2.1/3.0")
+    parser.add_argument("--vda-errors", action="store_true", help="emit reported error details/references for VDA2.0/2.1/3.0")
+    parser.add_argument("--vda-geometry", action="store_true", help="emit VDA3.0 factsheet declared wheels and 2D vertices")
+    parser.add_argument("--tegrastats-nvdla", action="store_true",
+                        help="include documented NVDLA utilization/frequency reports; no accelerator execution")
+    parser.add_argument("--px4-remaining-time", action="store_true",
+                        help="include fixed PX41c8ab2a0 writer reported remaining-time estimate")
     args = parser.parse_args()
     try:
-        if args.vda_actions or args.vda_errors or args.source_format in (INAV_FORMAT, GUTMA_FORMAT, FACTSHEET_FORMAT, DOCKER_FORMAT, DOCKER_STATE_FORMAT, TEGRA_FORMAT, ORT_FORMAT, TRT_FORMAT, TRT_PROFILE_FORMAT, HAILO_FORMAT, HAILO_FORMAT_424, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, MIR_FORMAT, FARM_POINT_FORMAT, FARM_DIGITAL_FORMAT, FARMDUINO_FORMAT, PING_FORMAT, PARROT_FORMAT, MSDK_FORMAT, PROTO_FORMAT, GRPC_FORMAT, *ATTITUDE_FORMATS):
+        if args.vda_actions or args.vda_errors or args.source_format in (VELOCITY_GRPC, INAV_FORMAT, GUTMA_FORMAT, *FACTSHEET_FORMATS, DOCKER_FORMAT, DOCKER_STATE_FORMAT, TEGRA_FORMAT, ORT_FORMAT, TRT_FORMAT, TRT_PROFILE_FORMAT, HAILO_FORMAT, HAILO_FORMAT_424, RMF_FORMAT, RMF_WEB_FORMAT, RMF_SOCKET_FORMAT, MIR_FORMAT, FARM_POINT_FORMAT, FARM_DIGITAL_FORMAT, FARMDUINO_FORMAT, PING_FORMAT, PARROT_FORMAT, MSDK_FORMAT, PROTO_FORMAT, GRPC_FORMAT, *ATTITUDE_FORMATS):
             with args.input.open("rb") as stream:
                 raw = stream.read(16 * 1024 * 1024 + 1)
             if len(raw) > 16 * 1024 * 1024:
@@ -2231,8 +2584,11 @@ def main():
         else:
             text = args.input.read_text(encoding="utf-8")
         converted = convert(text, args.source_format, vda_actions=args.vda_actions,
-                            vda_errors=args.vda_errors, bat_details=args.bat_details,
-                            allow_missing_voltage=args.allow_missing_voltage, capture_time_us=args.capture_time_us)
+                            vda_errors=args.vda_errors, vda_geometry=args.vda_geometry, bat_details=args.bat_details,
+                            allow_missing_voltage=args.allow_missing_voltage, capture_time_us=args.capture_time_us,
+                            tegrastats_nvdla=args.tegrastats_nvdla, px4_remaining_time=args.px4_remaining_time,
+                            inav_course_basis=args.inav_course_basis, gutma_position_basis=args.gutma_position_basis,
+                            ros_battery_basis=args.ros_battery_basis)
         # Never overwrite an input or a prior evidence file, even on accidental path equality.
         with args.output.open("x", encoding="utf-8", newline="") as stream:
             stream.write(converted)

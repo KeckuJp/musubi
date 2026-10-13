@@ -95,6 +95,86 @@
       "meaning": "source_sha256",
       "unit": "SHA256_of_the_exact_saved_file_the_adopted_converter_wrote_binding_the_bytes_and_authenticating_nothing",
       "basis": "declared"
+    },
+    "vda_map_id_hex": {
+      "meaning": "vda_map_id_hex",
+      "unit": "utf8_hex_of_the_same_state_reported_robot_map_identifier_not_a_global_frame_or_a_load_location",
+      "basis": "declared"
+    },
+    "vda_map_x_m": {
+      "meaning": "vda_map_x_m",
+      "unit": "m_in_reported_robot_map_not_geodetic_not_load_pose_blank_when_position_unavailable",
+      "basis": "declared"
+    },
+    "vda_map_y_m": {
+      "meaning": "vda_map_y_m",
+      "unit": "m_in_reported_robot_map_not_geodetic_not_load_pose_blank_when_position_unavailable",
+      "basis": "declared"
+    },
+    "vda_map_theta_rad": {
+      "meaning": "vda_map_theta_rad",
+      "unit": "rad_in_reported_robot_map_not_true_north_not_load_orientation_blank_when_position_unavailable",
+      "basis": "declared"
+    },
+    "vda_position_initialized_reported": {
+      "meaning": "vda_position_initialized_reported",
+      "unit": "VDA2_1_positionInitialized_boolean_report_not_independent_localization_validity_blank_in_3_0",
+      "basis": "declared"
+    },
+    "vda_localized_reported": {
+      "meaning": "vda_localized_reported",
+      "unit": "VDA3_0_localized_boolean_report_not_independent_localization_validity_blank_in_2_1",
+      "basis": "declared"
+    },
+    "vda_position_state": {
+      "meaning": "vda_position_state",
+      "unit": "same_state_NOT_REPORTED_or_INITIALIZED_REPORTED_or_LOCALIZED_REPORTED_or_UNAVAILABLE_POSITION_REPORTED_false_flag_or_zero_score_withholds_coordinates_not_missing_load",
+      "basis": "declared"
+    },
+    "vda_localization_score_reported": {
+      "meaning": "vda_localization_score_reported",
+      "unit": "reported_localization_score_not_independent_confidence_missing_is_not_zero",
+      "basis": "declared"
+    },
+    "vda_deviation_range_m": {
+      "meaning": "vda_deviation_range_m",
+      "unit": "m_reported_position_deviation_not_verified_error_bound_missing_is_not_zero",
+      "basis": "declared"
+    },
+    "vda_last_node_id_hex": {
+      "meaning": "vda_last_node_id_hex",
+      "unit": "utf8_hex_of_same_state_lastNodeId_reported_order_node_reference_not_measured_position_or_shelf_destination",
+      "basis": "declared"
+    },
+    "vda_last_node_sequence": {
+      "meaning": "vda_last_node_sequence",
+      "unit": "same_state_lastNodeSequenceId_uint32_order_node_sequence_not_load_movement_count",
+      "basis": "declared"
+    },
+    "state_summary_index": {
+      "meaning": "state_summary_index",
+      "unit": "one_based_SUMMARY_occurrence_in_this_input_in_source_order_repeated_equal_time_or_identical_states_remain_separate_not_a_global_identity",
+      "basis": "declared"
+    },
+    "state_context_basis": {
+      "meaning": "state_context_basis",
+      "unit": "same_SUMMARY_reported_robot_map_context_checked_against_preserved_state_not_load_pose_or_physical_movement_no_cross_record_join_or_map_transform_clock_not_authenticated",
+      "basis": "declared"
+    },
+    "source_file_sha256": {
+      "meaning": "source_file_sha256",
+      "unit": "sha256_of_all_original_native_JSONL_bytes_window_mode_only_not_generated_intermediate_or_authentication",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "zero_based_original_native_JSONL_physical_line_window_mode_only_repeated_for_each_load_in_that_state",
+      "basis": "declared"
+    },
+    "source_record_byte_offset": {
+      "meaning": "source_record_byte_offset",
+      "unit": "zero_based_original_native_JSONL_byte_offset_of_that_physical_line_window_mode_only",
+      "basis": "declared"
     }
   }
 }

@@ -32,6 +32,7 @@ MODE_SCHEMAS = {
         7: "CIRCLE", 9: "SURFACE", 16: "POSHOLD", 19: "MANUAL", 20: "MOTOR_DETECT", 21: "SURFTRAK"},
 }
 REQUIRED = ("TimeUS", "Mode", "ModeNum", "Rsn")
+MODE_SCHEMAS["sub-4.5.3"] = MODE_SCHEMAS["sub-4.5.7"]
 # AP_Logger_Backend::Write_VER() copies `fwver.fw_string` -- not `fw_string_original` --
 # into the FWS char[64]. AP_FWVersionDefine.h builds that member as
 # `ACTIVE_FWSTR " (" GIT_VERSION ")"` when GIT_VERSION is defined, and ACTIVE_FWSTR is
@@ -111,6 +112,17 @@ for _vehicle in ("plane-4.5.5", "rover-4.5.5", "copter-4.5.5", "sub-4.5.7"):
 PM_COMMON = ("MaxT", "Mem", "Load", "ErrL", "IntE", "ErrC", "SPIC", "I2CC", "I2CI", "Ex")
 PM_SCHEMAS = {"pm-4.3.1": ("TimeUS", "NLon", "NLoop", *PM_COMMON),
               "pm-4.3.2": ("TimeUS", "LR", "NLon", "NL", *PM_COMMON)}
+COPTER_PM_SCHEMA = "pm-copter-4.5.5"
+ROVER_PM_SCHEMA = "pm-rover-4.5.5"
+FIXED_PM_SCHEMAS = (COPTER_PM_SCHEMA, ROVER_PM_SCHEMA)
+PM_VEHICLES = {schema: "plane" for schema in PM_SCHEMAS}
+PM_SCHEMAS[COPTER_PM_SCHEMA] = PM_SCHEMAS["pm-4.3.2"]
+PM_VEHICLES[COPTER_PM_SCHEMA] = "copter-4.5.5"
+PM_SCHEMAS[ROVER_PM_SCHEMA] = PM_SCHEMAS["pm-4.3.2"]
+PM_VEHICLES[ROVER_PM_SCHEMA] = "rover-4.5.5"
+MAX_COPTER_PM_INPUT = 16 * 1024 * 1024
+MAX_COPTER_PM_OUTPUT = 16 * 1024 * 1024
+MAX_COPTER_PM_ROWS = 100000
 PM_FIELDS = ["reported_pm_schema", "reported_pm_long_loops", "reported_pm_loops",
              "reported_pm_loop_rate_hz", "reported_pm_max_loop_s", "reported_pm_memory_bytes",
              "reported_pm_scheduler_load", "reported_pm_extra_loop_s", "reported_pm_load_basis"]
@@ -230,6 +242,9 @@ def convert_parameter_snapshot(text, capture_time_us):
 
 
 def convert(text: str, vehicle: str, record: str = "mode", *, preserve_nonfinite_default=False) -> str:
+    fixed_pm = record in FIXED_PM_SCHEMAS
+    if fixed_pm and (not isinstance(text, str) or len(text.encode("utf-8")) > MAX_COPTER_PM_INPUT):
+        raise ValueError("fixed PM input exceeds bounded UTF8 input")
     parameter = record in PARAM_SCHEMAS
     performance = record in PM_SCHEMAS
     if type(preserve_nonfinite_default) is not bool or (preserve_nonfinite_default and
@@ -237,7 +252,7 @@ def convert(text: str, vehicle: str, record: str = "mode", *, preserve_nonfinite
         raise ValueError("nonfinite default requires an explicit QNff parameter record")
     if ((record not in ("mode", "arm", "ver") and not parameter and not performance)
             or (parameter and vehicle != PARAM_VEHICLES[record])
-            or (performance and vehicle != "plane")
+            or (performance and vehicle != PM_VEHICLES[record])
             or (record == "arm" and vehicle not in ARM_SCHEMAS)):
         raise ValueError("unsupported recorded state schema")
     required = (PARAM_SCHEMAS[record] if parameter else PM_SCHEMAS[record] if performance
@@ -245,10 +260,14 @@ def convert(text: str, vehicle: str, record: str = "mode", *, preserve_nonfinite
                 else ARM_REQUIRED)
     if vehicle not in MODE_SCHEMAS:
         raise ValueError("explicit supported vehicle required")
+    if vehicle == "sub-4.5.3" and record != "mode":
+        raise ValueError("Sub4.5.3 alias qualifies MODE only")
     modes = MODE_SCHEMAS[vehicle]
     if '"' in text or any(ord(c) < 32 and c not in '\r\n' for c in text):
         raise ValueError("unsupported CSV representation")
     rows = list(csv.reader(io.StringIO(text)))
+    if fixed_pm and len(rows) - 1 > MAX_COPTER_PM_ROWS:
+        raise ValueError("fixed PM row count exceeds bound")
     if len(rows) < 2:
         raise ValueError("missing MODE header or records")
     header = rows[0]
@@ -258,7 +277,7 @@ def convert(text: str, vehicle: str, record: str = "mode", *, preserve_nonfinite
                                      "reported_firmware_", "reported_vehicle_", "declared_vehicle_")) for c in header)
             or (record == "parm-4.2.3" and "Default" in header)
             or (record == "pm-4.3.1" and ("LR" in header or "NL" in header))
-            or (record == "pm-4.3.2" and "NLoop" in header)):
+            or (performance and record != "pm-4.3.1" and "NLoop" in header)):
         raise ValueError("incompatible MODE header")
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
@@ -286,6 +305,8 @@ def convert(text: str, vehicle: str, record: str = "mode", *, preserve_nonfinite
         if performance:
             parsed = {key: unsigned(values[key], 65535 if key in ("LR", "NLon", "NLoop", "NL", "Load", "ErrL")
                                     else 2**32 - 1) for key in required[1:]}
+            if fixed_pm and parsed["Load"] > 1000:
+                raise ValueError("fixed PM Load exceeds source scheduler range")
             writer.writerow(row + [record, parsed["NLon"], parsed["NLoop" if record == "pm-4.3.1" else "NL"],
                 parsed.get("LR", ""), parsed["MaxT"] / 1e6, parsed["Mem"], parsed["Load"] / 1000,
                 parsed["Ex"] / 1e6, "SPARE_TIME_REPORTED" if record == "pm-4.3.1" else "LOOP_RATE_OR_SPARE_TIME_REPORTED"])
@@ -367,7 +388,10 @@ def convert(text: str, vehicle: str, record: str = "mode", *, preserve_nonfinite
             writer.writerow(row + [modes.get(mode, f"UNKNOWN_{mode}"),
                                    "true" if mode in modes else "false"]
                             + ([] if vehicle == "plane" else [vehicle]))
-    return output.getvalue()
+    result = output.getvalue()
+    if fixed_pm and len(result.encode("utf-8")) > MAX_COPTER_PM_OUTPUT:
+        raise ValueError("fixed PM output exceeds common CSV bound")
+    return result
 
 
 def main():
@@ -381,7 +405,9 @@ def main():
     args = parser.parse_args()
     try:
         with args.input.open(encoding="utf-8", newline="") as source:
-            text = source.read(256001) if args.record == "parameter-file-2.4.49" else source.read()
+            text = (source.read(256001) if args.record == "parameter-file-2.4.49"
+                    else source.read(MAX_COPTER_PM_INPUT + 1) if args.record in FIXED_PM_SCHEMAS
+                    else source.read())
         if args.record == "parameter-file-2.4.49":
             if args.preserve_nonfinite_default:
                 raise ValueError("snapshot has no reported default field")

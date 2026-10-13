@@ -58,6 +58,7 @@ fn bridged(rows: &str) -> Vec<Observation> {
             &profile(),
             input.as_bytes(),
             ParseOptions {
+                allow_empty_rows: false,
                 allow_equal_time: true,
                 preserve_nonfinite_as_text: false,
             },
@@ -189,6 +190,7 @@ fn an_unknown_clock_supplies_no_windowed_input_at_all_and_that_is_not_a_healthy_
             &profile,
             input.as_bytes(),
             ParseOptions {
+                allow_empty_rows: false,
                 allow_equal_time: true,
                 preserve_nonfinite_as_text: false,
             },

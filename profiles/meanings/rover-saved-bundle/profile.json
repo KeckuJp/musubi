@@ -1,0 +1,70 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "TimeUS": {
+      "meaning": "TimeUS",
+      "unit": "us_since_boot",
+      "basis": "declared"
+    },
+    "Lat": {
+      "meaning": "Lat",
+      "unit": "deg_reported_latitude",
+      "basis": "declared"
+    },
+    "Lng": {
+      "meaning": "Lng",
+      "unit": "deg_reported_longitude",
+      "basis": "declared"
+    },
+    "Alt": {
+      "meaning": "Alt",
+      "unit": "m_reported_MSL_no_datum_conversion",
+      "basis": "declared"
+    },
+    "Spd": {
+      "meaning": "Spd",
+      "unit": "m_s_reported_ground_speed",
+      "basis": "declared"
+    },
+    "GCrs": {
+      "meaning": "GCrs",
+      "unit": "degree_reported_ground_course_not_body_heading",
+      "basis": "declared"
+    },
+    "VZ": {
+      "meaning": "VZ",
+      "unit": "m_s_reported_velocity_z_no_frame_rotation_or_sign_inference",
+      "basis": "declared"
+    },
+    "Status": {
+      "meaning": "Status",
+      "unit": "reported_GPS_fix_enum_not_independent_validity",
+      "basis": "declared"
+    },
+    "message_utf8_hex": {
+      "meaning": "message_utf8_hex",
+      "unit": "hex_encoded_reported_UTF8_log_text_not_authenticated_build_identity",
+      "basis": "declared"
+    },
+    "original_record_index": {
+      "meaning": "original_record_index",
+      "unit": "zero_based_original_decoder_record_index",
+      "basis": "declared"
+    },
+    "original_offset": {
+      "meaning": "original_offset",
+      "unit": "original_byte_offset",
+      "basis": "declared"
+    },
+    "original_length": {
+      "meaning": "original_length",
+      "unit": "original_record_bytes",
+      "basis": "declared"
+    }
+  }
+}

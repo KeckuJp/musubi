@@ -31,9 +31,9 @@ import sys
 from pathlib import Path
 
 try:  # The adopted dual-import idiom: usable as a script and as a package module.
-    from scripts.convert_imc_sensors import iter_udp_datagrams
+    from scripts.convert_imc_sensors import iter_udp_datagrams, read_pcap_window
 except ImportError:
-    from convert_imc_sensors import iter_udp_datagrams
+    from convert_imc_sensors import iter_udp_datagrams, read_pcap_window
 
 MAX_INPUT = 16 * 1024 * 1024
 MAX_OUTPUT = 128 * 1024 * 1024
@@ -77,7 +77,8 @@ FIELDS = ["record_time_us", "source_packet_index", "source_frame_hex", "source_f
           "agopen_reported_source_address", "agopen_reported_source_port"]
 FAILURE = "agopen steering conversion failed; verify capture, port and a new output path"
 USAGE = ("usage: convert_agopen_steering.py CAPTURE.pcap NEW_OUTPUT_DIRECTORY"
-         " --udp-destination-port PORT --imu-source bno08x-degrees|none-declared|unqualified")
+         " --udp-destination-port PORT --imu-source bno08x-degrees|none-declared|unqualified"
+         " [--start-us N --stop-us M]")
 
 
 def checksum(frame):
@@ -155,6 +156,34 @@ def convert(data, destination_port, imu_source=None):
     """
     if not isinstance(data, (bytes, bytearray)) or not data or len(data) > MAX_INPUT:
         raise ValueError("saved capture input limit")
+    return _convert_datagrams(iter_udp_datagrams(bytes(data), destination_port),
+                              destination_port, imu_source,
+                              "sha256:" + hashlib.sha256(bytes(data)).hexdigest())
+
+
+def convert_path(path, destination_port, imu_source=None, *, start_us=None, stop_us=None):
+    """Read an explicit finite window from a long saved capture, or the legacy small input."""
+    if start_us is None and stop_us is None:
+        with Path(path).open("rb") as stream:
+            data = stream.read(MAX_INPUT + 1)
+        return convert(data, destination_port, imu_source)
+    if imu_source not in IMU_SOURCES:
+        raise ValueError("explicit declared IMU source required")
+    if type(destination_port) is not int or not 1 <= destination_port <= 65535:
+        raise ValueError("explicit UDP destination port required")
+    data, indexes, window = read_pcap_window(path, start_us, stop_us)
+    original_digest = window.pop("source_sha256")
+    datagrams = (saved._replace(index=indexes[saved.index])
+                 for saved in iter_udp_datagrams(data, destination_port))
+    text, report = _convert_datagrams(datagrams, destination_port, imu_source, original_digest)
+    report["capture_window"] = window
+    report["datagram_count_scope"] = "SELECTED_CAPTURE_INTERVAL_ONLY"
+    report["source_binding"] = "whole original capture SHA256 plus global original packet index; not authentication"
+    return text, report
+
+
+def _convert_datagrams(datagrams, destination_port, imu_source, source_digest):
+    """One shared meaning/accounting path for legacy bytes and bounded file windows."""
     if imu_source not in IMU_SOURCES:
         raise ValueError("explicit declared IMU source required")
     output = io.StringIO(newline="")
@@ -172,12 +201,12 @@ def convert(data, destination_port, imu_source=None):
               "imu_source_basis": "caller declaration; the wire does not identify the IMU branch",
               "clock": "Unknown",
               "clock_basis": "PCAP capture microseconds of the recording host; not a trusted UTC anchor",
-              "source_sha256": "sha256:" + hashlib.sha256(bytes(data)).hexdigest(),
+              "source_sha256": source_digest,
               "writer_source": "AgOpenGPS-Official/Boards 60e8d894625c1a0dfd0bfeecd8247dc224cb69a8 Autosteer_UDP_v5.ino",
               "client_source": "AgOpenGPS-Official/AgOpenGPS 21be26aa58d09b9b5abacc715d0abcf4a021f1db UDPComm.Designer.cs case 253",
               "evidence_kind": "record-conversion-not-physical-or-autosteer-certification"}
     retained_bytes = 0
-    for datagram in iter_udp_datagrams(bytes(data), destination_port):
+    for datagram in datagrams:
         report["source_datagrams"] += 1
         if datagram.payload is None:
             report["unselected_datagrams"] += 1
@@ -225,13 +254,12 @@ def main(argv=None):
     parser.add_argument("--imu-source", required=True, choices=IMU_SOURCES,
                         help="declared IMU branch of the build; the wire cannot say, and only "
                              "the qualified BNO08x declaration may emit heading/roll degrees")
+    parser.add_argument("--start-us", type=int, help="inclusive capture-host microsecond bound; pair with --stop-us")
+    parser.add_argument("--stop-us", type=int, help="exclusive capture-host microsecond bound; not UTC")
     args = parser.parse_args(argv)
     try:
-        with args.input.open("rb") as stream:
-            data = stream.read(MAX_INPUT + 1)
-        if len(data) > MAX_INPUT:
-            raise ValueError("saved capture input limit")
-        text, report = convert(data, args.udp_destination_port, args.imu_source)
+        text, report = convert_path(args.input, args.udp_destination_port, args.imu_source,
+                                    start_us=args.start_us, stop_us=args.stop_us)
         args.output_directory.mkdir()  # Refuse an existing output, including the input path.
         with (args.output_directory / "observations.csv").open("w", encoding="utf-8", newline="") as stream:
             stream.write(text)

@@ -6,6 +6,41 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "safety_reported_state": {
+      "meaning": "safety_reported_state",
+      "unit": "source_reported_active_cleared_or_fence_breach_not_inferred_current_health",
+      "basis": "declared"
+    },
+    "safety_reported_kind": {
+      "meaning": "safety_reported_kind",
+      "unit": "reported_geofence_or_RC_short_RC_long_GCS_category_not_physical_cause",
+      "basis": "declared"
+    },
+    "safety_reported_reason": {
+      "meaning": "safety_reported_reason",
+      "unit": "fixed_Plane_writer_report_reason_or_breach_bitmask_not_trigger_threshold",
+      "basis": "declared"
+    },
+    "safety_producer_pin": {
+      "meaning": "safety_producer_pin",
+      "unit": "explicit_caller_selected_Plane_source_commit_not_authenticated_device_or_binary",
+      "basis": "declared"
+    },
+    "fence_breach_types_reported": {
+      "meaning": "fence_breach_types_reported",
+      "unit": "fixed_AC_FENCE_TYPE_bit_labels_ALT_MAX_CIRCLE_POLYGON_ALT_MIN_not_geometry_evaluation",
+      "basis": "declared"
+    },
+    "fence_unknown_bits_reported": {
+      "meaning": "fence_unknown_bits_reported",
+      "unit": "remaining_unsigned_bitmask_not_named_by_fixed_definition_zero_means_no_unknown_bits",
+      "basis": "declared"
+    },
+    "battery_instance_reported": {
+      "meaning": "battery_instance_reported",
+      "unit": "one_based_AP_BattMonitor_display_instance_not_serial_identity_or_cross_record_join",
+      "basis": "declared"
+    },
     "source_report_record_index": {
       "meaning": "source_report_record_index",
       "unit": "zero_based_position_of_this_record_in_the_saved_reader_reports_source_records_array_source_order_only_and_never_evidence_of_completeness_because_a_log_may_start_or_stop_at_any_moment",

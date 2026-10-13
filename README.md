@@ -42,6 +42,9 @@ Three things follow from taking that seriously:
 
 ## Try it
 
+For finite selections from saved recordings, explicit sender batches and opt-in domain exports,
+see [saved-input windows](docs/saved-input-windows.md).
+
 To adapt a decoded input into the public common model with a small explicit mapping,
 follow [Adapt a recorded input](docs/adapt-recorded-input.md). It includes a second
 input and optional Codex/Claude Code instructions; no AI account is needed to run it.

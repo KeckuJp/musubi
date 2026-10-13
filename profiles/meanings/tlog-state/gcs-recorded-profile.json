@@ -25,6 +25,46 @@
       "meaning": "MAVLINK.raw_frame_hex",
       "unit": "exact_frame_including_unknown_payload_and_signature",
       "basis": "declared"
+    },
+    "NAV_CONTROLLER_OUTPUT.desired_roll_deg_reported": {
+      "meaning": "NAV_CONTROLLER_OUTPUT.desired_roll_deg_reported",
+      "unit": "deg",
+      "basis": "declared"
+    },
+    "NAV_CONTROLLER_OUTPUT.desired_pitch_deg_reported": {
+      "meaning": "NAV_CONTROLLER_OUTPUT.desired_pitch_deg_reported",
+      "unit": "deg",
+      "basis": "declared"
+    },
+    "NAV_CONTROLLER_OUTPUT.desired_heading_deg_reported": {
+      "meaning": "NAV_CONTROLLER_OUTPUT.desired_heading_deg_reported",
+      "unit": "deg",
+      "basis": "declared"
+    },
+    "NAV_CONTROLLER_OUTPUT.target_bearing_deg_reported": {
+      "meaning": "NAV_CONTROLLER_OUTPUT.target_bearing_deg_reported",
+      "unit": "deg",
+      "basis": "declared"
+    },
+    "NAV_CONTROLLER_OUTPUT.altitude_error_m_reported": {
+      "meaning": "NAV_CONTROLLER_OUTPUT.altitude_error_m_reported",
+      "unit": "m",
+      "basis": "declared"
+    },
+    "NAV_CONTROLLER_OUTPUT.xtrack_error_m_reported": {
+      "meaning": "NAV_CONTROLLER_OUTPUT.xtrack_error_m_reported",
+      "unit": "m",
+      "basis": "declared"
+    },
+    "NAV_CONTROLLER_OUTPUT.waypoint_distance_m_reported": {
+      "meaning": "NAV_CONTROLLER_OUTPUT.waypoint_distance_m_reported",
+      "unit": "m",
+      "basis": "declared"
+    },
+    "NAV_CONTROLLER_OUTPUT.airspeed_error_m_s_reported": {
+      "meaning": "NAV_CONTROLLER_OUTPUT.airspeed_error_m_s_reported",
+      "unit": "m/s",
+      "basis": "declared"
     }
   }
 }

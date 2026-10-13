@@ -128,7 +128,20 @@ fn underwater_stays_unknown_and_is_never_approximated_as_surface() {
         Some(&FieldValue::F64(18.5))
     );
 
-    for label in ["underwater", "subsurface", "submarine", "rov", "auv", "sea"] {
+    let explicit = ROV.replace(
+        "source_role =",
+        "platform_domain = \"subsurface\"\nsource_role =",
+    );
+    let explicit = parse_profile(&explicit, "public").expect("explicit common subsurface domain");
+    let declared = TelemetryCsvReader
+        .read_report_with_options(&explicit, csv, options())
+        .unwrap();
+    assert_eq!(
+        explicit.declared_platform_domain,
+        Some(PlatformDomain::Subsurface)
+    );
+    assert_eq!(declared.observations[0].clock_basis, ClockBasis::Unknown);
+    for label in ["underwater", "submarine", "rov", "auv", "sea"] {
         let attempted = ROV.replace(
             "source_role =",
             &format!("platform_domain = \"{label}\"\nsource_role ="),

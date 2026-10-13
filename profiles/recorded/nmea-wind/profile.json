@@ -15,6 +15,16 @@
     "time": "unlocated_time_us"
   },
   "units": {
+    "ais_class_b_unit": "reported_CS_or_SOTDMA_not_installed_hardware_verification",
+    "ais_second_disposition": "reported_UTC_second_code0to59_not_absolute_time_60unavailable_61manual_62estimated_63inoperative",
+    "ais_accuracy_flag_reported": "reported_position_accuracy_bit_not_measured_error",
+    "ais_radio_state_raw": "uninterpreted20bit_ClassB_communication_state_including_selector_no_transmission",
+    "ais_reserved_1_raw": "unqualified8reserved_bits_retained",
+    "ais_reserved_2_raw": "unqualified2reserved_bits_retained",
+    "ais_rot_code": "signed_8bit_reported_ROT_code_not_the_decoder_rounded_degrees_per_minute_minus128_is_no_information",
+    "ais_rot_rad_s": "rad/s_signed_right_positive_left_negative_inverse_quantized_estimate_only_for_codes_minus125_through125_not_an_exact_sensor_or_physical_rate_zero_is_reported_quantized_zero",
+    "ais_rot_disposition": "INVERSE_QUANTIZED_ESTIMATE_or_RANGE_END_MAGNITUDE_UNRESOLVED_for_plus_minus126_or_NO_TURN_INDICATOR_for_plus_minus127_reporting_turn_over5deg_per30s_without_TI_or_NO_INFORMATION_for_minus128_or_NOT_IN_THIS_MESSAGE_for_type5",
+    "ais_rot_direction": "RIGHT_or_LEFT_reported_turn_direction_ZERO_QUANTIZED_for_zero_UNKNOWN_for_unavailable_or_type5_not_a_COG_derivative_or_verified_manoeuvre",
     "sentence_kind": "which_selected_water_sentence_produced_this_row_MTW_for_a_reported_water_temperature_or_DPT_for_a_reported_depth_below_transducer_the_two_are_never_merged_into_one_measurement",
     "water_temperature_k": "K_water_temperature_reported",
     "depth_below_transducer_m": "m_below_transducer_not_geodetic_altitude",
@@ -68,6 +78,13 @@
     "ais_destination_disposition": "REPORTED_or_NOT_AVAILABLE_OR_BLANK_when_the_source_carried_the_not_available_encoding",
     "ais_dte_reported": "AVAILABLE_when_the_source_bit_is_zero_and_NOT_AVAILABLE_when_it_is_one_a_reported_terminal_readiness_flag_not_a_link_test",
     "ais_version_code": "reported_AIS_version_indicator_0_M_1371_1_station_1_M_1371_3_or_later_2_M_1371_5_or_later_3_future_edition_a_self_declaration",
-    "ais_fragment_binding": "which_two_saved_lines_sequential_id_and_channel_this_static_report_was_assembled_from_a_caller_declared_adjacent_pair_in_one_capture_not_a_globally_unique_message_identifier"
+    "ais_fragment_binding": "which_two_saved_lines_sequential_id_and_channel_this_static_report_was_assembled_from_a_caller_declared_adjacent_pair_in_one_capture_not_a_globally_unique_message_identifier",
+    "ais_b24_part": "type24_part_A_name_or_B_static_ITU_R_M1371_5_tables78_79_each_part_is_its_own_row",
+    "ais_vendor_manufacturer_reported": "reported_three_character_manufacturer_mnemonic_table79A_not_authenticated_hardware",
+    "ais_vendor_model_code": "reported_unit_model_code_4bit_table79A",
+    "ais_vendor_serial_code": "reported_unit_serial_20bit_manufacturer_defined_coding_not_identity",
+    "ais_vendor_disposition": "NOT_AVAILABLE_DEFAULT_for_all_zero_vendor_field_otherwise_reported",
+    "ais_b24_dimension_field_raw": "raw_30bit_dimension_reference_field_kept_because_the_pinned_decoder_reads_it_as_a_mothership_MMSI_for_98XXXYYYY_which_table79_does_not_define",
+    "ais_b24_association": "Part_A_and_Part_B_are_separate_messages_never_joined_a_shared_MMSI_is_not_proof_of_one_station_or_transmission"
   }
 }

@@ -1,0 +1,26 @@
+profile_id = "rover455_declared_imu_batch"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "boot_relative"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "boot_relative_recording_us_not_individual_sample_timestamp"
+batch_first_sample_us = "boot_relative_first_sample_us_reported_in_ISBH"
+nominal_offset_s = "sample_index_divided_by_reported_rate_not_measured_elapsed_time"
+sample_index = "zero_based_batch_index_under_declared_LGCT32"
+array_index = "zero_based_index_in_original_32_element_array"
+instance_reported = "reported_instance_may_include_postfilter_offset_not_hardware_identity"
+sensor_type_reported = "0_acceleration_1_angular_rate_fixed_writer"
+quantization_multiplier = "raw_divisor_for_quantized_reconstruction_not_FMTU_multiplier"
+sample_rate_hz = "reported_batch_rate_Hz_not_individual_timestamp_proof"
+acceleration_x_m_s2 = "m/s/s_quantized_reconstruction_source_axes_not_world_frame"
+acceleration_y_m_s2 = "m/s/s_quantized_reconstruction_source_axes_not_world_frame"
+acceleration_z_m_s2 = "m/s/s_quantized_reconstruction_source_axes_not_world_frame"
+angular_rate_x_rad_s = "rad/s_quantized_reconstruction_source_axes_not_world_frame"
+angular_rate_y_rad_s = "rad/s_quantized_reconstruction_source_axes_not_world_frame"
+angular_rate_z_rad_s = "rad/s_quantized_reconstruction_source_axes_not_world_frame"

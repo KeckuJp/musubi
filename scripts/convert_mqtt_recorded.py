@@ -222,14 +222,18 @@ def dock_row(payload):
     return row
 
 
-def convert(text, topic, payload_format, *, vda_actions=False, vda_errors=False, envelope_format="j"):
+def convert(text, topic, payload_format, *, vda_actions=False, vda_errors=False, envelope_format="j",
+            farmbot_pins=False):
     detailed = vda_actions or vda_errors
+    if type(farmbot_pins) is not bool or farmbot_pins and payload_format != "farmbot-state":
+        raise ValueError("pin details require the fixed FarmBot state selector")
     if envelope_format not in ENVELOPE_FORMATS:
         raise ValueError("explicit supported mosquitto envelope format required")
     json_value_payload = envelope_format == "J"
     if (type(vda_actions) is not bool or type(vda_errors) is not bool
-            or detailed and payload_format not in ("vda-state-2.1", "vda-state-3.0")):
-        raise ValueError("detail selection requires VDA2.1 or3.0")
+            or vda_actions and payload_format not in ("vda-state-2.0", "vda-state-2.1", "vda-state-3.0")
+            or vda_errors and payload_format not in ("vda-state-2.0", "vda-state-2.1", "vda-state-3.0")):
+        raise ValueError("action/error details require VDA2.0/2.1/3.0")
     if (payload_format not in FORMATS or not isinstance(topic, str) or not topic
             or any(c in topic for c in "#+\x00") or len(topic.encode()) > 65535):
         raise ValueError("explicit supported topic and payload format required")
@@ -313,8 +317,25 @@ def convert(text, topic, payload_format, *, vda_actions=False, vda_errors=False,
                 csv.field_size_limit(previous_limit)
         if not rows or (not detailed and payload_format != DJI_FORMAT and len(rows) != 1):
             raise ValueError("payload did not yield one source observation")
-        envelope_digest = "sha256:" + hashlib.sha256(line.encode()).hexdigest() if detailed or payload_format == DJI_FORMAT else None
+        if farmbot_pins:
+            try:
+                from scripts import convert_farmbot_saved_pins as pins
+            except ModuleNotFoundError:
+                import convert_farmbot_saved_pins as pins
+            pin_text, _ = pins.convert(json.dumps(dict(payload_object, schema_commit=pins.PIN),
+                                                  ensure_ascii=False, allow_nan=False))
+            pin_rows = list(csv.DictReader(io.StringIO(pin_text)))
+            state = rows[0]
+            state.update(pin_rows[0])
+            keys = list(state)
+            rows = [state] + [dict.fromkeys(keys, "") | row for row in pin_rows[1:]]
+        envelope_digest = "sha256:" + hashlib.sha256(line.encode()).hexdigest() if detailed or farmbot_pins or payload_format == DJI_FORMAT else None
         for index, row in enumerate(rows):
+            if farmbot_pins:
+                row.update(mqtt_source_record_index=source_index, mqtt_envelope_sha256=envelope_digest,
+                           farm_source_record_index=source_index,
+                           mqtt_payload_source_hex=row["source_record_hex"] if index == 0 else "",
+                           farm_source_binding_basis="CALLER_QUALIFIED_e711c03_NORMALIZED_WRAPPER_DIGEST_AND_ENVELOPE_INDEX_NOT_AUTHENTICATION")
             if payload_format == DJI_FORMAT:
                 row.update(mqtt_source_record_index=source_index, mqtt_envelope_sha256=envelope_digest)
             if detailed:
@@ -342,6 +363,63 @@ def convert(text, topic, payload_format, *, vda_actions=False, vda_errors=False,
     return output.getvalue()
 
 
+def convert_path(path, topic, payload_format, *, start_record, stop_record,
+                 vda_actions=False, vda_errors=False, envelope_format="j", farmbot_pins=False):
+    """Select saved physical records; excluded payloads and clocks are not decoded."""
+    try:
+        from scripts.convert_vda_load_report import read_jsonl_window
+    except ModuleNotFoundError:
+        from convert_vda_load_report import read_jsonl_window
+    selected, offsets, count, selected_bytes, digest = read_jsonl_window(
+        path, start_record=start_record, stop_record=stop_record)
+    text = ''.join(selected)
+    converted = convert(text, topic, payload_format, vda_actions=vda_actions,
+                        vda_errors=vda_errors, envelope_format=envelope_format, farmbot_pins=farmbot_pins)
+    output = io.StringIO(newline='')
+    previous_limit = csv.field_size_limit(2 * 1024 * 1024)
+    try:
+        reader = csv.DictReader(io.StringIO(converted))
+        extra = ['mqtt_source_file_sha256', 'mqtt_source_record_byte_offset']
+        if 'mqtt_source_record_index' not in reader.fieldnames:
+            extra.append('mqtt_source_record_index')
+        writer = csv.DictWriter(output, fieldnames=reader.fieldnames + extra, lineterminator='\n')
+        writer.writeheader()
+        seen = set()
+        output_rows = 0
+        local = -1
+        for row in reader:
+            if row.get('source_record_hex'):
+                local += 1
+            if 'mqtt_source_record_index' in row and int(row['mqtt_source_record_index']) != local:
+                raise ValueError('converted record binding mismatch')
+            if not 0 <= local < len(selected):
+                raise ValueError('converted record index outside selection')
+            seen.add(local)
+            row['mqtt_source_record_index'] = start_record + local
+            if 'vda_source_record_index' in row:
+                row['vda_source_record_index'] = start_record + local
+            if farmbot_pins:
+                row['farm_source_record_index'] = start_record + local
+            row.update(mqtt_source_file_sha256=digest,
+                       mqtt_source_record_byte_offset=offsets[local])
+            writer.writerow(row)
+            output_rows += 1
+            if output.tell() > LIMIT:
+                raise ValueError('selected converted capture exceeds bound')
+        if seen != set(range(len(selected))):
+            raise ValueError('selected capture record omitted')
+    finally:
+        csv.field_size_limit(previous_limit)
+    return output.getvalue(), {
+        'schema': 'mqtt-record-selection/v1', 'source_sha256': digest,
+        'source_records': count, 'start_record': start_record, 'stop_record': stop_record,
+        'selected_records': len(selected), 'selected_bytes': selected_bytes,
+        'selected_normalized_sha256': hashlib.sha256(text.encode()).hexdigest(),
+        'excluded_records_not_decoded': count - len(selected), 'output_rows': output_rows,
+        'basis': 'Full source framing/hash; selected topic/payload/capture clocks only. '
+                 'Selected line endings normalized to LF; no cross-window clock claim.'}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
@@ -350,17 +428,35 @@ def main():
     parser.add_argument("--payload-format", choices=FORMATS, required=True)
     parser.add_argument("--vda-actions", action="store_true")
     parser.add_argument("--vda-errors", action="store_true")
+    parser.add_argument("--farmbot-pins", action="store_true", help="include fixed saved pin-state details")
+    parser.add_argument("--start-record", type=int)
+    parser.add_argument("--stop-record", type=int)
+    parser.add_argument("--report", type=Path, help="new selection accounting JSON file")
     parser.add_argument("--envelope-format", choices=ENVELOPE_FORMATS, default="j",
                         help="mosquitto_sub output specifier of the saved capture: %%j quoted payload "
                              "string (default), %%J payload as a JSON value whose byte length is "
                              "reported but cannot be verified")
     args = parser.parse_args()
     try:
-        result = convert(args.input.read_text(encoding="utf-8"), args.topic, args.payload_format,
-                         vda_actions=args.vda_actions, vda_errors=args.vda_errors,
-                         envelope_format=args.envelope_format)
+        selection = args.start_record is not None or args.stop_record is not None
+        if selection:
+            if args.start_record is None or args.stop_record is None or args.report is None:
+                raise ValueError('selection requires both bounds and report')
+            result, report = convert_path(args.input, args.topic, args.payload_format,
+                start_record=args.start_record, stop_record=args.stop_record,
+                vda_actions=args.vda_actions, vda_errors=args.vda_errors,
+                envelope_format=args.envelope_format, farmbot_pins=args.farmbot_pins)
+        else:
+            if args.report is not None:
+                raise ValueError('report requires selection')
+            result = convert(args.input.read_text(encoding="utf-8"), args.topic, args.payload_format,
+                             vda_actions=args.vda_actions, vda_errors=args.vda_errors,
+                             envelope_format=args.envelope_format, farmbot_pins=args.farmbot_pins)
         with args.output.open("x", encoding="utf-8", newline="") as stream:
             stream.write(result)
+        if selection:
+            with args.report.open('x', encoding='utf-8') as stream:
+                json.dump(report, stream, sort_keys=True, indent=2)
     except (OSError, ValueError, TypeError, KeyError, RecursionError, OverflowError):
         parser.exit(2, "Saved MQTT conversion failed; no successful conversion claim\n")
 

@@ -2,7 +2,7 @@
   "schemaVersion": "musubi.sbom.dependency/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "lockfileSha256": "sha256:4be1a2b850f0e2dcdceae955992a7628ef7ccc38709494e0d7e530fbc1e49cae",
+    "lockfileSha256": "sha256:af26019cad8e081a82e45e4d882680cc9dd196b078e70d9e543ea1429a5cdac6",
     "coveragePolicy": "ALL_LOCKFILE_PACKAGES_WITH_CHECKSUM_BOUND_LICENSE_EVIDENCE"
   },
   "generator": {
@@ -1446,6 +1446,7 @@
         "musubi-conformance",
         "musubi-core",
         "musubi-recorded-readers",
+        "musubi-reference-pipeline",
         "musubi-reference-readers",
         "musubi-reference-types"
       ]
@@ -2195,6 +2196,7 @@
         "musubi-field-contracts",
         "musubi-jsonl-log",
         "musubi-recorded-readers",
+        "musubi-reference-pipeline",
         "musubi-reference-readers",
         "musubi-reference-viewer"
       ]

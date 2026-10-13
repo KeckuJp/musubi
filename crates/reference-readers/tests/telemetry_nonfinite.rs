@@ -25,6 +25,7 @@ time = "timestamp"
 
 fn preserve() -> ParseOptions {
     ParseOptions {
+        allow_empty_rows: false,
         allow_equal_time: true,
         preserve_nonfinite_as_text: true,
     }

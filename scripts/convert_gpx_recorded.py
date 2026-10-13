@@ -14,13 +14,17 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 try:
+    from scripts.recorded_mission_parameters import FIELDS, DEFINITIONS, interpret
     from scripts.convert_ardupilot_battery_csv import unique_object
 except ModuleNotFoundError:
+    from recorded_mission_parameters import FIELDS, DEFINITIONS, interpret
     from convert_ardupilot_battery_csv import unique_object
 
 DEERE_WGS84 = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]'
 
 NS = "{http://www.topografix.com/GPX/1/1}"
+DEERE_NS = "{urn:musubi:deere-point-v1}"
+DEERE_SECTION_BASIS = "SOURCE_DECLARED_SECTIONID_N9_0_NOT_GLOBAL_OR_PHYSICAL_IDENTITY"
 INPUT_LIMIT = 64 * 1024 * 1024
 OUTPUT_LIMIT = 128 * 1024 * 1024
 META = {"name", "cmt", "desc", "src", "link", "number", "type", "extensions"}
@@ -74,7 +78,7 @@ def children(node, allowed):
     return list(node)
 
 
-def convert(raw, capture_time_us):
+def convert(raw, capture_time_us, *, deere_projection=False):
     if not isinstance(raw, bytes) or not raw or len(raw) > INPUT_LIMIT:
         raise ValueError("bounded UTF8 GPX required")
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
@@ -88,15 +92,19 @@ def convert(raw, capture_time_us):
     digest = "sha256:" + hashlib.sha256(raw).hexdigest()
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
+    extra_columns = ["deere_section_id", "deere_section_id_basis"] if deere_projection else []
     writer.writerow(["record_time_us", "point_index", "point_role", "series_index", "segment_index",
         "point_in_segment", "latitude_deg", "longitude_deg", "coordinate_basis", "elevation_m",
-        "elevation_basis", "point_time_unix_us", "point_time_text_hex", "point_name_hex", "source_sha256"])
+        "elevation_basis", "point_time_unix_us", "point_time_text_hex", "point_name_hex", "source_sha256"] + extra_columns)
     report = dict(points=0, timed_points=0, untimed_points=0, routes=0, tracks=0, segments=0,
         empty_routes=0, empty_tracks=0, empty_segments=0, waypoints=0,
         source_sha256=digest, source_retention="unchanged source.gpx, retained with CSV and report",
         unconverted_content="other metadata, point fields and extensions retained in source.gpx, not semantically decoded",
         numeric_precision="finite f64 output; original decimal text retained in source.gpx",
         clock="CALLER_CAPTURE_NOT_POINT_OR_DEVICE_TIME", evidence="declared-points-not-physical-certification")
+    if deere_projection:
+        report.update(deere_section_ids_present=0, deere_section_ids_missing=0,
+            selected_extension="Deere Point v1 SECTIONID only; all other extensions remain unconverted")
 
     def emit(point, role, series, segment, number):
         children(point, POINT)
@@ -108,10 +116,29 @@ def convert(raw, capture_time_us):
                 raise ValueError("nested scalar point field")
         elevation = "" if ele is None else decimal_value(ele.text)
         time = "" if stamp is None else utc_microseconds(stamp.text)
+        section = []
+        if deere_projection:
+            extensions = point.find(NS + "extensions")
+            if (extensions is None or len(extensions) != 1
+                    or extensions[0].tag != DEERE_NS + "section_id"):
+                raise ValueError("selected Deere projection requires one scoped SECTIONID declaration")
+            declaration = extensions[0]
+            basis = declaration.get("basis")
+            value = declaration.text or ""
+            if len(declaration) or set(declaration.attrib) != {"basis"}:
+                raise ValueError("invalid projected SECTIONID declaration")
+            if basis == DEERE_SECTION_BASIS:
+                if not re.fullmatch(r"[+-]?[0-9]{1,9}", value) or len(value) > 9:
+                    raise ValueError("exact projected N9/0 SECTIONID required")
+                value = int(value)
+            elif basis not in ("NOT_DECLARED", "MISSING_SOURCE_VALUE") or value:
+                raise ValueError("invalid projected SECTIONID missing basis")
+            section = [value, basis]
+            report["deere_section_ids_missing" if value == "" else "deere_section_ids_present"] += 1
         writer.writerow([capture_time_us, report["points"], role, series, segment, number,
             lat, lon, "WGS84_DECIMAL_DEGREES", elevation, "UNRESOLVED_NOT_ASSUMED_MSL_OR_ELLIPSOID",
             time, "" if stamp is None else "hex:" + stamp.text.encode().hex(),
-            "" if name is None else "hex:" + (name.text or "").encode().hex(), digest])
+            "" if name is None else "hex:" + (name.text or "").encode().hex(), digest] + section)
         report["points"] += 1
         report["untimed_points" if stamp is None else "timed_points"] += 1
         if output.tell() > OUTPUT_LIMIT:
@@ -144,7 +171,7 @@ def convert(raw, capture_time_us):
     return output.getvalue(), report
 
 
-def convert_kmz(raw, capture_time_us):
+def convert_kmz(raw, capture_time_us, *, track_angles=False, feature_geometry=False):
     """Selected saved geometry declarations in a ZIP; never extract or fetch resources."""
     if not isinstance(raw, bytes) or not raw or len(raw) > INPUT_LIMIT:
         raise ValueError("bounded KMZ required")
@@ -154,18 +181,17 @@ def convert_kmz(raw, capture_time_us):
             raise ValueError("one bounded unencrypted KML member required")
         with archive.open(members[0]) as source:
             text = source.read(INPUT_LIMIT + 1).decode("utf-8-sig")
-    # The archive's own bytes are what the caller supplied, so they are what the digest binds.
-    return convert_kml_document(text, capture_time_us, raw, "source.kmz")
+    return convert_kml_document(text, capture_time_us, raw, "source.kmz", track_angles=track_angles, feature_geometry=feature_geometry)
 
 
-def convert_kml(raw, capture_time_us):
+def convert_kml(raw, capture_time_us, *, track_angles=False, feature_geometry=False):
     """The same selected geometry declarations supplied as a bare saved KML2.2 document."""
     if not isinstance(raw, bytes) or not raw or len(raw) > INPUT_LIMIT:
         raise ValueError("bounded KML required")
-    return convert_kml_document(raw.decode("utf-8-sig"), capture_time_us, raw, "source.kml")
+    return convert_kml_document(raw.decode("utf-8-sig"), capture_time_us, raw, "source.kml", track_angles=track_angles, feature_geometry=feature_geometry)
 
 
-def convert_kml_document(text, capture_time_us, raw, retained_name):
+def convert_kml_document(text, capture_time_us, raw, retained_name, *, track_angles=False, feature_geometry=False):
     """One KML2.2 semantic implementation shared by both containers; no container is synthesised."""
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
         raise ValueError("explicit capture microseconds required")
@@ -177,6 +203,13 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
     if root.tag != ns + "kml":
         raise ValueError("KML2.2 namespace required")
     digest = "sha256:" + hashlib.sha256(raw).hexdigest()
+    track_angles = track_angles or feature_geometry
+    context_fields = ["feature_path_hex", "feature_id_hex", "feature_name_hex", "geometry_id_hex",
+        "polygon_path_hex", "ring_index", "ring_role", "multitrack_path_hex", "multitrack_part_index",
+        "multitrack_interpolate_reported", "feature_time_precision", "feature_time_year",
+        "feature_time_month", "feature_time_day"]
+    context_fields += [f"feature_{end}_{field}" for end in ("begin", "end")
+                      for field in ("text_hex", "precision", "unix_us", "year", "month", "day")]
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
     writer.writerow(["record_time_us", "geometry_index", "point_index", "geometry_role",
@@ -184,7 +217,9 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
         "altitude_basis", "coordinate_text_hex", "source_sha256",
         "feature_time_unix_us", "feature_time_text_hex", "feature_time_scope",
         "feature_time_basis", "point_time_unix_us", "point_time_text_hex",
-        "point_time_basis", "position_status"])
+        "point_time_basis", "position_status"] + (["kml_track_heading_deg", "kml_track_tilt_deg",
+        "kml_track_roll_deg", "kml_track_angles_status", "kml_track_angles_text_hex",
+        "kml_track_angles_basis"] if track_angles else []) + (context_fields if feature_geometry else []))
     report = dict(points=0, selected_geometries=0, ignored_altitudes=0, unselected_subtrees=0,
         source_sha256=digest, source_retention=f"unchanged {retained_name} required",
         clock="CALLER_CAPTURE_WITH_SEPARATE_DECLARED_FEATURE_AND_TRACK_TIMES",
@@ -192,6 +227,11 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
         gx_track_declarations=0, track_points=0, missing_track_positions=0,
         unconverted_content=f"other geometry, metadata and resources retained only in {retained_name}",
         evidence="declared-geometry-not-physical-trajectory-or-height-certification")
+    if track_angles:
+        report.update(track_angles_declared=0, track_angles_missing=0, track_angles_not_declared=0)
+    if feature_geometry:
+        report.update(polygon_declarations=0, polygon_rings=0, multitrack_declarations=0,
+                      feature_geometry_basis="DECLARED_BOUNDARIES_AND_TIME_EXTENTS_NOT_RENDERED_OR_INTERPOLATED")
     # `<TimeStamp><when>` belongs to a FEATURE - Document, Folder or Placemark - and never to a
     # geometry or a coordinate. The nearest enclosing feature that declares one supplies the
     # instant for its geometries, every point of that feature carries the SAME value, and the
@@ -220,8 +260,7 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
         stamp = primitives[0]
         if stamp.tag == ns + "TimeSpan":
             report["timespan_declarations"] += 1
-            # A local interval overrides an ancestor's instant, even though we do not decode it.
-            return "", "", node.tag.removeprefix(ns).upper() + "_TIMESPAN_UNCONVERTED"
+            return "", "", node.tag.removeprefix(ns).upper() + ("_TIMESPAN_DECLARED" if feature_geometry else "_TIMESPAN_UNCONVERTED")
         when = stamp.find(ns + "when")
         if when is None or not (when.text or "").strip():
             raise ValueError("declared TimeStamp without a when value")
@@ -229,28 +268,143 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
             raise ValueError("one scalar when per TimeStamp required")
         text = when.text
         report["timed_features"] += 1
+        if feature_geometry and re.fullmatch(r"\d{4}(?:-\d{2}(?:-\d{2})?)?", text.strip()):
+            calendar_value(text)  # validate without inventing a timezone or instant
+            return text, "", scopes[node.tag] + "_CALENDAR_PRECISION"
         return text, utc_microseconds(text.strip()), scopes[node.tag]
 
-    def geometries(parent, inherited):
-        for child in parent:
+    def hex_text(text):
+        return "hex:" + text.encode().hex()
+
+    def calendar_value(text):
+        stripped = text.strip()
+        match = re.fullmatch(r"(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?", stripped)
+        if match:
+            year, month, day = match.groups()
+            datetime(int(year), int(month or 1), int(day or 1))
+            return dict(text_hex=hex_text(text), precision="DAY" if day else "MONTH" if month else "YEAR",
+                        unix_us="", year=int(year), month=int(month) if month else "", day=int(day) if day else "")
+        return dict(text_hex=hex_text(text), precision="INSTANT", unix_us=utc_microseconds(stripped),
+                    year="", month="", day="")
+
+    def feature_context(node, inherited, path):
+        context = dict(inherited)
+        names = node.findall(ns + "name")
+        if len(names) > 1 or any(len(n) for n in names):
+            raise ValueError("single scalar feature name required")
+        context.update(feature_path_hex=hex_text(path), feature_id_hex=hex_text(node.get("id", "")),
+                       feature_name_hex=hex_text((names[0].text or "") if names else ""))
+        primitives = [c for c in node if c.tag in (ns + "TimeStamp", ns + "TimeSpan")]
+        if not primitives:
+            return context
+        if len(primitives) != 1:
+            raise ValueError("single feature TimePrimitive required")
+        for key in context_fields:
+            if key.startswith(("feature_begin_", "feature_end_", "feature_time_")):
+                context[key] = ""
+        primitive = primitives[0]
+        if primitive.tag == ns + "TimeStamp":
+            when = primitive.find(ns + "when")
+            if when is None:
+                raise ValueError("TimeStamp when required")
+            value = calendar_value(when.text or "")
+            context.update({"feature_time_"+key: value[key] for key in ("precision", "year", "month", "day")})
+        else:
+            if any(c.tag not in (ns+"begin", ns+"end") or len(c) for c in primitive):
+                raise ValueError("scalar TimeSpan endpoints required")
+            values = []
+            for end in ("begin", "end"):
+                nodes = primitive.findall(ns+end)
+                if len(nodes) > 1:
+                    raise ValueError("duplicate TimeSpan endpoint")
+                value = calendar_value(nodes[0].text or "") if nodes else {"precision": "UNBOUNDED"}
+                context.update({f"feature_{end}_{key}": value.get(key, "") for key in ("text_hex", "precision", "unix_us", "year", "month", "day")})
+                values.append(value)
+            a, b = values
+            if a["precision"] == b["precision"] != "UNBOUNDED":
+                keys = ("unix_us",) if a["precision"] == "INSTANT" else ("year", "month", "day")
+                if tuple(a[k] for k in keys) > tuple(b[k] for k in keys):
+                    raise ValueError("reversed declared TimeSpan")
+        return context
+
+    def geometries(parent, inherited, context=None, path=""):
+        context = {} if context is None else context
+        for ordinal, child in enumerate(parent):
+            child_path = path + "/" + str(ordinal)
+            local = dict(context, geometry_id_hex=hex_text(child.get("id", ""))) if feature_geometry else context
             if child.tag in (ns + "Point", ns + "LineString", gx + "Track"):
                 if child.tag == gx + "Track":
                     report["gx_track_declarations"] += 1
-                yield child, inherited
+                yield child, inherited, local
             elif child.tag in features:
-                yield from geometries(child, feature_instant(child) or inherited)
+                updated = feature_context(child, context, child_path) if feature_geometry else context
+                yield from geometries(child, feature_instant(child) or inherited, updated, child_path)
             elif child.tag == ns + "MultiGeometry":
-                yield from geometries(child, inherited)
+                yield from geometries(child, inherited, context, child_path)
+            elif feature_geometry and child.tag == ns + "Polygon":
+                allowed = {ns+k for k in ("outerBoundaryIs", "innerBoundaryIs", "altitudeMode", "extrude", "tessellate")}
+                if any(c.tag not in allowed for c in child) or len(child.findall(ns+"outerBoundaryIs")) != 1:
+                    raise ValueError("Polygon requires one outer boundary and supported modifiers")
+                modifiers = [c for c in child if c.tag not in (ns+"outerBoundaryIs", ns+"innerBoundaryIs")]
+                report["polygon_declarations"] += 1
+                ring_index = 0
+                for boundary in child:
+                    if boundary.tag not in (ns+"outerBoundaryIs", ns+"innerBoundaryIs"):
+                        continue
+                    if len(boundary) != 1 or boundary[0].tag != ns+"LinearRing":
+                        raise ValueError("boundary needs one LinearRing")
+                    ring = boundary[0]
+                    if len(ring) != 1 or ring[0].tag != ns+"coordinates" or len(ring[0]):
+                        raise ValueError("selected ring needs only scalar coordinates")
+                    points = (ring[0].text or "").split()
+                    if len(points) < 4:
+                        raise ValueError("closed ring with at least four coordinate tuples required")
+                    for token in points[0].split(",") + points[-1].split(","):
+                        decimal_value(token, scientific=True)
+                    if tuple(Decimal(v) for v in points[0].split(",")) != tuple(Decimal(v) for v in points[-1].split(",")):
+                        raise ValueError("ring endpoint coordinates must match exactly")
+                    projected = ET.Element(ns+"LineString")
+                    projected.extend([*modifiers, ring[0]])
+                    yield projected, inherited, dict(local, polygon_path_hex=hex_text(child_path),
+                        ring_index=ring_index, ring_role="OUTER" if boundary.tag == ns+"outerBoundaryIs" else "INNER")
+                    ring_index += 1
+                    report["polygon_rings"] += 1
+            elif feature_geometry and child.tag == gx + "MultiTrack":
+                allowed = {ns+"altitudeMode", gx+"interpolate", gx+"Track"}
+                tracks = child.findall(gx+"Track")
+                modes, interpolations = child.findall(ns+"altitudeMode"), child.findall(gx+"interpolate")
+                if not tracks or any(c.tag not in allowed for c in child) or len(modes)>1 or len(interpolations)>1:
+                    raise ValueError("bounded supported MultiTrack declarations required")
+                if any(len(c) for c in [*modes, *interpolations]):
+                    raise ValueError("scalar MultiTrack modifier required")
+                mode = (modes[0].text or "").strip() if modes else "clampToGround"
+                interpolation = (interpolations[0].text or "").strip() if interpolations else "0"
+                if interpolation not in ("0", "1", "true", "false"):
+                    raise ValueError("boolean MultiTrack interpolation required")
+                report["multitrack_declarations"] += 1
+                for index, track in enumerate(tracks):
+                    projected = ET.fromstring(ET.tostring(track))
+                    own_modes = projected.findall(ns+"altitudeMode")
+                    if len(own_modes)>1 or (own_modes and (own_modes[0].text or "").strip()!=mode):
+                        raise ValueError("ambiguous MultiTrack and Track altitude modes")
+                    if not own_modes:
+                        ET.SubElement(projected, ns+"altitudeMode").text=mode
+                    report["gx_track_declarations"] += 1
+                    yield projected, inherited, dict(local, geometry_id_hex=hex_text(track.get("id", "")),
+                        multitrack_path_hex=hex_text(child_path), multitrack_part_index=index,
+                        multitrack_interpolate_reported="true" if interpolation in ("1","true") else "false")
             elif child.tag in (ns + "TimeStamp", ns + "TimeSpan"):
                 if parent.tag not in features:
                     raise ValueError("TimePrimitive must belong to a Feature")
                 # Examined by `feature_instant`, so already accounted under its own count rather
                 # than a second time as something nobody looked at.
                 continue
+            elif feature_geometry and parent.tag in features and child.tag == ns + "name":
+                continue  # interpreted by feature_context, not an unselected subtree
             else:
                 report["unselected_subtrees"] += 1
 
-    for node, instant in geometries(root, None):
+    for node, instant, context in geometries(root, None):
         is_track = node.tag == gx + "Track"
         allowed = {ns + k for k in ("coordinates", "altitudeMode", "extrude", "tessellate")}
         repeated = {ns + "when", gx + "coord", gx + "angles"} if is_track else set()
@@ -263,7 +417,7 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
                     or (len(child) and child.tag not in retained)):
                 raise ValueError("unsupported selected geometry modifier")
             seen.add(child.tag)
-            if child.tag in retained or child.tag == gx + "angles":
+            if child.tag in retained or (child.tag == gx + "angles" and not track_angles):
                 report["unselected_subtrees"] += 1
         mode_node = node.find(ns + "altitudeMode")
         mode = "clampToGround" if mode_node is None else (mode_node.text or "").strip()
@@ -274,6 +428,7 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
         coordinates = node.find(ns + "coordinates")
         tuples = [] if coordinates is None else (coordinates.text or "").split()
         track_times = []
+        angles = []
         if is_track:
             tuples = [(c.text or "") for c in node.findall(gx + "coord")]
             whens = node.findall(ns + "when")
@@ -284,6 +439,20 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
         if not tuples or (node.tag == ns + "Point" and len(tuples) != 1):
             raise ValueError("selected geometry coordinates required")
         for number, point in enumerate(tuples):
+            selected_angles = []
+            if track_angles:
+                angle_text = (angles[number].text or "") if angles else ""
+                cells = angle_text.split()
+                if cells and len(cells) != 3:
+                    raise ValueError("three scalar KML track angles required")
+                values = [decimal_value(v, scientific=True) for v in cells] if cells else ["", "", ""]
+                status = ("NOT_A_TRACK" if not is_track else "NOT_DECLARED_NOT_INFERRED" if not angles
+                          else "MISSING_DECLARATION_NOT_INTERPOLATED" if not cells else "DECLARED")
+                if is_track:
+                    report["track_angles_declared" if cells else "track_angles_missing" if angles
+                           else "track_angles_not_declared"] += 1
+                selected_angles = values + [status, "hex:" + angle_text.encode().hex() if angles else "",
+                    "KML_GX_TRACK_HEADING_TILT_ROLL_DEGREES_DECLARATION_NOT_AIRCRAFT_EULER_OR_COMPOSED_MODEL_ROTATION"]
             missing = is_track and not point.strip()
             cells = point.split() if is_track else point.split(",")
             if not missing and len(cells) not in ((3,) if is_track else (2, 3)):
@@ -301,16 +470,18 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
                 report["missing_track_positions"] += 1
             report["track_points"] += is_track
             writer.writerow([capture_time_us, report["selected_geometries"], number,
-                "GX_TRACK_DECLARED" if is_track else node.tag.removeprefix(ns) + "_DECLARED",
+                "POLYGON_RING_DECLARED" if context.get("ring_role") else "GX_TRACK_DECLARED" if is_track else node.tag.removeprefix(ns) + "_DECLARED",
                 lat, lon, "WGS84_DECIMAL_DEGREES",
                 z, bases[mode], "hex:" + point.encode().hex(), digest,
                 "" if instant is None else instant[1],
                 "" if instant is None or not instant[0] else "hex:" + instant[0].encode().hex(),
-                "NO_FEATURE_TIME_DECLARED" if instant is None else instant[2], time_basis,
+                "NO_FEATURE_TIME_DECLARED" if instant is None else instant[2],
+                "DECLARED_FEATURE_TIME_EXTENT_OR_CALENDAR_PRECISION_NOT_A_POINT_SAMPLE_OR_INTERPOLATION" if feature_geometry else time_basis,
                 track_times[number][1] if is_track else "",
                 "hex:" + track_times[number][0].encode().hex() if is_track else "",
                 "GX_TRACK_PAIRED_WHEN_DECLARED_NOT_VERIFIED_FIX_TIME" if is_track else "NO_POINT_TIME_DECLARED",
-                "MISSING_COORDINATE_NOT_INTERPOLATED" if missing else "COORDINATE_DECLARED"])
+                "MISSING_COORDINATE_NOT_INTERPOLATED" if missing else "COORDINATE_DECLARED"] + selected_angles +
+                ([context.get(key, "") for key in context_fields] if feature_geometry else []))
             report["timed_points" if is_track or (instant and instant[1] != "") else "untimed_points"] += 1
             report["points"] += 1
             if output.tell() > OUTPUT_LIMIT:
@@ -321,8 +492,10 @@ def convert_kml_document(text, capture_time_us, raw, retained_name):
     return output.getvalue(), report
 
 
-def convert_wpl(raw, capture_time_us):
+def convert_wpl(raw, capture_time_us, *, parameter_meanings=False):
     """Read selected declarations only; never construct or send a mission."""
+    if type(parameter_meanings) is not bool:
+        raise ValueError('explicit boolean selector required')
     if not isinstance(raw, bytes) or not raw or len(raw) > INPUT_LIMIT:
         raise ValueError("bounded WPL input required")
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
@@ -336,13 +509,18 @@ def convert_wpl(raw, capture_time_us):
     writer.writerow(["record_time_us", "source_line", "point_role", "declared_sequence",
         "current_declared", "autocontinue_declared", "frame_code", "command_code",
         "latitude_deg", "longitude_deg", "coordinate_basis", "declared_altitude_m",
-        "altitude_basis", "source_sha256"])
+        "altitude_basis", "source_sha256"] + (FIELDS if parameter_meanings else []))
     report = dict(source_rows=0, decoded_points=0, unselected_rows=0, comments=0,
         source_sha256=digest, clock="CALLER_CAPTURE_NOT_ARRIVAL_OR_DEVICE_TIME",
         source_retention="unchanged source.waypoints required with CSV/report",
         unconverted_content="parameters1..4 and unselected commands/frames remain source-only",
         evidence="declared-points-not-execution-or-physical-certification")
     bases = {0: "MSL_DECLARED", 3: "HOME_RELATIVE_DECLARED", 10: "TERRAIN_RELATIVE_DECLARED"}
+    if parameter_meanings:
+        report['unconverted_content'] = 'unqualified commands/frames and original values retained; not execution'
+        report['parameter_uninterpreted_rows'] = 0
+        report['parameter_qualified_rows'] = 0
+        report['output_rows'] = 0
     for number, line in enumerate(lines[1:], 2):
         if line.startswith("#"):
             report["comments"] += 1
@@ -363,24 +541,42 @@ def convert_wpl(raw, capture_time_us):
                 decimal_value(value, scientific=True)
         seq, current, frame, command, auto = codes
         report["source_rows"] += 1
-        if command != 16 or frame not in bases:
+        if not parameter_meanings and (command != 16 or frame not in bases):
             report["unselected_rows"] += 1
             continue
-        lat = decimal_value(cells[8], -90, 90, scientific=True)
-        lon = decimal_value(cells[9], -180, 180, scientific=True)
-        altitude = decimal_value(cells[10], scientific=True)
-        writer.writerow([capture_time_us, number, "MISSION_POINT_DECLARED_NOT_EXECUTED",
-            seq, current, auto, frame, command, lat, lon, "WGS84_DECIMAL_DEGREES",
-            altitude, bases[frame], digest])
-        report["decoded_points"] += 1
+        meanings = interpret(command, frame, cells[4:11], definition_pin='1c5b39f6709166596341b855d92331c1c0885b5c') if parameter_meanings else {}
+        if parameter_meanings:
+            if command not in DEFINITIONS:
+                report['parameter_uninterpreted_rows'] += 1
+                report['unselected_rows'] += 1
+            else:
+                report['parameter_qualified_rows'] += 1
+            lat, lon, altitude = (meanings[f'declared_p{i}_value']
+                                  if meanings[f'declared_p{i}_role'] == role else ''
+                                  for i, role in ((5, 'latitude'), (6, 'longitude'), (7, 'altitude')))
+        else:
+            lat = decimal_value(cells[8], -90, 90, scientific=True)
+            lon = decimal_value(cells[9], -180, 180, scientific=True)
+            altitude = decimal_value(cells[10], scientific=True)
+        role = 'MISSION_ITEM_DECLARED_NOT_EXECUTED' if parameter_meanings else 'MISSION_POINT_DECLARED_NOT_EXECUTED'
+        output_row = [capture_time_us, number, role, seq, current, auto, frame, command,
+                      lat, lon, 'WGS84_DECIMAL_DEGREES' if lat != '' or lon != '' else '',
+                      altitude, bases.get(frame, '') if altitude != '' else '', digest]
+        if parameter_meanings:
+            output_row += [meanings[field] for field in FIELDS]
+        writer.writerow(output_row)
+        if not parameter_meanings or lat != '' and lon != '' and altitude != '':
+            report["decoded_points"] += 1
+        if parameter_meanings:
+            report['output_rows'] += 1
         if output.tell() > OUTPUT_LIMIT:
             raise ValueError("CSV exceeds bound")
-    if not report["decoded_points"]:
+    if not (report['parameter_qualified_rows'] if parameter_meanings else report["decoded_points"]):
         raise ValueError("no selected declared mission points")
     return output.getvalue(), report
 
 
-def convert_boundary(raw, capture_time_us):
+def convert_boundary(raw, capture_time_us, *, allow_empty=False):
     """Fixed BoundaryFiles.Save local declarations, never a navigation trajectory."""
     if not isinstance(raw, bytes) or not raw or len(raw) > INPUT_LIMIT:
         raise ValueError("bounded UTF8 boundary required")
@@ -428,7 +624,7 @@ def convert_boundary(raw, capture_time_us):
             report["empty_ring_declarations"].append(dict(ring_index=report["rings"], drive_through_reported=flag))
         report["rings"] += 1
         report["empty_rings"] += count == 0
-    if not report["points"]:
+    if not report["points"] and not allow_empty:
         raise ValueError("no declared boundary points")
     return output.getvalue(), report
 
@@ -459,7 +655,46 @@ def track_pair(line):
     return [decimal_value(cell, scientific=True) for cell in cells]
 
 
-def convert_track(raw, capture_time_us):
+def convert_recpath(raw, capture_time_us):
+    """Fixed saved recording-callsite path; never execute or certify a driven trajectory."""
+    if not isinstance(raw, bytes) or not raw or len(raw) > INPUT_LIMIT:
+        raise ValueError("bounded UTF8 RecPath file required")
+    if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
+        raise ValueError("explicit capture microseconds required")
+    lines = raw.decode("utf-8-sig").splitlines()
+    if len(lines) < 2 or lines[0] != "$RecPath" or not re.fullmatch(r"[0-9]{1,9}", lines[1]):
+        raise ValueError("explicit RecPath Save header and count required")
+    count = int(lines[1])
+    if count != len(lines) - 2:
+        raise ValueError("RecPath count does not match saved point records")
+    digest = "sha256:" + hashlib.sha256(raw).hexdigest()
+    output = io.StringIO(newline="")
+    writer = csv.writer(output, lineterminator="\n")
+    writer.writerow(["record_time_us", "point_index", "easting_m", "northing_m", "heading_rad",
+                     "reported_path_speed_m_s", "section_master_auto_reported", "coordinate_basis",
+                     "speed_basis", "source_sha256"])
+    for index, line in enumerate(lines[2:]):
+        cells = line.split(",")
+        if len(cells) != 5 or cells[4] not in ("True", "False"):
+            raise ValueError("exact RecPath point fields and Boolean required")
+        east, north, heading, speed = [decimal_value(cell, scientific=True) for cell in cells[:4]]
+        if speed < 1:
+            raise ValueError("RecPath speed outside qualified recording-callsite minimum")
+        writer.writerow([capture_time_us, index, east, north, heading, speed / 3.6,
+                         "TRUE" if cells[4] == "True" else "FALSE",
+                         "LOCAL_FIELD_ORIGIN_UNRESOLVED_NOT_WGS84",
+                         "SAVED_REPLAY_SPEED_KMH_CLAMPED_AT_ONE_NOT_MEASURED_SPEED", digest])
+        if output.tell() > OUTPUT_LIMIT:
+            raise ValueError("CSV exceeds bound")
+    return output.getvalue(), dict(points=count, source_sha256=digest,
+        source_retention="unchanged source.recpath.txt required",
+        clock="CALLER_CAPTURE_NOT_POINT_OR_DEVICE_TIME",
+        evidence="saved-recording-callsite-values-not-physical-trajectory-certification",
+        numeric_precision="finite f64; writer rounds XY/heading to 3 and replay speed to 1 decimal",
+        scope="RecPathFiles.Save and Position recording callsite at 21be26aa; no origin or execution")
+
+
+def convert_track(raw, capture_time_us, *, allow_empty=False):
     """Fixed TrackFiles.Save guidance declarations: a saved plan, never a driven or executed path."""
     if not isinstance(raw, bytes) or not raw or len(raw) > INPUT_LIMIT:
         raise ValueError("bounded UTF8 track file required")
@@ -536,7 +771,7 @@ def convert_track(raw, capture_time_us):
         cursor += count
         report["empty_curve_tracks"] += count == 0
         report["tracks"] += 1
-    if not report["tracks"]:
+    if not report["tracks"] and not allow_empty:
         raise ValueError("no declared guidance track")
     return output.getvalue(), report
 
@@ -585,7 +820,29 @@ def deere_points_to_gpx(raw):
             fields = [f[0] for f in reader.fields[1:]]
             if reader.shapeType != 1 or len(fields) != len(set(fields)) or "IsoTime" not in fields:
                 raise ValueError("Point geometry and unique timestamp column required")
+            has_section = "SECTIONID" in declared
+            if has_section != ("SECTIONID" in fields):
+                raise ValueError("SECTIONID metadata and DBF declaration must agree")
+            if has_section:
+                section_index = fields.index("SECTIONID")
+                if list(reader.fields[section_index + 1][1:]) != ["N", 9, 0]:
+                    raise ValueError("selected SECTIONID requires exact DBF N9/0 representation")
+                section_offset = 1 + sum(f[2] for f in reader.fields[1:section_index + 1])
+                header_length, record_length = struct.unpack_from("<HH", parts[".dbf"], 8)
             for index, shape in enumerate(reader.iterShapes()):
+                section, section_basis = "", "NOT_DECLARED"
+                if has_section:
+                    start = header_length + index * record_length + section_offset
+                    cell = parts[".dbf"][start:start + 9]
+                    token = cell.strip(b" ")
+                    if len(cell) != 9:
+                        raise ValueError("truncated SECTIONID cell")
+                    if token in (b"", b"*********"):
+                        section_basis = "MISSING_SOURCE_VALUE"
+                    elif re.fullmatch(rb"[+-]?[0-9]+", token):
+                        section, section_basis = str(int(token)), DEERE_SECTION_BASIS
+                    else:
+                        raise ValueError("SECTIONID must be an exact integer or explicit numeric null")
                 record = reader.record(index)
                 if record is None or shape.shapeType != 1 or len(shape.points) != 1:
                     raise ValueError("deleted/null/nonpoint records need a separate profile")
@@ -596,6 +853,8 @@ def deere_points_to_gpx(raw):
                 lon, lat = (format(Decimal(str(value)), "f") for value in (longitude, latitude))
                 point = ET.SubElement(root, "wpt", lat=lat, lon=lon)
                 ET.SubElement(point, "time").text = timestamp
+                extension = ET.SubElement(point, "extensions")
+                ET.SubElement(extension, DEERE_NS + "section_id", basis=section_basis).text = section
                 count += 1
             if not count or count != reader.numRecords:
                 raise ValueError("geometry/attribute count mismatch or zero points")
@@ -604,8 +863,9 @@ def deere_points_to_gpx(raw):
     derived = ET.tostring(root, encoding="utf-8", xml_declaration=True)
     return derived, dict(original_zip_sha256=hashlib.sha256(raw).hexdigest(),
         source_records=count, projected_points=count, decoder="pyshp2.3.1",
-        metadata_version="1.0", derivation="WGS84 Point and IsoTime -> source.gpx; original source.zip retained",
-        unconverted_fields=[name for name in fields if name != "IsoTime"],
+        metadata_version="1.0", derivation="WGS84 Point, IsoTime and declared SECTIONID -> source.gpx; original source.zip retained",
+        section_id_declared=has_section, section_id_basis=DEERE_SECTION_BASIS,
+        unconverted_fields=[name for name in fields if name not in ("IsoTime", "SECTIONID")],
         nonclaim="attributes including rate/gallon basis, elevation datum and heading not normalized")
 
 
@@ -614,26 +874,38 @@ def main():
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path, help="new directory only")
     parser.add_argument("--capture-time-us", type=int, required=True)
-    parser.add_argument("--source-format", choices=("gpx11", "agopen-boundary-21be26aa", "agopen-track-21be26aa", "deere-point-v1", "qgc-wpl110", "kmz-kml22", "kml22"), default="gpx11")
+    parser.add_argument("--kml-track-angles", action="store_true", help="interpret explicit gx:Track heading/tilt/roll degree declarations only")
+    parser.add_argument("--kml-feature-geometry", action="store_true", help="connect declared feature identity, polygon rings, time extents and MultiTrack including reported angles")
+    parser.add_argument("--source-format", choices=("gpx11", "agopen-boundary-21be26aa", "agopen-track-21be26aa", "agopen-recpath-21be26aa", "deere-point-v1", "qgc-wpl110", "kmz-kml22", "kml22"), default="gpx11")
+    parser.add_argument('--mission-parameter-meanings', action='store_true')
     args = parser.parse_args()
     try:
         with args.input.open("rb") as source:
             raw = source.read(INPUT_LIMIT + 1)
         boundary = args.source_format == "agopen-boundary-21be26aa"
         track = args.source_format == "agopen-track-21be26aa"
+        recpath = args.source_format == "agopen-recpath-21be26aa"
         wpl = args.source_format == "qgc-wpl110"
+        if args.mission_parameter_meanings and not wpl:
+            raise ValueError('mission parameter meanings require WPL')
         kmz = args.source_format == "kmz-kml22"
         kml = args.source_format == "kml22"
         projection = args.source_format == "deere-point-v1"
+        if (args.kml_track_angles or args.kml_feature_geometry) and not (kml or kmz):
+            raise ValueError("track angle option requires KML or KMZ")
         source, basis = deere_points_to_gpx(raw) if projection else (raw, None)
-        output, report = (convert_kmz if kmz else convert_kml if kml else convert_wpl if wpl
-                          else convert_track if track
-                          else convert_boundary if boundary else convert)(source, args.capture_time_us)
+        output, report = (convert_wpl(source, args.capture_time_us, parameter_meanings=True) if args.mission_parameter_meanings else
+                         (convert_kmz if kmz else convert_kml)(source, args.capture_time_us, track_angles=args.kml_track_angles,
+                          feature_geometry=args.kml_feature_geometry) if args.kml_track_angles or args.kml_feature_geometry else
+                         convert(source, args.capture_time_us, deere_projection=True) if projection else
+                         (convert_kmz if kmz else convert_kml if kml else convert_wpl if wpl
+                          else convert_recpath if recpath else convert_track if track
+                          else convert_boundary if boundary else convert)(source, args.capture_time_us))
         if projection: report["input_projection"] = basis
         args.output.mkdir()
         if projection: (args.output / "source.zip").write_bytes(raw)
         (args.output / ("source.kmz" if kmz else "source.kml" if kml
-                            else "source.waypoints" if wpl else "source.tracklines.txt" if track
+                            else "source.waypoints" if wpl else "source.recpath.txt" if recpath else "source.tracklines.txt" if track
                             else "source.boundary.txt" if boundary else "source.gpx")).write_bytes(source)
         (args.output / "observations.csv").write_text(output, encoding="utf-8")
         (args.output / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

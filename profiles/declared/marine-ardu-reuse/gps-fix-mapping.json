@@ -1,0 +1,10 @@
+{
+  "message_type": "MARINE_ARDU_GPS",
+  "latitude_field": "Lat",
+  "longitude_field": "Lng",
+  "altitude_field": "Alt",
+  "position_units": "deg-m-msl",
+  "domain": "unknown",
+  "fix_field": "Status",
+  "min_fix": 3
+}

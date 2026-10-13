@@ -107,6 +107,7 @@ fn rover_alias_and_unavailable_current_reuse_the_adopted_bat_profile() {
             &profile,
             &bytes,
             musubi_decoded_csv::ParseOptions {
+                allow_empty_rows: false,
                 allow_equal_time: true,
                 preserve_nonfinite_as_text: true,
             },

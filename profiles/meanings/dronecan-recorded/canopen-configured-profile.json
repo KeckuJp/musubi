@@ -1,0 +1,110 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "capture_microseconds_unknown_clock_not_event_onset",
+      "basis": "declared"
+    },
+    "source_node_id": {
+      "meaning": "source_node_id",
+      "unit": "caller_declared_for_configured_EMCY_or_default_heartbeat_wire_address_see_canopen_address_basis_not_authentication",
+      "basis": "declared"
+    },
+    "node_reported_mode": {
+      "meaning": "node_reported_mode",
+      "unit": "reported_default_heartbeat_state_not_physical_liveness",
+      "basis": "declared"
+    },
+    "canopen_state_code": {
+      "meaning": "canopen_state_code",
+      "unit": "raw_default_heartbeat_code_not_guarding",
+      "basis": "declared"
+    },
+    "source_frames_hex": {
+      "meaning": "source_frames_hex",
+      "unit": "UTF8_hex_JSON_original_capture_rows_no_ID_rewriting",
+      "basis": "declared"
+    },
+    "canopen_emergency_cob_id": {
+      "meaning": "canopen_emergency_cob_id",
+      "unit": "explicit_effective_11bit_EMCY_CAN_identifier_blank_for_heartbeat_not_NODE_ID",
+      "basis": "declared"
+    },
+    "canopen_address_basis": {
+      "meaning": "canopen_address_basis",
+      "unit": "caller_qualified_CANopenNode4.1_configurable_effective_OD1014_read_mapping_or_default_heartbeat_wire_address_not_authenticated",
+      "basis": "declared"
+    },
+    "canopen_error_code": {
+      "meaning": "canopen_error_code",
+      "unit": "reported_LE16_error_code_not_physical_fault_or_vendor_interpretation",
+      "basis": "declared"
+    },
+    "canopen_error_report_kind": {
+      "meaning": "canopen_error_report_kind",
+      "unit": "ERROR_REPORTED_or_ERROR_RESET_REPORTED_not_recovery_or_cause",
+      "basis": "declared"
+    },
+    "canopen_error_register": {
+      "meaning": "canopen_error_register",
+      "unit": "raw_reported_uint8_classification_not_verified_diagnosis",
+      "basis": "declared"
+    },
+    "canopen_error_register_disposition": {
+      "meaning": "canopen_error_register_disposition",
+      "unit": "defined_bits_or_reserved_bit6_nonconformant_report_retained",
+      "basis": "declared"
+    },
+    "canopen_manufacturer_data_hex": {
+      "meaning": "canopen_manufacturer_data_hex",
+      "unit": "opaque_five_reported_bytes_not_stack_specific_or_vendor_diagnosis",
+      "basis": "declared"
+    },
+    "canopen_error_generic_reported": {
+      "meaning": "canopen_error_generic_reported",
+      "unit": "reported_error_register_bit0_not_cause",
+      "basis": "declared"
+    },
+    "canopen_error_current_reported": {
+      "meaning": "canopen_error_current_reported",
+      "unit": "reported_error_register_bit1_not_measured_current",
+      "basis": "declared"
+    },
+    "canopen_error_voltage_reported": {
+      "meaning": "canopen_error_voltage_reported",
+      "unit": "reported_error_register_bit2_not_measured_voltage",
+      "basis": "declared"
+    },
+    "canopen_error_temperature_reported": {
+      "meaning": "canopen_error_temperature_reported",
+      "unit": "reported_error_register_bit3_not_measured_temperature",
+      "basis": "declared"
+    },
+    "canopen_error_communication_reported": {
+      "meaning": "canopen_error_communication_reported",
+      "unit": "reported_error_register_bit4_not_link_measurement",
+      "basis": "declared"
+    },
+    "canopen_error_device_profile_reported": {
+      "meaning": "canopen_error_device_profile_reported",
+      "unit": "reported_error_register_bit5_profile_not_resolved",
+      "basis": "declared"
+    },
+    "canopen_error_reserved_reported": {
+      "meaning": "canopen_error_reserved_reported",
+      "unit": "reported_reserved_bit6_retained_not_vendor_meaning",
+      "basis": "declared"
+    },
+    "canopen_error_manufacturer_reported": {
+      "meaning": "canopen_error_manufacturer_reported",
+      "unit": "reported_error_register_bit7_no_vendor_meaning_inferred",
+      "basis": "declared"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "TimeUS": {
+      "meaning": "TimeUS",
+      "unit": "us",
+      "basis": "declared"
+    },
+    "I": {
+      "meaning": "I",
+      "unit": "instance",
+      "basis": "declared"
+    },
+    "GyrX": {
+      "meaning": "GyrX",
+      "unit": "rad/s",
+      "basis": "declared"
+    },
+    "GyrY": {
+      "meaning": "GyrY",
+      "unit": "rad/s",
+      "basis": "declared"
+    },
+    "GyrZ": {
+      "meaning": "GyrZ",
+      "unit": "rad/s",
+      "basis": "declared"
+    },
+    "AccX": {
+      "meaning": "AccX",
+      "unit": "m/s2",
+      "basis": "declared"
+    },
+    "AccY": {
+      "meaning": "AccY",
+      "unit": "m/s2",
+      "basis": "declared"
+    },
+    "AccZ": {
+      "meaning": "AccZ",
+      "unit": "m/s2",
+      "basis": "declared"
+    }
+  }
+}

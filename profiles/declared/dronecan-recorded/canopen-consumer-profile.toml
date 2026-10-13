@@ -1,0 +1,27 @@
+profile_id = "canopennode_hbconsumer_reported_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "capture_microseconds_unknown_basis_not_timeout_duration_or_event_onset"
+source_node_id = "reporter_CAN_node_ID_not_monitored_node_ID_or_authentication"
+node_reported_mode = "reported_CANopen_heartbeat_state_not_physical_liveness"
+canopen_state_code = "raw_heartbeat_code_not_node_guarding"
+source_frames_hex = "hex_UTF8_JSON_original_capture_rows"
+canopen_error_code = "reported_LE16_EMCY_code_not_physical_fault"
+canopen_error_report_kind = "zero_ERROR_RESET_REPORTED_or_nonzero_ERROR_REPORTED_not_cause"
+canopen_error_register = "reported_uint8_register_all_bits_retained"
+canopen_error_register_disposition = "reserved_bit6_nonconforming_transmitter_report_is_retained_not_normalized"
+canopen_manufacturer_data_hex = "original_five_bytes_also_retained_when_source_specific_columns_are_selected"
+canopen_source_basis = "caller_selected_CANopenNode_v4.1_CO_HBconsumer_writer_not_firmware_authentication"
+canopen_error_condition_index = "reported_byte3_stack_error_bit_index_not_general_CANopen_vendor_dictionary"
+canopen_info_code = "reported_LE32_info_argument_not_automatically_node_ID_or_duration"
+canopen_consumer_event = "source_pattern_reported_timeout_or_remote_reset_or_aggregate_condition_clear_else_UNINTERPRETED_SOURCE_PATTERN_not_physical_disconnect_reboot_or_reconnect"
+canopen_monitored_slot = "zero_based_consumer_array_index_not_node_ID_blank_for_aggregate_reset_and_unknown_patterns"
+canopen_consumer_scope = "MONITORED_ARRAY_SLOT_NOT_NODE_ID_or_AGGREGATE_CONDITION_RESET_NOT_NODE_RECOVERY_or_UNINTERPRETED_clear_does_not_prove_all_nodes_active_or_individual_recovery"

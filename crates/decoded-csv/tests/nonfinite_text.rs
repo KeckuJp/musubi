@@ -11,6 +11,7 @@ fn default_stays_strict_and_explicit_option_preserves_nonfinite_spelling() {
         ParseOptions {
             allow_equal_time: false,
             preserve_nonfinite_as_text: true,
+            ..Default::default()
         },
     )
     .unwrap();
@@ -31,6 +32,7 @@ fn preservation_cannot_promote_invalid_time_or_bypass_time_order() {
     let preserve = ParseOptions {
         allow_equal_time: false,
         preserve_nonfinite_as_text: true,
+        ..Default::default()
     };
     for time in ["nan", "inf", "-inf", "-1", "9223372036854775808"] {
         let input = format!("time,unknown\n{time},nan\n");
@@ -44,6 +46,7 @@ fn preservation_cannot_promote_invalid_time_or_bypass_time_order() {
     let both = ParseOptions {
         allow_equal_time: true,
         preserve_nonfinite_as_text: true,
+        ..Default::default()
     };
     assert_eq!(
         parse_with_options(equal, "time", both).unwrap().rows.len(),

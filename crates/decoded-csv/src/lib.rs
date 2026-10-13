@@ -131,6 +131,7 @@ pub fn parse_non_decreasing(bytes: &[u8], time_column: &str) -> Result<Table, Pa
 /// Explicit input policies. Defaults retain the strict historical parser behavior.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ParseOptions {
+    pub allow_empty_rows: bool,
     /// Keep equal timestamps in source order, not asserted event order.
     pub allow_equal_time: bool,
     /// Preserve nonfinite numeric tokens as text, never as measured numbers.
@@ -206,7 +207,7 @@ pub fn parse_with_options(
             values,
         });
     }
-    if rows.is_empty() {
+    if rows.is_empty() && !options.allow_empty_rows {
         return Err(error(2, "no data rows"));
     }
     Ok(Table { columns, rows })

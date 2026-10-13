@@ -12,7 +12,8 @@ UNITS = {"V": ("voltage_v", 1, 0), "A": ("current_a", 1, 0),
          "rad/s": ("angular_speed_rad_s", 1, 0), "deg/s": ("angular_speed_rad_s", math.pi / 180, 0),
          "Pa": ("pressure_pa", 1, 0), "hPa": ("pressure_pa", 100, 0),
          "kPa": ("pressure_pa", 1000, 0), "bar": ("pressure_pa", 100000, 0),
-         "%": ("reported_ratio", .01, 0), "J": ("energy_j", 1, 0), "Wh": ("energy_j", 3600, 0)}
+         "%": ("reported_ratio", .01, 0), "J": ("energy_j", 1, 0), "Wh": ("energy_j", 3600, 0),
+         "uW": ("power_w", .000001, 0)}
 
 
 def normalize(value, unit):

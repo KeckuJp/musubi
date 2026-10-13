@@ -1,0 +1,39 @@
+{
+  "profile_id": "canopennode_configured_emcy_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "capture_microseconds_unknown_clock_not_event_onset",
+    "source_node_id": "caller_declared_for_configured_EMCY_or_default_heartbeat_wire_address_see_canopen_address_basis_not_authentication",
+    "node_reported_mode": "reported_default_heartbeat_state_not_physical_liveness",
+    "canopen_state_code": "raw_default_heartbeat_code_not_guarding",
+    "source_frames_hex": "UTF8_hex_JSON_original_capture_rows_no_ID_rewriting",
+    "canopen_emergency_cob_id": "explicit_effective_11bit_EMCY_CAN_identifier_blank_for_heartbeat_not_NODE_ID",
+    "canopen_address_basis": "caller_qualified_CANopenNode4.1_configurable_effective_OD1014_read_mapping_or_default_heartbeat_wire_address_not_authenticated",
+    "canopen_error_code": "reported_LE16_error_code_not_physical_fault_or_vendor_interpretation",
+    "canopen_error_report_kind": "ERROR_REPORTED_or_ERROR_RESET_REPORTED_not_recovery_or_cause",
+    "canopen_error_register": "raw_reported_uint8_classification_not_verified_diagnosis",
+    "canopen_error_register_disposition": "defined_bits_or_reserved_bit6_nonconformant_report_retained",
+    "canopen_manufacturer_data_hex": "opaque_five_reported_bytes_not_stack_specific_or_vendor_diagnosis",
+    "canopen_error_generic_reported": "reported_error_register_bit0_not_cause",
+    "canopen_error_current_reported": "reported_error_register_bit1_not_measured_current",
+    "canopen_error_voltage_reported": "reported_error_register_bit2_not_measured_voltage",
+    "canopen_error_temperature_reported": "reported_error_register_bit3_not_measured_temperature",
+    "canopen_error_communication_reported": "reported_error_register_bit4_not_link_measurement",
+    "canopen_error_device_profile_reported": "reported_error_register_bit5_profile_not_resolved",
+    "canopen_error_reserved_reported": "reported_reserved_bit6_retained_not_vendor_meaning",
+    "canopen_error_manufacturer_reported": "reported_error_register_bit7_no_vendor_meaning_inferred"
+  }
+}

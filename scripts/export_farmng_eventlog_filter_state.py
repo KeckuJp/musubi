@@ -18,6 +18,7 @@ no service, device or runtime is contacted.
 """
 import argparse
 import hashlib
+import io
 import json
 import math
 import struct
@@ -152,6 +153,34 @@ def bounded_read(path, limit):
     return raw
 
 
+def read_event_record(stream, event_class):
+    """Read one native record; (None, bytes) marks EOF or an incomplete tail.
+
+    Payload bytes are bounded but not interpreted. The same framing is used by
+    the legacy bounded-bytes route and the explicit native-record window.
+    """
+    from google.protobuf.message import DecodeError
+    prefix = stream.read(4)
+    if len(prefix) < 4:
+        return None, prefix
+    event_length = struct.unpack('<I', prefix)[0]
+    if not 0 < event_length <= EVENT_LIMIT:
+        raise ValueError('invalid EventLog record header length')
+    header = stream.read(event_length)
+    if len(header) < event_length:
+        return None, prefix + header
+    event = event_class()
+    try:
+        event.ParseFromString(header)
+    except DecodeError as exc:
+        raise ValueError('malformed EventLog event header') from exc
+    if not 0 <= event.payload_length <= PAYLOAD_LIMIT:
+        raise ValueError('invalid or oversized EventLog payload length')
+    payload = stream.read(event.payload_length)
+    raw = prefix + header + payload
+    return (event if len(payload) == event.payload_length else None), raw
+
+
 def export_filter_state_events(path, *, event_path, clock_name, semantics,
                                allow_truncated_tail=False, max_part_bytes=BRIDGE_LIMIT):
     """Saved container only; nothing here connects to a service or device.
@@ -169,32 +198,16 @@ def export_filter_state_events(path, *, event_path, clock_name, semantics,
     from google.protobuf.message import DecodeError
     parts, current, current_bytes, total_bytes = [], [], 0, 0
     position, total, selected, previous, tail, unselected = 0, 0, 0, None, 0, {}
+    stream = io.BytesIO(raw)
     while position < len(raw):
         start = position
-        if len(raw) - position < 4:
-            tail = len(raw) - position
+        event, native_record = read_event_record(stream, event_class)
+        position += len(native_record)
+        if event is None:
+            tail = len(native_record)
             break
-        event_length = struct.unpack("<I", raw[position:position + 4])[0]
-        if not 0 < event_length <= EVENT_LIMIT:
-            raise ValueError("invalid EventLog record header length")
-        position += 4
-        if len(raw) - position < event_length:
-            tail = len(raw) - start
-            break
-        event = event_class()
-        try:
-            event.ParseFromString(raw[position:position + event_length])
-        except DecodeError as exc:
-            raise ValueError("malformed EventLog event header") from exc
-        position += event_length
         payload_length = event.payload_length
-        if not 0 <= payload_length <= PAYLOAD_LIMIT:
-            raise ValueError("invalid or oversized EventLog payload length")
-        if len(raw) - position < payload_length:
-            tail = len(raw) - start
-            break
-        payload = raw[position:position + payload_length]
-        position += payload_length
+        payload = native_record[-payload_length:] if payload_length else b''
         total += 1
         if event.uri.path != event_path:
             # Unselected records stay counted and undecoded, never dropped silently.

@@ -1,0 +1,95 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "capture_time_us": {
+      "meaning": "capture_time_us",
+      "unit": "caller_declared_saved_capture_microseconds_not_authenticated",
+      "basis": "declared"
+    },
+    "first_capture_time_us": {
+      "meaning": "first_capture_time_us",
+      "unit": "first_saved_chunk_capture_microseconds_not_source_boot_clock",
+      "basis": "declared"
+    },
+    "severity_reported": {
+      "meaning": "severity_reported",
+      "unit": "RFC5424_reported_severity_code_not_physical_failure_certification",
+      "basis": "declared"
+    },
+    "severity_name": {
+      "meaning": "severity_name",
+      "unit": "defined_severity_or_UNKNOWN_not_a_diagnosis",
+      "basis": "declared"
+    },
+    "sysid_reported": {
+      "meaning": "sysid_reported",
+      "unit": "unauthenticated_MAVLink_system_id",
+      "basis": "declared"
+    },
+    "compid_reported": {
+      "meaning": "compid_reported",
+      "unit": "unauthenticated_MAVLink_component_id",
+      "basis": "declared"
+    },
+    "link_tag": {
+      "meaning": "link_tag",
+      "unit": "caller_selected_writer_link_tag_or_empty",
+      "basis": "declared"
+    },
+    "message_id_reported": {
+      "meaning": "message_id_reported",
+      "unit": "opaque_statustext_assembly_id_not_incident_id",
+      "basis": "declared"
+    },
+    "assembly_status": {
+      "meaning": "assembly_status",
+      "unit": "COMPLETE_REPORTED_TEXT_or_explicit_INCOMPLETE_reason_not_omitted_byte_recovery",
+      "basis": "declared"
+    },
+    "text_utf8": {
+      "meaning": "text_utf8",
+      "unit": "utf8_prefix_then_reported_text_prevents_numeric_coercion_empty_if_invalid_see_text_hex",
+      "basis": "declared"
+    },
+    "text_hex": {
+      "meaning": "text_hex",
+      "unit": "hex_prefix_then_exact_selected_text_bytes_before_NUL_per_chunk_even_when_UTF8_invalid",
+      "basis": "declared"
+    },
+    "text_encoding": {
+      "meaning": "text_encoding",
+      "unit": "UTF8_or_INVALID_UTF8_BYTES_RETAINED",
+      "basis": "declared"
+    },
+    "chunk_count": {
+      "meaning": "chunk_count",
+      "unit": "number_of_saved_chunks_in_this_segment",
+      "basis": "declared"
+    },
+    "first_chunk_sequence": {
+      "meaning": "first_chunk_sequence",
+      "unit": "first_reported_zero_based_chunk_sequence",
+      "basis": "declared"
+    },
+    "last_chunk_sequence": {
+      "meaning": "last_chunk_sequence",
+      "unit": "last_reported_zero_based_chunk_sequence",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "sha256_prefix_then_exact_original_saved_capture_digest_not_authentication",
+      "basis": "declared"
+    },
+    "frame_references_hex": {
+      "meaning": "frame_references_hex",
+      "unit": "UTF8_JSON_hex_of_every_selected_frame_reference_and_original_payload",
+      "basis": "declared"
+    }
+  }
+}

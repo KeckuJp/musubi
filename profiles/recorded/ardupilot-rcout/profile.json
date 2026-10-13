@@ -1,0 +1,40 @@
+{
+  "profile_id": "ardupilot_rcout_a64bad1a",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "fc",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "boot_relative",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_since_system_startup_reported_TimeUS_not_UTC_or_a_reboot_diagnosis",
+    "source_report_record_index": "zero_based_index_in_the_saved_source_records_array_not_channel_index_or_complete_log_sequence",
+    "source_document_sha256": "sha256_of_the_unchanged_source_report_json_retained_once_alongside_CSV_not_authentication",
+    "source_version": "caller_declared_ardupilot_a64bad1a0da4382da9cd38a52dbf6379aa7b51b5_RCOU_schema_not_verified_running_firmware",
+    "source_record_hex": "UTF8_hex_canonical_selected_record_including_meta_and_unknown_fields_original_bytes_in_the_paired_source_report",
+    "rcout_value_basis": "reported_HAL_current_output_state_IO_controller_boards_use_latest_IO_report_not_read_last_sent_not_verified_physical_pulse_servo_position_motor_demand_or_actuation_success",
+    "rcout_channel_basis": "source_C1_to_C14_numbers_not_actuator_identity_RCOU_presence_requires_only_some_non_GPIO_channels_not_all14_valid_or_active_zero_is_reported_zero_without_an_activity_or_validity_claim_missing_channels_are_malformed_not_zero",
+    "rcout_c1_reported_s": "s_reported_channel1_output_converted_once_from_LogStructure_Y_microseconds_not_a_physical_servo_angle",
+    "rcout_c2_reported_s": "s_reported_channel2_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c3_reported_s": "s_reported_channel3_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c4_reported_s": "s_reported_channel4_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c5_reported_s": "s_reported_channel5_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c6_reported_s": "s_reported_channel6_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c7_reported_s": "s_reported_channel7_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c8_reported_s": "s_reported_channel8_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c9_reported_s": "s_reported_channel9_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c10_reported_s": "s_reported_channel10_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c11_reported_s": "s_reported_channel11_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c12_reported_s": "s_reported_channel12_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c13_reported_s": "s_reported_channel13_output_same_declared_Y_microseconds_conversion_and_value_basis",
+    "rcout_c14_reported_s": "s_reported_channel14_output_same_declared_Y_microseconds_conversion_and_value_basis"
+  }
+}

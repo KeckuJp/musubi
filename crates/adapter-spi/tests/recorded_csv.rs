@@ -279,6 +279,7 @@ fn malformed_structure_time_and_declared_units_abort_atomically() {
         for options in [
             ParseOptions::default(),
             ParseOptions {
+                allow_empty_rows: false,
                 allow_equal_time: true,
                 preserve_nonfinite_as_text: true,
             },

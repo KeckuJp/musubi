@@ -963,6 +963,7 @@ class RosbagObservationTests(unittest.TestCase):
                 self.assertEqual(float(rows[0]["declared_duration_s"]), int(rows[0]["declared_duration_ns"]) / 1e9)
                 self.assertEqual(bytes.fromhex(rows[0]["source_record_hex"][4:]), metadata.read_bytes())
                 self.assertEqual(rows[0]["metadata_disposition"], "DECLARED_ONLY_CONTENTS_NOT_VERIFIED")
+                self.assertTrue(all(row["metadata_version"] == "9" for row in rows))
                 if os.environ.get("MUSUBI_TELEMETRY_READER"):
                     source = Path(directory) / "out.csv"; source.write_text(output)
                     common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
@@ -971,6 +972,11 @@ class RosbagObservationTests(unittest.TestCase):
                     self.assertEqual(common["main_rows"], 4)
                     self.assertEqual(common["observations"][0]["fields"]["declared_start_ns"], 7000123456)
                     self.assertEqual(common["observations"][-1]["fields"]["declared_file_messages"], 3)
+                    self.assertTrue(all(o["fields"]["metadata_version"] == 9
+                                        for o in common["observations"]))
+                    self.assertEqual(common["profile_units"]["metadata_version"],
+                        "integer_declared_rosbag2_metadata_schema_version_9_not_ROS_protocol_distribution_firmware_application_or_exporter_version_not_authentication_or_clock_basis")
+                    self.assertTrue(all(o["clock_basis"] == "Unknown" for o in common["observations"]))
 
     def test_metadata_invalid_counts_types_and_aliases_reject(self):
         from scripts.convert_rosbag_observations import convert_metadata
@@ -1461,7 +1467,7 @@ class RosbagObservationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "bag"
             bag(path, messages=[message, types[TF]([])])
-            output, report = convert(path)
+            output, report = convert(path, tf_relation=True)
             rows = list(csv.DictReader(io.StringIO(output)))
             self.assertEqual((report["decoded_messages"], len(rows)), (2, 3))
             self.assertEqual([r["tf_entry_count"] for r in rows], ["2", "2", "0"])
@@ -1477,6 +1483,32 @@ class RosbagObservationTests(unittest.TestCase):
                     str(csv_path), "--allow-equal-time"], check=True, capture_output=True).stdout)
                 self.assertEqual(common["main_rows"], 3)
                 self.assertEqual(common["observations"][0]["fields"]["tf_translation_m_z"], 3)
+                self.assertEqual(common["observations"][0]["fields"]["tf_relation_kind"],
+                                 "UNDETERMINED_TOPIC_NOT_A_TF2_LISTENER_TOPIC")
+                self.assertEqual(common["profile_units"]["tf_translation_m_z"], "m_reported_translation_REP103")
+        for topic, kind in (("/tf", "TIME_VARYING_PER_TF2_LISTENER"),
+                            ("/tf_static", "STATIC_PER_TF2_LISTENER"),
+                            ("/robot1/tf_static", "UNDETERMINED_TOPIC_NOT_A_TF2_LISTENER_TOPIC"),
+                            ("/tf_static_backup", "UNDETERMINED_TOPIC_NOT_A_TF2_LISTENER_TOPIC")):
+            rows = transform_quantities(plain(message), topic) + transform_quantities(plain(types[TF]([])), topic)
+            self.assertEqual([r["tf_relation_kind"] for r in rows], [kind] * 3)
+            self.assertEqual({bytes.fromhex(r["tf_topic_hex"][4:]).decode() for r in rows}, {topic})
+            self.assertTrue(all(r["tf_relation_basis"].startswith(
+                "RECORDED_TOPIC_MATCHES" if kind != "UNDETERMINED_TOPIC_NOT_A_TF2_LISTENER_TOPIC"
+                else "RECORDED_TOPIC_DIFFERS") for r in rows))
+        self.assertEqual(rows[0]["tf_rotation_xyzw_w"], 1.)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "static"
+            with Writer(path, version=9, storage_plugin=StoragePlugin.SQLITE3) as writer:
+                for topic in ("/tf_static", "/tf"):
+                    connection = writer.add_connection(topic, TF, typestore=STORE,
+                        rihs01=STORE.hash_rihs01(TF), msgdef=STORE.generate_msgdef(TF, ros_version=2)[0])
+                    writer.write(connection, 7000123456, STORE.serialize_cdr(message, TF))
+            default, _ = convert(path)
+            self.assertNotIn("tf_relation_kind", default.splitlines()[0])
+            output, _ = convert(path, tf_relation=True)
+            kinds = [r["tf_relation_kind"] for r in csv.DictReader(io.StringIO(output))]
+            self.assertEqual(sorted(kinds), ["STATIC_PER_TF2_LISTENER"] * 2 + ["TIME_VARYING_PER_TF2_LISTENER"] * 2)
         for change in ("same_frame", "nonunit", "nonfinite"):
             record = plain(message)
             if change == "same_frame":
@@ -1925,7 +1957,8 @@ class RosbagObservationTests(unittest.TestCase):
         from rosbags.typesys import Stores, get_typestore
         from scripts.convert_rosbag_observations import HASHES, IMU, LEGACY_SCHEMA_CHOICES
         foxy = get_typestore(Stores.ROS2_FOXY)
-        self.assertEqual(set(LEGACY_SCHEMA_CHOICES), {"battery-humble-equivalent"})
+        self.assertEqual(set(LEGACY_SCHEMA_CHOICES), {"battery-humble-equivalent",
+            "laserscan-humble-equivalent", "pointcloud2-humble-equivalent"})
         self.assertEqual(LEGACY_SCHEMA_CHOICES["battery-humble-equivalent"], BATTERY)
         raw = bytes(foxy.serialize_cdr(legacy_battery(foxy), BATTERY))
         with tempfile.TemporaryDirectory() as directory:

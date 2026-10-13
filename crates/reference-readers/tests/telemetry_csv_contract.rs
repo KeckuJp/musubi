@@ -15,6 +15,7 @@ fn single_parse_report_preserves_columns_rows_policies_and_observations() {
     let selected = profile();
     let bytes = b"record_time (us),x_true,future\n1001,2.75,NaN\n1001,3.25,next\n";
     let options = musubi_decoded_csv::ParseOptions {
+        allow_empty_rows: false,
         allow_equal_time: true,
         preserve_nonfinite_as_text: true,
     };

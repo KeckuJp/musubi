@@ -1,0 +1,85 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "boot_relative_recording_us_not_individual_sample_timestamp",
+      "basis": "declared"
+    },
+    "batch_first_sample_us": {
+      "meaning": "batch_first_sample_us",
+      "unit": "boot_relative_first_sample_us_reported_in_ISBH",
+      "basis": "declared"
+    },
+    "nominal_offset_s": {
+      "meaning": "nominal_offset_s",
+      "unit": "sample_index_divided_by_reported_rate_not_measured_elapsed_time",
+      "basis": "declared"
+    },
+    "sample_index": {
+      "meaning": "sample_index",
+      "unit": "zero_based_batch_index_under_declared_LGCT32",
+      "basis": "declared"
+    },
+    "array_index": {
+      "meaning": "array_index",
+      "unit": "zero_based_index_in_original_32_element_array",
+      "basis": "declared"
+    },
+    "instance_reported": {
+      "meaning": "instance_reported",
+      "unit": "reported_instance_may_include_postfilter_offset_not_hardware_identity",
+      "basis": "declared"
+    },
+    "sensor_type_reported": {
+      "meaning": "sensor_type_reported",
+      "unit": "0_acceleration_1_angular_rate_fixed_writer",
+      "basis": "declared"
+    },
+    "quantization_multiplier": {
+      "meaning": "quantization_multiplier",
+      "unit": "raw_divisor_for_quantized_reconstruction_not_FMTU_multiplier",
+      "basis": "declared"
+    },
+    "sample_rate_hz": {
+      "meaning": "sample_rate_hz",
+      "unit": "reported_batch_rate_Hz_not_individual_timestamp_proof",
+      "basis": "declared"
+    },
+    "acceleration_x_m_s2": {
+      "meaning": "acceleration_x_m_s2",
+      "unit": "m/s/s_quantized_reconstruction_source_axes_not_world_frame",
+      "basis": "declared"
+    },
+    "acceleration_y_m_s2": {
+      "meaning": "acceleration_y_m_s2",
+      "unit": "m/s/s_quantized_reconstruction_source_axes_not_world_frame",
+      "basis": "declared"
+    },
+    "acceleration_z_m_s2": {
+      "meaning": "acceleration_z_m_s2",
+      "unit": "m/s/s_quantized_reconstruction_source_axes_not_world_frame",
+      "basis": "declared"
+    },
+    "angular_rate_x_rad_s": {
+      "meaning": "angular_rate_x_rad_s",
+      "unit": "rad/s_quantized_reconstruction_source_axes_not_world_frame",
+      "basis": "declared"
+    },
+    "angular_rate_y_rad_s": {
+      "meaning": "angular_rate_y_rad_s",
+      "unit": "rad/s_quantized_reconstruction_source_axes_not_world_frame",
+      "basis": "declared"
+    },
+    "angular_rate_z_rad_s": {
+      "meaning": "angular_rate_z_rad_s",
+      "unit": "rad/s_quantized_reconstruction_source_axes_not_world_frame",
+      "basis": "declared"
+    }
+  }
+}

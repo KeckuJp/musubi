@@ -30,6 +30,180 @@ def stream(order="<"):
 
 
 class ImcSensorTests(unittest.TestCase):
+    def test_neptus_water_velocity_reuses_common_meaning_without_salinity(self):
+        from scripts.convert_imc_sensors import NEPTUS_SCHEMA, convert_path
+        for order, x, mask in (('<', 4.25, 0x85), ('>', -6.5, 0x81)):
+            packet = frame(260, struct.pack(order + 'Bddd', mask, x, float('nan'), 0.), order)
+            raw = frame(263, 12., order) + packet + frame(270, 35., order)
+            plain, report = convert_input(raw, schema=NEPTUS_SCHEMA, water_velocity=True)
+            self.assertEqual((report['source_frames'], report['decoded_frames']), (3, 2))
+            self.assertEqual([r['message_id'] for r in report['unsupported_frames']], [270])
+            self.assertEqual(plain, convert_input(gzip.compress(raw, mtime=0),
+                             schema=NEPTUS_SCHEMA, water_velocity=True)[0])
+            legacy, legacy_report = convert_input(raw, schema=NEPTUS_SCHEMA)
+            self.assertEqual(legacy_report['decoded_frames'], 1)
+            self.assertNotIn('reported_water_velocity_x_m_s', legacy.splitlines()[0])
+            with tempfile.TemporaryDirectory() as directory:
+                base = Path(directory); source = base / 'input.lsf'; source.write_bytes(raw)
+                window, _ = convert_path(source, start_record=1, stop_record=2,
+                                         schema=NEPTUS_SCHEMA, water_velocity=True)
+                path = base / 'selected.csv'; path.write_text(window)
+                common = json.loads(subprocess.run([os.environ['MUSUBI_TELEMETRY_READER'],
+                    str(ROOT / 'profiles/declared/imc-sensors/profile.toml'),
+                    str(path), '--allow-equal-time'], check=True, capture_output=True).stdout)
+                row = common['observations'][0]
+                fields = row['fields']
+                self.assertEqual(common['main_rows'], 1)
+                self.assertEqual(row['clock_basis'], 'Unknown')
+                self.assertIsNone(row['anchor_unix_us'])
+                self.assertEqual(fields['reported_water_velocity_x_m_s'], x)
+                self.assertIsNone(fields['reported_water_velocity_y_m_s'])
+                self.assertEqual(fields['reported_water_velocity_z_m_s'], 0. if mask & 4 else None)
+                self.assertEqual(fields['velocity_unknown_validity_bits'], 128)
+                self.assertEqual(fields['source_frame_hex'], 'hex:' + packet.hex())
+                self.assertIn('RELATIVE_TO_WATER_AXIS_FRAME_UNSPECIFIED', fields['velocity_reference_basis'])
+                subprocess.run([os.sys.executable, str(ROOT / 'scripts/convert_imc_sensors.py'),
+                    str(source), str(base / 'out'), '--source-format', NEPTUS_SCHEMA,
+                    '--water-velocity'], check=True, capture_output=True)
+                self.assertEqual((base / 'out/observations.csv').read_text(), plain)
+            with self.assertRaises(ValueError):
+                convert(frame(260, struct.pack(order + 'Bddd', 1, float('nan'), 0., 0.), order),
+                        schema=NEPTUS_SCHEMA, water_velocity=True)
+
+    def _check_single_vlan_reuses_imc_and_separate_wind_input(self):
+        import dpkt
+        from scripts.convert_imc_sensors import convert_pcap
+        def ethernet(payload, tci=None):
+            udp = dpkt.udp.UDP(sport=6001, dport=6002, data=payload)
+            udp.ulen = len(udp)
+            ip = dpkt.ip.IP(src=b'\xc0\0\2\1', dst=b'\xc0\0\2\2', p=17, data=udp)
+            ip.len = len(ip)
+            prefix = b'\0' * 12 + (b'\x08\0' if tci is None else
+                                     b'\x81\0' + struct.pack('>HH', tci, 0x0800))
+            return prefix + bytes(ip)
+        def capture(packets):
+            out = io.BytesIO()
+            writer = dpkt.pcap.Writer(out)
+            for i, packet in enumerate(packets):
+                writer.writepkt(packet, ts=100 + i)
+            return out.getvalue()
+        def common(output):
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / 'values.csv'
+                path.write_text(output)
+                return json.loads(subprocess.run([os.environ['MUSUBI_TELEMETRY_READER'],
+                    str(ROOT / 'profiles/declared/imc-sensors/profile.toml'), str(path)],
+                    check=True, capture_output=True).stdout)
+        tagged = ethernet(frame(263, 20), 0xB076)
+        plain = ethernet(frame(263, 30))
+        non_ip = tagged[:16] + b'\x86\xdd' + b'not selected'
+        data = capture([tagged, plain, non_ip])
+        with self.assertRaisesRegex(ValueError, 'no selected'):
+            convert_pcap(capture([tagged]), 6002)
+        output, report = convert_pcap(data, 6002, single_vlan=True)
+        rows = list(csv.DictReader(io.StringIO(output)))
+        self.assertEqual([r['vlan_tci'] for r in rows], ['45174', ''])
+        self.assertEqual(rows[0]['vlan_inner_ethertype'], '2048')
+        self.assertEqual(rows[0]['imc_payload_time_us'], '1700000000250000')
+        self.assertEqual(report['source_sha256'], 'sha256:' + hashlib.sha256(data).hexdigest())
+        self.assertEqual(report['selected_sources'][0]['packet_hex'], tagged.hex())
+        self.assertEqual(report['vlan_unselected'][0]['packet_index'], 2)
+        self.assertEqual(report['vlan_unselected'][0]['vlan_inner_ethertype'], 0x86DD)
+        self.assertEqual((report['selected_packets'], report['unselected_packets']), (2, 1))
+        observations = common(output)['observations']
+        self.assertEqual([r['fields']['temperature_k'] for r in observations], [293.15, 303.15])
+        self.assertEqual(observations[0]['clock_basis'], 'Unknown')
+        self.assertEqual(observations[0]['fields']['vlan_tci'], 45174)
+        body = b'WIMWV,90.0,R,10.0,N,A'
+        check = 0
+        for byte in body: check ^= byte
+        wind = capture([ethernet(b'$' + body + ('*%02X\r\n' % check).encode(), 7)])
+        converted, _ = convert_pcap(wind, 6002, payload_format='nmea-wind', single_vlan=True)
+        self.assertAlmostEqual(common(converted)['observations'][0]['fields']['wind_speed_m_s'], 10 * 1852 / 3600)
+        with tempfile.TemporaryDirectory() as tmp:
+            source, dest = Path(tmp) / 'input.pcap', Path(tmp) / 'out'
+            source.write_bytes(data)
+            subprocess.run([os.sys.executable, str(ROOT / 'scripts/convert_imc_sensors.py'), str(source),
+                str(dest), '--source-format', 'pcap-udp-imc', '--udp-destination-port', '6002', '--single-vlan'],
+                check=True, capture_output=True)
+            self.assertEqual((dest / 'source.pcap').read_bytes(), data)
+            self.assertEqual((dest / 'observations.csv').read_text(), output)
+        for bad in (tagged[:17], tagged[:16] + b'\x81\0' + tagged[18:],
+                    tagged[:12] + b'\x88\xa8' + tagged[14:],
+                    tagged[:-1] + bytes([tagged[-1] ^ 1])):
+            with self.assertRaises(ValueError):
+                convert_pcap(capture([bad]), 6002, single_vlan=True)
+
+    @unittest.skipUnless(os.environ.get('MUSUBI_TELEMETRY_READER'), 'actual common reader required')
+    def test_water_velocity_reuses_validity_and_retains_water_reference_at_common(self):
+        for order in ('<', '>'):
+            packets = [frame(260, struct.pack(order + 'Bddd', 7, 1.25, -2.5, 0.), order),
+                       frame(260, struct.pack(order + 'Bddd', 0, 0., 0., 0.), order),
+                       frame(260, struct.pack(order + 'Bddd', 0x85, 0., float('nan'), 3.), order),
+                       frame(259, struct.pack(order + 'Bddd', 7, 9., 8., 7.), order)]
+            raw = b''.join(packets) + frame(65000, b'unmapped', order)
+            output, report = convert_input(gzip.compress(raw, mtime=0), water_velocity=True)
+            self.assertEqual((report['source_frames'], report['decoded_frames']), (5, 4))
+            self.assertEqual(len(report['unsupported_frames']), 1)
+            self.assertEqual(report['decoded_input_sha256'], hashlib.sha256(raw).hexdigest())
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / 'out.csv'; path.write_text(output)
+                common = json.loads(subprocess.run([os.environ['MUSUBI_TELEMETRY_READER'],
+                    str(ROOT / 'profiles/declared/imc-sensors/profile.toml'), str(path),
+                    '--allow-equal-time'], check=True, capture_output=True).stdout)
+            self.assertEqual(common['main_rows'], 4)
+            fields = [o['fields'] for o in common['observations']]
+            for index, observation in enumerate(common['observations']):
+                self.assertEqual(observation['clock_basis'], 'Unknown')
+                self.assertIsNone(observation['anchor_unix_us'])
+                self.assertEqual(fields[index]['source_frame_hex'], 'hex:' + packets[index].hex())
+                self.assertEqual(fields[index]['source_id'], 42)
+                self.assertEqual(fields[index]['source_entity'], 3)
+            self.assertEqual([fields[0]['reported_water_velocity_' + a + '_m_s'] for a in 'xyz'],
+                             [1.25, -2.5, 0.])
+            self.assertEqual([fields[1]['reported_water_velocity_' + a + '_m_s'] for a in 'xyz'], [None] * 3)
+            self.assertEqual(fields[1]['measurement_status'], 'ONLY_WITHHELD_COMPONENTS')
+            self.assertEqual([fields[2]['reported_water_velocity_' + a + '_m_s'] for a in 'xyz'], [0., None, 3.])
+            self.assertEqual(fields[2]['velocity_unknown_validity_bits'], 128)
+            self.assertEqual(fields[2]['water_velocity_y_disposition'], 'WITHHELD_COMPONENT_NOT_REPORTED_VALID')
+            self.assertEqual(fields[0]['velocity_reference_basis'],
+                             'REPORTED_RELATIVE_TO_WATER_AXIS_FRAME_UNSPECIFIED_BY_MESSAGE_SCHEMA')
+            self.assertEqual(fields[3]['reported_ground_velocity_x_m_s'], 9.)
+            self.assertIsNone(fields[3]['reported_water_velocity_x_m_s'])
+            self.assertIn('RELATIVE_TO_GROUND', fields[3]['velocity_reference_basis'])
+            self.assertTrue(common['profile_units']['reported_water_velocity_x_m_s'].startswith('m/s_'))
+
+    def test_water_velocity_default_byte_compatibility_and_cli_selection(self):
+        raw = frame(263, 12.5) + frame(260, struct.pack('<Bddd', 7, 1., 2., 3.)) + frame(65000, b'unmapped')
+        output, report = convert_input(raw)
+        self.assertEqual(hashlib.sha256(output.encode()).hexdigest(),
+                         '2814bab15dbe789ef7b2de30d8bb0c1d0bdef5c7d7a829df6974974b5b18cd78')
+        self.assertEqual(hashlib.sha256(json.dumps(report, sort_keys=True).encode()).hexdigest(),
+                         '3f38b20e6b8dbd477584563ab78cbf774d15fe815c54e9c8262ddb8065267dba')
+        self.assertEqual((output, report), convert_input(raw, water_velocity=False))
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory); source = base / 'saved.lsf.gz'; source.write_bytes(gzip.compress(raw, mtime=0))
+            cli = [os.sys.executable, str(ROOT / 'scripts/convert_imc_sensors.py'), str(source)]
+            subprocess.run(cli + [str(base / 'out'), '--water-velocity'], check=True, capture_output=True)
+            self.assertEqual((base / 'out/observations.csv').read_text(), convert_input(source.read_bytes(), water_velocity=True)[0])
+            for selection in ('pcap-udp-imc', 'moos-typed-alog'):
+                result = subprocess.run(cli + [str(base / selection), '--water-velocity', '--source-format', selection],
+                                        capture_output=True)
+                self.assertEqual(result.returncode, 2)
+                self.assertFalse((base / selection).exists())
+
+    def test_water_velocity_important_refusals(self):
+        valid = frame(260, struct.pack('<Bddd', 7, 1., 2., 3.))
+        for raw in (frame(260, bytes(24)), valid[:-1], valid[:-1] + bytes([valid[-1] ^ 1]),
+                    frame(260, struct.pack('<Bddd', 1, float('nan'), 0., 0.)),
+                    frame(260, struct.pack('<Bddd', 4, 0., 0., float('inf')))):
+            with self.subTest(raw=raw.hex()), self.assertRaises(ValueError):
+                convert(raw, water_velocity=True)
+        for option in ('true', 1, None):
+            with self.subTest(option=option), self.assertRaises(ValueError):
+                convert(valid, water_velocity=option)
+        with self.assertRaises(ValueError): convert(valid, water_velocity=True, schema='unqualified')
+
     def test_neptus_schema_reuses_five_sensors_without_guessing_salinity(self):
         schema = "neptus-2019.10.1-sensors"
         for order, temperature in (("<", 12.), (">", 31.)):
@@ -190,6 +364,7 @@ class ImcSensorTests(unittest.TestCase):
         import importlib.util
         if importlib.util.find_spec("dpkt") is None:
             self.skipTest("optional pinned PCAP decoder is exercised in the external-decoder CI environment")
+        self._check_single_vlan_reuses_imc_and_separate_wind_input()
         from scripts.convert_imc_sensors import convert_pcap
         def checksum(data):
             data += b"\0" * (len(data) % 2)

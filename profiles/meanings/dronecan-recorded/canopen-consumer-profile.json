@@ -1,0 +1,90 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "capture_microseconds_unknown_basis_not_timeout_duration_or_event_onset",
+      "basis": "declared"
+    },
+    "source_node_id": {
+      "meaning": "source_node_id",
+      "unit": "reporter_CAN_node_ID_not_monitored_node_ID_or_authentication",
+      "basis": "declared"
+    },
+    "node_reported_mode": {
+      "meaning": "node_reported_mode",
+      "unit": "reported_CANopen_heartbeat_state_not_physical_liveness",
+      "basis": "declared"
+    },
+    "canopen_state_code": {
+      "meaning": "canopen_state_code",
+      "unit": "raw_heartbeat_code_not_node_guarding",
+      "basis": "declared"
+    },
+    "source_frames_hex": {
+      "meaning": "source_frames_hex",
+      "unit": "hex_UTF8_JSON_original_capture_rows",
+      "basis": "declared"
+    },
+    "canopen_error_code": {
+      "meaning": "canopen_error_code",
+      "unit": "reported_LE16_EMCY_code_not_physical_fault",
+      "basis": "declared"
+    },
+    "canopen_error_report_kind": {
+      "meaning": "canopen_error_report_kind",
+      "unit": "zero_ERROR_RESET_REPORTED_or_nonzero_ERROR_REPORTED_not_cause",
+      "basis": "declared"
+    },
+    "canopen_error_register": {
+      "meaning": "canopen_error_register",
+      "unit": "reported_uint8_register_all_bits_retained",
+      "basis": "declared"
+    },
+    "canopen_error_register_disposition": {
+      "meaning": "canopen_error_register_disposition",
+      "unit": "reserved_bit6_nonconforming_transmitter_report_is_retained_not_normalized",
+      "basis": "declared"
+    },
+    "canopen_manufacturer_data_hex": {
+      "meaning": "canopen_manufacturer_data_hex",
+      "unit": "original_five_bytes_also_retained_when_source_specific_columns_are_selected",
+      "basis": "declared"
+    },
+    "canopen_source_basis": {
+      "meaning": "canopen_source_basis",
+      "unit": "caller_selected_CANopenNode_v4.1_CO_HBconsumer_writer_not_firmware_authentication",
+      "basis": "declared"
+    },
+    "canopen_error_condition_index": {
+      "meaning": "canopen_error_condition_index",
+      "unit": "reported_byte3_stack_error_bit_index_not_general_CANopen_vendor_dictionary",
+      "basis": "declared"
+    },
+    "canopen_info_code": {
+      "meaning": "canopen_info_code",
+      "unit": "reported_LE32_info_argument_not_automatically_node_ID_or_duration",
+      "basis": "declared"
+    },
+    "canopen_consumer_event": {
+      "meaning": "canopen_consumer_event",
+      "unit": "source_pattern_reported_timeout_or_remote_reset_or_aggregate_condition_clear_else_UNINTERPRETED_SOURCE_PATTERN_not_physical_disconnect_reboot_or_reconnect",
+      "basis": "declared"
+    },
+    "canopen_monitored_slot": {
+      "meaning": "canopen_monitored_slot",
+      "unit": "zero_based_consumer_array_index_not_node_ID_blank_for_aggregate_reset_and_unknown_patterns",
+      "basis": "declared"
+    },
+    "canopen_consumer_scope": {
+      "meaning": "canopen_consumer_scope",
+      "unit": "MONITORED_ARRAY_SLOT_NOT_NODE_ID_or_AGGREGATE_CONDITION_RESET_NOT_NODE_RECOVERY_or_UNINTERPRETED_clear_does_not_prove_all_nodes_active_or_individual_recovery",
+      "basis": "declared"
+    }
+  }
+}
