@@ -1,0 +1,140 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_capture_us_Unknown_not_reported_or_synchronized_source_time",
+      "basis": "declared"
+    },
+    "check_kind": {
+      "meaning": "check_kind",
+      "unit": "IDENTIFIER_UNIQUENESS_only_explicit_single_attribute_declaration",
+      "basis": "declared"
+    },
+    "source_role": {
+      "meaning": "source_role",
+      "unit": "SOURCE_SOFTWARE_not_device_authentication",
+      "basis": "declared"
+    },
+    "subject_kind": {
+      "meaning": "subject_kind",
+      "unit": "PIN_caller_selected_source_local_reported_key_not_UUID_or_authenticated_identity",
+      "basis": "declared"
+    },
+    "subject_key_hex": {
+      "meaning": "subject_key_hex",
+      "unit": "UTF8_hex_required_exact_reported_PIN_key_no_normalization",
+      "basis": "declared"
+    },
+    "attribute_kind": {
+      "meaning": "attribute_kind",
+      "unit": "NAME_reported_with_PIN_on_same_original_saved_row",
+      "basis": "declared"
+    },
+    "max_distinct_values": {
+      "meaning": "max_distinct_values",
+      "unit": "caller_required_one_NAME_per_PIN_within_this_explicit_scope_and_file_window",
+      "basis": "declared"
+    },
+    "scope_id_hex": {
+      "meaning": "scope_id_hex",
+      "unit": "UTF8_hex_caller_scope_label_not_verified_authority",
+      "basis": "declared"
+    },
+    "namespace_hex": {
+      "meaning": "namespace_hex",
+      "unit": "UTF8_hex_exact_paired_declared_namespace_not_authenticated",
+      "basis": "declared"
+    },
+    "instance_hex": {
+      "meaning": "instance_hex",
+      "unit": "UTF8_hex_exact_paired_declared_instance_not_proof_of_one_physical_instance",
+      "basis": "declared"
+    },
+    "window_id_hex": {
+      "meaning": "window_id_hex",
+      "unit": "UTF8_hex_caller_saved_file_group_not_inferred_temporal_window",
+      "basis": "declared"
+    },
+    "window_sources_hex": {
+      "meaning": "window_sources_hex",
+      "unit": "UTF8_hex_JSON_digest_set_of_exact_original_saved_files_never_cross_window_join",
+      "basis": "declared"
+    },
+    "window_sources_reported": {
+      "meaning": "window_sources_reported",
+      "unit": "declared_source_files_with_complete_PIN_NAME_tuple_row_accounting_missing_or_incomplete_abstains",
+      "basis": "declared"
+    },
+    "observed_names_hex": {
+      "meaning": "observed_names_hex",
+      "unit": "UTF8_hex_JSON_distinct_known_NAME_values_for_exact_selected_PIN",
+      "basis": "declared"
+    },
+    "witnesses_hex": {
+      "meaning": "witnesses_hex",
+      "unit": "UTF8_hex_JSON_original_report_indices_digests_columns_PIN_NAME_and_counts_originals_in_required_report",
+      "basis": "declared"
+    },
+    "selected_pairs": {
+      "meaning": "selected_pairs",
+      "unit": "unique_selected_original_tuple_count_not_count_of_physical_instances_or_faults",
+      "basis": "declared"
+    },
+    "missing_pairs": {
+      "meaning": "missing_pairs",
+      "unit": "selected_PIN_or_NAME_missing_in_report_zero_is_distinct_from_absence",
+      "basis": "declared"
+    },
+    "distinct_values": {
+      "meaning": "distinct_values",
+      "unit": "distinct_reported_NAME_count_not_global_collision_count",
+      "basis": "declared"
+    },
+    "disposition": {
+      "meaning": "disposition",
+      "unit": "CONSISTENT_CONTRADICTION_or_INSUFFICIENT_relative_to_declaration_not_verified_identity",
+      "basis": "declared"
+    },
+    "insufficient_reason": {
+      "meaning": "insufficient_reason",
+      "unit": "DECLARED_SOURCE_NOT_REPORTED_SOURCE_PAIR_ACCOUNTING_INCOMPLETE_PAIR_COMPONENT_NOT_REPORTED_or_SUBJECT_NOT_REPORTED",
+      "basis": "declared"
+    },
+    "uniqueness_basis": {
+      "meaning": "uniqueness_basis",
+      "unit": "caller_required_functional_relation_reported_PIN_to_NAME_not_physical_collision",
+      "basis": "declared"
+    },
+    "citation_hex": {
+      "meaning": "citation_hex",
+      "unit": "UTF8_hex_caller_uniqueness_basis_not_verified_or_authoritative",
+      "basis": "declared"
+    },
+    "declaration_sha256": {
+      "meaning": "declaration_sha256",
+      "unit": "exact_saved_declaration_bytes_digest",
+      "basis": "declared"
+    },
+    "read_report_sha256": {
+      "meaning": "read_report_sha256",
+      "unit": "exact_saved_common_reader_report_bytes_digest",
+      "basis": "declared"
+    },
+    "artefact_input_sha256": {
+      "meaning": "artefact_input_sha256",
+      "unit": "reported_original_paired_CSV_digest_not_authenticity",
+      "basis": "declared"
+    },
+    "profile_source_sha256": {
+      "meaning": "profile_source_sha256",
+      "unit": "paired_identity_profile_digest_not_producer_software_version",
+      "basis": "declared"
+    }
+  }
+}

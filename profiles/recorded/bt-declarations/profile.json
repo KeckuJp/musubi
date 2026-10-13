@@ -17,7 +17,7 @@
   "units": {
     "record_time_us": "caller_supplied_capture_microseconds_not_tree_execution_time",
     "source_document_sha256": "exact_input_document_digest_not_authenticity",
-    "bt_record_kind": "TREE_NODE_PORT_RESERVED_or_MODEL_PORT_declaration_row",
+    "bt_record_kind": "TREE_NODE_PORT_RESERVED_MODEL_PORT_or_opt_in_DOCUMENT_INCLUDE_declaration_row",
     "bt_element_index": "zero_based_document_element_order_join_key",
     "bt_tree_id_hex": "declared_BehaviorTree_ID_UTF8_hex",
     "bt_main_tree_declared": "one_when_this_tree_is_the_declared_main_not_a_started_tree",
@@ -30,12 +30,19 @@
     "bt_category_basis": "which_pinned_registry_or_declared_model_established_the_category",
     "bt_declared_id_hex": "declared_ID_attribute_UTF8_hex_not_an_authenticated_identity",
     "bt_node_name_hex": "declared_name_label_UTF8_hex_may_repeat",
-    "bt_subtree_ref_hex": "referenced_BehaviorTree_ID_resolved_within_this_document_only",
+    "bt_subtree_ref_hex": "referenced_BehaviorTree_ID_within_document_or_explicit_saved_bundle",
     "bt_attribute_name_hex": "declared_attribute_or_port_name_UTF8_hex",
     "bt_attribute_kind": "static_declaration_blackboard_reference_same_name_remap_or_reserved",
     "bt_blackboard_key_hex": "declared_blackboard_key_UTF8_hex_not_a_read_value",
     "bt_attribute_value_hex": "exact_declared_attribute_text_not_a_resolved_runtime_value",
     "bt_port_direction": "INPUT_OUTPUT_INOUT_from_declared_model_or_UNKNOWN_WITHOUT_DECLARED_MODEL",
-    "bt_declaration_basis": "declared_structure_not_executed_or_ticked"
+    "bt_declaration_basis": "declared_structure_not_executed_or_ticked",
+    "source_bundle_sha256": "exact_saved_JSON_bytes_digest_not_authenticity",
+    "bt_document_name_hex": "bundle_logical_document_name_UTF8_hex_namespace_for_local_UIDs",
+    "bt_document_disposition": "LOADED_or_UNREFERENCED_NOT_INTERPRETED",
+    "bt_include_target_hex": "resolved_bundle_logical_document_name_not_opened_filesystem_path",
+    "bt_subtree_document_hex": "bundle_document_containing_referenced_declared_tree_ID",
+    "bt_selected_tree": "one_for_selected_TREE_zero_for_other_TREE_empty_for_non_TREE_not_execution",
+    "bt_selection_basis": "CALLER_ARGUMENT_ENTRY_DECLARATION_or_SOLE_LOADED_TREE"
   }
 }

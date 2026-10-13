@@ -127,6 +127,9 @@ impl InjectionParams {
             radio_status: RadioStatusVariant::Stops,
         };
         match kind {
+            FailureKind::StorageFailure | FailureKind::ConfigurationError => {
+                panic!("recorded-only failure kinds have no scenario injection")
+            }
             FailureKind::RcLinkLoss
             | FailureKind::TelemetryLinkLoss
             | FailureKind::GnssDegradation => base,
@@ -392,6 +395,9 @@ pub mod modes {
 fn affected_channels(kind: FailureKind, asset: &Asset) -> Vec<ChannelId> {
     use ChannelId as C;
     let v: Vec<ChannelId> = match (kind, asset.family) {
+        (FailureKind::StorageFailure | FailureKind::ConfigurationError, _) => {
+            panic!("recorded-only failure kinds have no scenario injection")
+        }
         (FailureKind::TelemetryLinkLoss, _) => {
             vec![
                 C::Tlog,
@@ -440,6 +446,13 @@ pub fn gps_week_ms(unix_us: i64) -> (u16, u32) {
 
 #[must_use]
 pub fn generate(s: &Scenario) -> Timeline {
+    assert!(
+        s.injections.iter().all(|i| !matches!(
+            i.kind,
+            FailureKind::StorageFailure | FailureKind::ConfigurationError
+        )),
+        "recorded-only failure kinds have no scenario injection"
+    );
     let mut rng = Rng((s.seed ^ 0x9E37_79B9_7F4A_7C15).max(1));
     let mut events = Vec::new();
     let ticks = s.duration_ms / 100; // 100 ms 解像度で走査
@@ -1118,10 +1131,7 @@ mod tests {
                 && e.source == SourceRole::Fc
                 && (60_000..90_000).contains(&e.t_ms)
         });
-        assert!(
-            ugv_fc_in_window.count() > 0,
-            "onboard must continue (R-02 §0-1)"
-        );
+        assert!(ugv_fc_in_window.count() > 0, "onboard must continue");
         assert!(tl.events.iter().any(|e| e.source == SourceRole::Fc
             && e.t_ms == 65_000
             && matches!(&e.kind, EventKind::ModeChange { reason, .. } if *reason == mode_reason::FAILSAFE)));

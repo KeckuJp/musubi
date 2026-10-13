@@ -43,9 +43,13 @@ fn fixed_scalar_units_share_batch_stream_and_preserve_clock() {
     ];
     for rtc in [false, true] {
         let profile = if rtc {
-            include_str!("fixtures/edgetx-handset-clock--rtc-date-time.profile.toml")
+            include_str!(
+                "../../../profiles/declared/edgetx-handset-clock/rtc-date-time.profile.toml"
+            )
         } else {
-            include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml")
+            include_str!(
+                "../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"
+            )
         };
         let p = parse_profile(profile, "test").unwrap();
         let columns = cases
@@ -97,7 +101,7 @@ fn fixed_scalar_units_share_batch_stream_and_preserve_clock() {
 #[test]
 fn affine_temperature_invalidity_and_unknown_unit_are_explicit() {
     let p = parse_profile(
-        include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml"),
+        include_str!("../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"),
         "test",
     )
     .unwrap();
@@ -135,7 +139,7 @@ fn affine_temperature_invalidity_and_unknown_unit_are_explicit() {
 #[test]
 fn reported_electrical_units_preserve_native_values_and_stream_contract() {
     let p = parse_profile(
-        include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml"),
+        include_str!("../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"),
         "test",
     )
     .unwrap();
@@ -186,7 +190,7 @@ fn reported_electrical_units_preserve_native_values_and_stream_contract() {
 #[test]
 fn independent_rtc_labels_unknown_units_and_precision_are_not_guessed() {
     let p = parse_profile(
-        include_str!("fixtures/edgetx-handset-clock--rtc-date-time.profile.toml"),
+        include_str!("../../../profiles/declared/edgetx-handset-clock/rtc-date-time.profile.toml"),
         "test",
     )
     .unwrap();
@@ -223,7 +227,7 @@ fn independent_rtc_labels_unknown_units_and_precision_are_not_guessed() {
 #[test]
 fn reserved_names_refuse_without_changing_default_reader() {
     let p = parse_profile(
-        include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml"),
+        include_str!("../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"),
         "test",
     )
     .unwrap();
@@ -241,10 +245,13 @@ fn reserved_names_refuse_without_changing_default_reader() {
     assert_eq!(error.counts.emitted_records, 0);
 }
 
+/// Header unit text is only interpreted where every pinned writer translation gives it one
+/// dimension: EdgeTX 65bb97db `i18n/tw.h` writes UNIT_G as "rpm", French "km/h" truncates to
+/// "km/", and Ukrainian writes "mm" for ml/min. None of these may be converted.
 #[test]
 fn writer_unit_text_shared_by_two_dimensions_or_unlisted_stays_raw() {
     let p = parse_profile(
-        include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml"),
+        include_str!("../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"),
         "test",
     )
     .unwrap();
@@ -288,6 +295,7 @@ fn writer_unit_text_shared_by_two_dimensions_or_unlisted_stays_raw() {
         restored.fields.truncate(before.fields.len());
         assert_eq!(&restored, before);
     }
+    // Ukrainian "вузл." truncated to three bytes is not UTF-8: refused, never relabelled.
     let mut broken = b"tmr10ms,RQly(%),Spd(".to_vec();
     broken.extend_from_slice(&"вузл.".as_bytes()[..3]);
     broken.extend_from_slice(b")\n1,99,5\n");
@@ -304,13 +312,14 @@ fn declared(
     columns: &[&str],
 ) -> Result<Vec<Observation>, musubi_reference_readers::ReadError> {
     let p = parse_profile(
-        include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml"),
+        include_str!("../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"),
         "test",
     )
     .unwrap();
     EdgeTxCsvReader.read_with_declared_units(&p, input.as_bytes(), table, columns)
 }
 
+/// A declared fixed writer/build-language table resolves `rpm`; the header alone still does not.
 #[test]
 fn declared_english_tables_resolve_rpm_and_keep_raw_and_unselected_columns() {
     for (table, celsius) in [
@@ -359,7 +368,9 @@ fn declared_english_tables_resolve_rpm_and_keep_raw_and_unselected_columns() {
         }
         let mut streamed = Vec::new();
         let p = parse_profile(
-            include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml"),
+            include_str!(
+                "../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"
+            ),
             "test",
         )
         .unwrap();
@@ -389,6 +400,7 @@ fn declared_tables_refuse_contradictions_and_keep_tw_rpm_unresolved() {
         &["Rot(rpm)", "Dt(mS)"],
     )
     .unwrap();
+    // tw writes both UNIT_RPMS and UNIT_G as "rpm": still two meanings, so nothing is converted.
     assert_eq!(
         value(&rows[0], "handset_si.Rot(rpm).value"),
         &FieldValue::Blank
@@ -401,6 +413,7 @@ fn declared_tables_refuse_contradictions_and_keep_tw_rpm_unresolved() {
         value(&rows[0], "handset_si.Dt(mS).value"),
         &FieldValue::F64(0.005)
     );
+    // Texts the declared table never writes contradict the declaration.
     for (table, column) in [
         (tw, "Acc(g)"),
         (tw, "Dt(ms)"),
@@ -423,10 +436,12 @@ fn declared_tables_refuse_contradictions_and_keep_tw_rpm_unresolved() {
     }
 }
 
+/// A label carrying its own parenthesis cannot be told apart from the writer suffix by the
+/// header alone; the default path withholds it, a declaration must name the column.
 #[test]
 fn label_parenthesis_does_not_fabricate_a_header_unit() {
     let p = parse_profile(
-        include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml"),
+        include_str!("../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"),
         "test",
     )
     .unwrap();

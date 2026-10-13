@@ -1,0 +1,15 @@
+version = "recorded-producer-version-v1"
+
+[[signature]]
+id = "reported_producer_version_outside_expected_set"
+kind = "configuration_error"
+required = ["event:reported_producer_version_discrepancy"]
+discriminators = ["authoritative_intended_producer_version_set", "same_source_subject_and_record_binding", "check_expectation_current_and_applicable"]
+consistent_with = "reported producer version is outside the caller's intended set if that expectation applies; not protocol incompatibility or physical failure"
+
+[[signature]]
+id = "producer_version_expectation_alternative"
+kind = "configuration_error"
+required = ["event:reported_producer_version_discrepancy"]
+discriminators = ["expected_set_not_stale_or_incomplete", "expected_target_is_this_reported_producer", "check_saved_version_reporting_basis"]
+consistent_with = "expectation may be outdated, incomplete or for another target; reported version need not be wrong and no runtime incompatibility is established"

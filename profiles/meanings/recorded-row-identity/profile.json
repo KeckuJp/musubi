@@ -1,0 +1,65 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_copied_source_time_not_trusted_UTC",
+      "basis": "declared"
+    },
+    "bound_observations_sha256": {
+      "meaning": "bound_observations_sha256",
+      "unit": "exact_original_CSV_bytes_digest_join_with_source_row_index",
+      "basis": "declared"
+    },
+    "source_row_index": {
+      "meaning": "source_row_index",
+      "unit": "zero_based_original_data_row_not_timestamp_or_name_join",
+      "basis": "declared"
+    },
+    "reported_run_hex": {
+      "meaning": "reported_run_hex",
+      "unit": "UTF8_hex_selected_saved_row_value_not_file_declaration_or_authenticated_run",
+      "basis": "declared"
+    },
+    "reported_entity_hex": {
+      "meaning": "reported_entity_hex",
+      "unit": "UTF8_hex_selected_saved_row_value_not_unique_physical_entity",
+      "basis": "declared"
+    },
+    "run_status": {
+      "meaning": "run_status",
+      "unit": "PRESENT_or_EMPTY_no_fill_no_numeric_inference",
+      "basis": "declared"
+    },
+    "entity_status": {
+      "meaning": "entity_status",
+      "unit": "PRESENT_or_EMPTY_no_fill_no_numeric_inference",
+      "basis": "declared"
+    },
+    "run_column_hex": {
+      "meaning": "run_column_hex",
+      "unit": "UTF8_hex_caller_selected_run_role_column_not_source_schema_attestation",
+      "basis": "declared"
+    },
+    "entity_column_hex": {
+      "meaning": "entity_column_hex",
+      "unit": "UTF8_hex_caller_selected_entity_role_column_not_source_schema_attestation",
+      "basis": "declared"
+    },
+    "bound_time_column_hex": {
+      "meaning": "bound_time_column_hex",
+      "unit": "UTF8_hex_original_integer_microsecond_column",
+      "basis": "declared"
+    },
+    "row_identity_basis": {
+      "meaning": "row_identity_basis",
+      "unit": "reported_row_identity_not_authenticated_no_software_execution_proof_clock_Unknown",
+      "basis": "declared"
+    }
+  }
+}

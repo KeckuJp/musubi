@@ -1,0 +1,30 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "host_capture_us_not_UTC_or_measurement_time",
+      "basis": "declared"
+    },
+    "quantized_deviation_m": {
+      "meaning": "quantized_deviation_m",
+      "unit": "m_quantized_or_saturation_boundary_not_exact_error",
+      "basis": "declared"
+    },
+    "quantization_step_m": {
+      "meaning": "quantization_step_m",
+      "unit": "m",
+      "basis": "declared"
+    },
+    "track_index": {
+      "meaning": "track_index",
+      "unit": "zero_based_caller_associated_saved_track_not_verified_active",
+      "basis": "declared"
+    }
+  }
+}

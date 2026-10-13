@@ -10,9 +10,11 @@ use crate::{
     FieldValue, Observation, ProfileReader, ReadError, default_time_confidence, observation,
 };
 
+/// handset CSV reader。
 #[derive(Debug, Clone, Copy, Default)]
 pub struct EdgeTxCsvReader;
 
+/// Caller-qualified fixed-writer sensor role; never inferred from a custom label.
 #[derive(Debug, Clone, Copy)]
 pub enum HandsetCompoundKind {
     GpsPair,
@@ -168,16 +170,22 @@ fn scale_for(text: &str) -> Option<(&'static str, f64, f64)> {
     })
 }
 
+/// Writer unit-table meaning, independent of its spelling in one build.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum UnitMeaning {
     Text(&'static str),
     RotationPerMinute,
 }
 
+/// Caller-declared fixed writer and build language whose `STR_VTELEMUNIT` table produced the
+/// header. Never inferred from a log; a header does not record its build language.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HandsetUnitTable {
+    /// EdgeTX 65bb97db `translations/i18n/en.h`.
     EdgeTx65bb97dbEnglish,
+    /// EdgeTX 65bb97db `translations/i18n/tw.h`: UNIT_RPMS and UNIT_G are both "rpm".
     EdgeTx65bb97dbTw,
+    /// OpenTX fb8622dd `translations/en.h.txt`.
     OpenTxFb8622ddEnglish,
 }
 
@@ -190,8 +198,10 @@ impl HandsetUnitTable {
         }
     }
 
+    /// Header texts for UNIT_VOLTS..UNIT_DBM, in writer enum order, after 3-byte truncation.
     fn entries(self) -> [(&'static str, UnitMeaning); 29] {
         use UnitMeaning::{RotationPerMinute as Rpm, Text as T};
+        // The tw build spells UNIT_G "rpm": the text differs, the meaning stays g.
         let (g, deg_c, deg_f, deg, ms, us, dbm) = match self {
             Self::EdgeTx65bb97dbEnglish => ("g", "°C", "°F", "°", "ms", "us", "dBm"),
             Self::EdgeTx65bb97dbTw => ("rpm", "°C", "°F", "°", "mS", "uS", "dBm"),
@@ -231,6 +241,7 @@ impl HandsetUnitTable {
     }
 }
 
+/// The writer appends `(unit)` after a label; a label holding its own parenthesis is unattributable.
 fn header_unit(key: &str) -> Option<(&str, bool)> {
     let body = key.strip_suffix(')')?;
     let (label, text) = body.rsplit_once('(')?;
@@ -243,6 +254,7 @@ fn scaled(raw: &FieldValue, unit: &str, factor: f64, offset: f64) -> (FieldValue
         FieldValue::F64(n) if n.is_finite() => Some(*n),
         _ => None,
     };
+    // Temperature offsets are in the input unit; preserve the exact zero-K boundary.
     let converted = numeric.map(|n| {
         if unit == "K" {
             (n + offset) * factor
@@ -306,6 +318,8 @@ fn reported_units(mut row: Observation) -> Result<Observation, ReadError> {
             continue;
         }
         if text == "rpm" {
+            // EdgeTX 65bb97db i18n/tw.h writes UNIT_G as "rpm" too, so the header alone does not
+            // name one dimension; the raw cell stays and only a declared table can resolve it.
             let withheld = (FieldValue::Blank, "WRITER_UNIT_TEXT_SHARED_BY_RPM_AND_G");
             push_si(&mut added, key, withheld, "UNQUALIFIED", HEADER_BASIS);
             continue;
@@ -325,6 +339,9 @@ fn reported_units(mut row: Observation) -> Result<Observation, ReadError> {
     Ok(row)
 }
 
+/// Units for caller-attested writer unit columns under one declared writer/language table.
+/// A text absent from that table contradicts the declaration and refuses; a text the table
+/// gives two meanings stays explicit and unconverted.
 fn declared_units(
     mut row: Observation,
     table: HandsetUnitTable,
@@ -399,6 +416,7 @@ fn declared_units(
 }
 
 impl EdgeTxCsvReader {
+    /// Interpret explicitly selected historical controls, never produce control commands.
     pub fn read_with_reported_controls(
         &self,
         profile: &FamilyProfile,
@@ -412,6 +430,7 @@ impl EdgeTxCsvReader {
             .collect()
     }
 
+    /// Preserve native streaming bounds and acknowledge only successfully adapted records.
     pub fn read_stream_with_reported_controls<
         R: BufRead,
         F: FnMut(Observation) -> Result<(), String>,
@@ -428,6 +447,7 @@ impl EdgeTxCsvReader {
         })
     }
 
+    /// Combined scalar and explicitly selected compound sensor meanings; defaults stay unchanged.
     pub fn read_with_reported_fields(
         &self,
         profile: &FamilyProfile,
@@ -440,6 +460,7 @@ impl EdgeTxCsvReader {
             .collect()
     }
 
+    /// Reuses bounded native streaming and callback acknowledgement, without collecting the file.
     pub fn read_stream_with_reported_fields<
         R: BufRead,
         F: FnMut(Observation) -> Result<(), String>,
@@ -454,6 +475,8 @@ impl EdgeTxCsvReader {
             emit(compound_fields(row, selected).map_err(|error| format!("{error:?}"))?)
         })
     }
+    /// Opt-in fixed-writer scalar header quantities, alongside every original column.
+    /// Decimal precision was already applied by the writer. Zero is not proof of sensor validity.
     pub fn read_with_reported_units(
         &self,
         profile: &FamilyProfile,
@@ -465,6 +488,8 @@ impl EdgeTxCsvReader {
             .collect()
     }
 
+    /// Units for caller-attested columns under an explicitly declared writer/language table.
+    /// Unselected columns get nothing; native fields are unchanged.
     pub fn read_with_declared_units(
         &self,
         profile: &FamilyProfile,
@@ -478,6 +503,7 @@ impl EdgeTxCsvReader {
             .collect()
     }
 
+    /// Bounded native stream variant of [`Self::read_with_declared_units`].
     pub fn read_stream_with_declared_units<
         R: BufRead,
         F: FnMut(Observation) -> Result<(), String>,
@@ -494,6 +520,8 @@ impl EdgeTxCsvReader {
         })
     }
 
+    /// Reuses native bounded streaming and acknowledgement accounting; no total-file buffer.
+    /// A reserved-column failure is reported as an output adaptation failure before acknowledgement.
     pub fn read_stream_with_reported_units<
         R: BufRead,
         F: FnMut(Observation) -> Result<(), String>,
@@ -509,8 +537,11 @@ impl EdgeTxCsvReader {
     }
 }
 
+/// Opt-in stream line bound, including LF or CRLF. No total input byte bound.
 pub const HANDSET_STREAM_LINE_BYTES: usize = 64 * 1024;
 
+/// Consumed bytes, complete data frames, and callback-acknowledged Observations.
+/// A malformed complete frame counts as read; an oversized/incomplete I/O prefix does not.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct HandsetStreamCounts {
     pub bytes_read: u64,
@@ -526,9 +557,11 @@ pub enum HandsetStreamFailure {
     Limit(&'static str),
 }
 
+/// Failure does not retract prior callbacks. Inspect counts; never treat a prefix as full success.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HandsetStreamError {
     pub counts: HandsetStreamCounts,
+    /// One-based physical line, including header at line 1.
     pub line_number: u64,
     pub reason: HandsetStreamFailure,
 }
@@ -557,6 +590,8 @@ fn stream_error(
     }
 }
 
+/// Read only through LF or the bound+1 detection byte. `fill_buf` may prefetch in the caller,
+/// but only consumed bytes count. Keep partial-byte accounting even when input I/O fails.
 fn stream_line<R: BufRead>(
     input: &mut R,
     counts: &mut HandsetStreamCounts,
@@ -608,6 +643,14 @@ fn stream_line<R: BufRead>(
 }
 
 impl EdgeTxCsvReader {
+    /// Opt-in bounded-memory ingestion of saved logs of any total size.
+    /// Reuses the native decoder for each header+row; holds only one Observation at a time.
+    /// Equal times are preserved; decreasing times require explicitly split sessions.
+    ///
+    /// # Errors
+    /// Stops on input/decoding/output failure with counts. Previous callbacks are NOT rolled
+    /// back; a callback error is not acknowledged and may have its own partial side effects.
+    /// Callers must bound their output storage. This does not change `ProfileReader::read`.
     pub fn read_stream<R: BufRead, F: FnMut(Observation) -> Result<(), String>>(
         &self,
         profile: &FamilyProfile,
@@ -631,6 +674,7 @@ impl EdgeTxCsvReader {
             let row = stream_line(input, &mut counts, line_number)?;
             if row.is_empty() {
                 if counts.records_read == 0 {
+                    // Preserve empty/header-only and invalid-header failure semantics.
                     let error = self
                         .read(profile, &header)
                         .err()
@@ -703,6 +747,7 @@ impl EdgeTxCsvReader {
     }
 }
 
+/// Fixed logs.cpp UNIT_TEXT uses one unescaped quote pair, not general RFC4180.
 fn row_cells(line: &str) -> Option<Vec<&str>> {
     let mut cells = Vec::new();
     let mut rest = line;
@@ -739,6 +784,8 @@ fn parse_value(s: &str) -> FieldValue {
     } else if let Ok(i) = s.parse::<i64>() {
         FieldValue::I64(i)
     } else if let Ok(f) = s.parse::<f64>() {
+        // Match decoded-csv: retain finite integer tokens outside i64 exactly.
+        // Non-finite values still reach the reader's existing rejection path.
         if f.is_finite()
             && s.trim_start_matches(['-', '+'])
                 .bytes()
@@ -761,6 +808,7 @@ fn is_zero(v: &FieldValue) -> bool {
     }
 }
 
+/// Civil calendar -> ordinal ms for local ordering only, never an established UTC instant.
 fn parse_date_time(date: &str, time: &str) -> Option<i64> {
     if !date.bytes().all(|b| b.is_ascii_digit() || b == b'-')
         || !time
@@ -815,6 +863,7 @@ fn parse_date_time(date: &str, time: &str) -> Option<i64> {
     Some((days_from_civil(y, m, day) * 86_400 + h * 3600 + mi * 60 + s) * 1000 + ms)
 }
 
+/// (y, m, d) → days since 1970-01-01（H. Hinnant）。
 fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
     let y = if m <= 2 { y - 1 } else { y };
     let era = y.div_euclid(400);
@@ -860,6 +909,8 @@ impl ProfileReader for EdgeTxCsvReader {
             });
         }
         let col = |name: &str| cols.iter().position(|c| *c == name);
+        // 時刻: `Date,Time`（RTC）か `tmr10ms`（RTC 無し build・10 ms tick・boot 相対）。
+        // `Date,Time|tmr10ms` は profile が宣言した明示的 OR であり、header に片方だけが完全にある場合に限る。
         enum TimeCol {
             Rtc(usize, usize),
             Tmr10ms(usize),
@@ -926,6 +977,8 @@ impl ProfileReader for EdgeTxCsvReader {
             ));
         }
         let link_cols: Vec<usize> = profile.fields.link.iter().filter_map(|n| col(n)).collect();
+        // GPS 空欄条件は profile の gps 列で判定（列名をハードコードしない＝partner profile で差し替え可）:
+        // 「gps 列が全て空欄または 0」（EdgeTX は `GPS` 空欄・`Sats` 0）。gps 列が無い profile は link 全 0 だけで判定。
         let gps_cols: Vec<usize> = profile.fields.gps.iter().filter_map(|n| col(n)).collect();
         let mut out = Vec::new();
         let mut previous = None;
@@ -983,6 +1036,8 @@ impl ProfileReader for EdgeTxCsvReader {
                 });
             }
             previous = Some(t_ms);
+            // Keep every source column. Profile selection still controls stale
+            // cues, but is not permission to silently discard unknown fields.
             let fields: Vec<(String, FieldValue)> = cols
                 .iter()
                 .enumerate()
@@ -1005,6 +1060,7 @@ impl ProfileReader for EdgeTxCsvReader {
             });
             let stale = link_all_zero && gps_blank;
             let mut o = observation(profile, t_ms, ChannelId::LinkStats, fields, stale);
+            // A profile label alone cannot establish the RTC timezone or synchronization.
             o.clock_basis = if boot_relative {
                 ClockBasis::BootRelative
             } else {
@@ -1064,6 +1120,7 @@ mod tests {
 
     #[test]
     fn date_time_round_trips_with_writer_epoch() {
+        // 2026-08-31 09:00:00.000 UTC = 1_788_166_800_000 ms（writer 側の t0 と一致）。
         assert_eq!(
             parse_date_time("2026-08-31", "09:00:00.000"),
             Some(1_788_166_800_000)

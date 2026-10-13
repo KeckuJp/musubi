@@ -1,0 +1,16 @@
+profile_id = "saved_autoware_gear_bb8e7bf5"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "capture_microseconds_untrusted_clock"
+vehicle_report_stamp_us = "reported_ROS_stamp_floor_microseconds_not_capture_or_UTC_original_ns_retained"
+vehicle_gear_code = "fixed_Autoware_uint8_report_not_command_or_verified_engagement"
+vehicle_gear_name = "enum_name_from_bb8e7bf5_not_motion_direction_or_physical_gear_ratio"
+vehicle_gear_disposition = "defined_NONE_or_unmapped_uint8_kept_distinct"

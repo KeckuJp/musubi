@@ -6,6 +6,51 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "sbf_mode_low_nibble": {
+      "meaning": "sbf_mode_low_nibble",
+      "unit": "reported_mode_bitwise_and_15",
+      "basis": "declared"
+    },
+    "sbf_mode_upper_bits_raw": {
+      "meaning": "sbf_mode_upper_bits_raw",
+      "unit": "uninterpreted_original_upper_four_bits",
+      "basis": "declared"
+    },
+    "sbf_reported_mode": {
+      "meaning": "sbf_reported_mode",
+      "unit": "fixed_driver_TypeOfPVT_enum_not_physical_fix_or_accuracy",
+      "basis": "declared"
+    },
+    "sbf_mode_disposition": {
+      "meaning": "sbf_mode_disposition",
+      "unit": "REPORTED_MODE_or_UNKNOWN_REPORTED_MODE",
+      "basis": "declared"
+    },
+    "sbf_mode_basis": {
+      "meaning": "sbf_mode_basis",
+      "unit": "pinned_driver_operational_mapping_error_code_remains_unqualified",
+      "basis": "declared"
+    },
+    "sbf_tow_ms": {
+      "meaning": "sbf_tow_ms",
+      "unit": "milliseconds_of_GPS_week_from_fixed_driver_not_UTC",
+      "basis": "declared"
+    },
+    "sbf_gps_elapsed_ms": {
+      "meaning": "sbf_gps_elapsed_ms",
+      "unit": "milliseconds_since_GPS_epoch_1980_01_06_no_leap_correction",
+      "basis": "declared"
+    },
+    "sbf_counter_time_status": {
+      "meaning": "sbf_counter_time_status",
+      "unit": "reported_counter_coordinate_or_not_available_not_clock_validity",
+      "basis": "declared"
+    },
+    "sbf_counter_time_basis": {
+      "meaning": "sbf_counter_time_basis",
+      "unit": "fixed_driver_timestampSBF_operational_meaning",
+      "basis": "declared"
+    },
     "record_time_us": {
       "meaning": "record_time_us",
       "unit": "caller_declared_capture_microseconds_separate_from_every_receiver_counter_in_this_row",

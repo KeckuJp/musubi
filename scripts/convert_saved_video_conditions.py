@@ -118,7 +118,7 @@ def parse_metadata(text, report):
     return events
 
 
-def intervals(events, kind, start_key, end_key, duration_key=None):
+def intervals(events, kind, start_key, end_key, duration_key=None, *, allow_reversed=False):
     """Pair the selected starts and ends into closed or open intervals, or refuse.
 
     Three distinctions this keeps, each of which a simpler pairing loses:
@@ -167,12 +167,22 @@ def intervals(events, kind, start_key, end_key, duration_key=None):
     for interval in found:
         if (interval["start"] is not None and interval["end"] is not None
                 and interval["end"] < interval["start"]):
-            raise ValueError(f"a {kind} interval ends before it starts")
+            if not allow_reversed or interval["duration"] is None:
+                raise ValueError(f"a {kind} interval ends before it starts")
     return found
 
 
 def convert(data, capture_time_us, *, thresholds, threshold_basis, decoder_status,
             analysed_frame_count):
+    return _convert(data, capture_time_us, thresholds=thresholds, threshold_basis=threshold_basis,
+                    decoder_status=decoder_status, analysed_frame_count=analysed_frame_count)
+
+
+def _convert(data, capture_time_us, *, thresholds, threshold_basis, decoder_status,
+             analysed_frame_count, parse=parse_metadata, black_duration_key=None,
+             allow_reversed_freeze=False,
+             below_minimum="BELOW_THE_DECLARED_MINIMUM_THE_METADATA_FORM_REPORTS_EVERY_RUN_REGARDLESS_OF_IT"):
+    """Shared finite validation/meaning; the public metadata route keeps all defaults."""
     if not isinstance(data, bytes) or len(data) > LIMIT:
         raise ValueError("bounded saved analysis output required")
     # An empty export is the ORDINARY no-cue case, not a malformed one: verified at 8.1, a clip
@@ -205,7 +215,7 @@ def convert(data, capture_time_us, *, thresholds, threshold_basis, decoder_statu
                   "it_was_run_with_so_this_is_the_callers_declaration_of_what_was_run")
     text = data.decode("utf-8")
     report = dict(analysed_frame_blocks=0, unselected_keys=0)
-    events = parse_metadata(text, report)
+    events = parse(text, report)
     # The analysis cannot have examined fewer frames than it emitted blocks for, and the frame
     # index is zero-based, so a declared count below either is inconsistent with the very file it
     # describes. Only that much is enforced: no count is invented and none is derived.
@@ -217,8 +227,9 @@ def convert(data, capture_time_us, *, thresholds, threshold_basis, decoder_statu
     report["declared_count_consistency"] = (
         "AT_OR_ABOVE_THE_FRAMES_THIS_OUTPUT_ITSELF_SHOWS" if observed
         else "NOT_CONSTRAINED_BY_THIS_OUTPUT_WHICH_SHOWS_NO_FRAME_BLOCK_AT_ALL")
-    black = intervals(events, "black", BLACK_START, BLACK_END)
-    freeze = intervals(events, "freeze", FREEZE_START, FREEZE_END, FREEZE_DURATION)
+    black = intervals(events, "black", BLACK_START, BLACK_END, black_duration_key)
+    freeze = intervals(events, "freeze", FREEZE_START, FREEZE_END, FREEZE_DURATION,
+                       allow_reversed=allow_reversed_freeze)
     if len(black) + len(freeze) > MAX_INTERVALS:
         raise ValueError("reported intervals exceed bound")
     rows = []
@@ -268,8 +279,7 @@ def convert(data, capture_time_us, *, thresholds, threshold_basis, decoder_statu
                 video_minimum_duration_qualification=(
                     "UNKNOWN_WITHOUT_A_DURATION" if duration is None
                     else "AT_OR_ABOVE_THE_DECLARED_MINIMUM" if duration >= minimum
-                    else "BELOW_THE_DECLARED_MINIMUM_THE_METADATA_FORM_REPORTS_EVERY_RUN_"
-                         "REGARDLESS_OF_IT"),
+                    else below_minimum),
                 video_threshold_declaration=statement))
     if not rows:
         # Verified at 8.1: a clip with no black and no freeze produces a zero-byte export, so this

@@ -1,0 +1,70 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_from_reported_uint32_boot_ms_not_UTC",
+      "basis": "declared"
+    },
+    "latitude_deg": {
+      "meaning": "latitude_deg",
+      "unit": "degree_reported_latitude",
+      "basis": "declared"
+    },
+    "longitude_deg": {
+      "meaning": "longitude_deg",
+      "unit": "degree_reported_longitude",
+      "basis": "declared"
+    },
+    "altitude_msl_m": {
+      "meaning": "altitude_msl_m",
+      "unit": "m_reported_MSL_no_datum_conversion",
+      "basis": "declared"
+    },
+    "reported_relative_altitude_m": {
+      "meaning": "reported_relative_altitude_m",
+      "unit": "m_relative_alt_pinned_writer_describes_above_ground_not_inferred_home_datum",
+      "basis": "declared"
+    },
+    "velocity_north_m_s": {
+      "meaning": "velocity_north_m_s",
+      "unit": "m/s_reported_ground_velocity_positive_north",
+      "basis": "declared"
+    },
+    "velocity_east_m_s": {
+      "meaning": "velocity_east_m_s",
+      "unit": "m/s_reported_ground_velocity_positive_east",
+      "basis": "declared"
+    },
+    "velocity_down_m_s": {
+      "meaning": "velocity_down_m_s",
+      "unit": "m/s_reported_ground_velocity_positive_down",
+      "basis": "declared"
+    },
+    "heading_deg": {
+      "meaning": "heading_deg",
+      "unit": "degree_reported_heading_65535_withheld_before_scaling",
+      "basis": "declared"
+    },
+    "source_sysid": {
+      "meaning": "source_sysid",
+      "unit": "reported_sender_system_not_authenticated_hardware_identity",
+      "basis": "declared"
+    },
+    "source_compid": {
+      "meaning": "source_compid",
+      "unit": "reported_sender_component_not_authenticated_hardware_identity",
+      "basis": "declared"
+    },
+    "source_row_hex": {
+      "meaning": "source_row_hex",
+      "unit": "exact_export_row_bytes_without_CRLF_unknown_fields_retained",
+      "basis": "declared"
+    }
+  }
+}

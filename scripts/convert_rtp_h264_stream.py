@@ -12,9 +12,11 @@ gap, duplicate, reorder, broken fragment chain, malformed aggregation, missing p
 damaged access unit is never written as if it were good video, and a gap is never turned into an
 invented frame. The 90 kHz RTP timing stays in this module's report; decoder timestamps stay with the
 decoder. Contract and refusal policy:
-docs/saved-inputs.md.
+docs/saved-input-comparisons.md.
 """
 import argparse
+import base64
+import binascii
 import hashlib
 import json
 from pathlib import Path
@@ -158,7 +160,61 @@ class _Fragments:
         return nal
 
 
-def depacketize(data, destination_port, *, payload_type, clock_rate=H264_CLOCK_RATE, ssrc=None):
+def _description_sets(description, media_index, payload_type):
+    """Finite RFC6184 declarative saved SDP; no negotiation or URL resolution."""
+    try:
+        from scripts.convert_rtsp_description import select_binding
+    except ModuleNotFoundError:
+        from convert_rtsp_description import select_binding
+    selected, report = select_binding(description, media_index=media_index, payload_type=payload_type)
+    binding, section = selected["binding"], selected["selected"]
+    if (section["media"] != "video" or binding["encoding_name"].upper() != "H264"
+            or binding["clock_rate_hz"] != 90000 or binding["encoding_parameters"]):
+        raise ValueError("selected description must declare H264 video at 90000 Hz")
+    matching = []
+    for line in section["lines"]:
+        if line["letter"] == "a" and line["value"].startswith("fmtp:"):
+            selector, separator, value = line["value"][5:].partition(" ")
+            if selector == str(payload_type):
+                if not separator or len(value) > 65536:
+                    raise ValueError("selected fmtp is absent or oversized")
+                matching.append((line, value))
+    if len(matching) != 1:
+        raise ValueError("exactly one selected fmtp required")
+    line, value = matching[0]
+    params = {}
+    for entry in value.split(";"):
+        name, separator, val = entry.strip().partition("=")
+        if not separator or name in params:
+            raise ValueError("malformed or duplicate fmtp parameter")
+        params[name] = val
+    if set(params) != {"packetization-mode", "profile-level-id", "sprop-parameter-sets"}:
+        raise ValueError("unsupported or missing selected fmtp parameter")
+    profile = params["profile-level-id"]
+    if params["packetization-mode"] != "1" or not re.fullmatch(r"[0-9a-fA-F]{6}", profile):
+        raise ValueError("explicit mode1 and six-hex profile-level-id required")
+    values = params["sprop-parameter-sets"].split(",")
+    if len(values) != 2:
+        raise ValueError("selected path requires exactly one SPS and one PPS")
+    nals = []
+    for value, kind in zip(values, (NAL_SPS, NAL_PPS)):
+        try:
+            nal = base64.b64decode(value, validate=True)
+        except (ValueError, binascii.Error) as exc:
+            raise ValueError("invalid parameter-set base64") from exc
+        if not 1 < len(nal) <= 16384 or nal[0] & 0x80 or nal[0] & 0x1F != kind:
+            raise ValueError("invalid or oversized parameter-set NAL")
+        nals.append(nal)
+    if len(nals[0]) < 4 or nals[0][1:4].hex() != profile.lower():
+        raise ValueError("SPS profile bytes disagree with declared profile-level-id")
+    report.update(parameter_set_line=dict(offset=line["offset"], length=line["length"], sha256=line["sha256"]),
+                  parameter_set_profile=profile.lower(), parameter_set_hex=[n.hex() for n in nals],
+                  parameter_set_basis="CALLER_PAIRED_DECLARATIVE_SDP_NOT_PACKET_IDENTITY_OR_DECODER_COMPATIBILITY")
+    return nals, report
+
+
+def depacketize(data, destination_port, *, payload_type, clock_rate=H264_CLOCK_RATE, ssrc=None,
+                rtsp_description=None, media_index=None):
     """Saved capture -> (Annex B elementary stream bytes, JSON-ready report with source linkage)."""
     if type(payload_type) is not int or not 0 <= payload_type <= 127:
         raise ValueError("an explicit RTP payload type must be declared for H.264")
@@ -166,6 +222,11 @@ def depacketize(data, destination_port, *, payload_type, clock_rate=H264_CLOCK_R
         raise ValueError("RFC 6184 fixes a 90 kHz clock rate for H.264")
     if ssrc is not None and (type(ssrc) is not int or not 0 <= ssrc < (1 << 32)):
         raise ValueError("explicit SSRC must be a 32 bit value")
+    initial, description_report = [], None
+    if rtsp_description is not None:
+        initial, description_report = _description_sets(rtsp_description, media_index, payload_type)
+    elif media_index is not None:
+        raise ValueError("media index requires saved description")
 
     records = read_pcap_records(data)
     linktype, captures = records
@@ -178,6 +239,8 @@ def depacketize(data, destination_port, *, payload_type, clock_rate=H264_CLOCK_R
                   nal_type_counts={}, access_units=[])
 
     stream = bytearray()
+    for nal in initial:
+        stream.extend(START_CODE + nal)
     units = []
     current = None
     fragments = _Fragments()
@@ -192,6 +255,8 @@ def depacketize(data, destination_port, *, payload_type, clock_rate=H264_CLOCK_R
             raise ValueError("access unit carries no NAL unit")
         start = len(stream)
         for nal in unit.nals:
+            if initial and nal[0] & 0x1F in (NAL_SPS, NAL_PPS) and nal not in initial:
+                raise ValueError("in-band parameter set conflicts with selected initial sets")
             stream.extend(START_CODE)
             stream.extend(nal)
             if len(stream) > MAX_ELEMENTARY_BYTES:
@@ -315,6 +380,8 @@ def depacketize(data, destination_port, *, payload_type, clock_rate=H264_CLOCK_R
         raise ValueError("the selected SSRC is not present in this capture")
 
     parameter_sets, slice_units = _prerequisites(units)
+    if initial:
+        parameter_sets = [NAL_SPS, NAL_PPS]
     # The finite promised prerequisite: *both* SPS and PPS before the first coded slice, and at least
     # one coded slice to decode. SPS alone, or a parameter-set-only capture with no slice at all, is
     # not a decodable stream and is refused instead of written. This is a structural check only: it
@@ -334,6 +401,10 @@ def depacketize(data, destination_port, *, payload_type, clock_rate=H264_CLOCK_R
     report["elementary_sha256"] = "sha256:" + hashlib.sha256(bytes(stream)).hexdigest()
     report["parameter_sets_before_first_slice"] = parameter_sets
     report["parameter_set_check_basis"] = PARAMETER_SET_BASIS
+    if initial:
+        report["initial_parameter_sets"] = description_report
+        report["initial_parameter_bytes"] = sum(4 + len(nal) for nal in initial)
+        report["initial_parameter_timing_basis"] = "OUT_OF_BAND_PREFIX_NOT_CAPTURED_ACCESS_UNIT_OR_TIMESTAMP"
     report.update(timing)
     if len(json.dumps(report)) > REPORT_LIMIT:
         raise ValueError("access unit report exceeds bound")
@@ -565,11 +636,18 @@ def main():
     parser.add_argument("--payload-type", type=int, required=True,
                         help="the declared dynamic RTP payload type carrying H.264")
     parser.add_argument("--ssrc", type=lambda v: int(v, 0), help="select exactly one SSRC")
+    parser.add_argument("--rtsp-description", type=Path, help="paired saved declarative RTSP response")
+    parser.add_argument("--media-index", type=int, help="explicit zero-based media section")
     args = parser.parse_args()
     try:
         data = read_bounded(args.input)  # bounded before allocation
+        description = None
+        if args.rtsp_description is not None:
+            with args.rtsp_description.open("rb") as source:
+                description = source.read(1024 * 1024 + 1)
         stream, report = depacketize(data, args.udp_destination_port,
-                                     payload_type=args.payload_type, ssrc=args.ssrc)
+                                     payload_type=args.payload_type, ssrc=args.ssrc,
+                                     rtsp_description=description, media_index=args.media_index)
         args.new_output_directory.mkdir()  # Preserve existing inputs and evidence.
         (args.new_output_directory / "elementary.h264").write_bytes(stream)
         (args.new_output_directory / "access_units.json").write_text(

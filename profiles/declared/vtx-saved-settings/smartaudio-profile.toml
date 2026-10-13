@@ -1,0 +1,13 @@
+profile_id = "saved_smartaudio21_reported_settings"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+[fields]
+time = "record_time_us"
+[units]
+vtx_frequency_field_hz = "Hz_reported_field_not_band_table_or_measured_RF"
+vtx_current_power_reported_dbm = "dBm_reported_setting_not_actual_RF_including_pit_mode"
+record_time_us = "recorder_microseconds_not_trusted_UTC"

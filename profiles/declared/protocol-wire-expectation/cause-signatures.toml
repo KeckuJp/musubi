@@ -1,0 +1,15 @@
+version = "recorded-protocol-wire-v1"
+
+[[signature]]
+id = "saved_wire_differs_from_intended_integration"
+kind = "configuration_error"
+required = ["event:saved_wire_expectation_discrepancy"]
+discriminators = ["applicable_intended_wire_policy", "same_recording_sender_and_session_scope", "refute_stale_expectation_or_intentionally_mixed_versions"]
+consistent_with = "saved CRC-qualified framing differs from intended integration if the caller expectation applies; no physical failure or actual-side error established"
+
+[[signature]]
+id = "saved_wire_expectation_or_scope_alternative"
+kind = "configuration_error"
+required = ["event:saved_wire_expectation_discrepancy"]
+discriminators = ["authoritative_expected_wire_declaration", "refute_wrong_session_or_sender_selection", "check_whether_this_valid_wire_version_is_intended"]
+consistent_with = "also consistent with stale or wrong-session expectation or intentionally different valid framing; neither compatibility failure nor either side being wrong is established"

@@ -31,6 +31,10 @@ def load():
     return module
 
 
+# ------------------------------------------------------------------ authored layout A (whole path)
+# One group holding two displays, a repeated display name across two scopes, a nested Topic with the
+# full QoS child set, a legacy flat Topic scalar, a saved setting this importer does not interpret, and
+# the Panels/Window Geometry sections the same writer emits.
 LAYOUT_A = """\
 Panels:
   - Class: rviz_common/Displays
@@ -85,6 +89,8 @@ Window Geometry:
   Width: 1200
 """
 
+# Layout B, authored independently and reserved for the reuse pass: a different plugin set, a display
+# with no Enabled and no Class, a group nested two deep, and a quoted empty value.
 LAYOUT_B = """\
 Visualization Manager:
   Displays:
@@ -116,6 +122,10 @@ Visualization Manager:
 """
 
 
+# Layout C, authored for the class-qualification pass: a custom plugin whose property happens to be
+# named Topic with QoS-looking children, a class identifier that looks numeric, one that would need a
+# quoted cell, a source-qualified class using the flat topic form, and an unselected Global Options
+# entry with nested structure.
 LAYOUT_C = """\
 Visualization Manager:
   Displays:
@@ -164,6 +174,7 @@ class RvizConfigTests(unittest.TestCase):
             self.rviz.convert(text.encode() if isinstance(text, str) else text, CAPTURE)
         return caught.exception.code
 
+    # ------------------------------------------------------------ the declared configuration
 
     def test_whole_path_declarations_scopes_and_order(self):
         rows, report = self.rows_of(LAYOUT_A)
@@ -177,6 +188,7 @@ class RvizConfigTests(unittest.TestCase):
         self.assertIn("NOT_SIMULATION_TIME", report["clock_basis"])
         self.assertTrue(all(r["record_time_us"] == str(CAPTURE) for r in rows))
 
+        # The declared fixed frame is a name, never a transform.
         frame = [r for r in rows if r["setting_key"] == "Fixed Frame"]
         self.assertEqual([r["setting_value"] for r in frame], ["base_link"])
         self.assertEqual(frame[0]["declaration_kind"], "rviz_global_option")
@@ -184,6 +196,7 @@ class RvizConfigTests(unittest.TestCase):
         self.assertEqual(frame[0]["setting_key_path"], "Visualization Manager/Global Options/Fixed Frame")
         self.assertTrue(frame[0]["row_basis"].startswith("DECLARED_FRAME_NAME_ONLY_NOT_A_TRANSFORM"))
 
+        # Displays and groups keep their list order and their instance path.
         displays = [r for r in rows if r["declaration_kind"] in ("rviz_display", "rviz_display_group")]
         self.assertEqual([(r["display_index_path"], r["display_class"], r["display_name"]) for r in displays],
                          [("/1", "rviz_default_plugins/Grid", "Grid"),
@@ -196,8 +209,10 @@ class RvizConfigTests(unittest.TestCase):
         self.assertEqual([r["declaration_kind"] for r in displays if r["display_name"] == "Sensors"],
                          ["rviz_display_group"])
         self.assertEqual([r["display_depth"] for r in displays], ["1", "1", "2", "2", "1"])
+        # A repeated display name is kept twice with its occurrence index; nothing is renamed or merged.
         self.assertEqual([r["display_name_occurrence"] for r in displays if r["display_name"] == "Grid"],
                          ["1", "2"])
+        # Enabled is a saved UI setting, typed only from the writer's two spellings.
         enabled = {r["display_index_path"]: (r["display_enabled"], r["display_enabled_state"])
                    for r in displays}
         self.assertEqual(enabled["/1"], ("1", "DECLARED"))
@@ -207,27 +222,30 @@ class RvizConfigTests(unittest.TestCase):
 
     def test_topic_and_qos_declarations(self):
         rows, report = self.rows_of(LAYOUT_A)
-        self.assertEqual(report["topic_rows"], 2)
+        self.assertEqual(report["topic_rows"], 3)
         self.assertEqual(report["qos_rows"], 8)
         topics = [r for r in rows if r["declaration_kind"] == "rviz_display_topic"]
         self.assertEqual([(r["display_index_path"], r["setting_value"], r["topic_form"]) for r in topics],
                          [("/2/1", "/front/scan", "NESTED_TOPIC_VALUE"),
-                          ("/2/2", "/points", "NESTED_TOPIC_VALUE")])
+                          ("/2/2", "/points", "NESTED_TOPIC_VALUE"),
+                          ("/3", "/camera/image_raw", "LEGACY_FLAT_TOPIC_SCALAR")])
+        # Same-pin ImageTransportDisplay inheritance now qualifies this saved Topic layout.
         image = next(r for r in rows if r["setting_key_path"]
                      == "Visualization Manager/Displays/3/Topic")
         self.assertEqual((image["declaration_kind"], image["setting_value"], image["topic_form"]),
-                         ("rviz_display_property", "/camera/image_raw", ""))
-        self.assertTrue(image["row_basis"].startswith("PROPERTY_NAMED_TOPIC_UNDER_A_CLASS"))
-        self.assertEqual(report["unqualified_topic_lookalike_properties"], 1)
+                         ("rviz_display_topic", "/camera/image_raw", "LEGACY_FLAT_TOPIC_SCALAR"))
+        self.assertEqual(image["row_basis"], self.rviz.TOPIC_BASIS)
+        self.assertEqual(report["unqualified_topic_lookalike_properties"], 0)
         qualification = {r["display_index_path"]: r["class_topic_layout_basis"] for r in rows
                          if r["declaration_kind"] in ("rviz_display", "rviz_display_group")}
         self.assertTrue(qualification["/2/1"].startswith("DECLARED_CLASS_INHERITS_THE_PINNED"))
         self.assertTrue(qualification["/2/2"].startswith("DECLARED_CLASS_INHERITS_THE_PINNED"))
-        for unqualified in ("/1", "/2", "/3"):
+        self.assertEqual(qualification["/3"], self.rviz.TOPIC_LAYOUT_QUALIFIED)
+        for unqualified in ("/1", "/2"):
             self.assertTrue(qualification[unqualified].startswith("DECLARED_CLASS_IS_NOT_SOURCE_QUALIFIED"),
                             unqualified)
         self.assertIn("rviz_default_plugins/LaserScan", report["topic_layout_qualified_classes"])
-        self.assertIn("rviz_default_plugins/Image", report["topic_layout_not_qualified_classes"])
+        self.assertIn("rviz_default_plugins/Image", report["topic_layout_qualified_classes"])
         self.assertTrue(all("NOT_EVIDENCE_THAT_ANYTHING_PUBLISHED" in r["row_basis"] for r in topics))
         self.assertEqual([r["setting_key_path"] for r in topics if r["display_index_path"] == "/2/1"],
                          ["Visualization Manager/Displays/2/Displays/1/Topic/Value"])
@@ -244,12 +262,14 @@ class RvizConfigTests(unittest.TestCase):
                                  "RELIABILITY_POLICY": "RELIABLE",
                                  "DURABILITY_POLICY": "TRANSIENT_LOCAL"})
         self.assertEqual([r["value_number"] for r in qos if r["qos_setting"] == "DEPTH"], ["5", "10"])
+        # A display with no QoS keys declares none: no default is substituted for an absent setting.
         self.assertEqual([r for r in qos if r["display_index_path"] == "/3"], [])
         self.assertIn("initial option", " ".join(report["not_established_by_this_pin"]))
 
     def test_uninterpreted_settings_stay_reference_linked(self):
         rows, report = self.rows_of(LAYOUT_A)
         paths = {r["setting_key_path"]: r for r in rows}
+        # A setting this importer does not interpret keeps its value, its path and its own basis.
         self.assertEqual(paths["Visualization Manager/Displays/3/Unknown Future Setting/Nested"]
                          ["setting_value"], "42")
         self.assertEqual(paths["Visualization Manager/Displays/3/Unknown Future Setting/Nested"]
@@ -258,6 +278,7 @@ class RvizConfigTests(unittest.TestCase):
                         ["row_basis"].startswith("RETAINED_AS_DECLARED"))
         self.assertEqual(paths["Visualization Manager/Displays/1/Alpha"]["setting_value"], "0.5")
         self.assertEqual(paths["Visualization Manager/Displays/1/Alpha"]["display_index_path"], "/1")
+        # Sections beside the manager are retained, not interpreted and not dropped.
         self.assertEqual(paths["Panels"]["declaration_kind"], "rviz_root_section")
         self.assertEqual(paths["Window Geometry/Height"]["setting_value"], "846")
         self.assertEqual(paths["Panels/1/Class"]["setting_value"], "rviz_common/Displays")
@@ -267,11 +288,13 @@ class RvizConfigTests(unittest.TestCase):
         self.assertEqual(report["root_sections"], 3)
         self.assertGreater(report["retained_property_rows"], 10)
         self.assertIn("MAPPING_KEY_ORDER_IS_THE_WRITERS_SORTED_ORDER", report["key_order_basis"])
+        # Every row points back at its own line in the saved file.
         for row in rows:
             self.assertLessEqual(int(row["source_line"]), int(row["source_line_end"]))
             self.assertLessEqual(int(row["source_line_end"]), len(LAYOUT_A.splitlines()) + 1)
 
     def test_the_second_authored_layout_reuses_the_same_importer(self):
+        # Layout B is authored independently of A and reserved for this reuse pass.
         rows, report = self.rows_of(LAYOUT_B)
         self.assertEqual(report["displays"], 5)
         self.assertEqual(report["groups"], 2)
@@ -282,6 +305,7 @@ class RvizConfigTests(unittest.TestCase):
                          ["/1", "/2", "/2/1", "/2/1/1", "/2/2"])
         self.assertEqual([r["display_path"] for r in displays if r["display_index_path"] == "/2/1/1"],
                          ["2:Outer/1:Inner/1:Planned Path"])
+        # An absent Class or Enabled is reported as undeclared, never invented.
         unnamed = next(r for r in displays if r["display_index_path"] == "/2/2")
         self.assertEqual((unnamed["display_class"], unnamed["display_class_state"]),
                          ("", "NOT_DECLARED_IN_THIS_FILE"))
@@ -290,18 +314,22 @@ class RvizConfigTests(unittest.TestCase):
         self.assertEqual([r["setting_value"] for r in rows
                           if r["setting_key_path"] == "Visualization Manager/Global Options/Fixed Frame"],
                          ["odom"])
+        # The writer double-quotes an empty string, which is a declared empty value, not a null.
         empty = next(r for r in rows if r["setting_key_path"] == "Visualization Manager/Views/Current/Target Frame")
         self.assertEqual((empty["setting_value"], empty["value_kind"]), ("", "empty_string"))
         self.assertNotEqual(report["source_sha256"], self.rows_of(LAYOUT_A)[1]["source_sha256"])
 
     def test_unknown_global_options_and_class_literals_are_retained_exactly(self):
         rows, report = self.rows_of(LAYOUT_C)
+        # A declared class is an identifier, not a number: it travels through the established text
+        # transport and returns byte exact even when it looks numeric.
         numeric = next(r for r in rows if r["display_index_path"] == "/1")
         self.assertEqual(numeric["display_class"], "42")
         self.assertEqual(numeric["display_class_hex"], "hex:" + "42".encode().hex())
         self.assertEqual(numeric["display_class_state"], "DECLARED")
         comma = next(r for r in rows if r["display_index_path"] == "/2")
         self.assertEqual(comma["display_class"], "vendor/Odd, Name")
+        # An unselected Global Options entry keeps its saved structure instead of being refused.
         paths = {r["setting_key_path"]: r for r in rows}
         option = "Visualization Manager/Global Options/Future Option"
         self.assertEqual(paths[option]["value_kind"], "mapping")
@@ -310,11 +338,13 @@ class RvizConfigTests(unittest.TestCase):
         self.assertEqual(paths[f"{option}/Items"]["value_kind"], "sequence")
         self.assertEqual(paths[f"{option}/Items/2"]["setting_value"], "b")
         self.assertTrue(paths[f"{option}/Nested Choice"]["row_basis"].startswith("RETAINED_AS_DECLARED"))
+        # The selected Fixed Frame keeps its scalar rule and its own basis.
         frame = paths["Visualization Manager/Global Options/Fixed Frame"]
         self.assertEqual((frame["declaration_kind"], frame["setting_value"]),
                          ("rviz_global_option", "base_link"))
         self.assertEqual(report["fixed_frame_state"], "DECLARED")
         self.assertEqual(report["global_options"], 1, "only scalar options are global-option rows")
+        # A Fixed Frame that is not a scalar is still refused: that rule is selected on.
         self.assertEqual(self.refusal("Visualization Manager:\n  Displays:\n    - Class: A\n"
                                       "  Global Options:\n    Fixed Frame:\n      a: 1\n"),
                          "GLOBAL_OPTION_MUST_BE_A_SCALAR")
@@ -322,10 +352,13 @@ class RvizConfigTests(unittest.TestCase):
     def test_a_topic_lookalike_under_an_unqualified_class_is_retained_not_interpreted(self):
         rows, report = self.rows_of(LAYOUT_C)
         paths = {r["setting_key_path"]: r for r in rows}
+        # A custom plugin's property that merely happens to be named Topic, with QoS-looking children:
+        # structure, values and source references retained, nothing read as a topic or a QoS setting.
         lookalike = "Visualization Manager/Displays/1/Topic"
         self.assertEqual(paths[lookalike]["value_kind"], "mapping")
         self.assertEqual(paths[f"{lookalike}/Value"]["setting_value"], "/looks/like/a/topic")
         self.assertEqual(paths[f"{lookalike}/Depth"]["setting_value"], "7")
+        # Not typed as a QoS depth, and an out-of-enumeration policy is kept rather than validated.
         self.assertEqual(paths[f"{lookalike}/Depth"]["value_kind"], "declared_scalar_untyped")
         self.assertEqual(paths[f"{lookalike}/History Policy"]["setting_value"], "Keep Some")
         for key in ("Value", "Depth", "History Policy"):
@@ -334,9 +367,11 @@ class RvizConfigTests(unittest.TestCase):
                               row["topic_form"]), ("rviz_display_property", "", "", ""))
             self.assertTrue(row["row_basis"].startswith("PROPERTY_NAMED_TOPIC_UNDER_A_CLASS"))
             self.assertEqual(row["source_line"], row["source_line_end"])
+        # The flat form under an unqualified class is retained the same way.
         self.assertEqual(paths["Visualization Manager/Displays/2/Topic"]["setting_value"],
                          "/flat/lookalike")
         self.assertEqual(report["unqualified_topic_lookalike_properties"], 2)
+        # A source-qualified class still gets the interpreted topic, including the legacy flat form.
         qualified = [r for r in rows if r["declaration_kind"] == "rviz_display_topic"]
         self.assertEqual([(r["display_index_path"], r["setting_value"], r["topic_form"])
                           for r in qualified],
@@ -346,6 +381,7 @@ class RvizConfigTests(unittest.TestCase):
         self.assertEqual(report["topic_layout_qualified_classes"]["rviz_default_plugins/Path"],
                          "MessageFilterDisplay<nav_msgs::msg::Path>")
 
+    # ------------------------------------------------------------ refusals and bounds
 
     def test_malformed_unsupported_and_ambiguous_inputs_are_refused(self):
         cases = [  # pairs, not a dict: two shapes may legitimately share one refusal code
@@ -364,6 +400,8 @@ class RvizConfigTests(unittest.TestCase):
              "Visualization Manager:\n  Displays: []\n  Global Options:\n    Fixed Frame: {a: 1}\n"),
             ("GLOBAL_OPTIONS_MUST_BE_A_MAPPING",
              "Visualization Manager:\n  Displays: []\n  Global Options: map\n"),
+            # QoS values are validated only where the declared class is source qualified for the
+            # topic layout; the same keys under any other class are retained, not validated.
             ("QOS_POLICY_OUTSIDE_THE_PINNED_ENUMERATION",
              "Visualization Manager:\n  Displays:\n    - Class: rviz_default_plugins/Path\n"
              "      Topic:\n        History Policy: Keep Some\n        Value: /a\n"),
@@ -389,6 +427,7 @@ class RvizConfigTests(unittest.TestCase):
         ]
         for code, text in cases:
             self.assertEqual(self.refusal(text), code, text)
+        # Caller contract and bounds.
         for capture in (-1, 1.5, "0", None):
             with self.assertRaises(self.rviz.Refused):
                 self.rviz.convert(b"Visualization Manager:\n  Displays: []\n", capture)
@@ -402,6 +441,7 @@ class RvizConfigTests(unittest.TestCase):
         self.assertEqual(self.refusal(deep), "NESTING_EXCEEDS_BOUND")
 
     def test_a_practical_size_configuration_stays_inside_the_bounds(self):
+        # A realistic saved configuration: 300 displays in 10 groups, each with a topic and full QoS.
         groups = []
         for group in range(10):
             entries = "".join(
@@ -424,6 +464,7 @@ class RvizConfigTests(unittest.TestCase):
         self.assertLess(len(rows), self.rviz.MAX_ROWS)
         self.assertLess(len(json.dumps(report)), self.rviz.REPORT_LIMIT)
 
+    # ------------------------------------------------------------ command line and common reader
 
     def test_cli_writes_rows_accounting_and_the_retained_source(self):
         with tempfile.TemporaryDirectory() as work:
@@ -440,6 +481,7 @@ class RvizConfigTests(unittest.TestCase):
             report = json.loads((target / "accounting.json").read_text(encoding="utf-8"))
             self.assertEqual(report["pin"], "rviz2-11.2.3-eedb2ac")
             self.assertEqual(report["clock"], "Unknown")
+            # An existing directory is never overwritten, and a refusal writes nothing.
             again = subprocess.run([sys.executable, str(SCRIPT), str(source), str(target),
                                     "--capture-time-us", str(CAPTURE)],
                                    capture_output=True, text=True, check=False)
@@ -495,16 +537,20 @@ class RvizConfigTests(unittest.TestCase):
 
         displays = [o["fields"] for o in common["observations"]
                     if o["fields"]["declaration_kind"] == "rviz_display"]
+        # A numeric-looking class identifier survives the reader as its literal string, and a class
+        # carrying a comma survives without a quoted cell: neither becomes a number or an identity.
         self.assertEqual([authored(f, "display_class_hex") for f in displays],
                          ["42", "vendor/Odd, Name", "rviz_default_plugins/Path"])
         self.assertEqual([f["class_topic_layout_basis"][:30] for f in displays],
                          ["DECLARED_CLASS_IS_NOT_SOURCE_Q"] * 2 + ["DECLARED_CLASS_INHERITS_THE_PI"])
+        # The lookalike arrives as retained structure with no QoS fields at all.
         lookalike = [o["fields"] for o in common["observations"]
                      if authored(o["fields"], "setting_key_path_hex")
                      == "Visualization Manager/Displays/1/Topic/Depth"]
         self.assertEqual(len(lookalike), 1)
         self.assertIsNone(lookalike[0]["qos_setting"])
         self.assertEqual(authored(lookalike[0], "setting_value_hex"), "7")
+        # The unselected nested Global Options entry arrives with its path and values intact.
         nested = {authored(o["fields"], "setting_key_path_hex"): authored(o["fields"], "setting_value_hex")
                   for o in common["observations"]
                   if authored(o["fields"], "setting_key_path_hex").startswith(
@@ -542,6 +588,7 @@ class RvizConfigTests(unittest.TestCase):
             displays = [o["fields"] for o in common["observations"]
                         if o["fields"]["declaration_kind"] in ("rviz_display", "rviz_display_group")]
             self.assertEqual(len(displays), report["displays"])
+            # Order and the instance path survive the reader, and a topic arrives byte exact.
             self.assertEqual([f["display_index_path"] for f in displays],
                              [r["display_index_path"] for r in self.rows_of(text)[0]
                               if r["declaration_kind"] in ("rviz_display", "rviz_display_group")])
@@ -549,8 +596,7 @@ class RvizConfigTests(unittest.TestCase):
                 topics = {authored(o["fields"], "setting_value_hex")
                           for o in common["observations"]
                           if o["fields"]["declaration_kind"] == "rviz_display_topic"}
-                self.assertEqual(topics, {"/front/scan", "/points"},
-                                 "an unqualified class contributes no topic row")
+                self.assertEqual(topics, {"/front/scan", "/points", "/camera/image_raw"})
                 depth = [o["fields"] for o in common["observations"]
                          if o["fields"]["qos_setting"] == "DEPTH"]
                 self.assertEqual([f["value_number"] for f in depth], [5.0, 10.0])

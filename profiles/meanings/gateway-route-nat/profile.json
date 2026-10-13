@@ -1,0 +1,185 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_caller_declared_capture_clock_not_device_UTC",
+      "basis": "declared"
+    },
+    "snapshot_id_hex": {
+      "meaning": "snapshot_id_hex",
+      "unit": "caller_declared_capture_identifier_not_authentication",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "sha256_exact_original_file",
+      "basis": "declared"
+    },
+    "source_index": {
+      "meaning": "source_index",
+      "unit": "zero_based_original_object_index",
+      "basis": "declared"
+    },
+    "expression_index": {
+      "meaning": "expression_index",
+      "unit": "zero_based_statement_order_in_one_rule_not_time",
+      "basis": "declared"
+    },
+    "record_kind": {
+      "meaning": "record_kind",
+      "unit": "saved_declared_record_kind_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "disposition": {
+      "meaning": "disposition",
+      "unit": "saved_declared_disposition_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "reason": {
+      "meaning": "reason",
+      "unit": "saved_declared_reason_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "raw_json_hex": {
+      "meaning": "raw_json_hex",
+      "unit": "normalized_JSON_utf8_hex_original_bytes_retained_in_source_file",
+      "basis": "declared"
+    },
+    "route_destination": {
+      "meaning": "route_destination",
+      "unit": "IPv4_destination_network_prefix_default_normalized_to_zero_prefix",
+      "basis": "declared"
+    },
+    "route_type": {
+      "meaning": "route_type",
+      "unit": "saved_declared_route_type_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "route_table": {
+      "meaning": "route_table",
+      "unit": "saved_declared_route_table_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "route_gateway": {
+      "meaning": "route_gateway",
+      "unit": "reported_IPv4_next_hop_address_not_connectivity",
+      "basis": "declared"
+    },
+    "route_dev_hex": {
+      "meaning": "route_dev_hex",
+      "unit": "saved_declared_route_dev_hex_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "route_metric": {
+      "meaning": "route_metric",
+      "unit": "reported_route_priority_integer_not_latency",
+      "basis": "declared"
+    },
+    "route_protocol": {
+      "meaning": "route_protocol",
+      "unit": "saved_declared_route_protocol_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "route_scope": {
+      "meaning": "route_scope",
+      "unit": "saved_declared_route_scope_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "route_prefsrc": {
+      "meaning": "route_prefsrc",
+      "unit": "saved_declared_route_prefsrc_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "family": {
+      "meaning": "family",
+      "unit": "saved_declared_family_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "table_hex": {
+      "meaning": "table_hex",
+      "unit": "saved_declared_table_hex_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "chain_hex": {
+      "meaning": "chain_hex",
+      "unit": "saved_declared_chain_hex_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "rule_handle": {
+      "meaning": "rule_handle",
+      "unit": "saved_declared_rule_handle_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "chain_type": {
+      "meaning": "chain_type",
+      "unit": "saved_declared_chain_type_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "chain_hook": {
+      "meaning": "chain_hook",
+      "unit": "saved_declared_chain_hook_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "chain_priority": {
+      "meaning": "chain_priority",
+      "unit": "declared_signed_chain_priority_not_packet_evaluation",
+      "basis": "declared"
+    },
+    "chain_policy": {
+      "meaning": "chain_policy",
+      "unit": "saved_declared_chain_policy_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "match_subject": {
+      "meaning": "match_subject",
+      "unit": "named_packet_header_or_interface_metadata_field",
+      "basis": "declared"
+    },
+    "match_operator": {
+      "meaning": "match_operator",
+      "unit": "declared_equality_or_inequality_not_evaluated",
+      "basis": "declared"
+    },
+    "match_value_hex": {
+      "meaning": "match_value_hex",
+      "unit": "utf8_hex_literal_match_value_port_integer_text_or_IPv4_or_interface_name",
+      "basis": "declared"
+    },
+    "nat_action": {
+      "meaning": "nat_action",
+      "unit": "declared_source_or_destination_translation_masquerade_or_redirect_not_actual_flow",
+      "basis": "declared"
+    },
+    "nat_address": {
+      "meaning": "nat_address",
+      "unit": "literal_declared_IPv4_translation_address",
+      "basis": "declared"
+    },
+    "nat_port": {
+      "meaning": "nat_port",
+      "unit": "literal_declared_translation_port_number",
+      "basis": "declared"
+    },
+    "nat_flags": {
+      "meaning": "nat_flags",
+      "unit": "saved_declared_nat_flags_not_physical_or_runtime_verification",
+      "basis": "declared"
+    },
+    "counter_packets": {
+      "meaning": "counter_packets",
+      "unit": "reported_packets_counter_not_rate",
+      "basis": "declared"
+    },
+    "counter_bytes": {
+      "meaning": "counter_bytes",
+      "unit": "reported_bytes_counter_not_rate",
+      "basis": "declared"
+    }
+  }
+}

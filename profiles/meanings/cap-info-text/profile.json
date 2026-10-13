@@ -1,0 +1,210 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_since_epoch_from_producer_declared_alert_sent_not_synchronized_event_or_arrival_time",
+      "basis": "declared"
+    },
+    "alert_sender": {
+      "meaning": "alert_sender",
+      "unit": "reported_sender_not_authenticated",
+      "basis": "declared"
+    },
+    "alert_identifier": {
+      "meaning": "alert_identifier",
+      "unit": "reported_sender_local_identifier_not_authenticated",
+      "basis": "declared"
+    },
+    "alert_sent_text": {
+      "meaning": "alert_sent_text",
+      "unit": "original_declared_sent_text_not_receipt_time",
+      "basis": "declared"
+    },
+    "alert_sent_offset": {
+      "meaning": "alert_sent_offset",
+      "unit": "reported_numeric_time_offset_not_clock_trust",
+      "basis": "declared"
+    },
+    "cap_time_basis": {
+      "meaning": "cap_time_basis",
+      "unit": "existing_CAP_numeric_offset_interpretation",
+      "basis": "declared"
+    },
+    "alert_status": {
+      "meaning": "alert_status",
+      "unit": "producer_declared_Actual_Exercise_System_Test_or_Draft_not_verified_incident",
+      "basis": "declared"
+    },
+    "alert_msg_type": {
+      "meaning": "alert_msg_type",
+      "unit": "producer_declared_Alert_Update_Cancel_Ack_or_Error_not_automatic_state_change",
+      "basis": "declared"
+    },
+    "alert_scope": {
+      "meaning": "alert_scope",
+      "unit": "producer_declared_Public_Restricted_or_Private_not_distribution_permission",
+      "basis": "declared"
+    },
+    "info_index": {
+      "meaning": "info_index",
+      "unit": "zero_based_info_block_ordinal_within_exact_source_hash_absent_for_no_info",
+      "basis": "declared"
+    },
+    "info_count": {
+      "meaning": "info_count",
+      "unit": "number_of_info_blocks_in_original_document",
+      "basis": "declared"
+    },
+    "info_language_hex": {
+      "meaning": "info_language_hex",
+      "unit": "hex_UTF8_reported_language_absent_stays_absent_no_default_translation",
+      "basis": "declared"
+    },
+    "info_categories": {
+      "meaning": "info_categories",
+      "unit": "producer_CAP_controlled_categories_plus_separated_not_verified_events",
+      "basis": "declared"
+    },
+    "info_event_hex": {
+      "meaning": "info_event_hex",
+      "unit": "hex_UTF8_producer_reported_event_not_tool_assessment",
+      "basis": "declared"
+    },
+    "info_urgency": {
+      "meaning": "info_urgency",
+      "unit": "producer_declared_CAP_urgency_Unknown_distinct_from_absence",
+      "basis": "declared"
+    },
+    "info_severity": {
+      "meaning": "info_severity",
+      "unit": "producer_declared_CAP_severity_not_independent_assessment",
+      "basis": "declared"
+    },
+    "info_certainty": {
+      "meaning": "info_certainty",
+      "unit": "producer_declared_CAP_certainty_not_independent_verification",
+      "basis": "declared"
+    },
+    "info_effective_text": {
+      "meaning": "info_effective_text",
+      "unit": "declared_same_info_effective_time_not_alert_sent_or_arrival",
+      "basis": "declared"
+    },
+    "info_onset_text": {
+      "meaning": "info_onset_text",
+      "unit": "declared_same_info_onset_time_not_verified_event_time",
+      "basis": "declared"
+    },
+    "info_expires_text": {
+      "meaning": "info_expires_text",
+      "unit": "declared_same_info_expiry_not_automatic_invalidating_action",
+      "basis": "declared"
+    },
+    "area_count": {
+      "meaning": "area_count",
+      "unit": "number_of_declared_area_blocks_for_this_info_no_area_position_chosen",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "SHA256_of_original_saved_XML_bytes_exact_binding_not_authentication",
+      "basis": "declared"
+    },
+    "classification_basis": {
+      "meaning": "classification_basis",
+      "unit": "unchanged_existing_CAP_reported_classification_ceiling",
+      "basis": "declared"
+    },
+    "cap_info_state": {
+      "meaning": "cap_info_state",
+      "unit": "INFO_PRESENT_or_ALERT_WITHOUT_INFO_placeholder_no_silent_drop",
+      "basis": "declared"
+    },
+    "source_info_path": {
+      "meaning": "source_info_path",
+      "unit": "original_XML_info_position_or_alert_when_no_info",
+      "basis": "declared"
+    },
+    "base_csv_sha256": {
+      "meaning": "base_csv_sha256",
+      "unit": "SHA256_of_exact_unchanged_observations_csv_for_explicit_relation",
+      "basis": "declared"
+    },
+    "base_row_start": {
+      "meaning": "base_row_start",
+      "unit": "zero_based_data_row_start_excluding_header_in_base_CSV",
+      "basis": "declared"
+    },
+    "base_row_count": {
+      "meaning": "base_row_count",
+      "unit": "contiguous_base_row_count_for_same_source_and_info_not_a_time_join",
+      "basis": "declared"
+    },
+    "info_headline_hex": {
+      "meaning": "info_headline_hex",
+      "unit": "hex_UTF8_quoted_producer_CAP_headline_XML_characters_not_source_bytes",
+      "basis": "declared"
+    },
+    "info_headline_disposition": {
+      "meaning": "info_headline_disposition",
+      "unit": "ABSENT_or_PRESENT_EMPTY_or_REPORTED_TEXT",
+      "basis": "declared"
+    },
+    "info_description_hex": {
+      "meaning": "info_description_hex",
+      "unit": "hex_UTF8_quoted_producer_CAP_description_not_verified_incident",
+      "basis": "declared"
+    },
+    "info_description_disposition": {
+      "meaning": "info_description_disposition",
+      "unit": "ABSENT_or_PRESENT_EMPTY_or_REPORTED_TEXT",
+      "basis": "declared"
+    },
+    "info_instruction_hex": {
+      "meaning": "info_instruction_hex",
+      "unit": "hex_UTF8_quoted_producer_instruction_never_executed_recommended_or_authorized_by_this_tool",
+      "basis": "declared"
+    },
+    "info_instruction_disposition": {
+      "meaning": "info_instruction_disposition",
+      "unit": "ABSENT_or_PRESENT_EMPTY_or_REPORTED_TEXT",
+      "basis": "declared"
+    },
+    "text_basis": {
+      "meaning": "text_basis",
+      "unit": "quoted_XML_character_content_only_original_source_xml_retains_exact_bytes_no_execution_recommendation_or_authority",
+      "basis": "declared"
+    },
+    "alert_addresses_hex": {
+      "meaning": "alert_addresses_hex",
+      "unit": "hex_UTF8_producer_declared_recipient_addresses_not_resolved_authenticated_or_delivered",
+      "basis": "declared"
+    },
+    "alert_addresses_disposition": {
+      "meaning": "alert_addresses_disposition",
+      "unit": "ABSENT_or_PRESENT_EMPTY_or_REPORTED_TEXT_not_actual_receipt",
+      "basis": "declared"
+    },
+    "alert_restriction_hex": {
+      "meaning": "alert_restriction_hex",
+      "unit": "hex_UTF8_producer_declared_distribution_restriction_not_enforced_or_permission",
+      "basis": "declared"
+    },
+    "alert_restriction_disposition": {
+      "meaning": "alert_restriction_disposition",
+      "unit": "ABSENT_or_PRESENT_EMPTY_or_REPORTED_TEXT_not_authorization",
+      "basis": "declared"
+    },
+    "audience_basis": {
+      "meaning": "audience_basis",
+      "unit": "producer_declarations_retained_with_scope_not_reconciled_or_executed",
+      "basis": "declared"
+    }
+  }
+}

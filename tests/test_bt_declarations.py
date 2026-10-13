@@ -1,5 +1,6 @@
 """Authored saved tree declarations, not a running behaviour tree."""
 import csv
+import hashlib
 import io
 import json
 import os
@@ -10,10 +11,13 @@ import tempfile
 import unittest
 
 from scripts.convert_bt_declarations import convert
+from scripts import convert_bt_declarations as bt
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT / "profiles/declared/bt-declarations/profile.toml"
 
+# Layout A: control + decorator + generic condition with a declared model, an unknown
+# custom node with unknown ports, and a subtree reference with autoremap and {=}.
 LAYOUT_A = """<root BTCPP_format="4" main_tree_to_execute="Main">
   <BehaviorTree ID="Main">
     <Sequence name="root_seq">
@@ -39,6 +43,8 @@ LAYOUT_A = """<root BTCPP_format="4" main_tree_to_execute="Main">
 </root>
 """
 
+# Layout B: a different shape entirely - reactive control, nested decorators, no model,
+# no main tree declared, generic Action with ID, and a differently ordered sibling list.
 LAYOUT_B = """<root BTCPP_format="4">
   <BehaviorTree ID="Patrol">
     <ReactiveFallback>
@@ -67,6 +73,111 @@ def decoded(row, column):
     return bytes.fromhex(value[4:]).decode() if value else ""
 
 
+class BehaviorTreeBundleTests(unittest.TestCase):
+    def bundle(self, files=None, entry="project/main.xml"):
+        return json.dumps(dict(format="btcpp4-saved-bundle-v1", entry=entry, files=files or {
+            entry: '<root BTCPP_format="4" main_tree_to_execute="Main"><include path="sub/child.xml"/><BehaviorTree ID="Main"><SubTree ID="Child" goal="{target}"/></BehaviorTree></root>',
+            "project/sub/child.xml": '<root BTCPP_format="4"><BehaviorTree ID="Child"><VendorNode speed="0.2"/></BehaviorTree></root>',
+            "unused.xml": 'opaque <not interpreted',
+        })).encode()
+
+    def test_two_bundle_shapes_and_default_exact_parity(self):
+        for data, selected in ((self.bundle(), "Main"), (self.bundle({
+                "entry.xml": '<root BTCPP_format="4"><include path="child.xml"/></root>',
+                "child.xml": '<root BTCPP_format="4"><BehaviorTree ID="Only"><AlwaysSuccess/></BehaviorTree></root>',
+                }, "entry.xml"), "Only")):
+            output, report = bt.convert_bundle(data, 777)
+            rows = list(csv.DictReader(io.StringIO(output)))
+            self.assertEqual(report["selected_tree_id"], selected)
+            self.assertEqual(report["input_files"], report["loaded_files"] + report["unreferenced_files"])
+            self.assertEqual(report["source_bundle_hex"], "hex:" + data.hex())
+            self.assertEqual(sum(r["bt_selected_tree"] == "1" for r in rows), 1)
+            self.assertEqual(report["output_records"], len(rows))
+            self.assertEqual(report["include_edges"], 1)
+            self.assertEqual(len(report["documents"]), report["input_files"])
+            self.assertTrue(all(r["record_time_us"] == "777" for r in rows))
+            for doc in report["documents"]:
+                original = json.loads(data)["files"][doc["name"]].encode()
+                self.assertEqual(doc["source_xml_hex"], "hex:" + original.hex())
+                self.assertEqual(doc["source_sha256"], "sha256:" + hashlib.sha256(original).hexdigest())
+            if os.environ.get("MUSUBI_TELEMETRY_READER"):
+                with tempfile.TemporaryDirectory() as directory:
+                    path = Path(directory) / "observations.csv"
+                    path.write_text(output)
+                    result = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                        str(PROFILE), str(path), "--allow-equal-time"], check=True, capture_output=True).stdout)
+                    self.assertEqual(result["main_rows"], len(rows))
+                    self.assertEqual(result["platform_domain"], "Unknown")
+                    self.assertTrue(all(o["clock_basis"] == "Unknown" for o in result["observations"]))
+            else:
+                self.fail("actual common reader required for bundle proof")
+        for layout, csv_sha, report_sha in ((LAYOUT_A,
+                "3ff7396256b3ddea9b4b745226c923f9e364d9ff5bfc6edd385715e9470ade89",
+                "7b4e046818a5838183f29806e9535613ca12a73fc431df8df229c094da58c717"),
+                (LAYOUT_B, "cb80812e1c9ef476e66f66c9524e1fe46b378b600ed6fea99ec3b0fd310ef058",
+                 "ff23dfbe742f0b5772c26565f9a9d5ef4af4f3f0bf8a381a509485397d8b2c10")):
+            output, report = convert(layout.encode(), 777)
+            self.assertEqual(hashlib.sha256(output.encode()).hexdigest(), csv_sha)
+            self.assertEqual(hashlib.sha256(json.dumps(report, sort_keys=True).encode()).hexdigest(), report_sha)
+
+    def test_closed_bundle_rejections_and_cli(self):
+        base = json.loads(self.bundle())
+        bad = []
+        for path in ("../child.xml", "/child.xml", "sub//child.xml", "./child.xml", "https://host/a", "sub\\child.xml"):
+            value = json.loads(self.bundle())
+            value["files"][value["entry"]] = value["files"][value["entry"]].replace("sub/child.xml", path)
+            bad.append(json.dumps(value).encode())
+        for xml in ('<root BTCPP_format="4"><include path="absent.xml"/></root>',
+                    '<root BTCPP_format="4"><include path="main.xml"/></root>',
+                    '<root BTCPP_format="4"><include path="sub/child.xml" ros_pkg="x"/></root>',
+                    '<root BTCPP_format="4"><BehaviorTree ID="Main"><SubTree ID="Absent"/></BehaviorTree></root>',
+                    '<root BTCPP_format="4"><BehaviorTree ID="Main"><SubTree ID="Main"/></BehaviorTree></root>'):
+            value = json.loads(self.bundle())
+            value["files"][value["entry"]] = xml
+            bad.append(json.dumps(value).encode())
+        bad += [b'{"format":"btcpp4-saved-bundle-v1","entry":"a","entry":"b","files":{}}',
+                json.dumps({**base, "extra": True}).encode(), b"x" * (bt.BUNDLE_LIMIT + 1)]
+        for data in bad:
+            with self.subTest(data=data[:100]), self.assertRaises(ValueError):
+                bt.convert_bundle(data, 0)
+        with tempfile.TemporaryDirectory() as directory:
+            source, destination = Path(directory) / "bundle.json", Path(directory) / "out"
+            source.write_bytes(self.bundle())
+            subprocess.run([sys.executable, str(ROOT / "scripts/convert_bt_declarations.py"),
+                str(source), str(destination), "--capture-time-us", "1", "--bundle-json",
+                "--main-tree-id", "Child"], check=True, capture_output=True)
+            report = json.loads((destination / "report.json").read_text())
+            self.assertEqual(report["selection_basis"], "CALLER_ARGUMENT")
+            self.assertEqual(report["selected_tree_id"], "Child")
+
+    def test_graph_ambiguity_and_global_bounds_are_explicit_refusals(self):
+        mutations = []
+        for child in ('<root BTCPP_format="4"><BehaviorTree ID="Main"><AlwaysSuccess/></BehaviorTree></root>',
+                      '<root BTCPP_format="4"><BehaviorTree ID="Child"><SubTree ID="Main"/></BehaviorTree></root>'):
+            value = json.loads(self.bundle())
+            value["files"]["project/sub/child.xml"] = child
+            mutations.append(value)
+        value = json.loads(self.bundle())
+        value["files"][value["entry"]] = value["files"][value["entry"]].replace(
+            '<include path="sub/child.xml"/>', '<include path="sub/child.xml"/>' * 2)
+        mutations.append(value)
+        value = json.loads(self.bundle())
+        value["files"].update({f"unused{i}.xml": "opaque" for i in range(bt.MAX_FILES)})
+        mutations.append(value)
+        value = json.loads(self.bundle())
+        value["files"]["unused.xml"] = "é" * (bt.LIMIT // 2 + 1)
+        mutations.append(value)
+        value = json.loads(self.bundle())
+        value["files"]["project/sub/child.xml"] = '<root BTCPP_format="4"><BehaviorTree ID="Child"><Sequence>' + '<AlwaysSuccess/>' * bt.MAX_NODES + '</Sequence></BehaviorTree></root>'
+        mutations.append(value)
+        for value in mutations:
+            with self.subTest(files=len(value["files"])), self.assertRaises(ValueError):
+                bt.convert_bundle(json.dumps(value).encode(), 0)
+        for choice in ("", "Absent", False, []):
+            with self.subTest(choice=choice), self.assertRaises(ValueError):
+                bt.convert_bundle(self.bundle(), 0, main_tree_id=choice)
+
+
 class BehaviorTreeDeclarationTests(unittest.TestCase):
     def test_two_layouts_keep_identity_order_ports_and_reach_common_output(self):
         for layout, tree_ids, main_declared in ((LAYOUT_A, ["Main", "Recover"], True),
@@ -79,6 +190,8 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
             self.assertEqual(report["main_tree_declared"], main_declared)
             self.assertEqual(report["declared_nodes"], len(nodes))
             self.assertEqual(report["pin"], "behaviortree-cpp-4.6.2")
+            # Ordered edges: every non-root node points at a parent that is declared earlier,
+            # and siblings carry 0..n-1 in document order.
             by_uid = {row["bt_node_uid"]: row for row in rows if row["bt_record_kind"] in ("NODE", "TREE")}
             for row in nodes:
                 self.assertIn(row["bt_parent_uid"], by_uid)
@@ -111,9 +224,11 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
         self.assertEqual(nodes["Condition"]["bt_node_category"], "CONDITION")
         self.assertEqual(decoded(nodes["Condition"], "bt_declared_id_hex"), "BatteryOk")
         self.assertEqual(decoded(nodes["Sequence"], "bt_node_name_hex"), "root_seq")
+        # A vendor node is retained and explicitly unqualified - never guessed from its name.
         custom = nodes["MyVendorAction"]
         self.assertEqual(custom["bt_node_category"], "UNKNOWN_NOT_REGISTERED")
         self.assertEqual(custom["bt_category_basis"], "UNQUALIFIED_PLUGIN_NOT_RESOLVABLE_OFFLINE")
+        # SubTree reference joins to a tree declared in the same document.
         self.assertEqual(decoded(nodes["SubTree"], "bt_subtree_ref_hex"), "Recover")
         ports = {(row["bt_node_uid"], decoded(row, "bt_attribute_name_hex")): row
                  for row in rows if row["bt_record_kind"] in ("PORT", "RESERVED")}
@@ -131,6 +246,7 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
         self.assertEqual(decoded(ports[(custom_uid, "goal")], "bt_blackboard_key_hex"), "target")
         self.assertEqual(ports[(custom_uid, "retries")]["bt_attribute_kind"],
                          "STATIC_DECLARATION_NOT_RESOLVED_VALUE")
+        # Reserved framework attributes are kept, and are not called ports.
         skip = ports[(custom_uid, "_skipIf")]
         self.assertEqual(skip["bt_attribute_kind"], "FRAMEWORK_RESERVED_NOT_PORT")
         self.assertEqual(skip["bt_port_direction"], "NOT_A_PORT")
@@ -144,6 +260,7 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
         models = [row for row in rows if row["bt_record_kind"] == "MODEL_PORT"]
         self.assertEqual({decoded(row, "bt_attribute_name_hex") for row in models},
                          {"threshold", "state"})
+        # Layout B has no model at all, so no direction is invented.
         other, _, _ = rows_of(LAYOUT_B)
         directions = {row["bt_port_direction"] for row in other if row["bt_record_kind"] == "PORT"}
         self.assertEqual(directions, {"UNKNOWN_WITHOUT_DECLARED_MODEL"})
@@ -192,6 +309,7 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
                 convert(base.encode(), capture)
 
     def test_practical_tree_and_cli_write_the_same_declarations(self):
+        # 500 leaf declarations under nested controls: not a toy example.
         leaves = "".join(f'<MyVendorAction id_{index}="{index}" target="{{wp_{index}}}"/>'
                          for index in range(500))
         big = ('<root BTCPP_format="4" main_tree_to_execute="Big"><BehaviorTree ID="Big">'
@@ -216,6 +334,7 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
             self.assertEqual((destination / "observations.csv").read_text(), output)
             self.assertEqual(json.loads((destination / "report.json").read_text())["output_records"],
                              len(rows))
+            # An existing output directory is refused rather than overwritten.
             self.assertNotEqual(subprocess.run([sys.executable,
                 str(ROOT / "scripts/convert_bt_declarations.py"), str(source), str(destination),
                 "--capture-time-us", "123"], capture_output=True).returncode, 0)
@@ -238,6 +357,8 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
         base = ('<root BTCPP_format="4"><BehaviorTree ID="T">'
                 "<Sequence><AlwaysSuccess/></Sequence></BehaviorTree></root>")
         model = '<TreeNodesModel><Action ID="Vend"/></TreeNodesModel></root>'
+        # The established leaf rule now covers named built-ins and modelled leaves, and a
+        # generic tag may not assert a category its own ID contradicts.
         for label, text in (
                 ("built-in leaf with a child",
                  base.replace("<AlwaysSuccess/>", "<AlwaysSuccess><AlwaysFailure/></AlwaysSuccess>")),
@@ -254,6 +375,7 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
                  base.replace("<AlwaysSuccess/>", '<SubTree ID="Sequence"/>'))):
             with self.subTest(refused=label), self.assertRaises(ValueError):
                 convert(text.encode(), 1)
+        # Same leaf family is not a contradiction, and an unknown tag stays unconstrained.
         same_family = base.replace("</root>", model).replace("<AlwaysSuccess/>", '<Condition ID="Vend"/>')
         rows, _, _ = rows_of(same_family)
         condition = [row for row in rows if decoded(row, "bt_declared_id_hex") == "Vend"][0]
@@ -264,6 +386,7 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
         self.assertEqual(vendor["bt_node_category"], "UNKNOWN_NOT_REGISTERED")
         self.assertEqual(vendor["bt_child_count"], "1")
 
+        # Every emitted declaration carries its own document element index.
         indexed = ('<root BTCPP_format="4"><BehaviorTree ID="M"><Sequence>'
                    '<Condition ID="C" p="{k}" _uid="9"/></Sequence></BehaviorTree>'
                    '<TreeNodesModel><Condition ID="C"><input_port name="p"/></Condition>'
@@ -282,6 +405,7 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
                                 if row["bt_record_kind"] in ("TREE", "NODE", "MODEL_PORT")),
                          [1, 2, 3, 6])
 
+        # Ordinary saved trees carry comments; they declare nothing and lose nothing.
         commented = ("<!-- saved by hand -->\n" + base.replace("<BehaviorTree", "<!-- main --><BehaviorTree", 1)
                      .replace("<AlwaysSuccess/>", "<!-- step --><AlwaysSuccess/>"))
         with_comments, report, output = rows_of(commented)
@@ -307,6 +431,7 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
             with self.subTest(refused=label), self.assertRaises(ValueError):
                 convert(text.encode(), 1)
 
+        # Model-only rows count against the declared row bound like any other row.
         import scripts.convert_bt_declarations as module
         original = module.MAX_ROWS
         try:
@@ -316,6 +441,7 @@ class BehaviorTreeDeclarationTests(unittest.TestCase):
         finally:
             module.MAX_ROWS = original
 
+        # The CLI reads once, bounded: an oversized file is refused without a size race.
         with tempfile.TemporaryDirectory() as directory:
             oversized = Path(directory) / "big.xml"
             filler = "<!-- " + "x" * 2048 + " -->"

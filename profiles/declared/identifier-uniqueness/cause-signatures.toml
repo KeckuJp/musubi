@@ -1,0 +1,22 @@
+version = "recorded-identifier-uniqueness-v1"
+
+[[signature]]
+id = "reported_key_attribute_conflict"
+kind = "configuration_error"
+required = ["event:reported_identifier_uniqueness_discrepancy"]
+discriminators = ["uniqueness_requirement_applies_to_this_source_key", "original_allocation_and_reporting_basis", "independent_identity_evidence"]
+consistent_with = "different reported names for one source-local key conflict with the explicit single-name requirement if its scope applies; not an authenticated or physical identifier collision"
+
+[[signature]]
+id = "legitimate_identity_history_change"
+kind = "configuration_error"
+required = ["event:reported_identifier_uniqueness_discrepancy"]
+discriminators = ["source_history_and_validity_intervals", "window_does_not_span_legitimate_rename_or_reuse", "trusted_source_clock_relationship"]
+consistent_with = "the saved-file window may span a legitimate rename, key reuse or history change; its label does not prove simultaneity or synchronized clocks"
+
+[[signature]]
+id = "identifier_uniqueness_scope_alternative"
+kind = "configuration_error"
+required = ["event:reported_identifier_uniqueness_discrepancy"]
+discriminators = ["declared_namespace_instance_and_subject_are_applicable", "single_attribute_expectation_is_correct", "producer_reporting_schema_qualification"]
+consistent_with = "the uniqueness scope, namespace, subject or single-attribute expectation may be wrong; different reported values need not be a fault"

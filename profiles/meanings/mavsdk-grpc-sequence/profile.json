@@ -1,0 +1,220 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "latitude_deg": {
+      "meaning": "latitude_deg",
+      "unit": "degree_reported_no_datum_transformation",
+      "basis": "declared"
+    },
+    "longitude_deg": {
+      "meaning": "longitude_deg",
+      "unit": "degree_reported_no_datum_transformation",
+      "basis": "declared"
+    },
+    "altitude_amsl_m": {
+      "meaning": "altitude_amsl_m",
+      "unit": "m_AMSL_reported",
+      "basis": "declared"
+    },
+    "altitude_takeoff_relative_m": {
+      "meaning": "altitude_takeoff_relative_m",
+      "unit": "m_relative_to_takeoff_reported_not_AMSL",
+      "basis": "declared"
+    },
+    "reported_velocity_north_m_s": {
+      "meaning": "reported_velocity_north_m_s",
+      "unit": "m/s_reported_NED_north",
+      "basis": "declared"
+    },
+    "reported_velocity_east_m_s": {
+      "meaning": "reported_velocity_east_m_s",
+      "unit": "m/s_reported_NED_east",
+      "basis": "declared"
+    },
+    "reported_velocity_down_m_s": {
+      "meaning": "reported_velocity_down_m_s",
+      "unit": "m/s_reported_NED_down",
+      "basis": "declared"
+    },
+    "source_id_hex": {
+      "meaning": "source_id_hex",
+      "unit": "UTF8_hex_caller_declared_identity_not_authenticated",
+      "basis": "declared"
+    },
+    "message_kind": {
+      "meaning": "message_kind",
+      "unit": "caller_selected_fixed_response_schema_not_type_authentication",
+      "basis": "declared"
+    },
+    "proto3_absent_or_zero_fields_hex": {
+      "meaning": "proto3_absent_or_zero_fields_hex",
+      "unit": "UTF8_hex_proto3_default_ambiguity_list_not_confirmed_false_or_zero",
+      "basis": "declared"
+    },
+    "unknown_wire_fields": {
+      "meaning": "unknown_wire_fields",
+      "unit": "count_unknown_fields_original_bytes_retained",
+      "basis": "declared"
+    },
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_one_caller_capture_for_the_whole_saved_body_Unknown_not_per_message_arrival_or_device_time",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "DERIVED_JSON_envelope_for_the_existing_decoder_not_original_capture_original_bytes_once_in_mandatory_paired_report",
+      "basis": "declared"
+    },
+    "source_stream_sha256": {
+      "meaning": "source_stream_sha256",
+      "unit": "SHA256_exact_whole_saved_message_body_join_to_mandatory_report_not_authentication",
+      "basis": "declared"
+    },
+    "source_message_index": {
+      "meaning": "source_message_index",
+      "unit": "zero_based_message_order_in_one_saved_body_not_global_sequence_or_time_order",
+      "basis": "declared"
+    },
+    "source_byte_offset": {
+      "meaning": "source_byte_offset",
+      "unit": "byte_offset_of_this_message_prefix_in_original_saved_body",
+      "basis": "declared"
+    },
+    "source_frame_bytes": {
+      "meaning": "source_frame_bytes",
+      "unit": "bytes_of_message_including_5_byte_gRPC_prefix_not_HTTP2_frame_size",
+      "basis": "declared"
+    },
+    "source_frame_sha256": {
+      "meaning": "source_frame_sha256",
+      "unit": "SHA256_exact_original_prefix_and_payload_bytes_not_schema_or_origin_proof",
+      "basis": "declared"
+    },
+    "rpc_method_hex": {
+      "meaning": "rpc_method_hex",
+      "unit": "UTF8_hex_caller_declared_single_RPC_method_selects_fixed_schema_not_automatic_type_verification",
+      "basis": "declared"
+    },
+    "grpc_sequence_basis": {
+      "meaning": "grpc_sequence_basis",
+      "unit": "conditional_saved_body_interpretation_no_transport_headers_trailers_or_RPC_success_verified",
+      "basis": "declared"
+    },
+    "battery_voltage_v": {
+      "meaning": "battery_voltage_v",
+      "unit": "V_reported_MAVSDK_Battery",
+      "basis": "declared"
+    },
+    "battery_current_a": {
+      "meaning": "battery_current_a",
+      "unit": "A_reported_MAVSDK_Battery_no_physical_current_validation",
+      "basis": "declared"
+    },
+    "battery_consumed_ah": {
+      "meaning": "battery_consumed_ah",
+      "unit": "Ah_reported_consumed_not_stored_charge",
+      "basis": "declared"
+    },
+    "battery_consumed_j": {
+      "meaning": "battery_consumed_j",
+      "unit": "J_unavailable_in_selected_schema",
+      "basis": "declared"
+    },
+    "battery_power_w": {
+      "meaning": "battery_power_w",
+      "unit": "W_reported_voltage_times_reported_current_not_measured_power",
+      "basis": "declared"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "fraction_converted_once_from_reported_percent_minus_one_withheld",
+      "basis": "declared"
+    },
+    "battery_stored_charge_ah": {
+      "meaning": "battery_stored_charge_ah",
+      "unit": "unavailable_in_selected_schema_not_inferred",
+      "basis": "declared"
+    },
+    "battery_reported_charging_state": {
+      "meaning": "battery_reported_charging_state",
+      "unit": "UNKNOWN_selected_schema_does_not_report_charging_state",
+      "basis": "declared"
+    },
+    "battery_current_sign_basis": {
+      "meaning": "battery_current_sign_basis",
+      "unit": "UNSPECIFIED_no_sign_convention_inferred_from_value",
+      "basis": "declared"
+    },
+    "battery_id_reported": {
+      "meaning": "battery_id_reported",
+      "unit": "reported_uint32_battery_ID_not_authenticated_platform_identity",
+      "basis": "declared"
+    },
+    "battery_temperature_k": {
+      "meaning": "battery_temperature_k",
+      "unit": "K_from_reported_Celsius_plus_273_15_NaN_withheld_not_calibrated",
+      "basis": "declared"
+    },
+    "battery_time_remaining_s": {
+      "meaning": "battery_time_remaining_s",
+      "unit": "s_reported_estimate_not_measured_endurance",
+      "basis": "declared"
+    },
+    "battery_function_reported": {
+      "meaning": "battery_function_reported",
+      "unit": "reported_BatteryFunction_enum_unknown_numeric_code_retained_not_hardware_authentication",
+      "basis": "declared"
+    },
+    "attitude_roll_rad": {
+      "meaning": "attitude_roll_rad",
+      "unit": "rad_from_reported_degrees_once_positive_banking_right_not_verified_or_fused_attitude",
+      "basis": "declared"
+    },
+    "attitude_pitch_rad": {
+      "meaning": "attitude_pitch_rad",
+      "unit": "rad_from_reported_degrees_once_positive_nose_up",
+      "basis": "declared"
+    },
+    "attitude_yaw_rad": {
+      "meaning": "attitude_yaw_rad",
+      "unit": "rad_from_reported_degrees_once_positive_clockwise_from_above_not_true_north_heading",
+      "basis": "declared"
+    },
+    "attitude_angle_basis": {
+      "meaning": "attitude_angle_basis",
+      "unit": "reported_right_handed_3_2_1_intrinsic_Tait_Bryan_reference_frame_not_stated_no_body_NED_FRD_or_Earth_frame_inferred",
+      "basis": "declared"
+    },
+    "attitude_device_time_us": {
+      "meaning": "attitude_device_time_us",
+      "unit": "us_reported_boot_relative_MAVLink_time_boot_ms_times_1000_not_capture_or_UTC_equal_and_reset_preserved_in_byte_order",
+      "basis": "declared"
+    },
+    "attitude_device_time_basis": {
+      "meaning": "attitude_device_time_basis",
+      "unit": "boot_relative_ms_promoted_to_us_not_microsecond_resolution_zero_or_absent_ambiguous",
+      "basis": "declared"
+    },
+    "protobuf_zero_or_absent_fields_hex": {
+      "meaning": "protobuf_zero_or_absent_fields_hex",
+      "unit": "UTF8_hex_list_of_selected_proto3_default_scalars_absent_and_zero_not_distinguished_zero_kept_with_ambiguity",
+      "basis": "declared"
+    },
+    "protobuf_unknown_fields": {
+      "meaning": "protobuf_unknown_fields",
+      "unit": "count_unknown_wire_fields_in_wrapper_and_selected_message_original_bytes_retained_in_paired_report",
+      "basis": "declared"
+    },
+    "protobuf_value_basis": {
+      "meaning": "protobuf_value_basis",
+      "unit": "GRPC_MESSAGE_NOT_RPC_SUCCESS_decoded_under_declared_fixed_descriptor_not_producer_type_authentication",
+      "basis": "declared"
+    }
+  }
+}

@@ -18,7 +18,7 @@
     },
     "bt_record_kind": {
       "meaning": "bt_record_kind",
-      "unit": "TREE_NODE_PORT_RESERVED_or_MODEL_PORT_declaration_row",
+      "unit": "TREE_NODE_PORT_RESERVED_MODEL_PORT_or_opt_in_DOCUMENT_INCLUDE_declaration_row",
       "basis": "declared"
     },
     "bt_element_index": {
@@ -83,7 +83,7 @@
     },
     "bt_subtree_ref_hex": {
       "meaning": "bt_subtree_ref_hex",
-      "unit": "referenced_BehaviorTree_ID_resolved_within_this_document_only",
+      "unit": "referenced_BehaviorTree_ID_within_document_or_explicit_saved_bundle",
       "basis": "declared"
     },
     "bt_attribute_name_hex": {
@@ -114,6 +114,41 @@
     "bt_declaration_basis": {
       "meaning": "bt_declaration_basis",
       "unit": "declared_structure_not_executed_or_ticked",
+      "basis": "declared"
+    },
+    "source_bundle_sha256": {
+      "meaning": "source_bundle_sha256",
+      "unit": "exact_saved_JSON_bytes_digest_not_authenticity",
+      "basis": "declared"
+    },
+    "bt_document_name_hex": {
+      "meaning": "bt_document_name_hex",
+      "unit": "bundle_logical_document_name_UTF8_hex_namespace_for_local_UIDs",
+      "basis": "declared"
+    },
+    "bt_document_disposition": {
+      "meaning": "bt_document_disposition",
+      "unit": "LOADED_or_UNREFERENCED_NOT_INTERPRETED",
+      "basis": "declared"
+    },
+    "bt_include_target_hex": {
+      "meaning": "bt_include_target_hex",
+      "unit": "resolved_bundle_logical_document_name_not_opened_filesystem_path",
+      "basis": "declared"
+    },
+    "bt_subtree_document_hex": {
+      "meaning": "bt_subtree_document_hex",
+      "unit": "bundle_document_containing_referenced_declared_tree_ID",
+      "basis": "declared"
+    },
+    "bt_selected_tree": {
+      "meaning": "bt_selected_tree",
+      "unit": "one_for_selected_TREE_zero_for_other_TREE_empty_for_non_TREE_not_execution",
+      "basis": "declared"
+    },
+    "bt_selection_basis": {
+      "meaning": "bt_selection_basis",
+      "unit": "CALLER_ARGUMENT_ENTRY_DECLARATION_or_SOLE_LOADED_TREE",
       "basis": "declared"
     }
   }

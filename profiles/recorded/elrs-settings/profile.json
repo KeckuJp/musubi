@@ -17,7 +17,7 @@
   "units": {
     "record_time_us": "caller_supplied_capture_microseconds_not_source_qualified",
     "elrs_setting_index": "zero_based_emission_order_not_time",
-    "elrs_scope": "DEVICE_or_MODEL_settings_scope",
+    "elrs_scope": "DEVICE_MODEL_or_explicit_opt_in_BUTTON_declaration_scope",
     "elrs_model_index": "transmitter_model_slot_0_to_63_not_a_vehicle_identity",
     "elrs_setting_path_hex": "reversible_utf8_hex_of_the_exported_json_path",
     "elrs_value_reported": "the_stored_configuration_integer_exactly_as_the_export_wrote_it_accepted_only_within_the_width_this_converter_declares_for_that_particular_field_the_per_model_settings_use_the_pinned_structs_own_bitfield_widths_while_the_device_level_and_nested_groups_are_checked_at_eight_bits_which_for_several_of_them_is_WIDER_than_the_pinned_struct_stores_so_a_value_beyond_the_producers_own_storage_is_retained_as_reported_rather_than_refused_and_this_column_is_therefore_not_a_width_guarantee",
@@ -26,6 +26,11 @@
     "packet_rate_configured_hz": "Hz_configured_table_label_for_the_declared_radio_not_observed_throughput",
     "packet_rate_basis": "which_radio_table_resolved_the_index_or_why_it_could_not",
     "telemetry_ratio_denominator": "one_telemetry_response_per_N_packets_blank_when_not_numeric",
-    "elrs_source_sha256": "digest_of_the_exact_input_document_not_a_copy_of_it"
+    "elrs_source_sha256": "digest_of_the_exact_input_document_not_a_copy_of_it",
+    "button_index": "zero_based_saved_button_slot_not_physical_authenticated_identity",
+    "button_action_index": "zero_based_saved_action_slot_duplicates_not_deduplicated",
+    "button_press_kind": "declared_SHORT_PRESS_or_LONG_PRESS_not_observed_press",
+    "button_count_raw": "three_bit_stored_count_not_duration_seconds",
+    "button_matching_callback_count": "stored_count_plus_one_consumer_predicate_not_elapsed_time_or_observed_clicks"
   }
 }

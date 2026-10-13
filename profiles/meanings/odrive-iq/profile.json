@@ -1,0 +1,70 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "capture_microseconds_unknown_basis_not_producer_time",
+      "basis": "declared"
+    },
+    "source_frame_index": {
+      "meaning": "source_frame_index",
+      "unit": "zero_based_input_frame_index_including_unselected_frames_no_time_join_or_deduplication",
+      "basis": "declared"
+    },
+    "node_id": {
+      "meaning": "node_id",
+      "unit": "CANSimple_declared_node_not_authenticated_device_identity",
+      "basis": "declared"
+    },
+    "frame_id": {
+      "meaning": "frame_id",
+      "unit": "standard_CAN_identifier_decimal",
+      "basis": "declared"
+    },
+    "iq_setpoint_a": {
+      "meaning": "iq_setpoint_a",
+      "unit": "A_reported_Iq_setpoint_zero_may_replace_absent_internal_setpoint",
+      "basis": "declared"
+    },
+    "iq_measured_a": {
+      "meaning": "iq_measured_a",
+      "unit": "A_reported_Iq_measured_not_independent_physical_verification",
+      "basis": "declared"
+    },
+    "setpoint_disposition": {
+      "meaning": "setpoint_disposition",
+      "unit": "ZERO_REPORTED_OR_MISSING_SUBSTITUTED_or_NONZERO_REPORTED_SETPOINT_not_missingness_resolution",
+      "basis": "declared"
+    },
+    "source_data_hex": {
+      "meaning": "source_data_hex",
+      "unit": "hex_original_eight_CAN_payload_bytes",
+      "basis": "declared"
+    },
+    "source_row_hex": {
+      "meaning": "source_row_hex",
+      "unit": "hex_UTF8_JSON_original_saved_CSV_cells",
+      "basis": "declared"
+    },
+    "source_input_sha256": {
+      "meaning": "source_input_sha256",
+      "unit": "SHA256_original_capture_bytes_not_authentication",
+      "basis": "declared"
+    },
+    "source_dbc_sha256": {
+      "meaning": "source_dbc_sha256",
+      "unit": "SHA256_fixed_dictionary_bytes_not_producer_authentication",
+      "basis": "declared"
+    },
+    "producer_basis": {
+      "meaning": "producer_basis",
+      "unit": "explicit_caller_selected_source_not_detected_firmware_or_hardware",
+      "basis": "declared"
+    }
+  }
+}

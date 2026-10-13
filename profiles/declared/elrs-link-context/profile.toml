@@ -1,0 +1,22 @@
+profile_id = "elrs_declared_link_context_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+uplink_rssi_1_dbm = "dBm_reported_not_link_health"
+uplink_rssi_2_dbm = "dBm_reported_not_link_health"
+uplink_snr_db = "dB_reported"
+uplink_lq_fraction = "reported_packet_success_fraction"
+downlink_rssi_dbm = "dBm_reported"
+downlink_snr_db = "dB_reported"
+downlink_lq_fraction = "reported_packet_success_fraction"
+packet_rate_configured_hz = "Hz_configured_not_observed"
+telemetry_ratio_denominator = "configured_one_response_per_N_packets"
+record_time_us = "caller_capture_microseconds_unknown_clock"
+settings_capture_time_us = "separate_caller_capture_microseconds_unknown_clock_not_synchronized"

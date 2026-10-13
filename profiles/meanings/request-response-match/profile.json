@@ -90,6 +90,31 @@
       "meaning": "source_sha256",
       "unit": "SHA256_of_the_exact_saved_observations_file_both_sides_were_read_from_binding_the_bytes_and_authenticating_nothing",
       "basis": "declared"
+    },
+    "reported_ack_result": {
+      "meaning": "reported_ack_result",
+      "unit": "reported_MAV_RESULT_enum_not_verified_execution_IN_PROGRESS_not_terminal",
+      "basis": "declared"
+    },
+    "reported_ack_result_code": {
+      "meaning": "reported_ack_result_code",
+      "unit": "uint8_reported_enum_unknown_code_retained",
+      "basis": "declared"
+    },
+    "reported_ack_progress": {
+      "meaning": "reported_ack_progress",
+      "unit": "percent_only_when_result5_255_unknown_else_raw_reported_not_progress_claim",
+      "basis": "declared"
+    },
+    "reported_ack_result_param2": {
+      "meaning": "reported_ack_result_param2",
+      "unit": "signed32_command_specific_additional_info_not_interpreted_for512",
+      "basis": "declared"
+    },
+    "saved_ack_basis": {
+      "meaning": "saved_ack_basis",
+      "unit": "saved_information_request_ACK_comparison_not_command_issuance_or_AUTOPILOT_VERSION_receipt",
+      "basis": "declared"
     }
   }
 }

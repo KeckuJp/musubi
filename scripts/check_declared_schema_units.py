@@ -167,8 +167,20 @@ def _read_report(document):
         raise ValueError(f"this is not a saved common-reader read report; it lacks {missing}")
     columns, units = document["source_columns"], document["profile_units"]
     identity = document["profile_identity"]
-    if not isinstance(columns, list) or not all(isinstance(name, str) for name in columns):
-        raise ValueError("the read report's source_columns is not a list of column names")
+    if not isinstance(columns, list):
+        raise ValueError("the read report's source_columns is not a list")
+    if columns and all(isinstance(column, dict) for column in columns):
+        names = []
+        for column in columns:
+            if set(column) != {"name", "unit"}:
+                raise ValueError("canonical source column requires exactly name and unit")
+            # This is the CSV header's annotation, NOT the profile declaration. Validate its
+            # shape but never substitute it for profile_units (or require the two to agree).
+            _declared(column["unit"], "the source header unit", "source_columns")
+            names.append(column["name"])
+        columns = names
+    if not all(isinstance(name, str) for name in columns):
+        raise ValueError("source_columns requires homogeneous names or canonical name/unit objects")
     # The artefact's own column names are held to the same constraints as the declared ones, so a
     # malformed report is refused rather than compared against.
     if any(not name or len(name) > NAME_LIMIT for name in columns):

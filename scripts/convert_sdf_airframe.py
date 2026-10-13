@@ -219,7 +219,129 @@ def declared_units(mass_unit, position_unit, unit_basis, version):
             "declaration_and_never_a_default")
 
 
-def convert(data, capture_time_us, *, mass_unit=None, position_unit=None, unit_basis=None):
+GEOMETRY_FIELDS = ["airframe_geometry_role", "airframe_geometry_name_hex",
+                   "airframe_geometry_shape", "airframe_geometry_source_hex",
+                   "airframe_geometry_frame_hex", "airframe_geometry_frame_disposition",
+                   "airframe_geometry_pose_hex", "airframe_geometry_rotation_unit",
+                   "airframe_box_x_m", "airframe_box_y_m", "airframe_box_z_m",
+                   "airframe_geometry_radius_m", "airframe_geometry_length_m",
+                   "airframe_geometry_pose_x_m", "airframe_geometry_pose_y_m",
+                   "airframe_geometry_pose_z_m", "airframe_geometry_roll_rad",
+                   "airframe_geometry_pitch_rad", "airframe_geometry_yaw_rad"]
+QUATERNION_FIELDS = [*[f"airframe_geometry_q{axis}" for axis in "xyzw"],
+    *[f"airframe_geometry_reported_q{axis}" for axis in "xyzw"],
+    "airframe_geometry_quaternion_norm_scale", "airframe_geometry_quaternion_scaled_norm",
+    "airframe_geometry_quaternion_basis"]
+COM_QUATERNION_FIELDS = [field.replace('airframe_geometry_', 'airframe_com_')
+    for field in QUATERNION_FIELDS] + ['airframe_com_declared_rotation_format',
+                                     'airframe_com_pose_xml_hex']
+
+
+def quaternion_pose(pose):
+    """Explicit mathematical normalization, not emulation of a vendor runtime."""
+    if set(pose.attrib) - set(VERSIONS["1.11"]["pose_attributes"]):
+        raise ValueError("unqualified quaternion pose attribute")
+    if pose.get("degrees") not in (None, "false"):
+        raise ValueError("quaternion components are not Euler degrees")
+    tokens = (pose.text or "").split()
+    if len(tokens) != 7 or not all(NUMBER.fullmatch(token) for token in tokens):
+        raise ValueError("explicit quaternion pose requires seven finite numbers")
+    values = [finite_value(token, "quaternion pose component") for token in tokens]
+    q = values[3:]
+    scale = max(map(abs, q))
+    if scale == 0:
+        raise ValueError("zero quaternion cannot declare an orientation")
+    scaled = [value / scale for value in q]
+    norm = math.hypot(*scaled)
+    normalized = [value / norm for value in scaled]
+    if any(original != 0 and value == 0 for original, value in zip(q, normalized)):
+        raise ValueError("quaternion component underflows during normalization")
+    return tokens[:3], dict(
+        **{f"airframe_geometry_q{axis}": value for axis, value in zip("xyzw", normalized)},
+        **{f"airframe_geometry_reported_q{axis}": value for axis, value in zip("xyzw", q)},
+        airframe_geometry_quaternion_norm_scale=scale,
+        airframe_geometry_quaternion_scaled_norm=norm,
+        airframe_geometry_quaternion_basis="EXPLICIT_MUSUBI_XYZW_NORMALIZE_Q_OVER_MAXABS_THEN_HYPOT_NOT_VENDOR_RUNTIME_OR_WORLD_TRANSFORM")
+
+
+def geometry_rows(model, version, position_unit, declaration, geometry_quaternion=False):
+    """Pinned 1.11 selected declarations only; no mesh loading or transforms."""
+    rows, unsupported = [], 0
+    for link in model.findall("link"):
+        names = set()
+        for ordinal, element in enumerate(list(link)):
+            if element.tag not in ("visual", "collision"):
+                continue
+            name = declared_name(element, element.tag)
+            key = (element.tag, name)
+            if key in names:
+                raise ValueError("duplicate geometry name within link and role")
+            names.add(key)
+            geometry = only_child(element, "geometry", element.tag)
+            if geometry is None or len(geometry) != 1:
+                raise ValueError("exactly one declared geometry shape required")
+            shape = geometry[0]
+            if shape.tag not in ("box", "sphere", "cylinder"):
+                unsupported += 1
+                continue
+            row = dict(airframe_record_kind="GEOMETRY", airframe_element_index=ordinal,
+                       airframe_declared_sdf_version=version,
+                       airframe_model_name_hex=text_hex(declared_name(model, "model")),
+                       airframe_link_name_hex=text_hex(declared_name(link, "link")),
+                       airframe_geometry_role=element.tag,
+                       airframe_geometry_name_hex=text_hex(name),
+                       airframe_geometry_shape=shape.tag,
+                       airframe_geometry_source_hex=text_hex(ET.tostring(element, encoding="unicode")),
+                       airframe_unit_declaration=declaration)
+            # Source XML is serialized context, while source_xml_hex is the exact original.
+            tags = ("size",) if shape.tag == "box" else (
+                ("radius", "length") if shape.tag == "cylinder" else ("radius",))
+            for tag in tags:
+                child = only_child(shape, tag, shape.tag)
+                tokens = [] if child is None else (child.text or "").split()
+                if len(tokens) != (3 if tag == "size" else 1) or not all(
+                        NUMBER.fullmatch(token) for token in tokens):
+                    raise ValueError("explicit complete geometry dimensions required")
+                for index, token in enumerate(tokens):
+                    value = finite_value(token, "geometry dimension")
+                    if value <= 0:
+                        raise ValueError("positive geometry dimension required")
+                    converted = canonical_position(dict(x=token, y=token, z=token), position_unit)[0]
+                    field = (f"airframe_box_{'xyz'[index]}_m" if tag == "size"
+                             else f"airframe_geometry_{tag}_m")
+                    row[field] = converted
+            pose = only_child(element, "pose", element.tag)
+            row["airframe_geometry_frame_disposition"] = "POSE_NOT_REPORTED"
+            if pose is not None:
+                quaternion = pose.get("rotation_format") == "quat_xyzw"
+                if quaternion and geometry_quaternion:
+                    (x, y, z), quantities = quaternion_pose(pose)
+                    row.update(quantities)
+                    rotation = "DIMENSIONLESS_NORMALIZED_QUATERNION_XYZW"
+                else:
+                    x, y, z, rotation, _ = pose_values(pose, version)
+                row.update(zip((f"airframe_geometry_pose_{axis}_m" for axis in "xyz"),
+                               canonical_position(dict(x=x, y=y, z=z), position_unit)))
+                row["airframe_geometry_pose_hex"] = text_hex(ET.tostring(pose, encoding="unicode"))
+                row["airframe_geometry_rotation_unit"] = rotation
+                reference = pose.get("relative_to")
+                row["airframe_geometry_frame_hex"] = text_hex(reference) if reference else None
+                row["airframe_geometry_frame_disposition"] = (
+                    "REPORTED_UNRESOLVED" if reference else "UNSPECIFIED_NOT_WORLD_QUALIFIED")
+                for axis, token in zip(("roll", "pitch", "yaw"), [] if quaternion else (pose.text or "").split()[3:]):
+                    original = finite_value(token, "geometry rotation")
+                    value = math.radians(original) if pose.get("degrees") == "true" else original
+                    if not math.isfinite(value) or (original != 0 and value == 0):
+                        raise ValueError("geometry rotation does not survive unit conversion")
+                    row[f"airframe_geometry_{axis}_rad"] = value
+            rows.append(row)
+            if len(rows) > MAX_ROWS:
+                raise ValueError("declared geometry rows exceed bound")
+    return rows, unsupported
+
+
+def convert(data, capture_time_us, *, mass_unit=None, position_unit=None, unit_basis=None,
+            primitive_geometry=False, geometry_quaternion=False, com_quaternion=False):
     if not isinstance(data, bytes) or not data or len(data) > LIMIT:
         raise ValueError("bounded saved description required")
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
@@ -234,6 +356,15 @@ def convert(data, capture_time_us, *, mass_unit=None, position_unit=None, unit_b
         # alone never qualifies compatibility.
         raise ValueError("the declared SDF version is not one this selector has read definitions for")
     declaration = declared_units(mass_unit, position_unit, unit_basis, version)
+    if type(com_quaternion) is not bool or (com_quaternion and
+            (version != '1.11' or position_unit is None)):
+        raise ValueError('local CoM quaternion requires SDF1.11 and declared length unit')
+    if type(primitive_geometry) is not bool:
+        raise ValueError("primitive geometry flag must be boolean")
+    if primitive_geometry and (version != "1.11" or position_unit is None):
+        raise ValueError("primitive geometry requires SDF1.11 and an explicit position unit")
+    if type(geometry_quaternion) is not bool or (geometry_quaternion and not primitive_geometry):
+        raise ValueError("quaternion geometry requires explicit primitive geometry selection")
     models = root.findall("model")
     if len(models) != 1:
         raise ValueError("exactly one declared model is read at a time")
@@ -256,10 +387,22 @@ def convert(data, capture_time_us, *, mass_unit=None, position_unit=None, unit_b
                 if not NUMBER.fullmatch(mass_text):
                     raise ValueError("a declared mass must be a complete number")
                 mass_value = finite_value(mass_text, "mass")
-            x, y, z, rotation, frame = pose_values(
-                None if inertial is None else only_child(inertial, "pose", "inertial"), version)
+            pose = None if inertial is None else only_child(inertial, "pose", "inertial")
+            com_values = {}
+            if com_quaternion and pose is not None:
+                if pose.get('relative_to'):
+                    raise ValueError('relative CoM frame is not qualified as containing-link local')
+                com_values.update(airframe_com_declared_rotation_format=pose.get('rotation_format') or EULER,
+                                  airframe_com_pose_xml_hex=text_hex(ET.tostring(pose, encoding='unicode')))
+            if com_quaternion and pose is not None and pose.get('rotation_format') == 'quat_xyzw':
+                (x, y, z), quantities = quaternion_pose(pose)
+                com_values.update({key.replace('airframe_geometry_', 'airframe_com_'): value
+                                   for key, value in quantities.items()})
+                rotation, frame = 'DIMENSIONLESS_XYZW_EXPLICIT_NORMALIZATION', None
+            else:
+                x, y, z, rotation, frame = pose_values(pose, version)
             links[name] = dict(index=index, mass=mass_text, mass_value=mass_value,
-                               x=x, y=y, z=z, rotation=rotation, frame=frame)
+                               x=x, y=y, z=z, rotation=rotation, frame=frame, com_values=com_values)
         elif element.tag == "joint":
             name = declared_name(element, "joint")
             if name in joints:
@@ -351,7 +494,8 @@ def convert(data, capture_time_us, *, mass_unit=None, position_unit=None, unit_b
                          airframe_com_pose_frame_hex=(text_hex(link["frame"]) if link["frame"]
                                                       else None),
                          airframe_com_frame_basis=(VERSIONS[version]["com_frame"]
-                                                   if link["x"] is not None else None)))
+                                                   if link["x"] is not None else None),
+                         **link['com_values']))
     for name, joint in sorted(joints.items(), key=lambda item: item[1]["index"]):
         rows.append(dict(airframe_record_kind="JOINT", airframe_element_index=joint["index"],
                          airframe_declared_sdf_version=version,
@@ -364,11 +508,19 @@ def convert(data, capture_time_us, *, mass_unit=None, position_unit=None, unit_b
                          airframe_parent_resolution=joint["parent_resolution"],
                          airframe_child_resolution=joint["child_resolution"],
                          airframe_joint_frame_basis=JOINT_FRAME))
+    unsupported_geometry = 0
+    if primitive_geometry:
+        selected_geometry, unsupported_geometry = geometry_rows(model, version, position_unit,
+                                                                 declaration, geometry_quaternion)
+        rows.extend(selected_geometry)
     if len(rows) > MAX_ROWS:
         raise ValueError("declared rows exceed bound")
     digest = "sha256:" + hashlib.sha256(data).hexdigest()
     output = io.StringIO(newline="")
-    writer = csv.DictWriter(output, ["record_time_us", "source_document_sha256", *FIELDS],
+    writer = csv.DictWriter(output, ["record_time_us", "source_document_sha256", *FIELDS,
+                                    *(GEOMETRY_FIELDS if primitive_geometry else []),
+                                    *(QUATERNION_FIELDS if geometry_quaternion else []),
+                                    *(COM_QUATERNION_FIELDS if com_quaternion else [])],
                             lineterminator="\n")
     writer.writeheader()
     for row in rows:
@@ -401,6 +553,22 @@ def convert(data, capture_time_us, *, mass_unit=None, position_unit=None, unit_b
                                 "version name alone never qualifies compatibility",
                   scope="declared description only; no simulator, plugin, controller, flight, "
                         "actuation or measurement; includes are counted and never followed")
+    if primitive_geometry:
+        report.update(selected_primitive_geometries=len(selected_geometry),
+                      unselected_geometry_shapes=unsupported_geometry,
+                      primitive_geometry_scope="SDF1.11 visual/collision box/sphere/cylinder; "
+                      "caller length unit; declared local pose, no frame transform; "
+                      "other shapes retained in original source, no physical shape claim")
+    if geometry_quaternion:
+        report["quaternion_geometry_basis"] = (
+            "SDF1.11 xyzw declaration; explicit Musubi normalized local rotation; "
+            "q/maxabs(q)/hypot(q/maxabs(q)); original norm=maxabs*scaled_norm; "
+            "original components retained; no vendor-runtime or world-frame equivalence")
+    if com_quaternion:
+        report['quaternion_com_basis'] = (
+            'SDF1.11 inertial pose local to containing link; explicit xyzw normalization '
+            'reuses geometry helper; original components/norm factors/XML retained; '
+            'relative_to unresolved frames refused; no world transform or inertia tensor')
     return output.getvalue(), report
 
 
@@ -416,12 +584,21 @@ def main():
                         help="the unit the declared centre-of-mass positions are in")
     parser.add_argument("--unit-basis", choices=UNIT_BASES,
                         help="where the unit declaration came from; required whenever one is given")
+    parser.add_argument("--primitive-geometry", action="store_true",
+                        help="SDF1.11 visual/collision box/sphere/cylinder; explicit position unit")
+    parser.add_argument("--geometry-quaternion", action="store_true",
+                        help="explicitly normalize selected SDF1.11 geometry xyzw poses")
+    parser.add_argument('--com-quaternion', action='store_true',
+                        help='explicit SDF1.11 inertial local CoM xyzw; declared length unit')
     args = parser.parse_args()
     try:
         with args.input.open("rb") as stream:
             data = stream.read(LIMIT + 1)  # one bounded read; no size/read race
         output, report = convert(data, args.capture_time_us, mass_unit=args.mass_unit,
-                                 position_unit=args.position_unit, unit_basis=args.unit_basis)
+                                 position_unit=args.position_unit, unit_basis=args.unit_basis,
+                                 primitive_geometry=args.primitive_geometry,
+                                 geometry_quaternion=args.geometry_quaternion,
+                                 com_quaternion=args.com_quaternion)
         args.output_directory.mkdir()  # Refuse an existing output/evidence directory.
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2),

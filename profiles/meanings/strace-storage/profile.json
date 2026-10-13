@@ -1,0 +1,45 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "reported_Unix_wallclock_us_not_verified",
+      "basis": "declared"
+    },
+    "operation_reported": {
+      "meaning": "operation_reported",
+      "unit": "saved_syscall_name_not_issued_by_Musubi",
+      "basis": "declared"
+    },
+    "target_escaped": {
+      "meaning": "target_escaped",
+      "unit": "strace_escaped_fd_path_on_same_record_not_canonical_identity",
+      "basis": "declared"
+    },
+    "errno_reported": {
+      "meaning": "errno_reported",
+      "unit": "reported_symbolic_errno_not_physical_diagnosis",
+      "basis": "declared"
+    },
+    "requested_bytes_reported": {
+      "meaning": "requested_bytes_reported",
+      "unit": "exact_integer_text_bytes_requested_not_written",
+      "basis": "declared"
+    },
+    "offset_bytes_reported": {
+      "meaning": "offset_bytes_reported",
+      "unit": "exact_signed_integer_text_byte_offset",
+      "basis": "declared"
+    },
+    "process_id_declared": {
+      "meaning": "process_id_declared",
+      "unit": "caller_declared_single_process_file_identity",
+      "basis": "declared"
+    }
+  }
+}

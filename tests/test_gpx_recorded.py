@@ -24,6 +24,97 @@ def document(body):
 
 
 class GpxRecordedTests(unittest.TestCase):
+    def check_selected_kml_track_angles_reuse_both_containers_and_common(self):
+        from scripts.convert_gpx_recorded import convert_kml, convert_kmz
+        self.assertIn("MUSUBI_TELEMETRY_READER", os.environ)
+        for values in (("45 10 -2", ""), ("-20 0 3", "180 -45 2")):
+            body = ''.join('<when>2026-01-01T00:00:00Z</when>' for _ in values)
+            body += '<gx:coord>1 2 3</gx:coord><gx:coord/>'
+            body += ''.join(f'<gx:angles>{v}</gx:angles>' for v in values)
+            raw = ('<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">'
+                   '<Placemark><gx:Track>' + body + '</gx:Track></Placemark></kml>').encode()
+            packed = io.BytesIO()
+            with zipfile.ZipFile(packed, "w") as archive: archive.writestr("doc.kml", raw)
+            outputs = []
+            for converter, source in ((convert_kml, raw), (convert_kmz, packed.getvalue())):
+                old, old_report = converter(source, 77)
+                output, report = converter(source, 77, track_angles=True)
+                rows = list(csv.DictReader(io.StringIO(output)))
+                self.assertEqual([{k:r[k] for k in old_row} for r,old_row in zip(rows, csv.DictReader(io.StringIO(old)))], list(csv.DictReader(io.StringIO(old))))
+                self.assertEqual(report['points'], old_report['points'])
+                self.assertEqual(report['track_angles_declared'], sum(bool(v) for v in values))
+                with tempfile.TemporaryDirectory() as directory:
+                    path = Path(directory)/"observations.csv"; path.write_text(output)
+                    common = json.loads(subprocess.run([os.environ['MUSUBI_TELEMETRY_READER'], str(ROOT/'profiles/declared/gpx-points/profile.toml'), str(path), '--allow-equal-time'], check=True, capture_output=True, text=True).stdout)
+                self.assertEqual(common['main_rows'], 2)
+                for observation, original in zip(common['observations'], values):
+                    fields=observation['fields']
+                    for index, quantity in enumerate(('heading', 'tilt', 'roll')):
+                        key=f'kml_track_{quantity}_deg'
+                        self.assertEqual(fields[key], float(original.split()[index]) if original else None)
+                        self.assertTrue(common['profile_units'][key].startswith('deg_KML_gx_Track_'))
+                    self.assertEqual(fields['kml_track_angles_status'], 'DECLARED' if original else 'MISSING_DECLARATION_NOT_INTERPOLATED')
+                    self.assertEqual(fields['kml_track_angles_text_hex'], 'hex:'+original.encode().hex())
+                outputs.append([r['kml_track_heading_deg'] for r in rows])
+            self.assertEqual(outputs[0], outputs[1])
+
+    def test_selected_kml_track_angle_shape_and_finite_refusals(self):
+        from scripts.convert_gpx_recorded import convert_kml
+        template = '<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2"><Placemark><gx:Track><when>2026-01-01T00:00:00Z</when><gx:coord>1 2 3</gx:coord>{}</gx:Track></Placemark></kml>'
+        for angles in ('1 2','1 2 3 4','NaN 0 0','1e999 0 0','1e-999 0 0','1,2,3'):
+            with self.subTest(angles=angles), self.assertRaises(ValueError):
+                convert_kml(template.format(f'<gx:angles>{angles}</gx:angles>').encode(), 7, track_angles=True)
+        with self.assertRaises(ValueError):
+            convert_kml(template.format('<gx:angles>1 2 3</gx:angles><gx:angles/>').encode(),7,track_angles=True)
+        out, report=convert_kml(template.format('').encode(),7,track_angles=True)
+        self.assertEqual(next(csv.DictReader(io.StringIO(out)))['kml_track_angles_status'], 'NOT_DECLARED_NOT_INFERRED')
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory); source=root/'input.kml'; source.write_text(template.format('<gx:angles>1 2 3</gx:angles>'))
+            command=[sys.executable, str(ROOT/'scripts/convert_gpx_recorded.py'),str(source),str(root/'out'),'--capture-time-us','7','--kml-track-angles']
+            self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0)
+            self.assertFalse((root/'out').exists())
+            subprocess.run(command+['--source-format','kml22'],check=True,capture_output=True)
+            self.assertEqual(next(csv.DictReader(io.StringIO((root/'out/observations.csv').read_text())))['kml_track_roll_deg'],'3.0')
+
+    def check_saved_recpath_points_reach_common_and_reuse(self):
+        from scripts.convert_gpx_recorded import convert_recpath
+        self.assertIn("MUSUBI_TELEMETRY_READER", os.environ)
+        for raw, values in ((b"$RecPath\n2\n1,2,0.5,3.6,True\n-3,4,1,7.2,False\n", [1, 2]),
+                            (b"\xef\xbb\xbf$RecPath\r\n1\r\n10,20,-0.25,1.0,False\r\n", [1/3.6])):
+            output, report = convert_recpath(raw, 17)
+            self.assertEqual(report["points"], len(values))
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory); source = root / "input"; source.write_bytes(raw)
+                out = root / "result"
+                subprocess.run([sys.executable, str(ROOT / "scripts/convert_gpx_recorded.py"),
+                    str(source), str(out), "--capture-time-us", "17", "--source-format", "agopen-recpath-21be26aa"], check=True, capture_output=True)
+                self.assertEqual((out / "source.recpath.txt").read_bytes(), raw)
+                self.assertEqual((out / "observations.csv").read_text(), output)
+                common = json.loads(subprocess.run([os.environ["MUSUBI_TELEMETRY_READER"],
+                    str(ROOT / "profiles/declared/gpx-points/recpath-profile.toml"),
+                    str(out / "observations.csv"), "--allow-equal-time"], check=True, capture_output=True).stdout)
+            self.assertEqual(common["main_rows"], len(values))
+            for point, value in zip(common["observations"], values):
+                self.assertAlmostEqual(point["fields"]["reported_path_speed_m_s"], value)
+                self.assertEqual(point["clock_basis"], "Unknown")
+                self.assertIsNone(point["anchor_unix_us"])
+                self.assertEqual(point["fields"]["coordinate_basis"], "LOCAL_FIELD_ORIGIN_UNRESOLVED_NOT_WGS84")
+                self.assertEqual(point["fields"]["source_sha256"], "sha256:"+hashlib.sha256(raw).hexdigest())
+            self.assertEqual(common["observations"][0]["fields"]["easting_m"], 1 if len(values)==2 else 10)
+
+    def test_recpath_counts_capacity_and_important_refusals(self):
+        from scripts.convert_gpx_recorded import convert_recpath
+        raw = b"$RecPath\n10001\n" + b"1,2,0.5,3.6,False\n" * 10001
+        output, report = convert_recpath(raw, 0)
+        self.assertEqual(report["points"], 10001)
+        self.assertEqual(len(list(csv.DictReader(io.StringIO(output)))), 10001)
+        self.assertEqual(convert_recpath(b"$RecPath\n0\n", 0)[1]["points"], 0)
+        for raw in (b"$TrackLines\n0", b"$RecPath\n2\n1,2,0,3,True", b"$RecPath\n0\nextra",
+                    b"$RecPath\n-1", b"$RecPath\n1\n1,2,0,0,True", b"$RecPath\n1\n1,2,0,3,true",
+                    b"$RecPath\n1\n1,2,NaN,3,True", b"$RecPath\n1\n1,2,0,3,True,extra"):
+            with self.subTest(raw=raw), self.assertRaises(ValueError): convert_recpath(raw, 0)
+        with self.assertRaises(ValueError): convert_recpath(b"$RecPath\n0", True)
+
     def test_bare_kml_document_reuses_the_same_semantics_as_the_zip_container(self):
         from scripts.convert_gpx_recorded import convert_kml, convert_kmz
         point = "139.25,35.5,12.5"
@@ -386,6 +477,79 @@ class GpxRecordedTests(unittest.TestCase):
             bad = dict(parts); dbf = bytearray(bad["sample.dbf"]); dbf[4:8] = (3).to_bytes(4, "little")
             bad["sample.dbf"] = bytes(dbf)
             with self.assertRaises(ValueError): deere_points_to_gpx(packed(bad))
+
+    @unittest.skipUnless(importlib.util.find_spec("shapefile"), "optional pinned shapefile decoder")
+    def test_deere_section_ids_reach_common_without_grouping_or_guessing(self):
+        import shapefile
+
+        def fixture(ids, field=("N", 9, 0), declared=True, raw_cell=None):
+            buffers = {key: io.BytesIO() for key in ("shp", "shx", "dbf")}
+            with shapefile.Writer(**buffers, shapeType=1) as writer:
+                writer.field("IsoTime", "C", 24)
+                if field: writer.field("SECTIONID", *field)
+                writer.field("Other", "N", 10, 2)
+                for index, value in enumerate(ids):
+                    writer.point(139 + index / 10, 35.5)
+                    writer.record("2026-01-01T00:00:00.123Z", *([value] if field else []), index + .5)
+            parts = {"sample." + key: value.getvalue() for key, value in buffers.items()}
+            if raw_cell is not None:
+                block = bytearray(parts["sample.dbf"])
+                offset = int.from_bytes(block[8:10], "little") + 1 + 24
+                block[offset:offset + 9] = raw_cell
+                parts["sample.dbf"] = bytes(block)
+            parts["sample.prj"] = DEERE_WGS84.encode()
+            names = ["IsoTime", "Other"] + (["SECTIONID"] if declared else [])
+            parts["sample-Deere-Metadata.json"] = json.dumps({"Version": "1.0",
+                "DataAttributes": [{"Name": name} for name in names]}).encode()
+            packed = io.BytesIO()
+            with zipfile.ZipFile(packed, "w") as archive:
+                for name, value in parts.items(): archive.writestr(name, value)
+            return packed.getvalue()
+
+        for ids, field, declared in (([424, 425, 424, None, 0], ("N", 9, 0), True),
+                                    ([None, None], None, False)):
+            raw = fixture(ids, field, declared)
+            derived, projection = deere_points_to_gpx(raw)
+            output, report = convert(derived, 777, deere_projection=True)
+            rows = list(csv.DictReader(io.StringIO(output)))
+            self.assertEqual([r["deere_section_id"] for r in rows],
+                             ["" if i is None else str(i) for i in ids])
+            self.assertEqual([int(r["point_index"]) for r in rows], list(range(len(ids))))
+            self.assertEqual(projection["unconverted_fields"], ["Other"])
+            self.assertEqual(report["deere_section_ids_present"], sum(i is not None for i in ids))
+            self.assertEqual(report["deere_section_ids_missing"], sum(i is None for i in ids))
+            self.assertEqual(rows[-2 if field else 0]["deere_section_id_basis"],
+                             "MISSING_SOURCE_VALUE" if field else "NOT_DECLARED")
+            common = self.common(output, len(ids))
+            if common:
+                fields = [o["fields"] for o in common["observations"]]
+                self.assertEqual([f["deere_section_id"] for f in fields], ids)
+                self.assertEqual([f["point_index"] for f in fields], list(range(len(ids))))
+                self.assertEqual([f["longitude_deg"] for f in fields], [139 + i / 10 for i in range(len(ids))])
+                self.assertTrue(all(f["latitude_deg"] == 35.5 for f in fields))
+                self.assertTrue(all(f["point_time_unix_us"] == 1767225600123000 for f in fields))
+                self.assertTrue(all(f["source_sha256"] == report["source_sha256"] for f in fields))
+            # Ordinary GPX does not acquire producer semantics even from the exact extension.
+            generic, _ = convert(derived, 777)
+            self.assertNotIn("deere_section_id", next(csv.DictReader(io.StringIO(generic))))
+            with tempfile.TemporaryDirectory() as directory:
+                source = Path(directory) / "input.zip"; source.write_bytes(raw)
+                out = Path(directory) / "out"
+                subprocess.run([sys.executable, str(ROOT / "scripts/convert_gpx_recorded.py"),
+                    str(source), str(out), "--source-format", "deere-point-v1", "--capture-time-us", "777"],
+                    check=True, capture_output=True)
+                self.assertEqual((out / "observations.csv").read_text(), output)
+                self.assertEqual((out / "source.zip").read_bytes(), raw)
+        for field, declared, cell in ((None, True, None), (("N", 9, 0), False, None),
+            (("N", 9, 1), True, None), (("C", 9, 0), True, None), (("N", 8, 0), True, None),
+            (("N", 9, 0), True, b"      1.5"), (("N", 9, 0), True, b"      1e2"),
+            (("N", 9, 0), True, b"      nan"), (("N", 9, 0), True, b"      1*2")):
+            with self.subTest(field=field, declared=declared, cell=cell), self.assertRaises(ValueError):
+                deere_points_to_gpx(fixture([1], field, declared, cell))
+        # Blank DBF numeric cells, like pyshp's null stars, remain missing rather than zero.
+        derived, _ = deere_points_to_gpx(fixture([1], raw_cell=b"         "))
+        rows = list(csv.DictReader(io.StringIO(convert(derived, 777, deere_projection=True)[0])))
+        self.assertEqual(rows[0]["deere_section_id"], "")
 
     def common(self, output, expected, profile="profile.toml"):
         if not os.environ.get("MUSUBI_TELEMETRY_READER"):

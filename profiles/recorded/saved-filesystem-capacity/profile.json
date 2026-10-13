@@ -1,0 +1,32 @@
+{
+  "profile_id": "saved_linux_filesystem_capacity_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "capture_time_us"
+  },
+  "units": {
+    "capture_time_us": "caller_declared_capture_microseconds_unknown_clock",
+    "total_bytes": "bytes",
+    "used_bytes": "bytes",
+    "user_available_bytes": "bytes_signed_available_to_unprivileged_user",
+    "root_free_bytes": "bytes_total_minus_used",
+    "reserved_difference_bytes": "bytes_root_free_minus_user_available_not_failure",
+    "reported_percent": "percent_used_divided_by_used_plus_user_available_rounded_one_decimal",
+    "total_bytes_exact": "integer_prefixed_exact_bytes",
+    "used_bytes_exact": "integer_prefixed_exact_bytes",
+    "user_available_bytes_exact": "integer_prefixed_exact_signed_bytes",
+    "root_free_bytes_exact": "integer_prefixed_exact_bytes",
+    "reserved_difference_bytes_exact": "integer_prefixed_exact_difference_bytes",
+    "percent_denominator_bytes_exact": "integer_prefixed_used_plus_user_available_bytes"
+  }
+}

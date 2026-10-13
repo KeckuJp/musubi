@@ -1,0 +1,16 @@
+profile_id = "tensorrt_fixed_consumer_layerinfo"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "time_us"
+[units]
+layer_index = "zero_based_saved_layer_order_not_execution_order"
+child_index = "zero_based_declared_collection_order"
+rank = "declared_dimension_count"
+count = "declared_constant_element_count"
+declared_storage_bytes = "byte_declared_constant_storage_not_runtime_allocation"

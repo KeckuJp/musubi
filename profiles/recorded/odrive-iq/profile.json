@@ -1,0 +1,31 @@
+{
+  "profile_id": "odrive_reported_iq_pair_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "capture_microseconds_unknown_basis_not_producer_time",
+    "source_frame_index": "zero_based_input_frame_index_including_unselected_frames_no_time_join_or_deduplication",
+    "node_id": "CANSimple_declared_node_not_authenticated_device_identity",
+    "frame_id": "standard_CAN_identifier_decimal",
+    "iq_setpoint_a": "A_reported_Iq_setpoint_zero_may_replace_absent_internal_setpoint",
+    "iq_measured_a": "A_reported_Iq_measured_not_independent_physical_verification",
+    "setpoint_disposition": "ZERO_REPORTED_OR_MISSING_SUBSTITUTED_or_NONZERO_REPORTED_SETPOINT_not_missingness_resolution",
+    "source_data_hex": "hex_original_eight_CAN_payload_bytes",
+    "source_row_hex": "hex_UTF8_JSON_original_saved_CSV_cells",
+    "source_input_sha256": "SHA256_original_capture_bytes_not_authentication",
+    "source_dbc_sha256": "SHA256_fixed_dictionary_bytes_not_producer_authentication",
+    "producer_basis": "explicit_caller_selected_source_not_detected_firmware_or_hardware"
+  }
+}

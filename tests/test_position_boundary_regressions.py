@@ -39,7 +39,8 @@ class PositionBoundaries(unittest.TestCase):
         public_root = os.environ.get("MUSUBI_PUBLIC_REPLAY_ROOT")
         if not public_root:
             self.skipTest("public SPI replay requires MUSUBI_PUBLIC_REPLAY_ROOT")
-        binary = Path(public_root) / "target" / "debug" / "examples" / "ingest_recorded_jsonl"
+        target = Path(os.environ.get("CARGO_TARGET_DIR", str(Path(public_root) / "target")))
+        binary = target / "debug" / "examples" / "ingest_recorded_jsonl"
         self.assertTrue(binary.is_file(), "build existing public replay example first")
         mapping = {
             "message_type": message_type,

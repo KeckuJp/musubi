@@ -25,16 +25,16 @@ time = "timestamp"
 
 fn preserve() -> ParseOptions {
     ParseOptions {
-        allow_empty_rows: false,
         allow_equal_time: true,
         preserve_nonfinite_as_text: true,
+        ..Default::default()
     }
 }
 
 #[test]
 fn battery_only_profile_does_not_assign_an_air_vehicle_family() {
     let profile = parse_profile(
-        include_str!("fixtures/unknown-adapter--px4-battery--profile.toml"),
+        include_str!("../../../profiles/declared/px4-battery/profile.toml"),
         "synthetic",
     )
     .unwrap();

@@ -1,0 +1,195 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_capture_us_unknown_clock_not_UTC_or_simultaneous_measurement",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "zero_based_saved_record_index_not_device_sequence",
+      "basis": "declared"
+    },
+    "source_id_hex": {
+      "meaning": "source_id_hex",
+      "unit": "UTF8_hex_caller_device_association_not_authentication",
+      "basis": "declared"
+    },
+    "association_basis_hex": {
+      "meaning": "association_basis_hex",
+      "unit": "UTF8_hex_caller_explanation_of_one_saved_PSU_source_association",
+      "basis": "declared"
+    },
+    "source_pin": {
+      "meaning": "source_pin",
+      "unit": "declared_Linux_v6_12_commit_not_detected_running_kernel",
+      "basis": "declared"
+    },
+    "driver": {
+      "meaning": "driver",
+      "unit": "declared_corsair_psu_driver_not_detected_device",
+      "basis": "declared"
+    },
+    "identity_basis": {
+      "meaning": "identity_basis",
+      "unit": "caller_association_not_authenticated",
+      "basis": "declared"
+    },
+    "alarm_status": {
+      "meaning": "alarm_status",
+      "unit": "selected_driver_exposes_no_alarm_no_inference_from_absence_or_unknown_attributes",
+      "basis": "declared"
+    },
+    "attribute_count": {
+      "meaning": "attribute_count",
+      "unit": "all_saved_native_attributes_including_uninterpreted",
+      "basis": "declared"
+    },
+    "unknown_attribute_count": {
+      "meaning": "unknown_attribute_count",
+      "unit": "native_attributes_retained_but_not_interpreted",
+      "basis": "declared"
+    },
+    "unknown_attribute_names_hex": {
+      "meaning": "unknown_attribute_names_hex",
+      "unit": "UTF8_hex_JSON_list_of_uninterpreted_native_names",
+      "basis": "declared"
+    },
+    "source_record_sha256": {
+      "meaning": "source_record_sha256",
+      "unit": "sha256_exact_UTF8_record_excluding_line_terminator_not_authentication",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact_UTF8_record_hex_all_native_attributes_retained",
+      "basis": "declared"
+    },
+    "in0_input_voltage_v": {
+      "meaning": "in0_input_voltage_v",
+      "unit": "V_reported_AC_input_voltage_not_presence_or_mains_quality",
+      "basis": "declared"
+    },
+    "in1_input_voltage_v": {
+      "meaning": "in1_input_voltage_v",
+      "unit": "V_reported_plus12V_rail_not_nominal_substitution",
+      "basis": "declared"
+    },
+    "in2_input_voltage_v": {
+      "meaning": "in2_input_voltage_v",
+      "unit": "V_reported_plus5V_rail",
+      "basis": "declared"
+    },
+    "in3_input_voltage_v": {
+      "meaning": "in3_input_voltage_v",
+      "unit": "V_reported_plus3_3V_rail",
+      "basis": "declared"
+    },
+    "curr1_input_current_a": {
+      "meaning": "curr1_input_current_a",
+      "unit": "A_reported_input_current_per_driver_PSU_CMD_IN_AMPS_not_output_rail_sum",
+      "basis": "declared"
+    },
+    "curr2_input_current_a": {
+      "meaning": "curr2_input_current_a",
+      "unit": "A_reported_plus12V_rail",
+      "basis": "declared"
+    },
+    "curr3_input_current_a": {
+      "meaning": "curr3_input_current_a",
+      "unit": "A_reported_plus5V_rail",
+      "basis": "declared"
+    },
+    "curr4_input_current_a": {
+      "meaning": "curr4_input_current_a",
+      "unit": "A_reported_plus3_3V_rail",
+      "basis": "declared"
+    },
+    "power1_input_power_w": {
+      "meaning": "power1_input_power_w",
+      "unit": "W_reported_total_usage_no_AC_or_DC_side_inferred",
+      "basis": "declared"
+    },
+    "power2_input_power_w": {
+      "meaning": "power2_input_power_w",
+      "unit": "W_reported_plus12V_rail_not_computed_V_times_A",
+      "basis": "declared"
+    },
+    "power3_input_power_w": {
+      "meaning": "power3_input_power_w",
+      "unit": "W_reported_plus5V_rail",
+      "basis": "declared"
+    },
+    "power4_input_power_w": {
+      "meaning": "power4_input_power_w",
+      "unit": "W_reported_plus3_3V_rail",
+      "basis": "declared"
+    },
+    "in0_input_availability": {
+      "meaning": "in0_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE_not_physical_availability",
+      "basis": "declared"
+    },
+    "in1_input_availability": {
+      "meaning": "in1_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE",
+      "basis": "declared"
+    },
+    "in2_input_availability": {
+      "meaning": "in2_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE",
+      "basis": "declared"
+    },
+    "in3_input_availability": {
+      "meaning": "in3_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE",
+      "basis": "declared"
+    },
+    "curr1_input_availability": {
+      "meaning": "curr1_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE_optional_driver_support",
+      "basis": "declared"
+    },
+    "curr2_input_availability": {
+      "meaning": "curr2_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE",
+      "basis": "declared"
+    },
+    "curr3_input_availability": {
+      "meaning": "curr3_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE",
+      "basis": "declared"
+    },
+    "curr4_input_availability": {
+      "meaning": "curr4_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE",
+      "basis": "declared"
+    },
+    "power1_input_availability": {
+      "meaning": "power1_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE",
+      "basis": "declared"
+    },
+    "power2_input_availability": {
+      "meaning": "power2_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE",
+      "basis": "declared"
+    },
+    "power3_input_availability": {
+      "meaning": "power3_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE",
+      "basis": "declared"
+    },
+    "power4_input_availability": {
+      "meaning": "power4_input_availability",
+      "unit": "REPORTED_or_NOT_CAPTURED_or_CAPTURE_UNAVAILABLE",
+      "basis": "declared"
+    }
+  }
+}

@@ -6,6 +6,221 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "airframe_com_qx": {
+      "meaning": "airframe_com_qx",
+      "unit": "dimensionless_normalized_local_CoM_rotation_quaternion_x_not_world_pose",
+      "basis": "declared"
+    },
+    "airframe_com_qy": {
+      "meaning": "airframe_com_qy",
+      "unit": "dimensionless_normalized_local_CoM_rotation_quaternion_y_not_world_pose",
+      "basis": "declared"
+    },
+    "airframe_com_qz": {
+      "meaning": "airframe_com_qz",
+      "unit": "dimensionless_normalized_local_CoM_rotation_quaternion_z_not_world_pose",
+      "basis": "declared"
+    },
+    "airframe_com_qw": {
+      "meaning": "airframe_com_qw",
+      "unit": "dimensionless_normalized_local_CoM_rotation_quaternion_w_real_component",
+      "basis": "declared"
+    },
+    "airframe_com_reported_qx": {
+      "meaning": "airframe_com_reported_qx",
+      "unit": "dimensionless_original_declared_CoM_quaternion_x",
+      "basis": "declared"
+    },
+    "airframe_com_reported_qy": {
+      "meaning": "airframe_com_reported_qy",
+      "unit": "dimensionless_original_declared_CoM_quaternion_y",
+      "basis": "declared"
+    },
+    "airframe_com_reported_qz": {
+      "meaning": "airframe_com_reported_qz",
+      "unit": "dimensionless_original_declared_CoM_quaternion_z",
+      "basis": "declared"
+    },
+    "airframe_com_reported_qw": {
+      "meaning": "airframe_com_reported_qw",
+      "unit": "dimensionless_original_declared_CoM_quaternion_w",
+      "basis": "declared"
+    },
+    "airframe_com_quaternion_norm_scale": {
+      "meaning": "airframe_com_quaternion_norm_scale",
+      "unit": "maxabs_original_quaternion_norm_is_scale_times_scaled_norm",
+      "basis": "declared"
+    },
+    "airframe_com_quaternion_scaled_norm": {
+      "meaning": "airframe_com_quaternion_scaled_norm",
+      "unit": "hypot_of_original_quaternion_divided_by_maxabs",
+      "basis": "declared"
+    },
+    "airframe_com_quaternion_basis": {
+      "meaning": "airframe_com_quaternion_basis",
+      "unit": "explicit_Musubi_normalization_not_vendor_runtime_equivalence",
+      "basis": "declared"
+    },
+    "airframe_com_declared_rotation_format": {
+      "meaning": "airframe_com_declared_rotation_format",
+      "unit": "reported_SDF_rotation_format_or_version_qualified_default",
+      "basis": "declared"
+    },
+    "airframe_com_pose_xml_hex": {
+      "meaning": "airframe_com_pose_xml_hex",
+      "unit": "hex_original_inertial_pose_element_no_world_transform",
+      "basis": "declared"
+    },
+    "airframe_geometry_qx": {
+      "meaning": "airframe_geometry_qx",
+      "unit": "dimensionless_normalized_local_rotation_quaternion_x_SDF_xyzw_not_world_pose",
+      "basis": "declared"
+    },
+    "airframe_geometry_qy": {
+      "meaning": "airframe_geometry_qy",
+      "unit": "dimensionless_normalized_local_rotation_quaternion_y_SDF_xyzw_not_world_pose",
+      "basis": "declared"
+    },
+    "airframe_geometry_qz": {
+      "meaning": "airframe_geometry_qz",
+      "unit": "dimensionless_normalized_local_rotation_quaternion_z_SDF_xyzw_not_world_pose",
+      "basis": "declared"
+    },
+    "airframe_geometry_qw": {
+      "meaning": "airframe_geometry_qw",
+      "unit": "dimensionless_normalized_local_rotation_quaternion_w_real_component_SDF_xyzw",
+      "basis": "declared"
+    },
+    "airframe_geometry_reported_qx": {
+      "meaning": "airframe_geometry_reported_qx",
+      "unit": "dimensionless_original_declared_quaternion_x_before_explicit_normalization",
+      "basis": "declared"
+    },
+    "airframe_geometry_reported_qy": {
+      "meaning": "airframe_geometry_reported_qy",
+      "unit": "dimensionless_original_declared_quaternion_y_before_explicit_normalization",
+      "basis": "declared"
+    },
+    "airframe_geometry_reported_qz": {
+      "meaning": "airframe_geometry_reported_qz",
+      "unit": "dimensionless_original_declared_quaternion_z_before_explicit_normalization",
+      "basis": "declared"
+    },
+    "airframe_geometry_reported_qw": {
+      "meaning": "airframe_geometry_reported_qw",
+      "unit": "dimensionless_original_declared_quaternion_w_before_explicit_normalization",
+      "basis": "declared"
+    },
+    "airframe_geometry_quaternion_norm_scale": {
+      "meaning": "airframe_geometry_quaternion_norm_scale",
+      "unit": "maxabs_original_quaternion_norm_equals_scale_times_scaled_norm_no_overflowing_product_emitted",
+      "basis": "declared"
+    },
+    "airframe_geometry_quaternion_scaled_norm": {
+      "meaning": "airframe_geometry_quaternion_scaled_norm",
+      "unit": "dimensionless_hypot_of_original_components_divided_by_maxabs",
+      "basis": "declared"
+    },
+    "airframe_geometry_quaternion_basis": {
+      "meaning": "airframe_geometry_quaternion_basis",
+      "unit": "explicit_Musubi_mathematical_normalization_not_vendor_runtime_or_frame_resolution",
+      "basis": "declared"
+    },
+    "airframe_geometry_role": {
+      "meaning": "airframe_geometry_role",
+      "unit": "declared_visual_or_collision_not_interchangeable_not_physical_measurement",
+      "basis": "declared"
+    },
+    "airframe_geometry_name_hex": {
+      "meaning": "airframe_geometry_name_hex",
+      "unit": "utf8_hex_name_unique_within_parent_link_and_role_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "airframe_geometry_shape": {
+      "meaning": "airframe_geometry_shape",
+      "unit": "selected_declared_box_sphere_or_cylinder_SDF1_11",
+      "basis": "declared"
+    },
+    "airframe_geometry_source_hex": {
+      "meaning": "airframe_geometry_source_hex",
+      "unit": "serialized_selected_XML_context_original_byte_exact_document_in_report",
+      "basis": "declared"
+    },
+    "airframe_geometry_frame_hex": {
+      "meaning": "airframe_geometry_frame_hex",
+      "unit": "utf8_hex_relative_to_name_unresolved_no_transform",
+      "basis": "declared"
+    },
+    "airframe_geometry_frame_disposition": {
+      "meaning": "airframe_geometry_frame_disposition",
+      "unit": "reported_unresolved_or_unspecified_or_pose_not_reported_never_world_qualified",
+      "basis": "declared"
+    },
+    "airframe_geometry_pose_hex": {
+      "meaning": "airframe_geometry_pose_hex",
+      "unit": "serialized_declared_pose_original_tokens_and_attributes_not_world_pose",
+      "basis": "declared"
+    },
+    "airframe_geometry_rotation_unit": {
+      "meaning": "airframe_geometry_rotation_unit",
+      "unit": "declared_degrees_or_SDF1_11_default_radians_applied_once_or_explicit_dimensionless_normalized_quaternion",
+      "basis": "declared"
+    },
+    "airframe_box_x_m": {
+      "meaning": "airframe_box_x_m",
+      "unit": "m_declared_box_first_side_length_caller_unit_not_world_extent",
+      "basis": "declared"
+    },
+    "airframe_box_y_m": {
+      "meaning": "airframe_box_y_m",
+      "unit": "m_declared_box_second_side_length_caller_unit_not_world_extent",
+      "basis": "declared"
+    },
+    "airframe_box_z_m": {
+      "meaning": "airframe_box_z_m",
+      "unit": "m_declared_box_third_side_length_caller_unit_not_world_extent",
+      "basis": "declared"
+    },
+    "airframe_geometry_radius_m": {
+      "meaning": "airframe_geometry_radius_m",
+      "unit": "m_declared_sphere_or_cylinder_radius_caller_unit_not_diameter",
+      "basis": "declared"
+    },
+    "airframe_geometry_length_m": {
+      "meaning": "airframe_geometry_length_m",
+      "unit": "m_declared_cylinder_length_along_its_local_z_axis_caller_unit",
+      "basis": "declared"
+    },
+    "airframe_geometry_pose_x_m": {
+      "meaning": "airframe_geometry_pose_x_m",
+      "unit": "m_declared_pose_first_component_caller_unit_frame_unresolved",
+      "basis": "declared"
+    },
+    "airframe_geometry_pose_y_m": {
+      "meaning": "airframe_geometry_pose_y_m",
+      "unit": "m_declared_pose_second_component_caller_unit_frame_unresolved",
+      "basis": "declared"
+    },
+    "airframe_geometry_pose_z_m": {
+      "meaning": "airframe_geometry_pose_z_m",
+      "unit": "m_declared_pose_third_component_caller_unit_frame_unresolved",
+      "basis": "declared"
+    },
+    "airframe_geometry_roll_rad": {
+      "meaning": "airframe_geometry_roll_rad",
+      "unit": "rad_declared_euler_roll_converted_once_no_composed_transform",
+      "basis": "declared"
+    },
+    "airframe_geometry_pitch_rad": {
+      "meaning": "airframe_geometry_pitch_rad",
+      "unit": "rad_declared_euler_pitch_converted_once_no_composed_transform",
+      "basis": "declared"
+    },
+    "airframe_geometry_yaw_rad": {
+      "meaning": "airframe_geometry_yaw_rad",
+      "unit": "rad_declared_euler_yaw_converted_once_no_composed_transform",
+      "basis": "declared"
+    },
     "record_time_us": {
       "meaning": "record_time_us",
       "unit": "caller_supplied_capture_microseconds_the_moment_the_description_file_was_taken_in_and_never_a_time_at_which_any_aircraft_existed_flew_or_was_measured",

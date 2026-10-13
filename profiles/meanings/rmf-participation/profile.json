@@ -1,0 +1,40 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_capture_microseconds_unknown_clock",
+      "basis": "declared"
+    },
+    "participation_flag_reported": {
+      "meaning": "participation_flag_reported",
+      "unit": "producer_reported_optional_boolean_0_false_1_true_blank_absent_not_permission",
+      "basis": "declared"
+    },
+    "mutex_count": {
+      "meaning": "mutex_count",
+      "unit": "reported_collection_entries_not_actual_lock_count",
+      "basis": "declared"
+    },
+    "mutex_index": {
+      "meaning": "mutex_index",
+      "unit": "zero_based_reported_list_order_duplicates_preserved",
+      "basis": "declared"
+    },
+    "mutex_name_hex": {
+      "meaning": "mutex_name_hex",
+      "unit": "utf8_hex_reported_mutex_group_label_not_authenticated_resource",
+      "basis": "declared"
+    },
+    "rmf_source_record_index": {
+      "meaning": "rmf_source_record_index",
+      "unit": "zero_based_original_snapshot_index",
+      "basis": "declared"
+    }
+  }
+}

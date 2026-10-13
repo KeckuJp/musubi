@@ -1,0 +1,115 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_capture_us_not_source_time_or_trusted_UTC",
+      "basis": "declared"
+    },
+    "check_kind": {
+      "meaning": "check_kind",
+      "unit": "PRODUCER_SOFTWARE_VERSION_never_adapter_profile_version",
+      "basis": "declared"
+    },
+    "software_role": {
+      "meaning": "software_role",
+      "unit": "SOURCE_SOFTWARE_reported_producer_role_only",
+      "basis": "declared"
+    },
+    "software_name_hex": {
+      "meaning": "software_name_hex",
+      "unit": "UTF8_hex_expected_subject_name_bound_to_original_observation_digest",
+      "basis": "declared"
+    },
+    "actual_declared_hex": {
+      "meaning": "actual_declared_hex",
+      "unit": "UTF8_hex_reported_version_exact_string_blank_if_insufficient",
+      "basis": "declared"
+    },
+    "expected_set_hex": {
+      "meaning": "expected_set_hex",
+      "unit": "UTF8_hex_JSON_array_of_caller_expected_exact_versions_not_semver_order_or_compatibility",
+      "basis": "declared"
+    },
+    "disposition": {
+      "meaning": "disposition",
+      "unit": "MATCH_MISMATCH_or_INSUFFICIENT_membership_only_not_fault_or_incompatibility",
+      "basis": "declared"
+    },
+    "insufficient_reason": {
+      "meaning": "insufficient_reason",
+      "unit": "NAME_NOT_REPORTED_VERSION_NOT_REPORTED_or_SUBJECT_NOT_REPORTED",
+      "basis": "declared"
+    },
+    "reported_version_basis": {
+      "meaning": "reported_version_basis",
+      "unit": "name_and_version_reported_together_on_original_saved_rows_not_filewide_guess",
+      "basis": "declared"
+    },
+    "comparison_basis": {
+      "meaning": "comparison_basis",
+      "unit": "reported_producer_version_vs_caller_set_neither_side_established_wrong",
+      "basis": "declared"
+    },
+    "citation_hex": {
+      "meaning": "citation_hex",
+      "unit": "UTF8_hex_caller_expectation_basis_not_verified_authority",
+      "basis": "declared"
+    },
+    "expectation_sha256": {
+      "meaning": "expectation_sha256",
+      "unit": "exact_expected_document_bytes_digest",
+      "basis": "declared"
+    },
+    "read_report_sha256": {
+      "meaning": "read_report_sha256",
+      "unit": "exact_saved_common_report_bytes_digest",
+      "basis": "declared"
+    },
+    "artefact_input_sha256": {
+      "meaning": "artefact_input_sha256",
+      "unit": "reported_digest_of_original_paired_identity_CSV_not_authenticity",
+      "basis": "declared"
+    },
+    "profile_source_sha256": {
+      "meaning": "profile_source_sha256",
+      "unit": "identity_profile_bytes_digest_not_producer_software_version",
+      "basis": "declared"
+    },
+    "bound_observations_sha256": {
+      "meaning": "bound_observations_sha256",
+      "unit": "exact_original_observation_file_digest_reported_by_paired_binding",
+      "basis": "declared"
+    },
+    "source_observation_index": {
+      "meaning": "source_observation_index",
+      "unit": "zero_based_common_report_index_blank_for_no_subject_summary",
+      "basis": "declared"
+    },
+    "identity_join_hex": {
+      "meaning": "identity_join_hex",
+      "unit": "original_reversible_column_value_filter_for_same_saved_name_version_tuple",
+      "basis": "declared"
+    },
+    "identity_source_hex": {
+      "meaning": "identity_source_hex",
+      "unit": "UTF8_hex_original_NAME_then_VERSION_column_names",
+      "basis": "declared"
+    },
+    "identity_rows_carrying_value": {
+      "meaning": "identity_rows_carrying_value",
+      "unit": "original_rows_in_this_reported_pair_not_failure_count",
+      "basis": "declared"
+    },
+    "identity_evidence": {
+      "meaning": "identity_evidence",
+      "unit": "READ_FROM_THE_OBSERVATION_ROWS_never_caller_only_version_or_profile_substitution",
+      "basis": "declared"
+    }
+  }
+}

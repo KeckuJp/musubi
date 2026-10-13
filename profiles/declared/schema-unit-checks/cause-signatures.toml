@@ -1,0 +1,29 @@
+version = "recorded-declared-comparison-v1"
+
+[[signature]]
+id = "declared_schema_actual_side_discrepancy"
+kind = "configuration_error"
+required = ["event:declared_schema_discrepancy"]
+discriminators = ["authoritative_intended_schema_and_revision", "same_target_input_profile_binding", "refutation_check_expectation_stale_or_other_target"]
+consistent_with = "consistent with saved columns differing from the intended contract, if this expectation is applicable; neither physical failure nor actual-side error established"
+
+[[signature]]
+id = "declared_schema_expectation_alternative"
+kind = "configuration_error"
+required = ["event:declared_schema_discrepancy"]
+discriminators = ["authoritative_intended_schema_and_revision", "same_target_input_profile_binding", "refutation_check_actual_export_matches_intended_scope"]
+consistent_with = "also consistent with a stale or wrong-target expectation, or intentionally different export scope; the saved columns need not be faulty"
+
+[[signature]]
+id = "declared_unit_actual_side_discrepancy"
+kind = "configuration_error"
+required = ["event:declared_unit_discrepancy"]
+discriminators = ["authoritative_intended_unit_declaration", "profile_and_export_provenance", "refutation_check_expected_unit_outdated_or_other_target"]
+consistent_with = "consistent with a saved profile unit declaration differing from intended integration, if the expectation applies; not a measured scaling or sensor fault"
+
+[[signature]]
+id = "declared_unit_expectation_alternative"
+kind = "configuration_error"
+required = ["event:declared_unit_discrepancy"]
+discriminators = ["authoritative_intended_unit_declaration", "profile_and_export_provenance", "refutation_check_actual_unit_is_intended_or_text_is_alias"]
+consistent_with = "also consistent with an outdated or different-scope expected unit, or unqualified textual naming differences; neither side is established wrong"

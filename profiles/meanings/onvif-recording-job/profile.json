@@ -1,0 +1,90 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_capture_us_unknown_clock_not_response_generation_time",
+      "basis": "declared"
+    },
+    "recording_row_kind": {
+      "meaning": "recording_row_kind",
+      "unit": "JOB_or_SOURCE_aggregate_summary_or_TRACK_report_not_successful_recording_count",
+      "basis": "declared"
+    },
+    "recording_source_index": {
+      "meaning": "recording_source_index",
+      "unit": "zero_based_source_ordinal_in_response_not_unique_device_identity",
+      "basis": "declared"
+    },
+    "recording_track_index": {
+      "meaning": "recording_track_index",
+      "unit": "zero_based_track_ordinal_within_source_repeated_tokens_preserved",
+      "basis": "declared"
+    },
+    "recording_job_token_hex": {
+      "meaning": "recording_job_token_hex",
+      "unit": "hex_UTF8_caller_association_not_echoed_by_response_not_authenticated",
+      "basis": "declared"
+    },
+    "recording_token_hex": {
+      "meaning": "recording_token_hex",
+      "unit": "hex_UTF8_reported_destination_recording_token_not_authenticated",
+      "basis": "declared"
+    },
+    "recording_source_token_hex": {
+      "meaning": "recording_source_token_hex",
+      "unit": "hex_UTF8_reported_source_reference_token_not_authenticated",
+      "basis": "declared"
+    },
+    "recording_source_type_hex": {
+      "meaning": "recording_source_type_hex",
+      "unit": "hex_UTF8_reported_Type_anyURI_empty_distinct_absent_schema_default_not_materialized",
+      "basis": "declared"
+    },
+    "recording_source_tag_hex": {
+      "meaning": "recording_source_tag_hex",
+      "unit": "hex_UTF8_reported_source_track_tag_not_physical_identity",
+      "basis": "declared"
+    },
+    "recording_destination_hex": {
+      "meaning": "recording_destination_hex",
+      "unit": "hex_UTF8_reported_destination_track_reference",
+      "basis": "declared"
+    },
+    "recording_state_hex": {
+      "meaning": "recording_state_hex",
+      "unit": "hex_UTF8_reported_state_known_track_values_Idle_Active_Error_aggregate_uninterpreted",
+      "basis": "declared"
+    },
+    "recording_state_disposition": {
+      "meaning": "recording_state_disposition",
+      "unit": "SCHEMA_KNOWN_REPORTED_or_UNKNOWN_STATE_RETAINED_or_AGGREGATE_REPORTED_UNINTERPRETED",
+      "basis": "declared"
+    },
+    "recording_track_error_reported": {
+      "meaning": "recording_track_error_reported",
+      "unit": "reported_track_Error_equals_1_Idle_Active_equal_0_unknown_or_aggregate_blank_not_physical_failure",
+      "basis": "declared"
+    },
+    "recording_error_presence": {
+      "meaning": "recording_error_presence",
+      "unit": "NOT_APPLICABLE_aggregate_or_NOT_REPORTED_or_EMPTY_or_REPORTED_optional_track_text",
+      "basis": "declared"
+    },
+    "recording_error_hex": {
+      "meaning": "recording_error_hex",
+      "unit": "hex_UTF8_implementation_defined_reported_error_not_causal_diagnosis_hex_is_not_redaction",
+      "basis": "declared"
+    },
+    "source_response_sha256": {
+      "meaning": "source_response_sha256",
+      "unit": "SHA256_exact_UTF8_source_in_mandatory_paired_report_not_authentication",
+      "basis": "declared"
+    }
+  }
+}

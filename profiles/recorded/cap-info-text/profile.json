@@ -1,0 +1,59 @@
+{
+  "profile_id": "cap_info_text_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_since_epoch_from_producer_declared_alert_sent_not_synchronized_event_or_arrival_time",
+    "alert_sender": "reported_sender_not_authenticated",
+    "alert_identifier": "reported_sender_local_identifier_not_authenticated",
+    "alert_sent_text": "original_declared_sent_text_not_receipt_time",
+    "alert_sent_offset": "reported_numeric_time_offset_not_clock_trust",
+    "cap_time_basis": "existing_CAP_numeric_offset_interpretation",
+    "alert_status": "producer_declared_Actual_Exercise_System_Test_or_Draft_not_verified_incident",
+    "alert_msg_type": "producer_declared_Alert_Update_Cancel_Ack_or_Error_not_automatic_state_change",
+    "alert_scope": "producer_declared_Public_Restricted_or_Private_not_distribution_permission",
+    "info_index": "zero_based_info_block_ordinal_within_exact_source_hash_absent_for_no_info",
+    "info_count": "number_of_info_blocks_in_original_document",
+    "info_language_hex": "hex_UTF8_reported_language_absent_stays_absent_no_default_translation",
+    "info_categories": "producer_CAP_controlled_categories_plus_separated_not_verified_events",
+    "info_event_hex": "hex_UTF8_producer_reported_event_not_tool_assessment",
+    "info_urgency": "producer_declared_CAP_urgency_Unknown_distinct_from_absence",
+    "info_severity": "producer_declared_CAP_severity_not_independent_assessment",
+    "info_certainty": "producer_declared_CAP_certainty_not_independent_verification",
+    "info_effective_text": "declared_same_info_effective_time_not_alert_sent_or_arrival",
+    "info_onset_text": "declared_same_info_onset_time_not_verified_event_time",
+    "info_expires_text": "declared_same_info_expiry_not_automatic_invalidating_action",
+    "area_count": "number_of_declared_area_blocks_for_this_info_no_area_position_chosen",
+    "source_sha256": "SHA256_of_original_saved_XML_bytes_exact_binding_not_authentication",
+    "classification_basis": "unchanged_existing_CAP_reported_classification_ceiling",
+    "cap_info_state": "INFO_PRESENT_or_ALERT_WITHOUT_INFO_placeholder_no_silent_drop",
+    "source_info_path": "original_XML_info_position_or_alert_when_no_info",
+    "base_csv_sha256": "SHA256_of_exact_unchanged_observations_csv_for_explicit_relation",
+    "base_row_start": "zero_based_data_row_start_excluding_header_in_base_CSV",
+    "base_row_count": "contiguous_base_row_count_for_same_source_and_info_not_a_time_join",
+    "info_headline_hex": "hex_UTF8_quoted_producer_CAP_headline_XML_characters_not_source_bytes",
+    "info_headline_disposition": "ABSENT_or_PRESENT_EMPTY_or_REPORTED_TEXT",
+    "info_description_hex": "hex_UTF8_quoted_producer_CAP_description_not_verified_incident",
+    "info_description_disposition": "ABSENT_or_PRESENT_EMPTY_or_REPORTED_TEXT",
+    "info_instruction_hex": "hex_UTF8_quoted_producer_instruction_never_executed_recommended_or_authorized_by_this_tool",
+    "info_instruction_disposition": "ABSENT_or_PRESENT_EMPTY_or_REPORTED_TEXT",
+    "text_basis": "quoted_XML_character_content_only_original_source_xml_retains_exact_bytes_no_execution_recommendation_or_authority",
+    "alert_addresses_hex": "hex_UTF8_producer_declared_recipient_addresses_not_resolved_authenticated_or_delivered",
+    "alert_addresses_disposition": "ABSENT_or_PRESENT_EMPTY_or_REPORTED_TEXT_not_actual_receipt",
+    "alert_restriction_hex": "hex_UTF8_producer_declared_distribution_restriction_not_enforced_or_permission",
+    "alert_restriction_disposition": "ABSENT_or_PRESENT_EMPTY_or_REPORTED_TEXT_not_authorization",
+    "audience_basis": "producer_declarations_retained_with_scope_not_reconciled_or_executed"
+  }
+}

@@ -1,0 +1,22 @@
+profile_id = "recorded_row_identity_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "us_copied_source_time_not_trusted_UTC"
+bound_observations_sha256 = "exact_original_CSV_bytes_digest_join_with_source_row_index"
+source_row_index = "zero_based_original_data_row_not_timestamp_or_name_join"
+reported_run_hex = "UTF8_hex_selected_saved_row_value_not_file_declaration_or_authenticated_run"
+reported_entity_hex = "UTF8_hex_selected_saved_row_value_not_unique_physical_entity"
+run_status = "PRESENT_or_EMPTY_no_fill_no_numeric_inference"
+entity_status = "PRESENT_or_EMPTY_no_fill_no_numeric_inference"
+run_column_hex = "UTF8_hex_caller_selected_run_role_column_not_source_schema_attestation"
+entity_column_hex = "UTF8_hex_caller_selected_entity_role_column_not_source_schema_attestation"
+bound_time_column_hex = "UTF8_hex_original_integer_microsecond_column"
+row_identity_basis = "reported_row_identity_not_authenticated_no_software_execution_proof_clock_Unknown"

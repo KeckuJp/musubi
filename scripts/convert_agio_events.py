@@ -41,9 +41,22 @@ PREFIXES = (("UDP Network is connected: ", "UDP_NETWORK_CONNECTED"),
             ("Program Started: ", "SESSION_START"),
             ("Program Exit: ", "SESSION_EXIT"),
             ("AgIO Version: ", "VERSION_REPORTED"),
-            ("Error in ", "ERROR_REPORT"))
+            ("Error in ", "ERROR_REPORT"),
+            # FormLoop.cs:329, only when the profile load result is not Ok: the state name follows.
+            ("AgIO profile save skipped: profile load state is ", "PROFILE_SAVE_SKIPPED"),
+            # UDP.designer.cs:127 / :149 catch blocks: exception text follows, possibly multi-line.
+            ("Catch -> Load UDP Server", "UDP_SERVER_LOAD_EXCEPTION"),
+            ("Catch - > Load UDP Loopback Failed: ", "LOOPBACK_LOAD_EXCEPTION"))
 EXACT = {"UDP Network Failed to Connect": "UDP_NETWORK_CONNECT_FAILED",
-         "UDP Network Is On": "UDP_NETWORK_ON"}
+         "UDP Network Is On": "UDP_NETWORK_ON",
+         # FormLoop.cs:289, when no profile name is set at start.
+         "Using Default Profile At Start Warning": "PROFILE_NOT_SET_AT_START_WARNING",
+         # FormLoop.cs:298, after the profile dialog returns Yes and before Program.Restart().
+         "Program Reset: Saving or Selecting Profile": "PROGRAM_RESTART_FOR_PROFILE",
+         # FormLoop.cs:310, after StartGPS_Out() when auto-run GPS_Out is set: a start call, not output.
+         "Run GPS_Out": "GPS_OUT_AUTO_START_CALLED",
+         # FormLoop.cs:559, in the catch around RTCM message list compilation.
+         "RTCM List compilation error": "RTCM_LIST_COMPILATION_ERROR"}
 DATED = ("SESSION_START", "SESSION_EXIT")
 TRIM_NOTICE = re.compile(r"^Log trimmed to last ([0-9]{1,9}) lines$")
 
@@ -122,7 +135,7 @@ def convert_agio_events(text):
         "clock": "Unknown", "time_basis": "UNLOCATED_ZERO_NOT_EVENT_TIME",
         "date_basis": "SESSION_LINES_ONLY_NO_PER_EVENT_DATE_ZONE_OR_ROLLOVER",
         "record_boundary_basis": BOUNDARY_BASIS, "class_basis": CLASS_BASIS,
-        "upstream_loss": "CheckLogSize(maxLines=100) exists but its caller was not located, so trimming is a capability whose activation and completeness are not established; FileSaveSystemEvents does unconditionally clear the buffer when a save fails. Neither loss is reconstructed here",
+        "upstream_loss": "FileSaveSystemEvents writes only when logsDirectory is non-empty, and the only assignment of logsDirectory is in CheckLogSize(logFile, maxLines = 100), so a saved file implies some earlier CheckLogSize call; that method can trim to its supplied maxLines (100 only by default) and rewrite the file with WriteAllLines, after which a first line may sit inside an earlier record. Its caller, call frequency, actual maxLines and whether any given file was trimmed are not established, and later appends can grow the file after a check. FileSaveSystemEvents also clears the buffer when a save fails. Neither loss is reconstructed here",
         "evidence_kind": "program-self-report-not-link-or-device-diagnosis"}
     if len(json.dumps(report).encode("utf-8")) > OUTPUT_LIMIT:
         raise ValueError("AgIO event report exceeds 128MiB")

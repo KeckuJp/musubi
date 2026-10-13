@@ -11,9 +11,11 @@ converter adds exactly that meaning and nothing else. It reads the same saved ex
 `convert_ardupilot_mode_csv` for the required-column definition rather than restating it; that module
 is not modified.
 
-Meaning comes from one finite version: ArduPilot Plane 4.5.5
+Meaning originally comes from ArduPilot Plane 4.5.5
 `d6ebfc21844e2bc0ab28c8c688b8dae94abccf5a`, `libraries/AP_Vehicle/ModeReason.h`, which is the pin the
-adopted case already declares. `enum class ModeReason : uint8_t` runs 0..52 there.
+adopted case already declares. The identical header at Copter 4.5.5
+142aece2da56146d94dcad0f6b539af6960538f6 qualifies that one additional selector.
+`enum class ModeReason : uint8_t` runs 0..52 at both; classification is reused unchanged.
 
 What a row is, and is not:
 
@@ -56,7 +58,7 @@ Retention and refusal, following the adopted route's own pattern rather than a n
   true for other Unicode digit characters that `int()` reads as a different number or refuses, so it
   is not used.
 
-The reason enum was read at the **Plane 4.5.5 tree only**. Any other declared vehicle version names a
+The reason enum was read at the **Plane and Copter 4.5.5 trees only**. Any other declared vehicle version names a
 different release whose tree was not read, so those records keep their raw code and are explicitly
 **not interpreted** - no vehicle breadth is claimed and the Plane pin is not attached to them.
 """
@@ -80,11 +82,15 @@ MAX_ROWS = 500_000
 MAX_LINE = 64 * 1024
 PRODUCER_PIN = "ardupilot-plane-4.5.5-d6ebfc21"
 SOURCE_FORMAT = "ardupilot-mode-csv"
-# The reason enum was read at the Plane 4.5.5 tree only, so only that declared vehicle version is
-# qualified to have its reason codes interpreted. Every other selector the adopted route accepts
-# names a DIFFERENT release whose tree was not read here; those records keep their raw code and are
-# not given a meaning. No vehicle breadth is claimed.
-QUALIFIED_VEHICLES = frozenset({"plane-4.5.5"})
+# ModeReason.h at these exact endpoints is byte-identical, SHA256
+# 8dbce336f5df9388c794b1c82103b234e6a1b1316088ef1fcde0a199a81c8d18.
+# Existing MODE writer/layout qualification is reused separately; no intermediate
+# release, enabled mode or installed binary follows from this enum equality.
+PRODUCER_PINS = {
+    "plane-4.5.5": PRODUCER_PIN,
+    "copter-4.5.5": "ardupilot-copter-4.5.5-142aece2",
+}
+QUALIFIED_VEHICLES = frozenset(PRODUCER_PINS)
 UNQUALIFIED_PIN = "NONE_THE_DECLARED_VEHICLE_VERSION_IS_NOT_THE_PINNED_PRODUCER"
 # ASCII decimal only: this writer prints ASCII digits, while `str.isdigit()` also accepts other
 # Unicode digit characters that `int()` either reads as a different number or refuses outright.
@@ -237,14 +243,15 @@ def convert(text, *, vehicle, source_format=SOURCE_FORMAT):
     if missing:
         raise ValueError(f"the saved export is missing its required columns {missing}")
     qualified = vehicle in QUALIFIED_VEHICLES
+    selected_pin = PRODUCER_PINS.get(vehicle, PRODUCER_PIN)
     output = io.StringIO(newline="")
     writer = csv.DictWriter(output, COLUMNS, lineterminator="\n")
     writer.writeheader()
-    report = {"producer_pin": PRODUCER_PIN, "declared_vehicle": vehicle, "source_records": 0,
+    report = {"producer_pin": selected_pin, "declared_vehicle": vehicle, "source_records": 0,
               "geofence_breach_reports": 0, "failsafe_reports": 0, "commanded_changes": 0,
               "recovery_reports": 0, "source_declared_unknown": 0, "unmapped_codes": 0,
               "other_reported_reasons": 0, "unqualified_vehicle_records": 0,
-              "reason_interpretation": (PRODUCER_PIN if qualified else UNQUALIFIED_PIN),
+              "reason_interpretation": (selected_pin if qualified else UNQUALIFIED_PIN),
               "coverage_basis": COVERAGE_BASIS,
               "source_sha256": "sha256:" + hashlib.sha256(text.encode()).hexdigest()}
     for number, (record_text, cells) in enumerate(records, 1):
@@ -275,7 +282,7 @@ def convert(text, *, vehicle, source_format=SOURCE_FORMAT):
             reason_class, domain, kind, fence, extra = classify(code)
             reason = MODE_REASONS.get(code, f"UNKNOWN_CODE_{code}")
         else:
-            # The reason enum was read at one producer version only. For any other declared vehicle
+            # The reason enum was read at two exact producer endpoints. For any other declared vehicle
             # version the code is preserved exactly and no meaning is assigned to it.
             reason_class, domain, kind, fence, extra = CLASS_UNQUALIFIED, "", "", "", UNQUALIFIED_BASIS
             reason = "NOT_INTERPRETED_AT_THIS_DECLARED_VEHICLE_VERSION"
@@ -293,7 +300,7 @@ def convert(text, *, vehicle, source_format=SOURCE_FORMAT):
             "original_record_hex": "hex:" + raw.hex(),
             "original_record_columns": len(cells),
             "original_record_sha256": "sha256:" + hashlib.sha256(raw).hexdigest(),
-            "producer_pin": PRODUCER_PIN if qualified else UNQUALIFIED_PIN,
+            "producer_pin": selected_pin if qualified else UNQUALIFIED_PIN,
             "source_format": source_format})
         if reason_class == CLASS_SAFETY:
             report["geofence_breach_reports" if domain == "GEOFENCE" else "failsafe_reports"] += 1

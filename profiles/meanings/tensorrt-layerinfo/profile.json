@@ -1,0 +1,35 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "layer_index": {
+      "meaning": "layer_index",
+      "unit": "zero_based_saved_layer_order_not_execution_order",
+      "basis": "declared"
+    },
+    "child_index": {
+      "meaning": "child_index",
+      "unit": "zero_based_declared_collection_order",
+      "basis": "declared"
+    },
+    "rank": {
+      "meaning": "rank",
+      "unit": "declared_dimension_count",
+      "basis": "declared"
+    },
+    "count": {
+      "meaning": "count",
+      "unit": "declared_constant_element_count",
+      "basis": "declared"
+    },
+    "declared_storage_bytes": {
+      "meaning": "declared_storage_bytes",
+      "unit": "byte_declared_constant_storage_not_runtime_allocation",
+      "basis": "declared"
+    }
+  }
+}

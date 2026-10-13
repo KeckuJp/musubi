@@ -215,7 +215,37 @@ STORAGE_USAGE_ABSENT = ("NOT_PRINTED_BY_EITHER_PINNED_EXPORTER_BUILD_WHOSE_GENER
                         "SUCH_FIELD_SO_THIS_IS_A_LIMIT_OF_THE_EXPORTER_AND_NOT_THE_SENDER_WITHHOLDING_IT")
 STORAGE_USAGE_PRESENT = ("RAW_REPORTED_STORAGE_USAGE_FLAGS_RETAINED_UNDECODED_BIT_ONE_IS_WHAT_THE_"
                          "DIALECT_SAYS_INDICATES_THE_FIELD_IS_SUPPORTED_AT_ALL")
+POSITION_MESSAGE = "mavlink_global_position_int_t"
+HEARTBEAT_MESSAGE = "mavlink_heartbeat_t"
+# These fields and enums were compared in both pinned exporters' generated Mavlink.cs.
+POSITION = {
+    "lat": ("latitude_deg", 1e-7, None, -900000000, 900000000),
+    "lon": ("longitude_deg", 1e-7, None, -1800000000, 1800000000),
+    "alt": ("altitude_msl_m", .001, None, -(2**31), 2**31-1),
+    "relative_alt": ("reported_relative_altitude_m", .001, None, -(2**31), 2**31-1),
+    "vx": ("velocity_north_m_s", .01, None, -32768, 32767),
+    "vy": ("velocity_east_m_s", .01, None, -32768, 32767),
+    "vz": ("velocity_down_m_s", .01, None, -32768, 32767),
+    "hdg": ("heading_deg", .01, 65535, 0, 35999),
+}
+HEARTBEAT = {}  # All fields use explicit unsigned integer/enum handling below.
+STATE_NAMES = ("UNINIT", "BOOT", "CALIBRATING", "STANDBY", "ACTIVE", "CRITICAL",
+               "EMERGENCY", "POWEROFF", "FLIGHT_TERMINATION")
+MODE_BITS = ("reserved_custom_mode", "test_enabled", "auto_enabled", "guided_enabled",
+             "stabilize_enabled", "hil_enabled", "manual_input_enabled", "safety_armed")
+SENSOR_BITS = ("gyro_3d", "accel_3d", "mag_3d", "absolute_pressure", "differential_pressure",
+               "gps", "optical_flow", "vision_position", "laser_position", "external_ground_truth",
+               "angular_rate_control", "attitude_stabilization", "yaw_position", "z_altitude_control",
+               "xy_position_control", "motor_outputs", "rc_receiver", "gyro_3d_2", "accel_3d_2",
+               "mag_3d_2", "geofence", "ahrs", "terrain", "reverse_motor", "logging", "battery",
+               "proximity", "satcom", "prearm_check", "obstacle_avoidance", "propulsion")
+SENSOR_MASK_NAMES = ("present", "enabled", "health")
+SENSOR_FIELDS = ["sensor_mask_basis"] + [field for kind in SENSOR_MASK_NAMES for field in
+    ([f"sensor_{kind}_raw", f"sensor_{kind}_unknown_bits"] +
+     [f"sensor_{name}_{kind}_reported" for name in SENSOR_BITS])]
 SELECTED = {
+    POSITION_MESSAGE: ("time_boot_ms", POSITION, 33),
+    HEARTBEAT_MESSAGE: (None, HEARTBEAT, 0),
     "mavlink_attitude_t": ("time_boot_ms", ATTITUDE, 30),
     "mavlink_sys_status_t": (None, STATUS, 1),
     GIMBAL_MESSAGE: ("time_boot_ms", GIMBAL, 285),
@@ -224,7 +254,9 @@ SELECTED = {
 # Fields a selection needs beyond its quantity table and its clock. They are read by a dedicated block
 # rather than the quantity loop, but their absence must still refuse the row rather than pass an
 # invented default.
-REQUIRED_EXTRA = {GIMBAL_MESSAGE: ("failure_flags", "flags"),
+REQUIRED_EXTRA = {HEARTBEAT_MESSAGE: ("custom_mode", "type", "autopilot", "base_mode",
+                                    "system_status", "mavlink_version"),
+                  GIMBAL_MESSAGE: ("failure_flags", "flags"),
                   # `type` and `name` are dialect extensions, but both pinned exporter builds declare
                   # them in the struct, so this writer always prints them. A row without one is not
                   # this writer's output and is refused rather than filled in.
@@ -439,7 +471,9 @@ def _storage_capacity(fields, row, report, status):
 
 
 def convert(text, selected_message, *, decimal_separator="dot", capture_time_us=None,
-            source_format=SOURCE_FORMAT):
+            source_format=SOURCE_FORMAT, status_masks=False):
+    if type(status_masks) is not bool or (status_masks and selected_message != "mavlink_sys_status_t"):
+        raise ValueError("status_masks is a boolean option for SYS_STATUS only")
     if selected_message not in SELECTED:
         raise ValueError("explicit supported selected message required")
     if source_format not in SOURCE_FORMATS:
@@ -473,8 +507,18 @@ def convert(text, selected_message, *, decimal_separator="dot", capture_time_us=
         names = GIMBAL_FIELDS
     elif table is STORAGE:
         names = STORAGE_FIELDS
+    elif table is POSITION:
+        dialect_pin = "MissionPlanner_Mavlink.cs_" + exporter_pin
+        names = ATTITUDE_FIELDS[:10] + ["measurement_status", "altitude_basis", "velocity_basis"] + [v[0] for v in POSITION.values()]
+    elif table is HEARTBEAT:
+        dialect_pin = "MissionPlanner_Mavlink.cs_" + exporter_pin
+        names = STATUS_FIELDS[:11] + ["heartbeat_type_raw", "heartbeat_autopilot_raw",
+            "heartbeat_mavlink_version_raw", "custom_mode_raw", "custom_mode_basis", "base_mode_raw",
+            "system_status_raw", "system_status_reported", "state_basis"] + ["mode_" + n + "_reported" for n in MODE_BITS]
     else:
         names = ATTITUDE_FIELDS if clock_field else STATUS_FIELDS
+    if status_masks:
+        names = names + SENSOR_FIELDS
     writer = csv.DictWriter(output, names, lineterminator="\n")
     writer.writeheader()
     report = {"exporter_pin": exporter_pin, "dialect_pin": dialect_pin,
@@ -516,6 +560,8 @@ def convert(text, selected_message, *, decimal_separator="dot", capture_time_us=
                              f"{selected_message}")
         fields = _pairs(tokens, number)
         required = list(table) + list(REQUIRED_EXTRA.get(selected_message, ()))
+        if status_masks:
+            required.extend("onboard_control_sensors_" + k for k in SENSOR_MASK_NAMES)
         if clock_field:
             required.append(clock_field)
         missing = [name for name in required if name not in fields]
@@ -542,6 +588,31 @@ def convert(text, selected_message, *, decimal_separator="dot", capture_time_us=
         if table is GIMBAL:
             row["measurement_status"] = "REPORTED"
             _gimbal(fields, row, report, number)
+        if table is POSITION:
+            row["measurement_status"] = "REPORTED"
+            row["altitude_basis"] = "SEPARATE_REPORTED_MSL_AND_RELATIVE_SOURCE_SAYS_ABOVE_GROUND_NO_DATUM_TRANSFORM"
+            row["velocity_basis"] = "REPORTED_GROUND_VELOCITY_NORTH_EAST_DOWN_NO_FRAME_TRANSFORM"
+        if table is HEARTBEAT:
+            for source, target, maximum in (("type", "heartbeat_type_raw", 255),
+                    ("autopilot", "heartbeat_autopilot_raw", 255),
+                    ("mavlink_version", "heartbeat_mavlink_version_raw", 255),
+                    ("custom_mode", "custom_mode_raw", 2**32-1),
+                    ("base_mode", "base_mode_raw", 255), ("system_status", "system_status_raw", 255)):
+                row[target] = _unsigned(fields[source], source, number, maximum)
+            state = row["system_status_raw"]
+            row["system_status_reported"] = STATE_NAMES[state] if state < len(STATE_NAMES) else f"UNKNOWN_{state}"
+            row["custom_mode_basis"] = "AUTOPILOT_SPECIFIC_UNINTERPRETED_NO_VENDOR_MODE_INFERENCE"
+            row["state_basis"] = "REPORTED_HEARTBEAT_FLAGS_AND_STATE_NOT_PHYSICAL_STATE_OR_AUTHORITY"
+            for bit, name in enumerate(MODE_BITS):
+                row["mode_" + name + "_reported"] = str(bool(row["base_mode_raw"] & (1 << bit))).lower()
+        if status_masks:
+            row["sensor_mask_basis"] = "PINNED_MAV_SYS_STATUS_SENSOR_REPORTED_BITS_NOT_PHYSICAL_HEALTH"
+            for kind in SENSOR_MASK_NAMES:
+                raw = _unsigned(fields["onboard_control_sensors_" + kind], kind, number, 2**32-1)
+                row[f"sensor_{kind}_raw"] = raw
+                row[f"sensor_{kind}_unknown_bits"] = raw & 0x80000000
+                for bit, name in enumerate(SENSOR_BITS):
+                    row[f"sensor_{name}_{kind}_reported"] = str(bool(raw & (1 << bit))).lower()
         storage_status = _storage(fields, row, report, number) if table is STORAGE else None
         for name, entry in table.items():
             token = fields[name]
@@ -553,7 +624,8 @@ def convert(text, selected_message, *, decimal_separator="dot", capture_time_us=
                 if value == sentinel:
                     # The dialect documents this exact value as "not sent by autopilot".
                     row[column] = ""
-                    row["measurement_status"] = "UNAVAILABLE_NOT_SENT_BY_AUTOPILOT"
+                    row["measurement_status"] = ("UNKNOWN_HEADING" if table is POSITION
+                                                 else "UNAVAILABLE_NOT_SENT_BY_AUTOPILOT")
                     report["withheld_values"] += 1
                     continue
                 if not low <= value <= high:
@@ -597,6 +669,52 @@ def convert(text, selected_message, *, decimal_separator="dot", capture_time_us=
     return output.getvalue(), report
 
 
+def convert_path(path, selected_message, *, start_record, stop_record, **options):
+    """Reuse the adopted physical-line selector; excluded meanings/clocks are not checked."""
+    try:
+        from scripts.convert_vda_load_report import read_jsonl_window
+    except ModuleNotFoundError:
+        from convert_vda_load_report import read_jsonl_window
+    selected, offsets, count, selected_bytes, digest = read_jsonl_window(
+        path, start_record=start_record, stop_record=stop_record, allow_blank=True)
+    converted, report = convert("".join(selected), selected_message, **options)
+    # The converter has already validated every nonblank selected row's header and
+    # the selected-message payload. Keep physical positions, including blank and
+    # other-message lines, rather than counting emitted observations as input rows.
+    positions = iter((index, line.rstrip("\n")) for index, line in enumerate(selected)
+                     if line.strip() and _tokens(line.rstrip("\n"), index + 1)[9] == selected_message)
+    output = io.StringIO(newline="")
+    previous_limit = csv.field_size_limit(max(csv.field_size_limit(), 2 * MAX_LINE + 4))
+    try:
+        reader = csv.DictReader(io.StringIO(converted))
+        names = list(reader.fieldnames) + ["source_file_sha256", "source_record_index",
+                                          "source_record_byte_offset"]
+        writer = csv.DictWriter(output, names, lineterminator="\n")
+        writer.writeheader()
+        for item in reader:
+            index, raw = next(positions)
+            if item["source_row_hex"] != "hex:" + raw.encode().hex():
+                raise ValueError("converted row does not match selected original position")
+            item.update(source_file_sha256="sha256:" + digest,
+                        source_record_index=start_record + index,
+                        source_record_byte_offset=offsets[index])
+            writer.writerow(item)
+            if output.tell() > OUTPUT_LIMIT:
+                raise ValueError("window output exceeds bound")
+    finally:
+        csv.field_size_limit(previous_limit)
+    report.update(source_file_sha256="sha256:" + digest,
+                  selected_normalized_source_sha256=report.pop("source_sha256"),
+                  source_physical_records=count, selected_physical_records=len(selected),
+                  outside_window_records=count - len(selected),
+                  selected_blank_records=len(selected) - report["source_rows"],
+                  start_record=start_record, stop_record_exclusive=stop_record,
+                  selected_normalized_bytes=selected_bytes,
+                  outside_window_meaning="NOT_DECODED_OR_CLOCK_CHECKED",
+                  selection_basis="ZERO_BASED_PHYSICAL_LINES_CRLF_NORMALIZED_TO_LF_IN_SELECTED_INTERMEDIATE")
+    return output.getvalue(), report
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("input", type=Path)
@@ -608,25 +726,31 @@ def main():
                         help="the exporting machine's numeric culture; only dot is supported")
     parser.add_argument("--capture-time-us", type=int,
                         help="required for a selection without a message clock")
+    parser.add_argument("--status-masks", action="store_true",
+                        help="include reported SYS_STATUS sensor present/enabled/health bit meanings")
     parser.add_argument("--report", type=Path,
                         help="write the conversion accounting as JSON to this new file")
+    parser.add_argument("--start-record", type=int, help="zero-based physical line window start")
+    parser.add_argument("--stop-record", type=int, help="exclusive physical line window end")
     args = parser.parse_args()
     try:
-        if args.input.stat().st_size > LIMIT:
-            raise ValueError("input exceeds bound")
-        with args.input.open("rb") as stream:
-            data = stream.read(LIMIT + 1)
-        if len(data) > LIMIT:
-            raise ValueError("input exceeds bound")
-        # This writer ends every row with CRLF. Reading as text would translate those newlines, so the
-        # digest would bind a rewritten string instead of the file: read bytes and decode strictly.
-        text = data.decode("utf-8")
-        output, report = convert(text, args.selected_message,
-                                 decimal_separator=args.decimal_separator,
-                                 capture_time_us=args.capture_time_us,
-                                 source_format=args.source_format)
-        if report["source_sha256"] != "sha256:" + hashlib.sha256(data).hexdigest():
-            raise ValueError("reported digest does not bind the input bytes")
+        options = dict(decimal_separator=args.decimal_separator, capture_time_us=args.capture_time_us,
+                       source_format=args.source_format, status_masks=args.status_masks)
+        if args.start_record is not None or args.stop_record is not None:
+            output, report = convert_path(args.input, args.selected_message,
+                start_record=args.start_record, stop_record=args.stop_record, **options)
+        else:
+            if args.input.stat().st_size > LIMIT:
+                raise ValueError("input exceeds bound")
+            with args.input.open("rb") as stream:
+                data = stream.read(LIMIT + 1)
+            if len(data) > LIMIT:
+                raise ValueError("input exceeds bound")
+            # Preserve original newline bytes for the ordinary file digest.
+            text = data.decode("utf-8")
+            output, report = convert(text, args.selected_message, **options)
+            if report["source_sha256"] != "sha256:" + hashlib.sha256(data).hexdigest():
+                raise ValueError("reported digest does not bind the input bytes")
         with args.output.open("x", encoding="utf-8") as stream:
             stream.write(output)
         # The accounting is the user's, not something to drop on the floor. It carries counts, pins,

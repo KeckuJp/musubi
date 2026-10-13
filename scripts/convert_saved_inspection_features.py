@@ -36,9 +36,11 @@ from pathlib import Path
 try:
     from scripts.convert_position_csv import unique_object, invalid_constant
     from scripts.recorded_units import UNITS, normalize
+    from scripts.convert_gpx_recorded import utc_microseconds
 except ModuleNotFoundError:
     from convert_position_csv import unique_object, invalid_constant
     from recorded_units import UNITS, normalize
+    from convert_gpx_recorded import utc_microseconds
 
 LIMIT = 8 * 1024 * 1024
 MAX_FEATURES = 4096
@@ -104,6 +106,42 @@ COLUMNS = [
     "reported_quantity_field", "quantity_basis",
     "property_count", "property_basis", "bbox_present", "record_basis",
 ]
+
+REPORTED_TIME_COLUMNS = ["declared_reported_time_key_hex", "reported_time_text_hex",
+                         "reported_time_offset_hex", "reported_time_unix_us",
+                         "reported_time_status", "reported_time_basis"]
+REPORTED_TIME_BASIS = (
+    "CALLER_SELECTED_PROPERTY_REPORTED_TIME_NOT_TRUSTED_UTC_NOT_AN_ANCHOR_"
+    "exact_integer_microseconds_from_explicit_offset_text_not_proof_of_inspection_"
+    "same_feature_quantity_association_by_source_document_sha256_and_feature_index_"
+    "main_observation_time_remains_caller_capture_Unknown_no_missing_time_fallback")
+MAX_EXACT_COMMON_US = 2**53 - 1
+
+
+def reported_time_cells(properties, key):
+    """Optional declared clock, never the main capture clock or a cross-feature join."""
+    cells = dict.fromkeys(REPORTED_TIME_COLUMNS, "")
+    cells.update(declared_reported_time_key_hex=hexed(key, "reported time key"),
+                 reported_time_basis=REPORTED_TIME_BASIS)
+    if properties is None:
+        cells["reported_time_status"] = "NULL_PROPERTIES"
+    elif key not in properties:
+        cells["reported_time_status"] = "ABSENT_PROPERTY"
+    elif properties[key] is None:
+        cells["reported_time_status"] = "NULL_PROPERTY"
+    else:
+        text = properties[key]
+        original = hexed(text, "reported time text")
+        if text.endswith("-00:00"):
+            raise ValueError("unknown local offset is not an explicit reported UTC offset")
+        micros = utc_microseconds(text)
+        if micros > MAX_EXACT_COMMON_US:
+            raise ValueError("reported time exceeds exact common numeric microseconds")
+        cells.update(reported_time_status="PRESENT", reported_time_unix_us=micros,
+                     reported_time_text_hex=original,
+                     reported_time_offset_hex=hexed("Z" if text.endswith("Z") else text[-6:],
+                                                   "reported time offset"))
+    return cells
 
 
 def hexed(text, what):
@@ -359,14 +397,15 @@ def feature_row(feature, index, declarations, digest, capture_time_us):
 
 
 def convert(data, capture_time_us, *, identity_property=None, assertion_property=None,
-            quantity_property=None, quantity_unit=None):
+            quantity_property=None, quantity_unit=None, reported_time_property=None):
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
         raise ValueError("invalid capture time")
     if (quantity_property is None) != (quantity_unit is None):
         raise ValueError("a declared quantity needs its declared unit, and the unit needs a key")
     if quantity_unit is not None and quantity_unit not in UNITS:
         raise ValueError("the declared unit is not one the shared table converts")
-    for declared in (identity_property, assertion_property, quantity_property):
+    for declared in (identity_property, assertion_property, quantity_property,
+                     reported_time_property):
         if declared is not None and not (isinstance(declared, str)
                                          and 1 <= len(declared.encode()) <= MAX_TEXT):
             raise ValueError("a declared property key is a non-empty string")
@@ -396,11 +435,16 @@ def convert(data, capture_time_us, *, identity_property=None, assertion_property
     declarations = {"identity": identity_property, "assertion": assertion_property,
                     "quantity": quantity_property, "unit": quantity_unit}
     output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=COLUMNS, lineterminator="\n")
+    columns = COLUMNS + (REPORTED_TIME_COLUMNS if reported_time_property is not None else [])
+    writer = csv.DictWriter(output, fieldnames=columns, lineterminator="\n")
     writer.writeheader()
-    retained, kinds = [], {}
+    retained, kinds, time_statuses = [], {}, {}
     for index, feature in enumerate(features):
         row, keys = feature_row(feature, index, declarations, digest, capture_time_us)
+        if reported_time_property is not None:
+            row.update(reported_time_cells(feature["properties"], reported_time_property))
+            status = row["reported_time_status"]
+            time_statuses[status] = time_statuses.get(status, 0) + 1
         writer.writerow(row)
         kinds[row["geometry_type"]] = kinds.get(row["geometry_type"], 0) + 1
         retained.append({
@@ -427,6 +471,11 @@ def convert(data, capture_time_us, *, identity_property=None, assertion_property
                         "severity, no certificate, no linear referencing along a geometry and no "
                         "depth: the third coordinate is a height above the WGS 84 ellipsoid",
     }
+    if reported_time_property is not None:
+        report.update(declared_reported_time_property_hex=hexed(reported_time_property,
+                                                               "reported time key"),
+                      reported_time_status_counts=dict(sorted(time_statuses.items())),
+                      reported_time_basis=REPORTED_TIME_BASIS)
     if len(json.dumps(report).encode()) > LIMIT:
         raise ValueError("report exceeds bound")
     return output.getvalue(), report
@@ -446,6 +495,9 @@ def main():
     parser.add_argument("--quantity-property", help="property key carrying one declared quantity")
     parser.add_argument("--quantity-unit", choices=sorted(UNITS),
                         help="the unit the caller declares for that property; never guessed")
+    parser.add_argument("--reported-time-property",
+                        help="caller-declared per-feature explicit-offset reported time; kept "
+                             "separate from main capture time, not a trusted UTC anchor")
     args = parser.parse_args()
     try:
         with args.document.open("rb") as stream:
@@ -454,7 +506,8 @@ def main():
                                  identity_property=args.identity_property,
                                  assertion_property=args.assertion_property,
                                  quantity_property=args.quantity_property,
-                                 quantity_unit=args.quantity_unit)
+                                 quantity_unit=args.quantity_unit,
+                                 reported_time_property=args.reported_time_property)
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2),

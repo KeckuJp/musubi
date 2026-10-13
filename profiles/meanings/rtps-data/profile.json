@@ -1,0 +1,145 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_saved_PCAP_capture_clock_not_authenticated_or_aligned_to_the_writer",
+      "basis": "declared"
+    },
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "UTF8_JSON_hex_of_original_CDR_and_decoded_record_with_packet_indexes_not_type_identity_proof",
+      "basis": "declared"
+    },
+    "battery_voltage_v": {
+      "meaning": "battery_voltage_v",
+      "unit": "V_under_the_explicit_caller_selected_BatteryState_definition_not_verified_producer_type",
+      "basis": "declared"
+    },
+    "battery_current_a": {
+      "meaning": "battery_current_a",
+      "unit": "A_under_the_selected_BatteryState_definition_negative_is_discharging",
+      "basis": "declared"
+    },
+    "battery_consumed_ah": {
+      "meaning": "battery_consumed_ah",
+      "unit": "unavailable_in_selected_BatteryState_not_stored_charge",
+      "basis": "declared"
+    },
+    "battery_consumed_j": {
+      "meaning": "battery_consumed_j",
+      "unit": "unavailable_in_selected_BatteryState",
+      "basis": "declared"
+    },
+    "battery_power_w": {
+      "meaning": "battery_power_w",
+      "unit": "W_voltage_times_reported_signed_current_not_verified_physical_power",
+      "basis": "declared"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "fraction_under_the_selected_BatteryState_definition_not_percent",
+      "basis": "declared"
+    },
+    "battery_stored_charge_ah": {
+      "meaning": "battery_stored_charge_ah",
+      "unit": "Ah_stored_not_consumed_under_selected_BatteryState",
+      "basis": "declared"
+    },
+    "battery_reported_charging_state": {
+      "meaning": "battery_reported_charging_state",
+      "unit": "reported_enum_under_selected_BatteryState_not_physical_health",
+      "basis": "declared"
+    },
+    "battery_current_sign_basis": {
+      "meaning": "battery_current_sign_basis",
+      "unit": "selected_BatteryState_schema_negative_is_discharging_not_inferred_from_status",
+      "basis": "declared"
+    },
+    "battery_temperature_k": {
+      "meaning": "battery_temperature_k",
+      "unit": "K_shared_conversion_from_selected_BatteryState_Celsius_no_calibration_or_location_claim",
+      "basis": "declared"
+    },
+    "battery_temperature_basis": {
+      "meaning": "battery_temperature_basis",
+      "unit": "REPORTED_or_UNAVAILABLE_SOURCE_NAN_or_BATTERY_NOT_PRESENT_no_missing_value_replaced_with_zero",
+      "basis": "declared"
+    },
+    "rtps_packet_index": {
+      "meaning": "rtps_packet_index",
+      "unit": "zero_based_saved_PCAP_record_index",
+      "basis": "declared"
+    },
+    "rtps_submessage_index": {
+      "meaning": "rtps_submessage_index",
+      "unit": "zero_based_submessage_index_in_this_datagram",
+      "basis": "declared"
+    },
+    "rtps_writer_guid_hex": {
+      "meaning": "rtps_writer_guid_hex",
+      "unit": "reported_GUID_prefix_plus_writer_ID_not_authenticated_or_verified_device_identity",
+      "basis": "declared"
+    },
+    "rtps_reader_id_hex": {
+      "meaning": "rtps_reader_id_hex",
+      "unit": "reported_reader_entity_ID_not_evidence_of_receipt",
+      "basis": "declared"
+    },
+    "rtps_writer_sequence_high": {
+      "meaning": "rtps_writer_sequence_high",
+      "unit": "reported_signed32_high_half_sequence_not_packet_loss_or_order_inference",
+      "basis": "declared"
+    },
+    "rtps_writer_sequence_low": {
+      "meaning": "rtps_writer_sequence_low",
+      "unit": "reported_unsigned32_low_half_sequence_duplicates_and_reorder_retained",
+      "basis": "declared"
+    },
+    "rtps_timestamp_seconds": {
+      "meaning": "rtps_timestamp_seconds",
+      "unit": "reported_unsigned32_UNIX_epoch_seconds_per_fixed_RTPS2_3_Time_t_not_capture_or_trusted_UTC_read_disposition",
+      "basis": "declared"
+    },
+    "rtps_timestamp_fraction": {
+      "meaning": "rtps_timestamp_fraction",
+      "unit": "reported_unsigned32_fraction_in_units_of_2_power_minus32_seconds_read_disposition",
+      "basis": "declared"
+    },
+    "rtps_timestamp_disposition": {
+      "meaning": "rtps_timestamp_disposition",
+      "unit": "REPORTED_or_NOT_REPORTED_or_INVALIDATED_or_TIME_INVALID_or_TIME_INFINITE_scoped_to_this_datagram",
+      "basis": "declared"
+    },
+    "ros_source_stamp_us": {
+      "meaning": "ros_source_stamp_us",
+      "unit": "us_truncated_from_selected_ROS_header_stamp_not_capture_time_or_clock_alignment",
+      "basis": "declared"
+    },
+    "ros_frame_hex": {
+      "meaning": "ros_frame_hex",
+      "unit": "UTF8_hex_of_reported_ROS_frame_label_not_verified_coordinate_frame",
+      "basis": "declared"
+    },
+    "rtps_schema_basis": {
+      "meaning": "rtps_schema_basis",
+      "unit": "TYPE_HASH_ABSENT_NOT_VERIFIED_CALLER_SELECTED_LOCAL_DEFINITION_PRODUCER_UNVERIFIED_even_successful_decode_does_not_verify_the_writer_type",
+      "basis": "declared"
+    },
+    "rtps_local_type_hash": {
+      "meaning": "rtps_local_type_hash",
+      "unit": "RIHS01_of_local_Humble_definition_only_not_a_hash_reported_by_this_writer_or_capture",
+      "basis": "declared"
+    },
+    "rtps_capture_sha256": {
+      "meaning": "rtps_capture_sha256",
+      "unit": "SHA256_binding_to_exact_input_bytes_not_authentication_or_producer_type_qualification",
+      "basis": "declared"
+    }
+  }
+}

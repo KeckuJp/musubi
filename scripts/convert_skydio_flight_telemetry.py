@@ -353,8 +353,10 @@ def envelope_data(document):
                   "basis": ENVELOPE_BASIS}
 
 
-def convert(text, *, source_format):
+def convert(text, *, source_format, allow_empty=False):
     """Declared quantities of a saved v1 body; everything else is retained, not given meaning."""
+    if type(allow_empty) is not bool:
+        raise ValueError("allow_empty must be boolean")
     if source_format != SOURCE_FORMAT:
         raise ValueError(f"declared source format must be exactly {SOURCE_FORMAT}")
     raw = text.encode("utf-8")
@@ -371,13 +373,13 @@ def convert(text, *, source_format):
         # named refusal rather than a blank identity or an invented one.
         raise ValueError("the page leaves flight optional, but this path needs its reported identity")
     samples = telemetry.get("aligned_telemetry")
-    if not isinstance(samples, list) or not samples:
+    if not isinstance(samples, list) or (not samples and not allow_empty):
         raise ValueError("selected body requires a nonempty aligned_telemetry array")
     if len(samples) > MAX_SAMPLES:
         raise ValueError("saved telemetry body exceeds the sample bound")
     # `has_telemetry` is the producer's own declaration; a false claim beside real samples is a
     # contradiction in the saved body and is refused rather than silently preferred either way.
-    if flight.get("has_telemetry") is False:
+    if samples and flight.get("has_telemetry") is False:
         raise ValueError("body declares has_telemetry false while carrying samples")
     report = {"source_format": source_format, "source_format_basis": SOURCE_FORMAT_BASIS,
               "source_sha256": "sha256:" + hashlib.sha256(raw).hexdigest(),
@@ -417,6 +419,9 @@ def convert(text, *, source_format):
         if undeclared_context:
             report["undeclared_context_keys"][section] = undeclared_context
     source_context = retained_hex(context, "response context")
+    if not samples:
+        report.update(disposition="NO_OBSERVATIONS", observations=0,
+                      source_context_hex=source_context, identity=identity)
     digest = report["source_sha256"]
     output = io.StringIO(newline="")
     writer = csv.DictWriter(output, FIELDS, lineterminator="\n")
@@ -478,6 +483,8 @@ def main():
     parser.add_argument("output_directory", type=Path)
     parser.add_argument("--source-format", required=True, choices=(SOURCE_FORMAT,),
                         help="declared precondition; the saved body carries no version field")
+    parser.add_argument("--allow-empty", action="store_true",
+                        help="accept schema-valid empty sample array as NO_OBSERVATIONS")
     args = parser.parse_args()
     try:
         # Bound the input by its size on disk before reading it, so an oversized file is refused
@@ -485,8 +492,8 @@ def main():
         size = args.input.stat().st_size
         if size > MAX_INPUT:
             raise ValueError(f"saved body is {size} bytes, past the {MAX_INPUT} byte input bound")
-        text = args.input.read_text(encoding="utf-8")
-        converted, report = convert(text, source_format=args.source_format)
+        text = args.input.read_bytes().decode("utf-8")
+        converted, report = convert(text, source_format=args.source_format, allow_empty=args.allow_empty)
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(converted, encoding="utf-8")
         (args.output_directory / "report.json").write_text(

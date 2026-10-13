@@ -6,6 +6,66 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "zero_based_epoch_index_in_unchanged_original_excluding_headers_and_blank_lines",
+      "basis": "declared"
+    },
+    "source_record_byte_offset": {
+      "meaning": "source_record_byte_offset",
+      "unit": "zero_based_byte_offset_of_original_physical_epoch_line",
+      "basis": "declared"
+    },
+    "selected_source_sha256": {
+      "meaning": "selected_source_sha256",
+      "unit": "SHA256_of_internal_header_plus_selected_lines_not_another_recording",
+      "basis": "declared"
+    },
+    "velocity_north_m_s": {
+      "meaning": "velocity_north_m_s",
+      "unit": "m/s",
+      "basis": "declared"
+    },
+    "velocity_east_m_s": {
+      "meaning": "velocity_east_m_s",
+      "unit": "m/s",
+      "basis": "declared"
+    },
+    "velocity_up_m_s": {
+      "meaning": "velocity_up_m_s",
+      "unit": "m/s",
+      "basis": "declared"
+    },
+    "velocity_sdn_m_s": {
+      "meaning": "velocity_sdn_m_s",
+      "unit": "reported_north_standard_deviation_m/s",
+      "basis": "declared"
+    },
+    "velocity_sde_m_s": {
+      "meaning": "velocity_sde_m_s",
+      "unit": "reported_east_standard_deviation_m/s",
+      "basis": "declared"
+    },
+    "velocity_sdu_m_s": {
+      "meaning": "velocity_sdu_m_s",
+      "unit": "reported_up_standard_deviation_m/s",
+      "basis": "declared"
+    },
+    "velocity_sdne_signed_m_s": {
+      "meaning": "velocity_sdne_signed_m_s",
+      "unit": "signed_sqrt_north_east_covariance_m/s_not_standard_deviation",
+      "basis": "declared"
+    },
+    "velocity_sdeu_signed_m_s": {
+      "meaning": "velocity_sdeu_signed_m_s",
+      "unit": "signed_sqrt_east_up_covariance_m/s_not_standard_deviation",
+      "basis": "declared"
+    },
+    "velocity_sdun_signed_m_s": {
+      "meaning": "velocity_sdun_signed_m_s",
+      "unit": "signed_sqrt_up_north_covariance_m/s_not_standard_deviation",
+      "basis": "declared"
+    },
     "solution_time_system": {
       "meaning": "solution_time_system",
       "unit": "GPST_or_UTC_or_JST_exactly_as_the_pinned_writer_names_it_in_the_header_from_its_own_options_table_these_differ_by_leap_seconds_and_by_nine_hours_so_the_token_is_load_bearing_and_is_NEVER_inferred_from_a_column_name_or_assumed_from_a_default",

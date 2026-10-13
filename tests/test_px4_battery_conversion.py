@@ -4,6 +4,7 @@ import csv
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -26,6 +27,42 @@ def load(path):
 
 
 class ConversionTests(unittest.TestCase):
+    @unittest.skipUnless(os.environ.get("MUSUBI_TELEMETRY_READER"), "post-build CI supplies common reader")
+    def test_reported_reserve_reuses_common_and_preserves_default(self):
+        for rows in (("1001,1,12.5,2,1234,0.75,nan,135.25", "1001,1,12.5,0,0,0,nan,0"),
+                     ("2000,2,24,3,1,0.5,nan,42", "2001,2,24,3,1,0.5,nan,nan")):
+            text = HEADER + ",time_remaining_s\n" + "\n".join(rows) + "\n"
+            default = self.converter.convert(text, "px4-battery")
+            self.assertEqual(default, self.converter.convert(text, "px4-battery", px4_remaining_time=False))
+            output = self.converter.convert(text, "px4-battery", px4_remaining_time=True)
+            parsed = list(csv.reader(io.StringIO(output)))
+            self.assertEqual([r[:-2] for r in parsed], list(csv.reader(io.StringIO(default))))
+            with tempfile.TemporaryDirectory() as directory:
+                base = Path(directory); source = base / 'input.csv'; target = base / 'out.csv'
+                source.write_text(text); target.write_text(output)
+                completed = subprocess.run([os.environ['MUSUBI_TELEMETRY_READER'],
+                    str(ROOT / 'profiles/declared/px4-battery/profile.toml'),
+                    str(target), '--allow-equal-time', '--preserve-nonfinite-as-text'], capture_output=True)
+                self.assertEqual(completed.returncode, 0, completed.stderr.decode())
+                common = json.loads(completed.stdout)
+                self.assertEqual(common['main_rows'], 2)
+                for row, observed in zip(rows, common['observations']):
+                    raw = row.split(',')[-1]; fields = observed['fields']
+                    self.assertEqual(fields['battery_time_remaining_s'], None if raw == 'nan' else float(raw))
+                    self.assertIsNone(observed['anchor_unix_us'])
+                    self.assertEqual(observed['clock_basis'], 'BootRelative')
+                subprocess.run([sys.executable, str(SCRIPT), str(source), str(base / 'cli.csv'),
+                    '--source-format','px4-battery','--px4-remaining-time'], check=True, capture_output=True)
+                self.assertEqual((base / 'cli.csv').read_text(), output)
+        for raw in ('-1', 'inf', '-inf', '', '3.5e38', '1e-400'):
+            with self.assertRaises(ValueError):
+                self.converter.convert(HEADER + ',time_remaining_s\n' + ROW + ',' + raw,
+                                       'px4-battery', px4_remaining_time=True)
+        for flag in ('true', 1, None):
+            with self.assertRaises(ValueError): self.converter.convert('', 'px4-battery', px4_remaining_time=flag)
+        with self.assertRaises(ValueError): self.converter.convert(HEADER + '\n' + ROW, 'px4-battery', px4_remaining_time=True)
+        with self.assertRaises(ValueError): self.converter.convert('', 'ardupilot-bat', px4_remaining_time=True)
+
     @classmethod
     def setUpClass(cls):
         cls.converter = load(SCRIPT)

@@ -66,8 +66,9 @@ HEADER = ("<4sHHIHH8sBB32s32sHHHIIBHI5I"      # signature .. legacy points by re
           "QQIQ15Q")                           # waveform, first EVLR, EVLR count, points, returns
 VLR_HEADER = "<H16sHH32s"                     # reserved, user id, record id, length, description
 VLR_HEADER_SIZE = struct.calcsize(VLR_HEADER)  # the specification states 54 bytes
-# Point Data Record Formats 0 and 1 only. Format 1 is format 0 "with the addition of GPS Time".
-POINT_FORMATS = {0: ("<iiiHBBbBH", 20), 1: ("<iiiHBBbBHd", 28)}
+# R16 Tables 7/10/11/12: common legacy fields, optional GPS time, optional uint16 RGB.
+POINT_FORMATS = {0: ("<iiiHBBbBH", 20), 1: ("<iiiHBBbBHd", 28),
+                 2: ("<iiiHBBbBH3H", 26), 3: ("<iiiHBBbBHd3H", 34)}
 CRS_USER_ID = "LASF_Projection"
 WKT_COORDINATE_SYSTEM_RECORD = 2112
 WKT_MATH_TRANSFORM_RECORD = 2111
@@ -211,7 +212,8 @@ COLUMNS = ("record_time_us", "capture_clock_basis", "source_file_sha256", "las_r
            "point_withheld_flag", "point_classification_basis", "point_scan_angle_rank_deg",
            "point_scan_angle_disposition", "point_user_data_reported",
            "point_source_id_reported", "point_source_basis", "point_gps_time_reported",
-           "gps_time_basis", "record_basis")
+           "gps_time_basis", "record_basis", "point_red_reported_u16",
+           "point_green_reported_u16", "point_blue_reported_u16", "point_rgb_basis")
 
 
 def text_hex(raw):
@@ -293,7 +295,7 @@ def read_header(raw):
     if point_format not in POINT_FORMATS:
         # The other formats carry fields this path does not decode. That is a bound of this
         # path, not a judgement that those formats are unsupported anywhere.
-        raise ValueError("this path decodes point data record formats 0 and 1, and the file "
+        raise ValueError("this path decodes point data record formats 0 through 3, and the file "
                          "declares format %d" % point_format)
     minimum = POINT_FORMATS[point_format][1]
     if point_length < minimum:
@@ -619,6 +621,9 @@ def convert(raw, capture_time_us, first_point=0, point_limit=None):
                   bytes_after_read_points=len(raw) - (header["offset_to_points"] + span))
     for index in range(reading):
         values = struct.unpack_from(layout, raw, start + index * length)
+        has_time = header["point_format"] in (1, 3)
+        has_rgb = header["point_format"] in (2, 3)
+        rgb_start = 10 if has_time else 9
         x, y, z, intensity, bits, classification, angle, user, source = values[:9]
         returns, total = bits & 0b111, (bits >> 3) & 0b111
         # The native values, in whatever unit the declared reference uses, are always carried.
@@ -659,8 +664,13 @@ def convert(raw, capture_time_us, first_point=0, point_limit=None):
             point_source_basis=SOURCE_BASIS,
             point_gps_time_reported=(
                 repr(finite_double(values[9], "GPS time tag of point %d" % index))
-                if len(values) > 9 else None),
-            gps_time_basis=(GPS_TIME_BASIS if len(values) > 9 else None)))
+                if has_time else None),
+            gps_time_basis=(GPS_TIME_BASIS if has_time else None),
+            point_red_reported_u16=values[rgb_start] if has_rgb else None,
+            point_green_reported_u16=values[rgb_start + 1] if has_rgb else None,
+            point_blue_reported_u16=values[rgb_start + 2] if has_rgb else None,
+            point_rgb_basis=("REPORTED_NORMALIZED_16BIT_RGB_NO_COLORSPACE_ASSERTION"
+                             if has_rgb else None)))
         report["points_read"] += 1
         if output.tell() > MAX_OUTPUT:
             raise ValueError("converted LAS output exceeds bound")

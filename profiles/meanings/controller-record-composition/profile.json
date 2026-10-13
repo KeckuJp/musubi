@@ -1,0 +1,30 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "unlocated_zero_for_association_not_source_capture",
+      "basis": "declared"
+    },
+    "source_capture_time_us": {
+      "meaning": "source_capture_time_us",
+      "unit": "us_on_separate_source_clock_no_sync",
+      "basis": "declared"
+    },
+    "association_basis": {
+      "meaning": "association_basis",
+      "unit": "caller_declared_entity_not_authenticated_no_carryforward",
+      "basis": "declared"
+    },
+    "source_row_index": {
+      "meaning": "source_row_index",
+      "unit": "zero_based_input_CSV_row",
+      "basis": "declared"
+    }
+  }
+}

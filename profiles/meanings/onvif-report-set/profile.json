@@ -1,0 +1,50 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "unlocated_zero_for_association_not_source_capture",
+      "basis": "declared"
+    },
+    "source_capture_time_us": {
+      "meaning": "source_capture_time_us",
+      "unit": "us_in_per_source_declared_clock_not_synchronized",
+      "basis": "declared"
+    },
+    "pan_tilt_x_normalized": {
+      "meaning": "pan_tilt_x_normalized",
+      "unit": "normalized_full_mechanical_range_not_radians",
+      "basis": "declared"
+    },
+    "pan_tilt_y_normalized": {
+      "meaning": "pan_tilt_y_normalized",
+      "unit": "normalized_full_mechanical_range_not_radians",
+      "basis": "declared"
+    },
+    "zoom_x_normalized": {
+      "meaning": "zoom_x_normalized",
+      "unit": "normalized_wide_to_tele_not_magnification",
+      "basis": "declared"
+    },
+    "imaging_exposure_time_s": {
+      "meaning": "imaging_exposure_time_s",
+      "unit": "s",
+      "basis": "declared"
+    },
+    "imaging_gain_db": {
+      "meaning": "imaging_gain_db",
+      "unit": "dB",
+      "basis": "declared"
+    },
+    "imaging_iris_attenuation_db": {
+      "meaning": "imaging_iris_attenuation_db",
+      "unit": "dB",
+      "basis": "declared"
+    }
+  }
+}

@@ -35,6 +35,7 @@ import argparse
 import csv
 import hashlib
 import io
+import json
 import math
 from pathlib import Path
 import re
@@ -94,6 +95,8 @@ def saved_lines(text):
 
 
 def patches(text):
+    if text == "":
+        return []  # CreateEmpty writes exactly zero bytes, not whitespace or a terminator.
     """Split the saved file into (colour line, vertices) patches exactly as the writer laid them out."""
     lines = saved_lines(text)
     # A file written by this path ends with exactly one line terminator, which leaves exactly one empty
@@ -104,7 +107,7 @@ def patches(text):
     if not lines:
         # CreateEmpty writes a zero-byte file; that is the writer's own "no coverage" state, and it is
         # named rather than reported as a successful read of nothing.
-        raise ValueError("saved sections file records no coverage patch")
+        raise ValueError("only exact zero bytes represent no saved patches")
     result, position = [], 0
     while position < len(lines):
         count_text = lines[position]
@@ -131,7 +134,7 @@ def patches(text):
     return result
 
 
-def convert(text, capture_time_us):
+def convert(text, capture_time_us, *, report=None):
     if type(capture_time_us) is not int or type(capture_time_us) is bool or \
             not 0 <= capture_time_us < 2**63:
         raise ValueError("explicit nonnegative signed64 capture microseconds required")
@@ -142,7 +145,8 @@ def convert(text, capture_time_us):
     output = io.StringIO(newline="")
     writer = csv.DictWriter(output, fieldnames=FIELDS, lineterminator="\n")
     writer.writeheader()
-    for patch_index, (colour_line, vertices) in enumerate(patches(text)):
+    parsed = patches(text)
+    for patch_index, (colour_line, vertices) in enumerate(parsed):
         # The exact colour line as written, not a re-formatted triple; hex because the downstream CSV
         # contract is unquoted and the line contains commas.
         colour_hex = "hex:" + colour_line.encode("utf-8").hex()
@@ -160,6 +164,12 @@ def convert(text, capture_time_us):
                 "source_record_hex": "hex:" + line.encode("utf-8").hex()})
             if output.tell() > MAX_OUTPUT:
                 raise ValueError("converted output exceeds bound")
+    if report is not None:
+        report.update({"source_document_sha256": digest, "source_bytes": len(raw),
+                       "patch_count": len(parsed),
+                       "observation_count": sum(len(vertices) for _, vertices in parsed),
+                       "state": "NO_SAVED_PATCHES" if not parsed else "SAVED_PATCHES",
+                       "basis": "PINNED_WRITER_SAVED_STATE_NOT_PHYSICAL_APPLICATION"})
     return output.getvalue()
 
 
@@ -167,15 +177,21 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--report", type=Path, help="optional saved-state/count/source-digest JSON")
     parser.add_argument("--capture-time-us", type=int, required=True,
                         help="caller clock; the saved file carries no time of its own")
     args = parser.parse_args()
     try:
         with args.input.open(encoding="utf-8", newline="") as stream:
             text = stream.read(MAX_INPUT + 1)
-        converted = convert(text, args.capture_time_us)
+        report = {}
+        converted = convert(text, args.capture_time_us, report=report)
         with args.output.open("x", encoding="utf-8", newline="") as stream:
             stream.write(converted)
+        if args.report:
+            with args.report.open("x", encoding="utf-8") as stream:
+                json.dump(report, stream, sort_keys=True)
+                stream.write("\n")
     except (OSError, ValueError) as exc:
         parser.exit(2, f"AgOpenGPS sections conversion failed: {exc}\n")
 

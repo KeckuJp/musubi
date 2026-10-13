@@ -131,6 +131,7 @@ pub fn parse_non_decreasing(bytes: &[u8], time_column: &str) -> Result<Table, Pa
 /// Explicit input policies. Defaults retain the strict historical parser behavior.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ParseOptions {
+    /// Accept a fully validated header without data rows; never accepts empty bytes.
     pub allow_empty_rows: bool,
     /// Keep equal timestamps in source order, not asserted event order.
     pub allow_equal_time: bool,

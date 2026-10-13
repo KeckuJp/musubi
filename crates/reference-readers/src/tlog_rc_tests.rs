@@ -75,4 +75,3 @@ fn reported_rc_channels_separate_input_and_crc_refusal() {
             .is_err()
     );
 }
-

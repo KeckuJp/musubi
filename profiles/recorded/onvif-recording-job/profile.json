@@ -1,0 +1,35 @@
+{
+  "profile_id": "onvif_saved_recording_job_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "caller_capture_us_unknown_clock_not_response_generation_time",
+    "recording_row_kind": "JOB_or_SOURCE_aggregate_summary_or_TRACK_report_not_successful_recording_count",
+    "recording_source_index": "zero_based_source_ordinal_in_response_not_unique_device_identity",
+    "recording_track_index": "zero_based_track_ordinal_within_source_repeated_tokens_preserved",
+    "recording_job_token_hex": "hex_UTF8_caller_association_not_echoed_by_response_not_authenticated",
+    "recording_token_hex": "hex_UTF8_reported_destination_recording_token_not_authenticated",
+    "recording_source_token_hex": "hex_UTF8_reported_source_reference_token_not_authenticated",
+    "recording_source_type_hex": "hex_UTF8_reported_Type_anyURI_empty_distinct_absent_schema_default_not_materialized",
+    "recording_source_tag_hex": "hex_UTF8_reported_source_track_tag_not_physical_identity",
+    "recording_destination_hex": "hex_UTF8_reported_destination_track_reference",
+    "recording_state_hex": "hex_UTF8_reported_state_known_track_values_Idle_Active_Error_aggregate_uninterpreted",
+    "recording_state_disposition": "SCHEMA_KNOWN_REPORTED_or_UNKNOWN_STATE_RETAINED_or_AGGREGATE_REPORTED_UNINTERPRETED",
+    "recording_track_error_reported": "reported_track_Error_equals_1_Idle_Active_equal_0_unknown_or_aggregate_blank_not_physical_failure",
+    "recording_error_presence": "NOT_APPLICABLE_aggregate_or_NOT_REPORTED_or_EMPTY_or_REPORTED_optional_track_text",
+    "recording_error_hex": "hex_UTF8_implementation_defined_reported_error_not_causal_diagnosis_hex_is_not_redaction",
+    "source_response_sha256": "SHA256_exact_UTF8_source_in_mandatory_paired_report_not_authentication"
+  }
+}

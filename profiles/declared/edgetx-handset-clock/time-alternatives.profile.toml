@@ -8,7 +8,7 @@ default_clock_basis = "unknown"
 channels = ["link_stats"]
 
 [fields]
-time = "Date,Time|tmr10ms"
+time = "Date,Time|Time|tmr10ms"
 link = ["RQly(%)"]
 
 [units]

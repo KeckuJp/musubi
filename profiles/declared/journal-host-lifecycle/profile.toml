@@ -1,0 +1,19 @@
+profile_id = "journal_host_lifecycle_v257"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+
+[fields]
+time = "record_time_us"
+
+[units]
+record_time_us = "us_since_epoch_journal_reception_not_event_time_or_verified_UTC"
+lifecycle_event = "fixed_producer_report_not_physical_reboot_or_cause"
+operation_limit = "ordinary_soft_startup_or_poweroff_reboot_failure_remain_undistinguished"
+reported_message_id = "exact_systemd_v257_catalog_ID_checked_against_writer_callsites"
+source_record_index = "one_based_physical_line_index"
+uninterpreted_field_count = "fields_retained_by_reference_to_required_original_input"

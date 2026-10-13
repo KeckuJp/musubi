@@ -1,0 +1,135 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "container_id_hex": {
+      "meaning": "container_id_hex",
+      "unit": "utf8_hex_reported_daemon_Id_not_authenticated_identity",
+      "basis": "declared"
+    },
+    "container_name_hex": {
+      "meaning": "container_name_hex",
+      "unit": "utf8_hex_reported_mutable_Name_including_leading_slash_not_identity",
+      "basis": "declared"
+    },
+    "container_status_reported": {
+      "meaning": "container_status_reported",
+      "unit": "reported_pinned_daemon_State_status_not_reader_lifecycle_verdict",
+      "basis": "declared"
+    },
+    "container_status_disposition": {
+      "meaning": "container_status_disposition",
+      "unit": "known_or_unknown_reported_status_without_coercion",
+      "basis": "declared"
+    },
+    "container_running_reported": {
+      "meaning": "container_running_reported",
+      "unit": "reported_boolean_Running_may_coexist_with_Paused_or_Restarting",
+      "basis": "declared"
+    },
+    "container_paused_reported": {
+      "meaning": "container_paused_reported",
+      "unit": "reported_boolean_Paused_may_coexist_with_Running",
+      "basis": "declared"
+    },
+    "container_restarting_reported": {
+      "meaning": "container_restarting_reported",
+      "unit": "reported_boolean_Restarting_may_coexist_with_Running",
+      "basis": "declared"
+    },
+    "container_oom_killed_reported": {
+      "meaning": "container_oom_killed_reported",
+      "unit": "daemon_reported_boolean_not_independent_OOM_cause_diagnosis",
+      "basis": "declared"
+    },
+    "container_dead_reported": {
+      "meaning": "container_dead_reported",
+      "unit": "daemon_reported_boolean_Dead",
+      "basis": "declared"
+    },
+    "container_exit_code_reported": {
+      "meaning": "container_exit_code_reported",
+      "unit": "reported_signed_integer_ExitCode_zero_while_running_not_completion",
+      "basis": "declared"
+    },
+    "container_last_lifecycle_error_hex": {
+      "meaning": "container_last_lifecycle_error_hex",
+      "unit": "utf8_hex_reported_last_lifecycle_error_not_necessarily_program_stderr",
+      "basis": "declared"
+    },
+    "container_health_reported": {
+      "meaning": "container_health_reported",
+      "unit": "reported_health_status_not_reader_verdict",
+      "basis": "declared"
+    },
+    "container_health_disposition": {
+      "meaning": "container_health_disposition",
+      "unit": "health_missing_is_not_healthy_unknown_retained",
+      "basis": "declared"
+    },
+    "container_health_failing_streak_reported": {
+      "meaning": "container_health_failing_streak_reported",
+      "unit": "reported_count_of_consecutive_healthcheck_failures_not_duration",
+      "basis": "declared"
+    },
+    "container_state_basis": {
+      "meaning": "container_state_basis",
+      "unit": "pinned_saved_daemon_report_not_cause_or_completion_proof",
+      "basis": "declared"
+    },
+    "container_started_raw_hex": {
+      "meaning": "container_started_raw_hex",
+      "unit": "utf8_hex_original_State_StartedAt",
+      "basis": "declared"
+    },
+    "container_started_epoch_s": {
+      "meaning": "container_started_epoch_s",
+      "unit": "s_integer_Unix_whole_second_of_reported_start_not_trusted_UTC",
+      "basis": "declared"
+    },
+    "container_started_subsecond_ns": {
+      "meaning": "container_started_subsecond_ns",
+      "unit": "ns_exact_fractional_remainder_of_reported_start_0_to_999999999",
+      "basis": "declared"
+    },
+    "container_started_disposition": {
+      "meaning": "container_started_disposition",
+      "unit": "REPORTED_or_canonical_ZERO_TIME_or_absent_NOT_REPORTED",
+      "basis": "declared"
+    },
+    "container_finished_raw_hex": {
+      "meaning": "container_finished_raw_hex",
+      "unit": "utf8_hex_original_State_FinishedAt",
+      "basis": "declared"
+    },
+    "container_finished_epoch_s": {
+      "meaning": "container_finished_epoch_s",
+      "unit": "s_integer_Unix_whole_second_of_reported_finish_may_be_previous_run_not_trusted_UTC",
+      "basis": "declared"
+    },
+    "container_finished_subsecond_ns": {
+      "meaning": "container_finished_subsecond_ns",
+      "unit": "ns_exact_fractional_remainder_of_reported_finish_0_to_999999999",
+      "basis": "declared"
+    },
+    "container_finished_disposition": {
+      "meaning": "container_finished_disposition",
+      "unit": "REPORTED_or_canonical_ZERO_TIME_or_absent_NOT_REPORTED",
+      "basis": "declared"
+    },
+    "source_document_sha256": {
+      "meaning": "source_document_sha256",
+      "unit": "sha256_of_original_UTF8_JSONL_bytes",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "zero_based_original_snapshot_ordinal",
+      "basis": "declared"
+    }
+  }
+}

@@ -108,6 +108,51 @@ def attitude(roll=12.5, pitch=-3.25, yaw=180.0, stamp=42000, capture=1000):
 class SdkAttitude(unittest.TestCase):
     """Saved reported attitude: the declared orientation values, not a derived or fused attitude."""
 
+    @unittest.skipUnless(protobuf_decoder_available() and os.environ.get("MUSUBI_TELEMETRY_READER"),
+                         "required post-build CI supplies pinned protobuf and common reader")
+    def test_velocity_ned_response_reuses_wire_and_common(self):
+        import struct
+        def record(payload):
+            return dict(sdk_version="3.17.4", capture_time_us=1234,
+                proto_commit="d3cb35f49d1379d2d95a6d22cdbe40ff4074e9bf",
+                grpc_frame_hex=(b'\0' + len(payload).to_bytes(4, 'big') + payload).hex())
+        for values in ((1.5, -2.25, 0.), (-3., 0., 7.)):
+            wire = b''.join(bytes([13 + 8*i]) + struct.pack('<f', v)
+                            for i, v in enumerate(values) if v != 0.) + b'\x78\x01'
+            response = b'\x0a' + bytes([len(wire)]) + wire + b'\x78\x02'
+            original = record(response)
+            output = convert(json.dumps(original), "mavsdk-velocity-ned-grpc")
+            common = self.common_fields(output)
+            observation = common['observations'][0]; fields = observation['fields']
+            self.assertEqual([fields['reported_velocity_' + axis + '_m_s'] for axis in ('north','east','down')], list(values))
+            self.assertEqual(fields['protobuf_unknown_fields'], 2)
+            zero = ['north_m_s','east_m_s','down_m_s'][values.index(0.)]
+            self.assertEqual(fields['protobuf_zero_or_absent_fields_hex'], 'hex:' + zero.encode().hex())
+            self.assertEqual(fields['source_record_hex'], 'hex:' + json.dumps(original).encode().hex())
+            self.assertEqual(observation['clock_basis'], 'Unknown')
+            self.assertIsNone(observation['anchor_unix_us'])
+            self.assertIn('NO_MESSAGE_CLOCK', fields['velocity_ned_basis'])
+            self.assertEqual(fields['protobuf_value_basis'], 'GRPC_MESSAGE_NOT_RPC_SUCCESS')
+        empty = self.common_fields(convert(json.dumps(record(b'\x0a\0')), "mavsdk-velocity-ned-grpc"))
+        self.assertEqual(empty['observations'][0]['fields']['protobuf_zero_or_absent_fields_hex'],
+                         'hex:' + b'north_m_s,east_m_s,down_m_s'.hex())
+        nan = self.common_fields(convert(json.dumps(record(b'\x0a\x05\x0d' + struct.pack('<f', float('nan')))),
+                                       "mavsdk-velocity-ned-grpc"))
+        self.assertIsNone(nan['observations'][0]['fields']['reported_velocity_north_m_s'])
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'input.jsonl'; target = Path(directory) / 'out.csv'
+            source.write_text(json.dumps(original))
+            subprocess.run([os.sys.executable, str(ROOT / 'scripts/convert_ardupilot_battery_csv.py'),
+                str(source), str(target), '--source-format', 'mavsdk-velocity-ned-grpc'],
+                check=True, capture_output=True)
+            self.assertEqual(target.read_text(), output)
+        for payload in (b'', b'\x0a\x05\x0d\0', b'\x0a\x05\x0d' + struct.pack('<f', float('inf'))):
+            with self.assertRaises(ValueError): convert(json.dumps(record(payload)), "mavsdk-velocity-ned-grpc")
+        for key, value in (('sdk_version','other'), ('proto_commit','0'*40), ('capture_time_us', True),
+                           ('grpc_frame_hex','01000000020a00')):
+            bad = record(b'\x0a\0'); bad[key] = value
+            with self.assertRaises(ValueError): convert(json.dumps(bad), "mavsdk-velocity-ned-grpc")
+
     def common_fields(self, output, expected=1):
         """The actual shared reader over one converted CSV; never a silent pass.
 
@@ -130,13 +175,17 @@ class SdkAttitude(unittest.TestCase):
                          "common-output proof needs the built shared reader; required CI supplies it")
     def test_two_authored_messages_reach_common_output_with_declared_orientation(self):
         import math
+        # Second set is held out from the implementation: different values, a negative yaw, a
+        # level (exactly zero) roll and a zero device timestamp.
         for roll, pitch, yaw, stamp in ((12.5, -3.25, 180.0, 42000), (0.0, 89.5, -45.125, 0)):
             record = attitude(roll, pitch, yaw, stamp)
             text = json.dumps(record)
             row = next(csv.DictReader(io.StringIO(convert(text, "mavsdk-attitude-json"))))
+            # Degrees are converted exactly once; nothing is wrapped or renormalised.
             self.assertAlmostEqual(float(row["attitude_roll_rad"]), math.radians(roll))
             self.assertAlmostEqual(float(row["attitude_pitch_rad"]), math.radians(pitch))
             self.assertAlmostEqual(float(row["attitude_yaw_rad"]), math.radians(yaw))
+            # The device clock stays the device clock, beside the caller's capture time.
             self.assertEqual(row["attitude_device_time_us"], str(stamp))
             self.assertEqual(row["record_time_us"], "1000")
             self.assertNotEqual(row["attitude_device_time_us"], row["record_time_us"])
@@ -160,6 +209,7 @@ class SdkAttitude(unittest.TestCase):
         record = attitude()
         record["attitude_euler"].update(rollDeg="NaN", yawDeg="NaN")
         row = next(csv.DictReader(io.StringIO(convert(json.dumps(record), "mavsdk-attitude-json"))))
+        # An unknown angle is withheld, never zero-filled, and the others still convert.
         self.assertEqual((row["attitude_roll_rad"], row["attitude_yaw_rad"]), ("", ""))
         self.assertTrue(float(row["attitude_pitch_rad"]) < 0)
         self.assertIn("RIGHT_HANDED", row["attitude_angle_basis"])
@@ -196,18 +246,24 @@ class SdkAttitude(unittest.TestCase):
         self.assertEqual(row["attitude_device_time_us"], "42000")
         self.assertEqual(bytes.fromhex(row["protobuf_zero_or_absent_fields_hex"][4:]).decode(), "")
         self.assertEqual(row["protobuf_value_basis"], "PROTO3_DECODED_NOT_SENSOR_VALIDATED")
+        # A level attitude is a real 0.0 that proto3 cannot distinguish from an absent field: the
+        # value is kept and the ambiguity is named, never silently withheld or invented.
         level = encoded(None, -3.25, None, 0)
         row = next(csv.DictReader(io.StringIO(convert(json.dumps(
             dict(base, attitude_protobuf_hex=level.hex())), "mavsdk-attitude-protobuf"))))
         self.assertEqual(float(row["attitude_roll_rad"]), 0.0)
         self.assertEqual(bytes.fromhex(row["protobuf_zero_or_absent_fields_hex"][4:]).decode(),
                          "rollDeg,yawDeg,timestampUs")
+        # The adopted gRPC framing, reused unchanged: one non-compressed length-prefixed message.
         inner = bytes([1 << 3 | 2]) + bytes([len(wire)]) + wire
         frame = b"\x00" + len(inner).to_bytes(4, "big") + inner
         output = convert(json.dumps(dict(base, grpc_frame_hex=frame.hex())), "mavsdk-attitude-grpc")
         row = next(csv.DictReader(io.StringIO(output)))
         self.assertAlmostEqual(float(row["attitude_yaw_rad"]), math.pi, places=6)
         self.assertEqual(row["protobuf_value_basis"], "GRPC_MESSAGE_NOT_RPC_SUCCESS")
+        # The wire route must reach the same common Observation as the JSON one, through the same
+        # helper and profile, carrying its zero-or-absent bookkeeping with it.
+        # The common leg is part of this proof, not an optional extra.
         fields = self.common_fields(output)["observations"][0]["fields"]
         self.assertAlmostEqual(fields["attitude_yaw_rad"], math.pi, places=6)
         self.assertAlmostEqual(fields["attitude_roll_rad"], math.radians(12.5), places=6)
@@ -216,6 +272,8 @@ class SdkAttitude(unittest.TestCase):
         self.assertEqual(fields["protobuf_value_basis"], "GRPC_MESSAGE_NOT_RPC_SUCCESS")
         self.assertEqual(fields["protobuf_unknown_fields"], 0)
         self.assertIn("REFERENCE_FRAME_NOT_STATED_BY_SOURCE", fields["attitude_angle_basis"])
+        # A wire message whose fields were absent-or-zero keeps its values and carries the
+        # ambiguity into the common output rather than resolving it.
         partial = convert(json.dumps(dict(base, attitude_protobuf_hex=level.hex())),
                           "mavsdk-attitude-protobuf")
         zero_fields = self.common_fields(partial)["observations"][0]["fields"]
@@ -226,14 +284,18 @@ class SdkAttitude(unittest.TestCase):
         self.assertIn("same_bytes", self.common_fields(partial)["profile_units"][
             "protobuf_zero_or_absent_fields_hex"])
         for bad in (dict(base, attitude_protobuf_hex="zz"),
+                    # A float field cut mid-value: the decoder must refuse, never pad.
                     dict(base, attitude_protobuf_hex=wire.hex()[:-2]),
                     dict(base, attitude_protobuf_hex=wire.hex()[:6]),
                     dict(base, proto_commit="0" * 40, attitude_protobuf_hex=wire.hex())):
             with self.subTest(bad=str(bad)[-40:]), self.assertRaises(ValueError):
                 convert(json.dumps(bad), "mavsdk-attitude-protobuf")
         for bad in (
+                # A real compressed-flag frame: first byte 0x01, valid hex, correct length prefix.
                 "01" + frame.hex()[2:],
+                # Length prefix disagreeing with the body.
                 "00" + (len(inner) + 1).to_bytes(4, "big").hex() + inner.hex(),
+                # Nested absence: a well-formed response that carries no EulerAngle at all.
                 (b"\x00" + (0).to_bytes(4, "big")).hex(),
                 frame.hex()[:8]):
             with self.subTest(frame=bad[:16]), self.assertRaises(ValueError):

@@ -67,6 +67,12 @@ QUALITY_NOT_IN_LEGEND = frozenset({7})
 # The decimal-degree column labels `outsolheads` writes for SOLF_LLH, in order.
 LLH_COLUMNS = ("latitude(deg)", "longitude(deg)", "height(m)", "Q", "ns", "sdn(m)", "sde(m)",
                "sdu(m)", "sdne(m)", "sdeu(m)", "sdun(m)", "age(s)", "ratio")
+VELOCITY_COLUMNS = ("vn(m/s)", "ve(m/s)", "vu(m/s)", "sdvn", "sdve", "sdvu",
+                    "sdvne", "sdveu", "sdvun")
+VELOCITY_FIELDS = ("velocity_north_m_s", "velocity_east_m_s", "velocity_up_m_s",
+                   "velocity_sdn_m_s", "velocity_sde_m_s", "velocity_sdu_m_s",
+                   "velocity_sdne_signed_m_s", "velocity_sdeu_signed_m_s",
+                   "velocity_sdun_signed_m_s")
 # Labels that mean this file is a format this path does not read.
 FOREIGN_COLUMNS = {"x-ecef(m)": "SOLF_XYZ", "e-baseline(m)": "SOLF_ENU",
                    "latitude(d'\")": "SOLF_LLH with opt->degf=1 (degree/minute/second)"}
@@ -389,11 +395,13 @@ def parse_header(lines, declared_height, declared_datum, declared_time_system):
 
 
 def convert(data, height_reference=None, horizontal_datum=None, time_system=None,
-            output_budget=None):
+            output_budget=None, reported_velocity=False):
     """Saved .pos bytes -> (CSV text for the common reader, a report of what was read).
 
     One row per solution epoch the producer wrote. Nothing is solved, nothing is converted.
     """
+    if type(reported_velocity) is not bool:
+        raise ValueError("reported_velocity must be an explicit boolean")
     budget = MAX_OUTPUT if output_budget is None else output_budget
     if not isinstance(data, bytes):
         raise ValueError("a saved solution file is read as bytes")
@@ -433,6 +441,10 @@ def convert(data, height_reference=None, horizontal_datum=None, time_system=None
         raise ValueError("the saved file carries more solution epochs than the finite bound")
 
     settled = parse_header(header_lines, height_reference, horizontal_datum, time_system)
+    if reported_velocity:
+        if tuple(settled["columns"]) != LLH_COLUMNS + VELOCITY_COLUMNS:
+            raise ValueError("velocity requires the exact pinned LLH outvel header and order")
+        settled["uncarried"] = []
     digest = hashlib.sha256(data).hexdigest()
     # The producer's own provenance lines, carried verbatim. `% program` and `% inp file` are what
     # outsolopts writes; they are the producer's statement and are never resolved or verified here.
@@ -502,16 +514,21 @@ def convert(data, height_reference=None, horizontal_datum=None, time_system=None
             age_of_differential_s=exact_number(named["age(s)"], "age", 0, None),
             ambiguity_ratio_reported=exact_number(named["ratio"], "ratio", 0, None),
             source_line=number))
+        if reported_velocity:
+            for index, (label, field) in enumerate(zip(VELOCITY_COLUMNS, VELOCITY_FIELDS)):
+                rows[-1][field] = exact_number(named[label], label,
+                                              0 if 3 <= index <= 5 else None, None)
 
     buffer = io.StringIO()
     writer = csv.writer(buffer, lineterminator="\n")
-    writer.writerow(FIELDS)
+    fields = FIELDS + VELOCITY_FIELDS if reported_velocity else FIELDS
+    writer.writerow(fields)
     written = len(buffer.getvalue().encode("utf-8"))
     row_buffer = io.StringIO()
     row_writer = csv.writer(row_buffer, lineterminator="\n")
     for index, row in enumerate(rows):
-        values = [row[name] for name in FIELDS]
-        for name, value in zip(FIELDS, values):
+        values = [row[name] for name in fields]
+        for name, value in zip(fields, values):
             if isinstance(value, str) and NEEDS_QUOTING.search(value):
                 raise ValueError("%s would need CSV quoting, which the common reader refuses"
                                  % name)
@@ -542,6 +559,11 @@ def convert(data, height_reference=None, horizontal_datum=None, time_system=None
         "solutions_computed": NOT_A_SOLVER,
         "verified_accuracy": "NONE_EVERY_QUALITY_AND_SPREAD_REMAINS_THE_PRODUCERS_OWN_REPORT",
     }
+    if reported_velocity:
+        report["velocity_basis"] = (
+            "RTKLIB_2_4_3_B34_OUTVEL_REPORTED_LOCAL_NORTH_EAST_UP_M_S_"
+            "SDVN_SDVE_SDVU_STANDARD_DEVIATIONS_CROSS_TERMS_SIGNED_SQRT_COVARIANCE_"
+            "NOT_VERIFIED_ACCURACY_NO_RECOMPUTATION")
     return buffer.getvalue(), report
 
 
@@ -556,6 +578,8 @@ def main(argv=None):
                         help="likewise for the horizontal datum")
     parser.add_argument("--declare-time-system", choices=TIME_SYSTEMS, default=None,
                         help="likewise for the time system")
+    parser.add_argument("--reported-velocity", action="store_true",
+                        help="interpret the pinned LLH outvel columns as reported NEU velocity")
     arguments = parser.parse_args(argv)
     size = arguments.source.stat().st_size
     if size > MAX_INPUT:
@@ -567,7 +591,8 @@ def main(argv=None):
         raise ValueError("the saved solution file grew past the %d byte input bound while reading"
                          % MAX_INPUT)
     output, report = convert(data, arguments.declare_height_reference, arguments.declare_datum,
-                            arguments.declare_time_system)
+                            arguments.declare_time_system,
+                            reported_velocity=arguments.reported_velocity)
     if arguments.output.exists():
         raise ValueError("the output directory %s already exists; this converter never overwrites "
                          "an existing artifact" % arguments.output)

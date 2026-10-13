@@ -107,7 +107,7 @@ pub const fn defining_dialect(msgid: u32) -> Option<DefiningDialect> {
 /// **どの dialect が定義しているかは msgid ごとに違う**ので `defining_dialect` を見る。
 /// この表自体は 1 つの dialect closure ではなく、上の include 連鎖＋ardupilotmega の
 /// 有限な混在であり、「common／ardupilotmega の 2 つ」ではない。
-/// # なぜ: writer 側 `reference-writers::mavlink` と値を二重に持つ（reader→writer 依存は逆方向で不適切、adapter-mavlink に
+/// # なぜ: writer 側 `predemo-writers::mavlink` と値を二重に持つ（reader→writer 依存は逆方向で不適切、adapter-mavlink に
 /// CRC fn が無い）。両者は独立に dialect 定数を転記し、round-trip test（writer→reader）が一致を担保する。
 #[must_use]
 pub const fn crc_extra(msgid: u32) -> Option<u8> {
@@ -1041,7 +1041,7 @@ fn decode(msgid: u32, p: &[u8]) -> Decoded {
                 f("SYSTEM_TIME.time_boot_ms", boot_ms),
             ];
             d.t_boot_us = Some((boot_ms as u64) * 1000);
-            // 0＝RTC 未取得＝「不明」。2000 年以前・不可能値も anchor にしない。
+            // 0＝RTC 未取得＝「不明」（recorded-input contract）。2000 年以前・不可能値も anchor にしない。
             d.anchor_unix_us = (unix > 946_684_800_000_000).then_some(unix as i64);
         }
         24 => {
@@ -1827,7 +1827,7 @@ time = "host_us"
         );
     }
 
-    /// A06-04-U006. The provenance table is a claim about definitions, so it is checked against
+    /// recorded-input contract. The provenance table is a claim about definitions, so it is checked against
     /// the definition set rather than against the msgid's numeric range.
     #[test]
     fn every_supported_message_names_the_dialect_that_defines_it() {

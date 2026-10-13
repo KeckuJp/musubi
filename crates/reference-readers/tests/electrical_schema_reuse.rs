@@ -26,7 +26,7 @@ fn converted(format: &str, input: &str) -> Vec<u8> {
 #[test]
 fn ros_and_both_vda_layouts_use_the_same_reader_without_clock_or_domain_inference() {
     let profile = parse_profile(
-        include_str!("fixtures/unknown-adapter--electrical-schema-reuse--json-profile.toml"),
+        include_str!("../../../profiles/declared/electrical-schema-reuse/json-profile.toml"),
         "test",
     )
     .unwrap();
@@ -96,7 +96,7 @@ fn ros_and_both_vda_layouts_use_the_same_reader_without_clock_or_domain_inferenc
 #[test]
 fn rover_alias_and_unavailable_current_reuse_the_adopted_bat_profile() {
     let profile = parse_profile(
-        include_str!("fixtures/unknown-adapter--ardupilot-battery--profile.toml"),
+        include_str!("../../../profiles/declared/ardupilot-battery/profile.toml"),
         "test",
     )
     .unwrap();
@@ -107,9 +107,9 @@ fn rover_alias_and_unavailable_current_reuse_the_adopted_bat_profile() {
             &profile,
             &bytes,
             musubi_decoded_csv::ParseOptions {
-                allow_empty_rows: false,
                 allow_equal_time: true,
                 preserve_nonfinite_as_text: true,
+                ..Default::default()
             },
         )
         .unwrap();
@@ -129,7 +129,7 @@ fn rover_alias_and_unavailable_current_reuse_the_adopted_bat_profile() {
 #[test]
 fn vda_reported_state_and_unknown_enum_reach_common_fields_without_control_inference() {
     let profile = parse_profile(
-        include_str!("fixtures/unknown-adapter--electrical-schema-reuse--json-profile.toml"),
+        include_str!("../../../profiles/declared/electrical-schema-reuse/json-profile.toml"),
         "test",
     )
     .unwrap();

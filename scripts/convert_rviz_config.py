@@ -18,7 +18,7 @@ refuses aliases, anchors, tags and directives, the explicit document count, dupl
 refusal, a bounded read before allocation, and the reader's own exceptions never escaping.
 
 Contract, refusals and what the pin does not settle:
-docs/saved-inputs.md
+docs/saved-input-comparisons.md
 """
 import argparse
 import csv
@@ -76,25 +76,32 @@ QOS_DEPTH = "Depth"
 # `rviz_default_plugins/plugins_description.xml` maps each to a C++ type that inherits
 # `rviz_common::MessageFilterDisplay<...>`, a sibling of `RosTopicDisplay` under `_RosTopicDisplay`,
 # which is where `RosTopicProperty("Topic", ...)` and the `QosProfileProperty` parented to it live.
+# ImageDisplay instead inherits ImageTransportDisplay<sensor_msgs::msg::Image>, directly under
+# _RosTopicDisplay (same pin, displays/image/{image_display,image_transport_display}.hpp).
+# Its constructor does not replace those properties. Keep the saved transport topic literal:
+# deriving a base topic/transport for an actual subscription is deliberately not performed here.
+# CameraDisplay has the same ImageTransportDisplay base and preserves these image properties
+# (same pin, camera/camera_display.hpp and .cpp). Its separate CameraInfo subscription uses
+# a derived topic and SensorDataQoS: these saved image settings do not describe CameraInfo.
 # A property merely *named* `Topic` under any other class is retained unqualified: same name and shape
 # is not the same meaning, and this pin does not settle a custom plugin's property set.
 TOPIC_LAYOUT_CLASSES = {
     "rviz_default_plugins/LaserScan": "MessageFilterDisplay<sensor_msgs::msg::LaserScan>",
     "rviz_default_plugins/PointCloud2": "MessageFilterDisplay<sensor_msgs::msg::PointCloud2>",
     "rviz_default_plugins/Path": "MessageFilterDisplay<nav_msgs::msg::Path>",
+    "rviz_default_plugins/Image": "ImageTransportDisplay<sensor_msgs::msg::Image>",
+    "rviz_default_plugins/Camera": "ImageTransportDisplay<sensor_msgs::msg::Image>",
 }
 # Read at the same pin and deliberately NOT qualified: `Grid` and `TF` derive straight from
 # `rviz_common::Display` and declare no topic property. The class-binding pass established that TF's
-# lookup is unambiguous on the display path. `ImageTransportDisplay` and the built-in Group's topic
-# layout remain outside the bounded read; unqualified does not assert they have no topic.
+# lookup is unambiguous on the display path. The built-in Group's topic layout remains outside the
+# bounded read; unqualified does not assert it has no topic.
 TOPIC_LAYOUT_NOT_QUALIFIED = {
     "rviz_default_plugins/Grid": "derives from rviz_common::Display, no topic property",
     "rviz_default_plugins/TF": "derives from rviz_common::Display, no topic property; the same name "
                                "string is declared for a frame transformer too, but pluginlib keeps only "
                                "manifest entries whose base_class_type matches the loader's, so on the "
                                "display path the id is not ambiguous",
-    "rviz_default_plugins/Image": "derives from ImageTransportDisplay, whose base was not established "
-                                  "within the bounded read",
     # Established on the class-id binding pass: DisplayFactory registers this id as a built-in,
     # `addBuiltInClass("rviz_common", "Group", ..., &newDisplayGroup)`, so it is creatable without a
     # manifest entry. Its topic layout is still outside this unit's scope, so it stays unqualified.
@@ -125,9 +132,7 @@ CLOCK_BASIS = ("CALLER_DECLARED_CAPTURE_MICROSECONDS_NO_TIME_EXISTS_IN_THE_SAVED
                "TIME_NOT_SIMULATION_TIME")
 NOT_ESTABLISHED = [
     "each QoS enumeration's initial option, so an absent QoS key stays NOT_DECLARED",
-    "the property set of any particular display class",
-    "whether ImageTransportDisplay inherits the RosTopicDisplay layout, so rviz_default_plugins/Image "
-    "stays unqualified",
+    "other property sets of display classes beyond the qualified Topic and QoS layout",
     "what the root display group writes for its own Class, Name, Enabled and Value",
     "the behaviour of two identically named properties under one display",
 ]

@@ -1,0 +1,18 @@
+profile_id = "strace_saved_storage_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["event"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "reported_Unix_wallclock_us_not_verified"
+operation_reported = "saved_syscall_name_not_issued_by_Musubi"
+target_escaped = "strace_escaped_fd_path_on_same_record_not_canonical_identity"
+errno_reported = "reported_symbolic_errno_not_physical_diagnosis"
+requested_bytes_reported = "exact_integer_text_bytes_requested_not_written"
+offset_bytes_reported = "exact_signed_integer_text_byte_offset"
+process_id_declared = "caller_declared_single_process_file_identity"

@@ -1,0 +1,45 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "vehicle_attitude.timestamp": {
+      "meaning": "vehicle_attitude.timestamp",
+      "unit": "us_time_since_system_start_not_UTC",
+      "basis": "declared"
+    },
+    "vehicle_attitude.timestamp_sample": {
+      "meaning": "vehicle_attitude.timestamp_sample",
+      "unit": "us_raw_data_sample_timestamp_separate_from_record_timestamp",
+      "basis": "declared"
+    },
+    "vehicle_attitude.q[0]": {
+      "meaning": "vehicle_attitude.q[0]",
+      "unit": "dimensionless_reported_Hamilton_w_FRD_body_to_NED_earth_caller_declared_writer_not_authenticated_not_validated_or_normalized_by_reader",
+      "basis": "declared"
+    },
+    "vehicle_attitude.q[1]": {
+      "meaning": "vehicle_attitude.q[1]",
+      "unit": "dimensionless_reported_Hamilton_x_FRD_body_to_NED_earth_caller_declared_writer_not_authenticated_not_validated_or_normalized_by_reader",
+      "basis": "declared"
+    },
+    "vehicle_attitude.q[2]": {
+      "meaning": "vehicle_attitude.q[2]",
+      "unit": "dimensionless_reported_Hamilton_y_FRD_body_to_NED_earth_caller_declared_writer_not_authenticated_not_validated_or_normalized_by_reader",
+      "basis": "declared"
+    },
+    "vehicle_attitude.q[3]": {
+      "meaning": "vehicle_attitude.q[3]",
+      "unit": "dimensionless_reported_Hamilton_z_FRD_body_to_NED_earth_caller_declared_writer_not_authenticated_not_validated_or_normalized_by_reader",
+      "basis": "declared"
+    },
+    "vehicle_attitude.quat_reset_counter": {
+      "meaning": "vehicle_attitude.quat_reset_counter",
+      "unit": "reported_reset_counter_not_orientation_validity",
+      "basis": "declared"
+    }
+  }
+}

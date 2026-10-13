@@ -12,7 +12,7 @@ The saved-capture framing (classic PCAP 2.4, Ethernet/802.11, complete IPv4/UDP,
 validation, non-decreasing capture clock) is the admitted one: this module calls
 `convert_imc_sensors.read_pcap_records` and `iter_udp_datagrams`, the shared walker both passive
 converters now use, so there is exactly one implementation of those rules.
-Contract, ordering/wrap policy and limits: docs/saved-inputs.md.
+Contract, ordering/wrap policy and limits: docs/saved-input-comparisons.md.
 """
 import argparse
 from collections import deque
@@ -54,7 +54,7 @@ MAX_EXTENSION_BYTES = 4096
 MAX_SOURCES = 1024
 REPORT_LIMIT = 32 * 1024 * 1024
 
-# Raw hex cells carry this prefix for the same reason digests carry `sha256:` (D-32 / R-10 §3.1 #17):
+# Raw hex cells carry an explicit prefix, like the `sha256:` prefix on digests:
 # a bare hex string such as `806003e80000006411223344` parses as a number in exponent form and becomes
 # infinity for the CSV reader and a rewritten value for a spreadsheet.
 HEX_PREFIX = "hex:"

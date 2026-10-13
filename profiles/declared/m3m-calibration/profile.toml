@@ -1,0 +1,31 @@
+profile_id = "m3m_reported_calibration_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+
+[fields]
+time = "record_time_us"
+
+[units]
+record_time_us = "us_caller_capture_axis_not_photo_epoch_or_calibration_instant"
+source_image_index = "one_based_position_in_original_export_array"
+source_sha256 = "SHA256_original_supplied_export_not_authentication"
+camera_serial_hex = "utf8_hex_reported_CameraSerialNumber_not_authenticated_physical_identity"
+model_reported = "reported_DroneModel_fixed_M3M"
+image_source_hex = "utf8_hex_reported_ImageSource"
+band_name_reported = "reported_band_name_qualified_against_sensor_index"
+sensor_index_code = "reported_Green1_Red2_RedEdge3_NIR4"
+image_width_pixel = "pixel_native_image_width_as_reported_not_verified_from_pixels"
+image_height_pixel = "pixel_native_image_height_as_reported_not_verified_from_pixels"
+calibration_date = "reported_Gregorian_date_only_no_timezone_or_time_of_day_no_invented_epoch"
+dewarp_data_hex = "utf8_hex_original_DewarpData_including_five_distortion_parameters_not_interpreted_or_applied"
+calibration_status = "reported_calibration_or_missing_chain_break_not_accuracy_or_drift_verdict"
+geometry_basis = "caller_declaration_native_unresized_uncropped_not_proved_from_metadata"
+calibration_fx_pixel = "pixel_reported_calibrated_focal_length_fx_native_grid_not_physical_drift"
+calibration_fy_pixel = "pixel_reported_calibrated_focal_length_fy_native_grid_not_physical_drift"
+calibration_cx_pixel = "pixel_reported_calibrated_optical_center_cx_origin_photo_center_not_top_left"
+calibration_cy_pixel = "pixel_reported_calibrated_optical_center_cy_origin_photo_center_not_top_left"

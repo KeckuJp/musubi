@@ -1,0 +1,20 @@
+profile_id = "saved_ibm_pmbus_status_linux_6_12"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "caller_capture_microseconds_unknown_not_UTC_or_simultaneous_sampling"
+page = "caller_declared_PMBus_page_not_Corsair_rail_or_physical_connector"
+status_width = "caller_qualified_8_or_16_bit_read_status_basis_upper_bits_unknown_for_byte_fallback"
+physical_ac_presence = "UNKNOWN_reported_VIN_OFF_is_not_physical_AC_cable_presence"
+primary_status_coverage = "presence_of_word_input_vout_iout_reports_not_healthy_status_or_all_device_functions"
+alarm_status = "decoded_source_report_bits_not_independent_fault_diagnosis"
+identity_basis = "caller_source_association_not_authenticated_identity"
+source_record_sha256 = "exact_UTF8_record_excluding_newline_not_authentication"
+source_record_hex = "exact_original_record_retained"

@@ -1,0 +1,75 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "capture_time_us": {
+      "meaning": "capture_time_us",
+      "unit": "caller_declared_capture_microseconds_unknown_clock",
+      "basis": "declared"
+    },
+    "total_bytes": {
+      "meaning": "total_bytes",
+      "unit": "bytes",
+      "basis": "declared"
+    },
+    "used_bytes": {
+      "meaning": "used_bytes",
+      "unit": "bytes",
+      "basis": "declared"
+    },
+    "user_available_bytes": {
+      "meaning": "user_available_bytes",
+      "unit": "bytes_signed_available_to_unprivileged_user",
+      "basis": "declared"
+    },
+    "root_free_bytes": {
+      "meaning": "root_free_bytes",
+      "unit": "bytes_total_minus_used",
+      "basis": "declared"
+    },
+    "reserved_difference_bytes": {
+      "meaning": "reserved_difference_bytes",
+      "unit": "bytes_root_free_minus_user_available_not_failure",
+      "basis": "declared"
+    },
+    "reported_percent": {
+      "meaning": "reported_percent",
+      "unit": "percent_used_divided_by_used_plus_user_available_rounded_one_decimal",
+      "basis": "declared"
+    },
+    "total_bytes_exact": {
+      "meaning": "total_bytes_exact",
+      "unit": "integer_prefixed_exact_bytes",
+      "basis": "declared"
+    },
+    "used_bytes_exact": {
+      "meaning": "used_bytes_exact",
+      "unit": "integer_prefixed_exact_bytes",
+      "basis": "declared"
+    },
+    "user_available_bytes_exact": {
+      "meaning": "user_available_bytes_exact",
+      "unit": "integer_prefixed_exact_signed_bytes",
+      "basis": "declared"
+    },
+    "root_free_bytes_exact": {
+      "meaning": "root_free_bytes_exact",
+      "unit": "integer_prefixed_exact_bytes",
+      "basis": "declared"
+    },
+    "reserved_difference_bytes_exact": {
+      "meaning": "reserved_difference_bytes_exact",
+      "unit": "integer_prefixed_exact_difference_bytes",
+      "basis": "declared"
+    },
+    "percent_denominator_bytes_exact": {
+      "meaning": "percent_denominator_bytes_exact",
+      "unit": "integer_prefixed_used_plus_user_available_bytes",
+      "basis": "declared"
+    }
+  }
+}

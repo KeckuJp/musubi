@@ -91,6 +91,13 @@ FIELDS = ["record_time_us", "request_row_index", "request_key_hex", "request_ide
           "declared_window_us", "declared_clock_qualification", "declared_identity_basis",
           "equal_time_policy", "request_join_hex", "response_join_hex", "correlation_basis",
           "source_sha256"]
+ACK_MODE = "mavlink-request-message-148"
+PROTOCOL_PIN = "3203f89c510337c0088244735c6a5056c52b5a28"
+ACK_FIELDS = ["reported_ack_result", "reported_ack_result_code", "reported_ack_progress",
+              "reported_ack_result_param2", "saved_ack_basis"]
+ACK_RESULTS = ("ACCEPTED", "TEMPORARILY_REJECTED", "DENIED", "UNSUPPORTED", "FAILED",
+               "IN_PROGRESS", "CANCELLED", "COMMAND_LONG_ONLY", "COMMAND_INT_ONLY",
+               "COMMAND_UNSUPPORTED_MAV_FRAME", "NOT_IN_CONTROL_WIP")
 
 
 def pair(spec, what):
@@ -151,8 +158,18 @@ def read_rows(data, time_column):
 
 def convert(data, *, request_where, response_where, correlate, expectations=(), responder=(),
             identity_composite=False, index_column=None, session_column=None, window_us,
-            clock_qualified=False, time_column="record_time_us"):
+            clock_qualified=False, time_column="record_time_us", mode="parameter-read", protocol_commit=None):
     """One row per selected request. Nothing is sent; no candidate is ever chosen for the caller."""
+    if mode not in ("parameter-read", ACK_MODE):
+        raise ValueError("unqualified saved comparison mode")
+    ack_mode = mode == ACK_MODE
+    if ack_mode and (protocol_commit != PROTOCOL_PIN or request_where != "message_name=COMMAND_LONG"
+                     or response_where != "message_name=COMMAND_ACK" or correlate != "command=command"
+                     or tuple(expectations) != ("expected_result=result",)
+                     or tuple(responder) != ("target_system=source_system", "target_component=source_component",
+                                             "source_system=target_system", "source_component=target_component")
+                     or identity_composite or index_column is not None or session_column != "session"):
+        raise ValueError("fixed information-request/ACK declaration and protocol pin required")
     if type(window_us) is not int or type(window_us) is bool or not 1 <= window_us <= WINDOW_LIMIT:
         raise ValueError("an explicit positive declared window in microseconds is required")
     for flag, what in ((clock_qualified, "the clock qualification"),
@@ -182,6 +199,8 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
     needed = [request_column, response_column, request_key_column, response_key_column]
     needed += [column for spec in parsed_expectations for column in spec]
     needed += [column for spec in identity_pairs for column in spec]
+    if ack_mode:
+        needed += ["param" + str(n) for n in range(1, 8)] + ["confirmation", "result", "progress", "result_param2"]
     if index_column is not None:
         needed.append(declared_name(index_column))
     if session_column is not None:
@@ -192,6 +211,40 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
 
     def cell(row, column):
         return row[1][index[column]]
+
+    def missing_identity(row, columns):
+        return any(cell(row, name) == "" or ack_mode and cell(row, name) == "0" for name in columns)
+
+    if ack_mode:
+        def uint(value, maximum, missing=False):
+            if missing and value == "":
+                return None
+            if not re.fullmatch(r"0|[1-9][0-9]*", value) or int(value) > maximum:
+                raise ValueError("invalid fixed command/ACK integer")
+            return int(value)
+        for row in rows:
+            kind = cell(row, "message_name")
+            if kind not in ("COMMAND_LONG", "COMMAND_ACK"):
+                continue
+            if cell(row, "command") != "512":
+                raise ValueError("only saved information request command512 is qualified")
+            for name in ("source_system", "source_component", "target_system", "target_component"):
+                uint(cell(row, name), 255, missing=True)
+            if kind == "COMMAND_LONG":
+                if (not re.fullmatch(r"148(?:\.0+)?", cell(row, "param1"))
+                        or any(not re.fullmatch(r"0(?:\.0+)?", cell(row, "param" + str(n))) for n in range(2, 7))
+                        or not re.fullmatch(r"[012](?:\.0+)?", cell(row, "param7"))):
+                    raise ValueError("fixed AUTOPILOT_VERSION request parameters required")
+                uint(cell(row, "confirmation"), 255)
+                uint(cell(row, "expected_result"), 255)
+            else:
+                result = uint(cell(row, "result"), 255, missing=True)
+                progress = uint(cell(row, "progress"), 255, missing=True)
+                if result == 5 and progress is not None and progress > 100 and progress != 255:
+                    raise ValueError("invalid reported ACK progress")
+                extra = cell(row, "result_param2")
+                if extra and (not re.fullmatch(r"-?(0|[1-9][0-9]*)", extra) or not -2**31 <= int(extra) < 2**31):
+                    raise ValueError("invalid reported ACK additional result")
 
     # The basis the caller established once, for every row: it never depends on the data.
     standing = []
@@ -205,7 +258,7 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
         standing.append(IDENTITY_INCOMPLETE)
     if session_column is None:
         standing.append(SESSION_UNDECLARED)
-    if index_column is None:
+    if index_column is None and not ack_mode:
         # An index nobody declared is unknown; it is never assumed to have been the -1 sentinel.
         standing.append(INDEX_UNDECLARED)
     identity_basis = ("CALLER_DECLARED_A_COMPOSITE_COLUMN_CARRYING_SYSTEM_AND_COMPONENT"
@@ -234,6 +287,7 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
     peers = {}               # (key, party) -> the saved times of that key and party's requests
     answers = {}             # (key, party) -> the responses of that key that reported that party
     answer_times = {}        # (key, party) -> their saved times
+    terminal_report_times = {}  # ACK progress/unknown cannot clear an earlier pending request.
     blank_identity = {}      # key -> times of responses with an unreported identity field
     blank_session = {}       # key -> times of responses with an unreported session field
     reporting = {}           # key -> times of responses that reported identity and session
@@ -251,7 +305,7 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
         selected_responses += 1
         key = cell(row, response_key_column)
         response_keys.add(key)
-        if any(cell(row, name) == "" for name in response_identity_columns):
+        if missing_identity(row, response_identity_columns):
             blank_identity.setdefault(key, []).append(row[0])
         elif session_column is not None and cell(row, session_column) == "":
             blank_session.setdefault(key, []).append(row[0])
@@ -259,6 +313,8 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
             bucket = (key, party(row, response_identity_columns))
             answers.setdefault(bucket, []).append((position, row))
             answer_times.setdefault(bucket, []).append(row[0])
+            if ack_mode and cell(row, "result") in ("0", "1", "2", "3", "4", "6", "7", "8", "9", "10"):
+                terminal_report_times.setdefault(bucket, []).append(row[0])
             reporting.setdefault(key, []).append(row[0])
             reporting_session.setdefault((key, bucket[1][1]), []).append(row[0])
     if not requests:
@@ -307,8 +363,10 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
                 reasons.append(INDEX_EMPTY)
             elif declared_index != INDEX_SENTINEL:
                 reasons.append(INDEX_RULE)
-        if any(cell(row, request_column_name) == "" for request_column_name, _ in identity_pairs):
+        if missing_identity(row, request_identity_columns):
             reasons.append(IDENTITY_EMPTY)
+        if ack_mode and cell(row, "confirmation") != "0":
+            reasons.append("REPORTED_CONFIRMATION_RETRY_WITHOUT_TRANSACTION_ID")
         if session_column is not None and cell(row, session_column) == "":
             reasons.append(SESSION_EMPTY)
 
@@ -340,7 +398,8 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
         own, asked = place_in_party[position], peers[bucket]
         upto = bisect.bisect_right(asked, moment)
         previous = upto - 2 if upto - 1 == own else upto - 1
-        if previous >= 0 and not how_many(mine, asked[previous], moment):
+        clearing = terminal_report_times.get(bucket, ()) if ack_mode else mine
+        if previous >= 0 and not how_many(clearing, asked[previous], moment):
             reasons.append(OUTSTANDING)
         if bisect.bisect_right(asked, until) > upto:
             reasons.append(RETRY)
@@ -358,6 +417,9 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
                     request_session_hex=text(cell(row, session_column)) if session_column else "",
                     request_join_hex=identity([[request_key_column, key]]),
                     response_join_hex="")
+        if ack_mode:
+            line.update({name: "" for name in ACK_FIELDS})
+            line["saved_ack_basis"] = "REPORTED_ACK_NOT_EXECUTION_OR_REQUESTED_MESSAGE_RECEIPT_NO_TRANSACTION_ID"
         if reasons:
             # Ambiguity is decided before any matching and is never downgraded to a verdict.
             line.update(match_outcome=AMBIGUOUS, ambiguity_reasons="+".join(reasons))
@@ -373,6 +435,13 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
                         response_elapsed_us=answer[0] - moment,
                         response_join_hex=identity([[response_key_column,
                                                      cell(answer, response_key_column)]]))
+            if ack_mode:
+                code = cell(answer, "result")
+                label = (ACK_RESULTS[int(code)] if code and int(code) < len(ACK_RESULTS) else
+                         "UNKNOWN_ENUM_" + code if code else "NOT_REPORTED")
+                line.update(reported_ack_result="REPORTED_" + label, reported_ack_result_code=code,
+                            reported_ack_progress=cell(answer, "progress"),
+                            reported_ack_result_param2=cell(answer, "result_param2"))
             unknown = [spec for spec in parsed_expectations if cell(answer, spec[1]) == ""]
             differing = [spec for spec in parsed_expectations
                          if spec not in unknown and cell(row, spec[0]) != cell(answer, spec[1])]
@@ -392,8 +461,12 @@ def convert(data, *, request_where, response_where, correlate, expectations=(), 
                 line["match_outcome"] = MATCHED
                 report["matched"] += 1
         produced.append(line)
-    output = ",".join(FIELDS) + "\n"
-    output += "".join(",".join(str(line[name]) for name in FIELDS) + "\n" for line in produced)
+    fields = FIELDS + ACK_FIELDS if ack_mode else FIELDS
+    if ack_mode:
+        report.update(mode=mode, protocol_commit=protocol_commit, source_rows=len(rows),
+                      unselected_rows=len(rows)-len(requests)-selected_responses)
+    output = ",".join(fields) + "\n"
+    output += "".join(",".join(str(line[name]) for name in fields) + "\n" for line in produced)
     encoded = len(output.encode("utf-8"))
     if encoded > OUTPUT_LIMIT:
         raise ValueError("expanded output exceeds bound")
@@ -426,6 +499,8 @@ def main():
     parser.add_argument("--clock-qualified", action="store_true",
                         help="the caller declares the clock basis qualified for this window; "
                              "without it every row is ambiguous on the clock")
+    parser.add_argument("--mode", choices=("parameter-read", ACK_MODE), default="parameter-read")
+    parser.add_argument("--protocol-commit", help="required exact schema pin for saved request-message ACK mode")
     args = parser.parse_args()
     try:
         if args.input.stat().st_size > LIMIT:
@@ -436,7 +511,8 @@ def main():
             expectations=tuple(args.expect), responder=tuple(args.responder),
             identity_composite=args.identity_composite, index_column=args.index_column,
             session_column=args.session_column, window_us=args.window_us,
-            clock_qualified=args.clock_qualified, time_column=args.time_column)
+            clock_qualified=args.clock_qualified, time_column=args.time_column,
+            mode=args.mode, protocol_commit=args.protocol_commit)
         args.output_directory.mkdir()
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2),

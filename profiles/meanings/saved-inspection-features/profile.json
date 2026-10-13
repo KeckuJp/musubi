@@ -90,6 +90,31 @@
       "meaning": "bbox_present",
       "unit": "PRESENT_or_ABSENT_only_whether_the_feature_carried_a_bounding_box_member_at_all_its_values_are_NOT_decoded_here_and_no_extent_area_or_coverage_is_claimed",
       "basis": "declared"
+    },
+    "declared_reported_time_key_hex": {
+      "meaning": "declared_reported_time_key_hex",
+      "unit": "utf8_hex_of_CALLER_selected_property_key_no_RFC7946_property_semantics_or_producer_qualification_inferred",
+      "basis": "declared"
+    },
+    "reported_time_text_hex": {
+      "meaning": "reported_time_text_hex",
+      "unit": "utf8_hex_of_exact_reported_time_text_including_original_fraction_and_offset_blank_when_absent_or_null_no_capture_fallback",
+      "basis": "declared"
+    },
+    "reported_time_offset_hex": {
+      "meaning": "reported_time_offset_hex",
+      "unit": "utf8_hex_of_original_Z_or_explicit_signed_HH_MM_offset_not_evidence_of_physical_clock_alignment_unknown_offset_minus_zero_refused",
+      "basis": "declared"
+    },
+    "reported_time_status": {
+      "meaning": "reported_time_status",
+      "unit": "PRESENT_ABSENT_PROPERTY_NULL_PROPERTY_or_NULL_PROPERTIES_no_forward_fill_no_capture_substitution_no_silent_drop",
+      "basis": "declared"
+    },
+    "reported_time_basis": {
+      "meaning": "reported_time_basis",
+      "unit": "explicit_reported_clock_and_same_feature_association_basis_not_proof_of_measurement_time_or_inspection_no_cross_feature_or_proximity_join",
+      "basis": "declared"
     }
   }
 }

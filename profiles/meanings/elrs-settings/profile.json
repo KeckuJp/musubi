@@ -18,7 +18,7 @@
     },
     "elrs_scope": {
       "meaning": "elrs_scope",
-      "unit": "DEVICE_or_MODEL_settings_scope",
+      "unit": "DEVICE_MODEL_or_explicit_opt_in_BUTTON_declaration_scope",
       "basis": "declared"
     },
     "elrs_model_index": {
@@ -54,6 +54,31 @@
     "elrs_source_sha256": {
       "meaning": "elrs_source_sha256",
       "unit": "digest_of_the_exact_input_document_not_a_copy_of_it",
+      "basis": "declared"
+    },
+    "button_index": {
+      "meaning": "button_index",
+      "unit": "zero_based_saved_button_slot_not_physical_authenticated_identity",
+      "basis": "declared"
+    },
+    "button_action_index": {
+      "meaning": "button_action_index",
+      "unit": "zero_based_saved_action_slot_duplicates_not_deduplicated",
+      "basis": "declared"
+    },
+    "button_press_kind": {
+      "meaning": "button_press_kind",
+      "unit": "declared_SHORT_PRESS_or_LONG_PRESS_not_observed_press",
+      "basis": "declared"
+    },
+    "button_count_raw": {
+      "meaning": "button_count_raw",
+      "unit": "three_bit_stored_count_not_duration_seconds",
+      "basis": "declared"
+    },
+    "button_matching_callback_count": {
+      "meaning": "button_matching_callback_count",
+      "unit": "stored_count_plus_one_consumer_predicate_not_elapsed_time_or_observed_clicks",
       "basis": "declared"
     }
   }
