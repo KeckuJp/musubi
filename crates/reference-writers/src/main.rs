@@ -167,7 +167,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut summary = String::new();
     summary.push_str(&format!(
-        "musubi-reference-synth (P-03) seed={} t0_unix_us={} duration_ms={} events={} injections={}\n",
+        "musubi-reference-synth seed={} t0_unix_us={} duration_ms={} events={} injections={}\n",
         scenario.seed,
         timeline.t0_unix_us,
         scenario.duration_ms,
@@ -271,6 +271,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn recorded_only_kinds_reject_before_scenario_construction() {
+        for kind in ["storage_failure", "configuration_error"] {
+            let args = Args::try_parse_from([
+                "musubi-reference-synth",
+                "--inject",
+                &format!("{kind},ugv,0,1000"),
+            ])
+            .expect("valid CLI syntax");
+            let error = build_scenario(&args).expect_err("unsupported synthetic kind");
+            assert!(error.contains("unknown failure kind"));
+        }
+    }
 
     #[test]
     fn inject_spec_parses_kind_family_times_and_options() {

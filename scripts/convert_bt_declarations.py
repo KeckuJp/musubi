@@ -21,6 +21,11 @@ MAX_TREES = 64
 MAX_NODES = 4096
 MAX_DEPTH = 64
 MAX_ROWS = 65536
+BUNDLE_LIMIT = 4 * LIMIT
+MAX_FILES = 16
+BUNDLE_FIELDS = ["source_bundle_sha256", "bt_document_name_hex", "bt_document_disposition",
+                 "bt_include_target_hex", "bt_subtree_document_hex", "bt_selected_tree",
+                 "bt_selection_basis"]
 
 # src/bt_factory.cpp registration, split by the NodeType each one registers with.
 CONTROL_NODES = ("Fallback", "AsyncFallback", "Sequence", "AsyncSequence", "SequenceWithMemory",
@@ -146,9 +151,7 @@ def check_children(category, count):
         raise ValueError("control declaration needs at least one child")
 
 
-def convert(data, capture_time_us):
-    if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
-        raise ValueError("explicit capture time required")
+def _parse_document(data):
     if not data or len(data) > LIMIT:
         raise ValueError("empty or oversized tree declaration")
     text = data.decode("utf-8-sig")
@@ -174,11 +177,24 @@ def convert(data, capture_time_us):
         raise ValueError("unreadable tree declaration XML") from error
     if root.tag != "root" or root.get("BTCPP_format") != "4":
         raise ValueError("BTCPP_format 4 root element required")
-    if any(child.tag == "include" for child in root):
+    return root, text
+
+
+def convert(data, capture_time_us):
+    return _convert_document(data, capture_time_us)
+
+
+def _convert_document(data, capture_time_us, *, bundle_tree_ids=None):
+    """Same declaration decoder; bundle IDs extend reference resolution, not execution."""
+    if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
+        raise ValueError("explicit capture time required")
+    root, text = _parse_document(data)
+    in_bundle = bundle_tree_ids is not None
+    if not in_bundle and any(child.tag == "include" for child in root):
         raise ValueError("include references another file and is not resolved here")
     models = declared_models(root)
     trees = [child for child in root if child.tag == "BehaviorTree"]
-    if not trees or len(trees) > MAX_TREES:
+    if (not trees and not in_bundle) or len(trees) > MAX_TREES:
         raise ValueError("one to sixty-four declared trees required")
     identifiers = []
     for tree in trees:
@@ -187,9 +203,11 @@ def convert(data, capture_time_us):
             raise ValueError("missing or duplicate tree ID")
         identifiers.append(identifier)
     main = root.get("main_tree_to_execute")
-    if main is not None and main not in identifiers:
+    valid_ids = bundle_tree_ids if in_bundle else identifiers
+    if main is not None and main not in valid_ids:
         raise ValueError("declared main tree is not in this document")
-    if any(child.tag not in ("BehaviorTree", "TreeNodesModel") for child in root):
+    allowed = ("BehaviorTree", "TreeNodesModel", "include") if in_bundle else ("BehaviorTree", "TreeNodesModel")
+    if any(child.tag not in allowed for child in root):
         raise ValueError("unsupported root child element")
 
     order = {element: index for index, element in enumerate(root.iter())}
@@ -272,7 +290,7 @@ def convert(data, capture_time_us):
 
     for identifier, targets in references.items():
         for target in targets:
-            if target not in identifiers:
+            if target not in valid_ids:
                 raise ValueError("subtree reference names no tree in this document")
     seen, stack = set(), []
 
@@ -316,17 +334,182 @@ def convert(data, capture_time_us):
     return output.getvalue(), report
 
 
+def convert_bundle(data, capture_time_us, *, main_tree_id=None):
+    """Closed saved name -> XML map. Never opens an include path or evaluates a tree."""
+    if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
+        raise ValueError("explicit capture time required")
+    if not data or len(data) > BUNDLE_LIMIT:
+        raise ValueError("empty or oversized saved bundle")
+
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate JSON key")
+            result[key] = value
+        return result
+
+    def name(value):
+        if not isinstance(value, str) or not value or any(
+                part in ("", ".", "..") or not re.fullmatch(r"[A-Za-z0-9_.-]+", part)
+                for part in value.split("/")):
+            raise ValueError("unsupported noncanonical bundle name")
+        return value
+
+    manifest = json.loads(data, object_pairs_hook=unique_object)
+    if not isinstance(manifest, dict) or set(manifest) != {"format", "entry", "files"} or \
+            manifest["format"] != "btcpp4-saved-bundle-v1":
+        raise ValueError("saved bundle manifest required")
+    files = manifest["files"]
+    if not isinstance(files, dict) or not 1 <= len(files) <= MAX_FILES:
+        raise ValueError("saved bundle file bound")
+    encoded = {}
+    for filename, xml in files.items():
+        name(filename)
+        if not isinstance(xml, str) or not xml or len(xml.encode("utf-8")) > LIMIT:
+            raise ValueError("empty or oversized bundle XML")
+        encoded[filename] = xml.encode("utf-8")
+    entry = name(manifest["entry"])
+    if entry not in files:
+        raise ValueError("entry document missing")
+    loaded, roots, edges, active = [], {}, [], set()
+
+    def load(filename, depth):
+        if filename in active:
+            raise ValueError("include cycle")
+        if filename in roots:
+            raise ValueError("repeated inclusion unsupported")
+        if filename not in encoded or depth > MAX_DEPTH:
+            raise ValueError("missing include or include depth bound")
+        root, _ = _parse_document(encoded[filename])
+        roots[filename] = root
+        active.add(filename)
+        indexes = {element: index for index, element in enumerate(root.iter())}
+        for include in root:
+            if include.tag != "include":
+                continue
+            if set(include.attrib) != {"path"} or len(include) or (include.text or "").strip():
+                raise ValueError("unsupported include declaration")
+            relative = name(include.get("path"))
+            parent = filename.rpartition("/")[0]
+            target = parent + "/" + relative if parent else relative
+            edges.append((filename, indexes[include], relative, target))
+            load(target, depth + 1)
+        active.remove(filename)
+        loaded.append(filename)
+
+    load(entry, 1)
+    if sum(sum(1 for _ in root.iter()) for root in roots.values()) > MAX_NODES:
+        raise ValueError("bundle element bound")
+    tree_documents, models, references = {}, set(), {}
+    for filename in loaded:
+        root = roots[filename]
+        for identifier in declared_models(root):
+            if identifier in models:
+                raise ValueError("duplicate bundle model ID")
+            models.add(identifier)
+        for tree in (child for child in root if child.tag == "BehaviorTree"):
+            identifier = tree.get("ID")
+            if not identifier or identifier in tree_documents or builtin_category(identifier):
+                raise ValueError("missing, duplicate or registered bundle tree ID")
+            tree_documents[identifier] = filename
+            references[identifier] = [node.get("ID") for node in tree.iter() if node.tag == "SubTree"]
+    if not 1 <= len(tree_documents) <= MAX_TREES or set(tree_documents) & models:
+        raise ValueError("bundle tree bound or conflicting model/tree ID")
+    seen, active = set(), set()
+
+    def visit(identifier):
+        if identifier not in tree_documents:
+            raise ValueError("unresolved bundle subtree reference")
+        if identifier in active:
+            raise ValueError("cyclic bundle subtree reference")
+        if identifier in seen:
+            return
+        active.add(identifier)
+        for target in references[identifier]:
+            visit(target)
+        active.remove(identifier)
+        seen.add(identifier)
+
+    for identifier in tree_documents:
+        visit(identifier)
+    if main_tree_id is not None:
+        selected, selection = main_tree_id, "CALLER_ARGUMENT"
+    elif roots[entry].get("main_tree_to_execute") is not None:
+        selected, selection = roots[entry].get("main_tree_to_execute"), "ENTRY_DECLARATION"
+    elif len(tree_documents) == 1:
+        selected, selection = next(iter(tree_documents)), "SOLE_LOADED_TREE"
+    else:
+        raise ValueError("ambiguous bundle root selection")
+    if not isinstance(selected, str) or selected not in tree_documents:
+        raise ValueError("selected tree is not loaded")
+
+    digest = "sha256:" + hashlib.sha256(data).hexdigest()
+    output = io.StringIO(newline="")
+    writer = csv.DictWriter(output, ["record_time_us", "source_document_sha256", *FIELDS, *BUNDLE_FIELDS],
+                            lineterminator="\n")
+    writer.writeheader()
+    documents, count, node_count = [], 0, 0
+
+    def emit(filename, row):
+        nonlocal count
+        if count >= MAX_ROWS:
+            raise ValueError("bundle row bound")
+        writer.writerow(dict(row, record_time_us=capture_time_us,
+            source_document_sha256="sha256:" + hashlib.sha256(encoded[filename]).hexdigest(),
+            source_bundle_sha256=digest, bt_document_name_hex=text_hex(filename),
+            bt_document_disposition="LOADED" if filename in roots else "UNREFERENCED_NOT_INTERPRETED",
+            bt_declaration_basis=BASIS, bt_selection_basis=selection))
+        if output.tell() > OUTPUT_LIMIT:
+            raise ValueError("bundle output bound")
+        count += 1
+
+    for filename, raw in encoded.items():
+        disposition = "LOADED" if filename in roots else "UNREFERENCED_NOT_INTERPRETED"
+        documents.append(dict(name=filename, disposition=disposition,
+            source_sha256="sha256:" + hashlib.sha256(raw).hexdigest(), source_xml_hex="hex:" + raw.hex()))
+        emit(filename, dict(bt_record_kind="DOCUMENT"))
+    for filename, index, relative, target in edges:
+        emit(filename, dict(bt_record_kind="INCLUDE", bt_element_index=index,
+            bt_attribute_value_hex=text_hex(relative), bt_include_target_hex=text_hex(target)))
+    for filename in loaded:
+        csv_text, report = _convert_document(encoded[filename], capture_time_us,
+                                            bundle_tree_ids=tree_documents)
+        node_count += report["declared_nodes"]
+        for row in csv.DictReader(io.StringIO(csv_text)):
+            if row["bt_record_kind"] == "TREE":
+                row["bt_selected_tree"] = int(row["bt_tree_id_hex"] == text_hex(selected))
+            if row["bt_subtree_ref_hex"]:
+                identifier = bytes.fromhex(row["bt_subtree_ref_hex"][4:]).decode("utf-8")
+                row["bt_subtree_document_hex"] = text_hex(tree_documents[identifier])
+            emit(filename, row)
+    return output.getvalue(), dict(source_sha256=digest, source_bundle_sha256=digest,
+        source_bundle_hex="hex:" + data.hex(),
+        entry=entry, selected_tree_id=selected, selection_basis=selection,
+        input_files=len(files), loaded_files=len(loaded), unreferenced_files=len(files) - len(loaded),
+        include_edges=len(edges), output_records=count, declared_trees=len(tree_documents),
+        declared_nodes=node_count, declared_models=len(models), documents=documents,
+        clock="Unknown", pin=PIN, scope=BASIS)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("output_directory", type=Path)
     parser.add_argument("--capture-time-us", type=int, required=True,
                         help="caller capture clock; the common clock basis stays Unknown")
+    parser.add_argument("--bundle-json", action="store_true", help="closed saved XML include bundle")
+    parser.add_argument("--main-tree-id", help="bundle-only declared root selection; never executes")
     args = parser.parse_args()
     try:
+        if args.main_tree_id is not None and not args.bundle_json:
+            raise ValueError("root override requires explicit bundle mode")
         with args.input.open("rb") as stream:
-            data = stream.read(LIMIT + 1)  # one bounded read; no size/read race
-        output, report = convert(data, args.capture_time_us)
+            data = stream.read((BUNDLE_LIMIT if args.bundle_json else LIMIT) + 1)
+        if args.bundle_json:
+            output, report = convert_bundle(data, args.capture_time_us, main_tree_id=args.main_tree_id)
+        else:
+            output, report = convert(data, args.capture_time_us)
         args.output_directory.mkdir()  # Refuse an existing output/evidence directory.
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")

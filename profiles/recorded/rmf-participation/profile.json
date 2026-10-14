@@ -1,0 +1,25 @@
+{
+  "profile_id": "rmf_reported_participation_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "caller_capture_microseconds_unknown_clock",
+    "participation_flag_reported": "producer_reported_optional_boolean_0_false_1_true_blank_absent_not_permission",
+    "mutex_count": "reported_collection_entries_not_actual_lock_count",
+    "mutex_index": "zero_based_reported_list_order_duplicates_preserved",
+    "mutex_name_hex": "utf8_hex_reported_mutex_group_label_not_authenticated_resource",
+    "rmf_source_record_index": "zero_based_original_snapshot_index"
+  }
+}

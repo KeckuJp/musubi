@@ -1,0 +1,25 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "vtx_frequency_field_hz": {
+      "meaning": "vtx_frequency_field_hz",
+      "unit": "Hz_reported_field_not_band_table_or_measured_RF",
+      "basis": "declared"
+    },
+    "vtx_current_power_reported_dbm": {
+      "meaning": "vtx_current_power_reported_dbm",
+      "unit": "dBm_reported_setting_not_actual_RF_including_pit_mode",
+      "basis": "declared"
+    },
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "recorder_microseconds_not_trusted_UTC",
+      "basis": "declared"
+    }
+  }
+}

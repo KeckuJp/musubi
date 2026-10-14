@@ -1,0 +1,150 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "source_record_hex": {
+      "meaning": "source_record_hex",
+      "unit": "exact_UTF8_saved_export_line_once_on_FLEET_SUMMARY_including_unknown_fields_not_original_CDR",
+      "basis": "declared"
+    },
+    "fleet_name_hex": {
+      "meaning": "fleet_name_hex",
+      "unit": "reported_FleetState_name_UTF8_hex_not_authenticated_fleet_identity",
+      "basis": "declared"
+    },
+    "fleet_robot_index": {
+      "meaning": "fleet_robot_index",
+      "unit": "zero_based_saved_robots_array_position_within_source_record_not_a_global_robot_identifier_same_names_are_not_deduplicated",
+      "basis": "declared"
+    },
+    "fleet_robot_count": {
+      "meaning": "fleet_robot_count",
+      "unit": "reported_robots_array_length_zero_is_explicit_empty_not_missing_or_physical_fleet_size",
+      "basis": "declared"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "reported_battery_percent_divided_by_100_not_measured_charge_or_health",
+      "basis": "declared"
+    },
+    "rmf_name_hex": {
+      "meaning": "rmf_name_hex",
+      "unit": "untrusted_reported_robot_name_UTF8_hex",
+      "basis": "declared"
+    },
+    "rmf_model_hex": {
+      "meaning": "rmf_model_hex",
+      "unit": "reported_model_UTF8_hex_not_identification",
+      "basis": "declared"
+    },
+    "rmf_task_id_hex": {
+      "meaning": "rmf_task_id_hex",
+      "unit": "reported_request_reference_not_execution_receipt",
+      "basis": "declared"
+    },
+    "rmf_sequence_reported_text": {
+      "meaning": "rmf_sequence_reported_text",
+      "unit": "uint64_text_not_authenticated_order",
+      "basis": "declared"
+    },
+    "rmf_mode_number_reported": {
+      "meaning": "rmf_mode_number_reported",
+      "unit": "uint32_reported_mode_including_unknown_values",
+      "basis": "declared"
+    },
+    "rmf_mode_reported": {
+      "meaning": "rmf_mode_reported",
+      "unit": "RobotMode_name_not_physical_state_or_task_acceptance",
+      "basis": "declared"
+    },
+    "rmf_mode_request_id_reported_text": {
+      "meaning": "rmf_mode_request_id_reported_text",
+      "unit": "uint64_reported_reference_not_acknowledgement",
+      "basis": "declared"
+    },
+    "rmf_performing_action_hex": {
+      "meaning": "rmf_performing_action_hex",
+      "unit": "reported_action_description_not_an_instruction",
+      "basis": "declared"
+    },
+    "rmf_source_record_index": {
+      "meaning": "rmf_source_record_index",
+      "unit": "zero_based_saved_export_line_position_file_order_is_not_time_combine_with_fleet_robot_index_for_same_name_robots",
+      "basis": "declared"
+    },
+    "rmf_snapshot_sha256": {
+      "meaning": "rmf_snapshot_sha256",
+      "unit": "sha256_of_exact_saved_export_line_binds_summary_robot_and_path_rows_not_authentication",
+      "basis": "declared"
+    },
+    "rmf_record_kind": {
+      "meaning": "rmf_record_kind",
+      "unit": "FLEET_SUMMARY_once_per_saved_array_including_empty_STATE_per_robot_PATH_POINT_per_reported_plan_point_no_battery_or_mode_on_summary_or_plan_rows",
+      "basis": "declared"
+    },
+    "rmf_path_point_index": {
+      "meaning": "rmf_path_point_index",
+      "unit": "zero_based_position_of_this_waypoint_in_the_reported_path_array_as_saved_the_pinned_message_defines_no_ordering_and_the_pinned_consumers_read_the_array_as_travel_order_so_this_is_array_order_not_proven_travel_sequence",
+      "basis": "declared"
+    },
+    "rmf_path_point_count": {
+      "meaning": "rmf_path_point_count",
+      "unit": "how_many_waypoints_the_record_reported_zero_means_a_reported_empty_plan_not_an_absent_one_and_every_reported_point_gets_its_own_row",
+      "basis": "declared"
+    },
+    "rmf_map_name_hex": {
+      "meaning": "rmf_map_name_hex",
+      "unit": "utf8_hex_of_the_reported_level_or_map_name_an_opaque_navigation_graph_name_not_a_datum_a_frame_definition_or_a_verified_map",
+      "basis": "declared"
+    },
+    "rmf_map_x_m": {
+      "meaning": "rmf_map_x_m",
+      "unit": "m_reported_x_in_the_named_map_frame_the_unit_is_the_callers_declaration_because_the_pinned_message_states_none_never_a_global_or_geodetic_coordinate",
+      "basis": "declared"
+    },
+    "rmf_map_y_m": {
+      "meaning": "rmf_map_y_m",
+      "unit": "m_reported_y_in_the_named_map_frame_under_the_same_caller_declaration",
+      "basis": "declared"
+    },
+    "rmf_map_yaw_rad": {
+      "meaning": "rmf_map_yaw_rad",
+      "unit": "rad_reported_yaw_in_the_named_map_frame_under_the_callers_radian_declaration_not_a_true_north_heading",
+      "basis": "declared"
+    },
+    "rmf_position_basis": {
+      "meaning": "rmf_position_basis",
+      "unit": "CALLER_DECLARED_UNITS_IN_REPORTED_MAP_FRAME_NOT_GLOBAL_OR_GEODETIC_or_NOT_REPORTED_or_NOT_SELECTED_WITHOUT_CALLER_UNIT_DECLARATION_no_inferred_units",
+      "basis": "declared"
+    },
+    "rmf_waypoint_index_text": {
+      "meaning": "rmf_waypoint_index_text",
+      "unit": "uint64_text_of_the_reported_waypoint_index_an_opaque_reference_the_pinned_message_gives_it_no_meaning_and_no_graph_is_resolved_here",
+      "basis": "declared"
+    },
+    "rmf_waypoint_time_us_reported": {
+      "meaning": "rmf_waypoint_time_us_reported",
+      "unit": "us_from_the_reported_per_waypoint_time_seconds_and_nanoseconds_a_reported_value_only_never_the_row_clock_and_never_merged_with_capture_time",
+      "basis": "declared"
+    },
+    "rmf_waypoint_time_basis": {
+      "meaning": "rmf_waypoint_time_basis",
+      "unit": "REPORTED_WAYPOINT_TIME_CLOCK_BASIS_NOT_ESTABLISHED_BY_THE_PIN_NOT_THE_ROW_CLOCK_the_pinned_writer_stamps_a_planned_waypoint_time_and_names_no_epoch_or_clock_source",
+      "basis": "declared"
+    },
+    "rmf_approach_speed_limit_m_s": {
+      "meaning": "rmf_approach_speed_limit_m_s",
+      "unit": "m_s_the_one_unit_the_pinned_message_states_for_the_lane_leading_to_this_waypoint_present_only_when_the_publisher_also_reported_that_the_limit_is_obeyed",
+      "basis": "declared"
+    },
+    "rmf_approach_speed_limit_disposition": {
+      "meaning": "rmf_approach_speed_limit_disposition",
+      "unit": "REPORTED_LANE_LIMIT_OBEYED_or_REPORTED_NOT_OBEYED_VALUE_RETAINED_IN_SOURCE_or_NOT_REPORTED_or_NOT_SELECTED_WITHOUT_CALLER_UNIT_DECLARATION_not_measured_or_commanded_speed",
+      "basis": "declared"
+    }
+  }
+}

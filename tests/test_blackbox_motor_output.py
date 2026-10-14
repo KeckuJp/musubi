@@ -4,6 +4,9 @@ Authored fixtures and a stubbed decoder only. Real records: zero. The adopted ca
 real-input evidence is historical and is neither re-run nor extended to motors here.
 """
 import json
+import csv
+import io
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -22,6 +25,71 @@ from convert_blackbox_motor_output import convert
 SCRIPT = ROOT / "scripts/decode_blackbox_recording.py"
 PROFILE = ROOT / "profiles/declared/betaflight-motor-main/profile.toml"
 SCHEMA = "betaflight-4.2.0-motor-output"
+
+
+class MotorWindowTests(unittest.TestCase):
+    def test_large_adjacent_and_independent_motor_windows_reach_common(self):
+        from convert_blackbox_motor_output import convert_path
+        reader = os.environ.get("MUSUBI_TELEMETRY_READER")
+        self.assertTrue(reader, "actual common reader required")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "large.csv"
+            header = "time (us),motor[0],motor[1],unknown\n"
+            with path.open("w") as stream:
+                stream.write(header)
+                for index in range(513):
+                    stream.write(f"{index},unexamined,unexamined," + "x" * 32768 + "\n")
+                stream.write("600,980,2001,first\n600,1500,1600,second\n601,1000,2000,third\n")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            self.assertGreater(path.stat().st_size, 16 * 1024**2)
+            seen = []
+            for start, stop in ((513, 514), (514, 516)):
+                output, report = convert_path(path, SCHEMA, (1000, 2000),
+                                              start_record=start, stop_record=stop)
+                self.assertEqual(report["source_sha256"], digest)
+                self.assertEqual(report["excluded_records"], 516 - (stop - start))
+                self.assertEqual(report["excluded_values"], "NOT_DECODED_OR_VALIDATED")
+                rows = list(csv.DictReader(io.StringIO(output)))
+                seen.extend(int(row["source_record_index"]) for row in rows)
+                selected = Path(directory) / f"{start}.csv"
+                selected.write_text(output)
+                common = json.loads(subprocess.run([reader, str(PROFILE), str(selected),
+                                    "--allow-equal-time"], check=True, capture_output=True).stdout)
+                self.assertEqual(len(common["observations"]), stop - start)
+                self.assertEqual(common["observations"][0]["fields"]["source_file_sha256"],
+                                 "sha256:" + digest)
+                self.assertEqual(common["observations"][0]["fields"]["reported_motor_output_demand_0"],
+                                 980 if start == 513 else 1500)
+                self.assertEqual(common["observations"][0]["clock_basis"], "BootRelative")
+            self.assertEqual(seen, [513, 514, 515])
+            path.write_text("time (us),motor[0],note\n10,0,independent\n")
+            output, report = convert_path(path, SCHEMA, (0, 100), start_record=0, stop_record=1)
+            self.assertEqual(report["motor_semantics"]["motor_count"], 1)
+            self.assertEqual(list(csv.DictReader(io.StringIO(output)))[0]["reported_motor_output_demand_0"], "0")
+            selected = Path(directory) / "independent.csv"
+            selected.write_text(output)
+            common = json.loads(subprocess.run([reader, str(PROFILE), str(selected),
+                                "--allow-equal-time"], check=True, capture_output=True).stdout)
+            self.assertEqual(common["observations"][0]["fields"]["reported_motor_output_demand_0"], 0)
+            cli_output = Path(directory) / "cli.csv"
+            cli_report = Path(directory) / "cli.json"
+            command = [sys.executable, str(ROOT / "scripts/convert_blackbox_motor_output.py"),
+                       str(path), str(cli_output), "--schema", SCHEMA, "--output-scale", "0,100",
+                       "--report", str(cli_report), "--start-record", "0"]
+            self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
+            self.assertFalse(cli_output.exists())
+            subprocess.run(command + ["--stop-record", "1"], check=True, capture_output=True)
+            self.assertEqual(cli_output.read_text(), output)
+
+    def test_motor_window_refuses_bad_header_selected_demand_and_excluded_reset(self):
+        from convert_blackbox_motor_output import convert_path
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "bad.csv"
+            for data in ("time (us),motor[1]\n1,1000\n", "time (us),motor[0]\n1,NaN\n",
+                         "time (us),motor[0]\n2,1000\n1,unexamined\n"):
+                path.write_text(data)
+                with self.assertRaises(ValueError):
+                    convert_path(path, SCHEMA, (1000, 2000), start_record=0, stop_record=1)
 FIELD_NAMES = b"H Field I name:loopIteration,time,motor[0],motor[1],motor[2],motor[3]\n"
 DECODED_CSV = (b"time (us), vbatLatest, motor[0], motor[1], motor[2], motor[3]\n"
                b"1001, 2281, 1000, 1200, 1400, 1600\n"
@@ -38,6 +106,7 @@ class MotorOutputDeclarationTest(unittest.TestCase):
         declaration = motor_output_declaration(recording())
         self.assertEqual(declaration, {"low": 1000, "high": 2000,
                                        "columns": ["motor[0]", "motor[1]", "motor[2]", "motor[3]"]})
+        # One motor is as valid as four; the writer omits the rest by condition, not by fault.
         single = recording(names=b"H Field I name:time,motor[0]\n")
         self.assertEqual(motor_output_declaration(single)["columns"], ["motor[0]"])
 
@@ -57,6 +126,7 @@ class MotorOutputDeclarationTest(unittest.TestCase):
                 motor_output_declaration(recording(motor_output=wrong))
 
     def test_scale_is_read_from_the_header_block_only(self):
+        # A header-looking sequence after the block ends must not supply missing metadata.
         payload = MAGIC + b"H Firmware revision:Betaflight 4.2.0 (norev) STM32F745\n" + FIELD_NAMES \
             + b"I\x01\x02\n" + b"H motorOutput:1000,2000\n" + END
         self.assertEqual(len(header_lines(payload)), 3)
@@ -103,6 +173,7 @@ class MotorOutputDeclarationTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             default = self.run_exporter(Path(tmp), raw=raw)
         self.assertNotIn("motor_output", default)
+        # The default source_units keep exactly the adopted native electrical/time declaration.
         self.assertEqual(default["source_units"], {"time": "us", "vbatLatest": "cV",
                                                    "amperageLatest": "cA"})
         with tempfile.TemporaryDirectory() as tmp:
@@ -114,11 +185,13 @@ class MotorOutputDeclarationTest(unittest.TestCase):
         self.assertEqual(motor["measured_rpm"], "ABSENT_AT_BETAFLIGHT_4_2_0")
         self.assertEqual(motor["pole_count"], "NOT_APPLICABLE_NO_ERPM_FIELD_AT_THIS_VERSION")
         self.assertIn("not measured rotation", motor["not"])
+        # The opt-in adds motor declarations and removes none of the adopted ones.
         self.assertEqual({key: declared["source_units"][key]
                           for key in ("time", "vbatLatest", "amperageLatest")},
                          default["source_units"])
         for column in motor["columns"]:
             self.assertIn("demand_raw", declared["source_units"][column])
+        # No CSV column and no decoder argument changed: the recorded scale is header metadata.
         self.assertEqual(declared["main_frames"], default["main_frames"])
 
     def test_the_declaration_refuses_the_gps_stream(self):
@@ -143,8 +216,10 @@ class MotorOutputConversionTest(unittest.TestCase):
                                   "motor_output_declared_low,motor_output_declared_high,"
                                   "motor_output_schema,source_header_hex,source_record_hex")
         first = rows[1].split(",")
+        # The writer's per-motor index survives: column k carries motor[k], unreordered.
         self.assertEqual(first[:5], ["1001", "1000", "1200", "1400", "1600"])
         self.assertEqual(first[5:9], ["4", "1000", "2000", SCHEMA])
+        # rssi is not named by this schema and is still not lost.
         self.assertEqual(bytes.fromhex(first[9][4:]).decode(),
                          self.decoded.splitlines()[0])
         self.assertEqual(bytes.fromhex(first[10][4:]).decode(),
@@ -158,6 +233,7 @@ class MotorOutputConversionTest(unittest.TestCase):
         self.assertEqual(report["common_output"], "NOT_RUN")
 
     def test_values_outside_the_declared_scale_are_counted_and_kept_never_clamped(self):
+        # 980 is below the declared low and 2001 above the declared high; both are real data.
         decoded = ("time (us),motor[0],motor[1]\n"
                    "1001,980,2001\n")
         text, report = convert(decoded, SCHEMA, (1000, 2000))
@@ -168,6 +244,7 @@ class MotorOutputConversionTest(unittest.TestCase):
         self.assertEqual(report["rows_with_any_demand_above_the_declared_high"], 1)
 
     def test_several_motors_outside_the_span_in_one_row_is_one_row_and_several_values(self):
+        # Three of four motors below the low and two above the high, all in a single record.
         decoded = ("time (us),motor[0],motor[1],motor[2],motor[3]\n"
                    "1001,900,910,920,2500\n"
                    "2001,1500,1500,1500,2600\n")
@@ -184,6 +261,7 @@ class MotorOutputConversionTest(unittest.TestCase):
             with self.subTest(term=invented):
                 self.assertNotIn(invented, text.splitlines()[0])
         self.assertIn("not measured rotation", report["not"])
+        # The declaration must not silently become a measurement claim.
         self.assertNotIn("measured", report["meaning"])
 
     def test_important_failures_are_refused_rather_than_repaired(self):
@@ -239,6 +317,9 @@ class MotorOutputCommonConnectionTest(unittest.TestCase):
         self.assertIn("commanded mixer output".replace(" ", "_"),
                       units["reported_motor_output_demand_0"])
         self.assertIn("NOT_measured_rotation", units["reported_motor_output_demand_0"])
+        # The domain the converter reports is the one common output actually carries. The reader
+        # maps only family ugv to Ground, so this fpv profile stays Unknown: a bench log is never
+        # labelled Air, and no domain is derived from a motor value.
         self.assertEqual(common["platform_domain"], "Unknown")
         self.assertEqual(common["platform_domain"], report["platform_domain"])
         self.assertEqual(common["domain_source"], "profile_declared_family")
@@ -249,6 +330,8 @@ class MotorOutputCommonConnectionTest(unittest.TestCase):
         if not reader:
             self.skipTest("MUSUBI_TELEMETRY_READER not supplied; the equal-time roundtrip is "
                           "NOT_RUN, not passed")
+        # This converter keeps equal boot microseconds; the shared reader refuses them by default
+        # rather than dropping them, and carries every one of them under its existing opt-in.
         decoded = ("time (us),motor[0],motor[1]\n"
                    "1001,1000,1200\n"
                    "1001,1010,1210\n"

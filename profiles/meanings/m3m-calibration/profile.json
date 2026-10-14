@@ -1,0 +1,100 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_caller_capture_axis_not_photo_epoch_or_calibration_instant",
+      "basis": "declared"
+    },
+    "source_image_index": {
+      "meaning": "source_image_index",
+      "unit": "one_based_position_in_original_export_array",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "SHA256_original_supplied_export_not_authentication",
+      "basis": "declared"
+    },
+    "camera_serial_hex": {
+      "meaning": "camera_serial_hex",
+      "unit": "utf8_hex_reported_CameraSerialNumber_not_authenticated_physical_identity",
+      "basis": "declared"
+    },
+    "model_reported": {
+      "meaning": "model_reported",
+      "unit": "reported_DroneModel_fixed_M3M",
+      "basis": "declared"
+    },
+    "image_source_hex": {
+      "meaning": "image_source_hex",
+      "unit": "utf8_hex_reported_ImageSource",
+      "basis": "declared"
+    },
+    "band_name_reported": {
+      "meaning": "band_name_reported",
+      "unit": "reported_band_name_qualified_against_sensor_index",
+      "basis": "declared"
+    },
+    "sensor_index_code": {
+      "meaning": "sensor_index_code",
+      "unit": "reported_Green1_Red2_RedEdge3_NIR4",
+      "basis": "declared"
+    },
+    "image_width_pixel": {
+      "meaning": "image_width_pixel",
+      "unit": "pixel_native_image_width_as_reported_not_verified_from_pixels",
+      "basis": "declared"
+    },
+    "image_height_pixel": {
+      "meaning": "image_height_pixel",
+      "unit": "pixel_native_image_height_as_reported_not_verified_from_pixels",
+      "basis": "declared"
+    },
+    "calibration_date": {
+      "meaning": "calibration_date",
+      "unit": "reported_Gregorian_date_only_no_timezone_or_time_of_day_no_invented_epoch",
+      "basis": "declared"
+    },
+    "dewarp_data_hex": {
+      "meaning": "dewarp_data_hex",
+      "unit": "utf8_hex_original_DewarpData_including_five_distortion_parameters_not_interpreted_or_applied",
+      "basis": "declared"
+    },
+    "calibration_status": {
+      "meaning": "calibration_status",
+      "unit": "reported_calibration_or_missing_chain_break_not_accuracy_or_drift_verdict",
+      "basis": "declared"
+    },
+    "geometry_basis": {
+      "meaning": "geometry_basis",
+      "unit": "caller_declaration_native_unresized_uncropped_not_proved_from_metadata",
+      "basis": "declared"
+    },
+    "calibration_fx_pixel": {
+      "meaning": "calibration_fx_pixel",
+      "unit": "pixel_reported_calibrated_focal_length_fx_native_grid_not_physical_drift",
+      "basis": "declared"
+    },
+    "calibration_fy_pixel": {
+      "meaning": "calibration_fy_pixel",
+      "unit": "pixel_reported_calibrated_focal_length_fy_native_grid_not_physical_drift",
+      "basis": "declared"
+    },
+    "calibration_cx_pixel": {
+      "meaning": "calibration_cx_pixel",
+      "unit": "pixel_reported_calibrated_optical_center_cx_origin_photo_center_not_top_left",
+      "basis": "declared"
+    },
+    "calibration_cy_pixel": {
+      "meaning": "calibration_cy_pixel",
+      "unit": "pixel_reported_calibrated_optical_center_cy_origin_photo_center_not_top_left",
+      "basis": "declared"
+    }
+  }
+}

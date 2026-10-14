@@ -1,0 +1,27 @@
+profile_id = "saved_mavsdk_basic_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+latitude_deg = "degree"
+longitude_deg = "degree"
+altitude_amsl_m = "m_AMSL_reported"
+altitude_takeoff_relative_m = "m_relative_to_takeoff_reported"
+battery_voltage_v = "V"
+battery_current_a = "A"
+battery_temperature_k = "K"
+battery_consumed_ah = "Ah"
+battery_remaining_fraction = "ratio"
+battery_time_remaining_s = "s"
+reported_velocity_north_m_s = "m/s"
+reported_velocity_east_m_s = "m/s"
+reported_velocity_down_m_s = "m/s"
+attitude_roll_rad = "rad"
+attitude_pitch_rad = "rad"
+attitude_yaw_rad = "rad"

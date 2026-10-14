@@ -1,13 +1,14 @@
 """A Rover BAT export must not report the Air domain.
 
 Authored input only, in the pinned 12-field `Inst` layout this case records for ArduRover
-4.5.0-4.5.5 (`profiles/declared/ardupilot-battery/README.md`). No vehicle, no
+4.5.0-4.5.5 (`docs/saved-input-comparisons.md`). No vehicle, no
 device, no real battery record: **real records 0**. The existing zero-record Rover BAT archive
 stays zero and is not a source here.
 
-The conversion is not re-exercised - `tests/test_ardupilot_battery_conversion.py` owns that. What
-is proven here is only what the profile selection declares: the same converted bytes through three
-profiles that differ *solely* in `family`.
+The original BAT cases check only what the profile selection declares: the same converted bytes
+through three profiles that differ *solely* in `family`. The BCL2 route case additionally checks
+the documented profile choices with the unchanged converter; general conversion and refusal
+coverage remains in `tests/test_ardupilot_battery_conversion.py`.
 """
 import csv
 import importlib.util
@@ -29,6 +30,9 @@ spec = importlib.util.spec_from_file_location(SCRIPT.stem, SCRIPT)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
+# The declaration this case records at the six ArduRover 4.5 release commits:
+# BAT "QBfffffcfBBB" TimeUS,Inst,Volt,VoltR,Curr,CurrTot,EnrgTot,Temp,Res,RemPct,H,SH.
+# `Future` is an unknown source field, kept so its retention is visible in common output.
 ROVER_BAT = (
     "TimeUS,Inst,Volt,Curr,CurrTot,EnrgTot,RemPct,VoltR,Temp,Res,Future,H,SH\n"
     "2500,0,25.9,-3.5,1480,2.75,68,26.1,21.5,0.018,retained,1,92\n"
@@ -62,12 +66,50 @@ def read_with(case, profile_name, text):
 
 
 class RoverBatteryDomainTests(unittest.TestCase):
+    def test_bcl2_qualified_rover_route_keeps_cells_missing_and_declared_domain(self):
+        """Authored BCL2 rows reuse the converter; provenance is caller-declared, not detected."""
+        text = module.convert(
+            "TimeUS,Instance,V13,V14,Future\n"
+            "2500,0,0,1,retained\n2500,1,4301,65535,other\n",
+            "ardupilot-bcl2-4.3")
+        for profile, domain in (("rover-profile.toml", "Ground"),
+                                ("unknown-profile.toml", "Unknown")):
+            with self.subTest(profile=profile):
+                common = read_with(self, profile, text)
+                self.assertEqual(common["platform_domain"], domain)
+                self.assertEqual(common["domain_source"], "profile_declared_family")
+                self.assertEqual(common["main_rows"], 2)
+                observations = common["observations"]
+                self.assertEqual([o["t_boot_us"] for o in observations], [2500, 2500])
+                self.assertTrue(all(o["clock_basis"] == "BootRelative" for o in observations))
+                fields = [o["fields"] for o in observations]
+                self.assertEqual([f["Instance"] for f in fields], [0, 1])
+                self.assertEqual([f["Future"] for f in fields], ["retained", "other"])
+                self.assertEqual([f["battery_cell_13_v"] for f in fields], [None, 4.3])
+                self.assertEqual([f["battery_cell_14_v"] for f in fields], [0, 65.534])
+                self.assertEqual([f["battery_cell_13_status"] for f in fields],
+                                 ["NOT_PROVIDED", "REPORTED"])
+                self.assertTrue(all(f["battery_cell_14_status"] == "REPORTED" for f in fields))
+                for f in fields:
+                    self.assertIsNone(f["battery_voltage_v"])
+                    self.assertIsNone(f["battery_current_a"])
+                self.assertEqual(common["profile_units"]["battery_cell_13_v"], "V")
+                self.assertEqual(common["profile_units"]["battery_cell_14_v"], "V")
+                self.assertEqual(common["profile_units"]["TimeUS"], "us_since_boot")
+        # Keep the source-qualified BCL2 entry usable, not pointed at the Plane declaration.
+        readme = (ROOT / "docs/saved-input-comparisons.md").read_text().split(
+            "## Rover 4.5.0–4.5.5 BAT/BCL/BCL2 qualification", 1)[1]
+        self.assertIn("rover-profile.toml", readme)
+        self.assertIn("unknown-profile.toml", readme)
+        self.assertNotIn("this case's `profile.toml`", readme)
+
     def test_a_rover_export_reaches_common_observation_as_ground_not_air(self):
         """The documented Rover route must not report Air; everything else is unchanged."""
         text = converted()
         common = read_with(self, "rover-profile.toml", text)
         self.assertEqual(common["platform_domain"], "Ground")
         self.assertNotEqual(common["platform_domain"], "Air")
+        # Both instance rows survive at the same timestamp, as the adopted path already allowed.
         self.assertEqual(common["main_rows"], 2)
         self.assertTrue(all(o["clock_basis"] == "BootRelative" for o in common["observations"]))
         fields = common["observations"][0]["fields"]
@@ -76,6 +118,7 @@ class RoverBatteryDomainTests(unittest.TestCase):
         self.assertEqual(fields["battery_remaining_fraction"], 0.68)
         self.assertEqual(fields["TimeUS"], 2500)
         self.assertEqual(common["observations"][1]["fields"]["Inst"], 1)
+        # The unknown source field is still retained, and the sign convention is still disclaimed.
         units = common["profile_units"]
         self.assertEqual(fields["Future"], "retained")
         self.assertIn("no_discharging_or_charging_direction_is_established",
@@ -95,6 +138,7 @@ class RoverBatteryDomainTests(unittest.TestCase):
         self.assertEqual(common["platform_domain"], "Unknown")
         self.assertEqual(common["domain_source"], "profile_declared_family")
         self.assertEqual(common["main_rows"], 2)
+        # The declared family is still fixed_wing, which is why a ground export must not use it.
         self.assertIn('family = "fixed_wing"', (CASE / "profile.toml").read_text())
 
     def test_without_established_provenance_the_domain_is_unknown_not_guessed(self):
@@ -110,8 +154,10 @@ class RoverBatteryDomainTests(unittest.TestCase):
                    for name in ("profile.toml", "rover-profile.toml", "unknown-profile.toml")}
         self.assertEqual(domains, {"profile.toml": "Unknown", "rover-profile.toml": "Ground",
                                    "unknown-profile.toml": "Unknown"})
+        # Ground is reachable only by declaring it, and the same bytes decline it twice over.
         self.assertEqual([name for name, d in domains.items() if d == "Ground"],
                          ["rover-profile.toml"])
+        # The three differ only in the declared family: same units, same time field, same clock.
         blocks = {}
         for name in domains:
             lines = (CASE / name).read_text().splitlines()

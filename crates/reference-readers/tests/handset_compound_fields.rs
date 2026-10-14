@@ -8,9 +8,13 @@ use musubi_reference_readers::{
 fn two_fixed_writer_clock_inputs_reuse_common_meaning_and_stream() {
     for rtc in [false, true] {
         let profile = if rtc {
-            include_str!("fixtures/edgetx-handset-clock--rtc-date-time.profile.toml")
+            include_str!(
+                "../../../profiles/declared/edgetx-handset-clock/rtc-date-time.profile.toml"
+            )
         } else {
-            include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml")
+            include_str!(
+                "../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"
+            )
         };
         let profile = parse_profile(profile, "test").unwrap();
         let (header, time) = if rtc {
@@ -58,7 +62,7 @@ fn two_fixed_writer_clock_inputs_reuse_common_meaning_and_stream() {
 #[test]
 fn missing_zero_invalid_and_role_errors_do_not_become_positions_or_clocks() {
     let p = parse_profile(
-        include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml"),
+        include_str!("../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"),
         "test",
     )
     .unwrap();

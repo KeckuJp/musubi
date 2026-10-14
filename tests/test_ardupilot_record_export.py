@@ -19,6 +19,7 @@ EXPORT = ROOT / "scripts/export_ardupilot_records.py"
 HEAD = b"\xa3\x95"
 SIZES = {"Q": 8, "B": 1, "H": 2, "I": 4, "i": 4, "f": 4, "d": 8, "b": 1, "h": 2,
          "c": 2, "L": 4, "e": 4, "N": 16, "Z": 64, "M": 1, "n": 4}
+# Exact writer declarations read at Rover-4.5.7 52bed8d5 and Sub-4.7.1 dbe79216.
 WRITERS = {
     "MODE": ("QMBB", "TimeUS,Mode,ModeNum,Rsn"),
     "ARM": ("QBIBB", "TimeUS,ArmState,ArmChecks,Forced,Method"),
@@ -62,6 +63,7 @@ def pack(fmt, values):
 
 
 IDS = {name: index for index, name in enumerate(WRITERS, start=140)}
+# One self-describing FMT plus one FMT per writer, each 89 bytes.
 PREAMBLE = 89 * (1 + len(WRITERS))
 
 
@@ -110,6 +112,8 @@ def blueboat_records(samples=40):
                                 -357000000 + index * 1000, 1491000000 + index * 1000,
                                 1234 + index, 3.2, 90.0, 0.1, 0.0, 1)))
         records.append(("XKF1", (stamp, 0, 0.1, 0.2)))
+    # One no-fix row, as ArduPilot writes it: Status 0 with zeroed coordinates. It is a
+    # sentinel, not a position at Null Island, and nothing here may filter it silently.
     records.append(("GPS", (1_000_000 + samples * 100_000, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0)))
     return records
@@ -121,6 +125,7 @@ def blueboat_log(samples=40):
 
 def bluerov2_records(samples=24):
     """BlueROV2 layout: ArduSub firmware, deliberately no GPS records at all."""
+    # FWS carries the build annotation the write site appends when GIT_VERSION is defined.
     records = [("VER", (400, 9, 21, 4, 7, 1, 3, 0x1234, b"ArduSub V4.7.1 (deadbeef)", 1054, 12)),
                ("ARM", (600, 1, 0, 0, 3))]
     for index in range(samples):
@@ -141,6 +146,7 @@ class RecordExportTests(unittest.TestCase):
         self.assertTrue(binary, "existing JSONL common reader is required")
         gps = blueboat_records(1)[4][1]
         self.assertEqual(blueboat_records(1)[4][0], "GPS")
+        # Deliberately untimed VER plus source-qualified GPS FMT, not a claimed flight.
         blob = fmt_record(128, 89, "FMT", "BBnNZ", "Type,Length,Name,Format,Columns")
         blob += fmt_record(140, 67, "VER", "Z", "FWS")
         fmt, labels = WRITERS["GPS"]
@@ -185,6 +191,7 @@ class RecordExportTests(unittest.TestCase):
             missing_record = json.loads(missing['selected'])
             self.assertEqual(missing_record['data']['Spd'], 'NaN')
             self.assertEqual(missing_record['meta']['nonfinite_fields'], ['Spd'])
+            # Different existing authored layout, all five supported types in source order.
             path.write_bytes(bluerov2_log(2))
             plain, plain_report = self.exporter.export_records(path, self.exporter.SUPPORTED)
             other, other_report = self.exporter.export_records(path, self.exporter.SUPPORTED, output_format='jsonl')
@@ -199,6 +206,7 @@ class RecordExportTests(unittest.TestCase):
             bad_fmt = fmt_record(141, body_length(fmt), 'GPS', fmt.replace('L', 'i'), labels)
             with self.assertRaises(ValueError):
                 self.export(path.read_bytes()[:-2], tmp, ['GPS'])
+            # A valid frame but wrong GPS scaling declaration must not be silently labelled degrees.
             path.write_bytes(blob.replace(fmt_record(141, body_length(fmt), 'GPS', fmt, labels), bad_fmt))
             with self.assertRaisesRegex(ValueError, 'qualified'):
                 self.exporter.export_records(path, ['GPS'], output_format='jsonl')
@@ -243,6 +251,7 @@ class RecordExportTests(unittest.TestCase):
         self.exporter.write(path, csv_text)
         if not os.environ.get("MUSUBI_RECORDED_CSV_INGEST"):
             return None
+        # A rejected record makes this exit non-zero by design, so do not check=True.
         result = subprocess.run(
             [os.environ["MUSUBI_RECORDED_CSV_INGEST"], str(path), str(mapping),
              "marine-authored-blueboat", "1757900000000", "TimeUS", "--allow-equal-time"],
@@ -258,9 +267,11 @@ class RecordExportTests(unittest.TestCase):
             self.assertEqual(report["absent_selected_types"], [])
             self.assertEqual(report["exported_counts"],
                              {"ARM": 1, "BAT": 40, "GPS": 41, "MODE": 40, "VER": 1})
+            # Every message is accounted for, including the type we did not select.
             self.assertEqual(report["unselected_counts"], {"FMT": 7, "XKF1": 40})
             self.assertEqual(report["total_messages"], sum(report["message_counts"].values()))
 
+            # Scaling is the decoder's, applied once: L gives 1e-7 and e gives 1e-2.
             gps = list(csv.DictReader(io.StringIO(exports["GPS"])))
             self.assertEqual(gps[0]["Lat"], "-35.7")
             self.assertEqual(gps[0]["Lng"], "149.1")
@@ -268,6 +279,7 @@ class RecordExportTests(unittest.TestCase):
             self.assertEqual(gps[0]["HDop"], "1.5")
             self.assertEqual(gps[0]["TimeUS"], "1000000")  # Q stays native microseconds
 
+            # Reported mode through the adopted converter and the common reader.
             modes = self.mode.convert(exports["MODE"], "rover-4.5.7", "mode")
             rows = list(csv.DictReader(io.StringIO(modes)))
             self.assertEqual(len(rows), 40)
@@ -277,15 +289,20 @@ class RecordExportTests(unittest.TestCase):
                 self.assertEqual(common["main_rows"], 40)
                 self.assertEqual(common["platform_domain"], "Unknown")
 
+            # Reported identity, cross-checked against the declaration.
             identity = self.mode.convert(exports["VER"], "rover-4.5.7", "ver")
             record = next(csv.DictReader(io.StringIO(identity)))
             self.assertEqual(record["reported_firmware_family"], "ArduRover")
             self.assertEqual(record["declared_vehicle_agreement"], "AGREES_WITH_DECLARED_RELEASE")
             self.assertEqual(record["FWS"], "ArduRover V4.5.7")
 
+            # Electrical through the instance selector and the common reader.
             electrical = self.battery.convert(exports["BAT"], "ardupilot-bat-inst")
             battery_rows = list(csv.DictReader(io.StringIO(electrical)))
             self.assertEqual(len(battery_rows), 40)
+            # BAT.Volt is a float32 at the write site, so the exported decimal is the exact
+            # value of that float32 and not a prettier 15.8. Passing it through unrounded is
+            # the point: 3.25 is exact in float32 and stays short on its own.
             self.assertEqual(battery_rows[0]["battery_voltage_v"],
                              repr(struct.unpack("<f", struct.pack("<f", 15.8))[0]))
             self.assertEqual(battery_rows[0]["battery_current_a"], "3.25")
@@ -296,22 +313,32 @@ class RecordExportTests(unittest.TestCase):
                 self.assertAlmostEqual(
                     common["observations"][0]["fields"]["battery_voltage_v"], 15.8, places=5)
 
+            # Navigation straight into the adopted recorded-CSV SPI, under the mapping's
+            # own fix policy. `Status` is a flat column there, so the policy can read it.
             spi = self.ingest(exports["GPS"], directory, ROOT / "profiles/declared"
                               "/marine-ardu-reuse/gps-fix-mapping.json")
             if spi:
+                # Every row is accounted for as exactly one of mapped or rejected.
                 self.assertEqual(spi["source_record_count"], 41)
                 self.assertEqual(len(spi["mapped"]) + len(spi["rejected"]), 41)
                 self.assertEqual(len(spi["mapped"]), 40)
                 first = spi["mapped"][0]
                 self.assertEqual(first["position"],
                                  {"lat_deg": -35.7, "lon_deg": 149.1, "alt_m": 12.34})
+                # Domain: no marine member exists, so it stays Unknown rather than Ground.
                 self.assertEqual(first["domain"], "Unknown")
+                # Time: a boot counter is not an epoch, so the record is time-suspect and
+                # observed_at stays null rather than being invented.
                 self.assertEqual(first["boot_us"], 1_000_000)
                 self.assertIsNone(first["observed_at"])
                 self.assertEqual(first["reason_code"], "time-suspect")
                 self.assertEqual(first["mark"], "Degraded")
                 self.assertIn("timestamp:boot-counter-not-epoch", first["provenance"])
 
+                # The no-fix row is the negative, asserted in the common output itself: it
+                # is the last record, it is INVALID for want of a fix, and it publishes no
+                # position at all. It is not a Degraded ordinary position, and its absence
+                # from `mapped` is what stops a zeroed sentinel becoming a coordinate.
                 self.assertEqual(len(spi["rejected"]), 1)
                 nofix = spi["rejected"][0]
                 self.assertEqual(nofix["record_index"], 40)
@@ -320,6 +347,8 @@ class RecordExportTests(unittest.TestCase):
                 self.assertNotIn("position", nofix)
                 self.assertNotIn(40, [record["record_index"] for record in spi["mapped"]])
                 self.assertTrue(all(record["mark"] == "Degraded" for record in spi["mapped"]))
+                # Retained, not deleted: the whole source CSV including that row is kept
+                # beside the observations, and it is not sealed.
                 self.assertIn("5000000,0,0,0,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0",
                               spi["source_csv"])
                 self.assertIs(spi["source_records_sealed"], False)
@@ -328,6 +357,7 @@ class RecordExportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             exports, report = self.export(bluerov2_log(), directory,
                                           ["MODE", "ARM", "VER", "BAT", "GPS"])
+            # A submersible log with no GPS: absent, never a zero row and never a depth.
             self.assertEqual(report["absent_selected_types"], ["GPS"])
             self.assertNotIn("GPS", exports)
             self.assertNotIn("GPS", report["exported_counts"])
@@ -342,17 +372,23 @@ class RecordExportTests(unittest.TestCase):
             self.assertEqual(identity["declared_vehicle_agreement"],
                              "AGREES_WITH_DECLARED_RELEASE_BUILD_COMMIT_NOT_CHECKED")
             self.assertEqual(identity["reported_firmware_build_annotation"], "deadbeef")
+            # BU carries fwver.vehicle_type at the write site: an APM_BUILD_DIRECTORY code,
+            # preserved lexically and deliberately not decoded into a vehicle or a product.
             self.assertEqual(identity["BU"], "12")
             electrical = self.battery.convert(exports["BAT"], "ardupilot-bat-inst")
             self.assertEqual(len(list(csv.DictReader(io.StringIO(electrical)))), 24)
+            # The rover table would give a different meaning to the same numbers.
             self.assertEqual(self.mode.MODE_SCHEMAS["rover-4.5.7"].get(19), None)
 
     def test_provenance_is_file_association_and_refusals_hold(self):
         with tempfile.TemporaryDirectory() as directory:
             exports, report = self.export(blueboat_log(4), directory, ["MODE", "VER"])
             self.assertIn("not hardware authentication", report["association_basis"])
+            # Every export from one file shares that file's digest; a separately supplied
+            # CSV is not covered by it.
             _, second = self.export(bluerov2_log(4), Path(directory) / "b", ["MODE"])
             self.assertNotEqual(report["source_sha256"], second["source_sha256"])
+            # A declared vehicle contradicting the logged firmware is still refused.
             with self.assertRaises(ValueError):
                 self.mode.convert(exports["VER"], "sub-4.7.1", "ver")
             with self.assertRaises(ValueError):
@@ -371,11 +407,15 @@ class RecordExportTests(unittest.TestCase):
             self.assertEqual(retained["count"], 3)
             self.assertEqual(retained["offsets_retained"], "ALL")
             self.assertEqual(report["unretained_unselected_records"], 0)
+            # The schema it was parsed under, not just its labels: format and multipliers.
             schema = report["schemas"][retained["schema_ref"]]
             self.assertEqual(schema["format"], "QBff")
             self.assertEqual(schema["columns"], ["TimeUS", "C", "Roll", "Pitch"])
+            # An unscaled format character carries no multiplier at all, and that is
+            # recorded as such rather than as a 1 we invented.
             self.assertEqual(schema["multipliers"],
                              {"TimeUS": None, "C": None, "Roll": None, "Pitch": None})
+            # GPS is selected, and its scaling basis is recorded as the decoder applied it.
             self.assertEqual(report["schemas"]["GPS"]["multipliers"]["Lat"], 1.0e-7)
             self.assertEqual(report["schemas"]["GPS"]["multipliers"]["Alt"], 1.0e-2)
             self.assertIsNone(report["schemas"]["GPS"]["multipliers"]["TimeUS"])
@@ -387,6 +427,8 @@ class RecordExportTests(unittest.TestCase):
         blob = dataflash_binary(records)
         name, offset, length = next(item for item in spans(records) if item[0] == "MODE")
         with tempfile.TemporaryDirectory() as directory:
+            # Damage one record's header. The decoder steps over it byte by byte to the
+            # next signature, so exactly that record's span is undecoded.
             damaged = blob[:offset] + b"\x00" * 3 + blob[offset + 3:]
             with self.assertRaises(self.exporter.UndecodedSpans) as caught:
                 self.export(damaged, directory, ["MODE", "GPS"])
@@ -397,11 +439,13 @@ class RecordExportTests(unittest.TestCase):
                                "disposition": "UNDECODED_SPAN_SKIPPED_BY_THE_DECODER"}])
             self.assertEqual(report["byte_coverage"]["undecoded_bytes"], length)
             self.assertEqual(report["byte_coverage"]["decoded_bytes"], len(blob) - length)
+            # The message balance still "balances" -- which is exactly why it is not proof.
             self.assertEqual(report["exported_counts"]["MODE"], 3)
             self.assertEqual(sum(report["exported_counts"].values())
                              + sum(report["unselected_counts"].values()),
                              report["total_messages"])
 
+            # A tail cut mid-record leaves bytes the decoder never frames.
             cut = 7
             with self.assertRaises(self.exporter.UndecodedSpans) as caught:
                 self.export(blob[:-cut], Path(directory) / "t", ["MODE", "GPS"])
@@ -411,6 +455,7 @@ class RecordExportTests(unittest.TestCase):
                                          "disposition": "TRAILING_BYTES_THE_DECODER_DID_NOT_FRAME"}])
             self.assertEqual(caught.exception.report["exported_counts"]["GPS"], 4)
 
+            # An intact file is the control: every byte is a declared record.
             _, clean = self.export(blob, Path(directory) / "c", ["MODE", "GPS"])
             self.assertEqual(clean["framing"], self.exporter.COMPLETE)
             self.assertEqual(clean["byte_coverage"]["undecoded_spans"], [])
@@ -419,6 +464,8 @@ class RecordExportTests(unittest.TestCase):
     def test_same_labels_under_a_new_format_are_refused_not_mixed(self):
         """A mid-file FMT change keeping the labels would silently mix two meanings."""
         records = blueboat_records(3)
+        # BAT.Temp is `c` (int16 x 0.01). Re-declare it as `h` (int16 x 1): same labels,
+        # same length, same framing -- a different meaning for the same column.
         drifted = WRITERS["BAT"][0].replace("c", "h")
         self.assertEqual(body_length(drifted), body_length(WRITERS["BAT"][0]))
         records.insert(6, ("FMT", (IDS["BAT"], body_length(drifted), "BAT",
@@ -427,6 +474,7 @@ class RecordExportTests(unittest.TestCase):
             with self.assertRaises(ValueError) as caught:
                 self.export(dataflash_binary(records), directory, ["BAT"])
             self.assertIn("FMT declaration", str(caught.exception))
+            # The unchanged file is accepted, so the refusal is the drift and nothing else.
             _, report = self.export(dataflash_binary(blueboat_records(3)),
                                     Path(directory) / "ok", ["BAT"])
             self.assertEqual(report["schemas"]["BAT"]["format"], WRITERS["BAT"][0])
@@ -437,6 +485,7 @@ class RecordExportTests(unittest.TestCase):
             self.assertEqual(exports, {})
             self.assertEqual(report["absent_selected_types"], ["GPS"])
             self.assertEqual(report["exported_counts"], {})
+            # Nothing exported is still fully accounted: every byte, every message.
             self.assertEqual(sum(report["unselected_counts"].values()),
                              report["total_messages"])
             self.assertEqual(report["framing"], self.exporter.COMPLETE)
@@ -446,6 +495,7 @@ class RecordExportTests(unittest.TestCase):
                  str(target), "--types", "GPS"], check=True, capture_output=True)
             self.assertEqual([p.name for p in target.iterdir()], ["report.json"])
             self.assertEqual(json.loads(result.stdout)["absent_selected_types"], ["GPS"])
+            # An empty selection is a caller error, not an empty success.
             for argument in ("", ",", "MODE,,BAT"):
                 self.assertNotEqual(subprocess.run(
                     [os.sys.executable, str(EXPORT), str(Path(directory) / "log.bin"),

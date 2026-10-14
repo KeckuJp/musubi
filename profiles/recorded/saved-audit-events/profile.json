@@ -69,6 +69,9 @@
     "retention_basis": "which_fields_are_copied_which_are_retained_by_reference_to_the_saved_input_and_which_are_withheld_by_design",
     "identity_basis": "reported_audit_fields_not_authenticated_identity_user_agent_untrusted_and_all_but_the_last_source_ip_client_settable",
     "source_pin": "kubernetes_release_whose_audit_schema_writer_and_time_format_this_conversion_used",
-    "api_version_reported": "the_audit_api_version_the_record_declared_and_this_importer_requires"
+    "api_version_reported": "the_audit_api_version_the_record_declared_and_this_importer_requires",
+    "source_record_byte_offset": "zero_based_byte_offset_in_original_saved_JSONL",
+    "selected_normalized_sha256": "sha256_of_selected_LF_normalized_JSONL_not_original_full_source",
+    "audit_stage_accounting_scope": "selected_window_only_not_whole_request_or_file_completeness"
   }
 }

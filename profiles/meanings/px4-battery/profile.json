@@ -6,6 +6,16 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "battery_time_remaining_s": {
+      "meaning": "battery_time_remaining_s",
+      "unit": "s_reported_capacity_current_remaining_time_estimate_not_safe_operating_time",
+      "basis": "declared"
+    },
+    "battery_time_remaining_basis": {
+      "meaning": "battery_time_remaining_basis",
+      "unit": "REPORTED_estimate_or_UNAVAILABLE_NAN_no_end_time_or_physical_guarantee",
+      "basis": "declared"
+    },
     "timestamp": {
       "meaning": "timestamp",
       "unit": "us_since_boot",

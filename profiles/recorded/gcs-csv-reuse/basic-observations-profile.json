@@ -1,0 +1,39 @@
+{
+  "profile_id": "mp_saved_basic_observations_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "us_reported_boot_or_explicit_caller_capture_see_record_time_basis_not_UTC",
+    "latitude_deg": "degree_reported_latitude",
+    "longitude_deg": "degree_reported_longitude",
+    "altitude_msl_m": "m_reported_MSL_no_datum_conversion",
+    "reported_relative_altitude_m": "m_relative_alt_pinned_writer_describes_above_ground_not_inferred_home_datum",
+    "velocity_north_m_s": "m/s_reported_ground_velocity_positive_north",
+    "velocity_east_m_s": "m/s_reported_ground_velocity_positive_east",
+    "velocity_down_m_s": "m/s_reported_ground_velocity_positive_down",
+    "heading_deg": "degree_reported_heading_65535_withheld_before_scaling",
+    "electrical_voltage_v": "V_reported_battery_voltage_65535_withheld",
+    "electrical_current_a": "A_reported_battery_current_minus_one_withheld",
+    "battery_remaining_fraction": "fraction_reported_remaining_minus_one_withheld",
+    "source_sysid": "reported_sender_system_not_authenticated_hardware_identity",
+    "source_compid": "reported_sender_component_not_authenticated_hardware_identity",
+    "custom_mode_raw": "autopilot_specific_uninterpreted_integer",
+    "base_mode_raw": "pinned_MAV_MODE_FLAG_reported_bitmask",
+    "system_status_raw": "pinned_MAV_STATE_reported_code_unknown_codes_preserved",
+    "system_status_reported": "reported_enum_label_not_physical_state_or_permission",
+    "sensor_mask_basis": "pinned_MAV_SYS_STATUS_SENSOR_each_named_boolean_is_reported_bit_not_physical_diagnosis",
+    "source_row_hex": "exact_export_row_bytes_without_CRLF_unknown_fields_retained"
+  }
+}

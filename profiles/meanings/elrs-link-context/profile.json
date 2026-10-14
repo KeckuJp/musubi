@@ -1,0 +1,65 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "uplink_rssi_1_dbm": {
+      "meaning": "uplink_rssi_1_dbm",
+      "unit": "dBm_reported_not_link_health",
+      "basis": "declared"
+    },
+    "uplink_rssi_2_dbm": {
+      "meaning": "uplink_rssi_2_dbm",
+      "unit": "dBm_reported_not_link_health",
+      "basis": "declared"
+    },
+    "uplink_snr_db": {
+      "meaning": "uplink_snr_db",
+      "unit": "dB_reported",
+      "basis": "declared"
+    },
+    "uplink_lq_fraction": {
+      "meaning": "uplink_lq_fraction",
+      "unit": "reported_packet_success_fraction",
+      "basis": "declared"
+    },
+    "downlink_rssi_dbm": {
+      "meaning": "downlink_rssi_dbm",
+      "unit": "dBm_reported",
+      "basis": "declared"
+    },
+    "downlink_snr_db": {
+      "meaning": "downlink_snr_db",
+      "unit": "dB_reported",
+      "basis": "declared"
+    },
+    "downlink_lq_fraction": {
+      "meaning": "downlink_lq_fraction",
+      "unit": "reported_packet_success_fraction",
+      "basis": "declared"
+    },
+    "packet_rate_configured_hz": {
+      "meaning": "packet_rate_configured_hz",
+      "unit": "Hz_configured_not_observed",
+      "basis": "declared"
+    },
+    "telemetry_ratio_denominator": {
+      "meaning": "telemetry_ratio_denominator",
+      "unit": "configured_one_response_per_N_packets",
+      "basis": "declared"
+    },
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_capture_microseconds_unknown_clock",
+      "basis": "declared"
+    },
+    "settings_capture_time_us": {
+      "meaning": "settings_capture_time_us",
+      "unit": "separate_caller_capture_microseconds_unknown_clock_not_synchronized",
+      "basis": "declared"
+    }
+  }
+}

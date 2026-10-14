@@ -1,0 +1,35 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "value": {
+      "meaning": "value",
+      "unit": "reported_tensor_number_no_physical_unit_or_dtype_inference",
+      "basis": "declared"
+    },
+    "volume": {
+      "meaning": "volume",
+      "unit": "declared_shape_element_count",
+      "basis": "declared"
+    },
+    "element_index": {
+      "meaning": "element_index",
+      "unit": "zero_based_logical_row_major_index",
+      "basis": "declared"
+    },
+    "tensor_index": {
+      "meaning": "tensor_index",
+      "unit": "zero_based_export_array_order_not_network_execution_order",
+      "basis": "declared"
+    },
+    "exact_number_text": {
+      "meaning": "exact_number_text",
+      "unit": "utf8_hex_exact_JSON_parsed_numeric_text_not_original_lexical_spelling",
+      "basis": "declared"
+    }
+  }
+}

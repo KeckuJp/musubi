@@ -1,0 +1,45 @@
+{
+  "profile_id": "blueos142_saved_consumer_resources",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "capture_time_us"
+  },
+  "units": {
+    "capture_time_us": "caller_capture_microseconds_no_UTC_or_device_clock_inference",
+    "reported_unix_seconds_hex": "exact_decimal_text_of_reported_Unix_seconds_not_capture_clock_anchor",
+    "host_name_hex": "reported_hostname_not_authenticated_device_identity",
+    "session_hex": "caller_file_bound_session_not_physical_identity",
+    "cpu_frequency_hz": "Hz_from_consumer_declared_MHz",
+    "cpu_usage_fraction": "fraction_from_consumer_declared_0_to_100_percent",
+    "memory_total_declared_kB": "source_declared_kB_base_unqualified_not_bytes",
+    "memory_used_declared_kB": "source_declared_kB_base_unqualified_not_bytes",
+    "memory_used_fraction": "same_unit_used_div_total_blank_for_missing_or_zero_total",
+    "temperature_k": "K_from_declared_Celsius_not_calibration_or_health_certification",
+    "maximum_temperature_k": "K_reported_maximum_not_independent_safe_limit",
+    "critical_temperature_k": "K_reported_critical_not_independent_failure_diagnosis",
+    "received_B": "bytes_received_since_source_last_probe_duration_unknown",
+    "transmitted_B": "bytes_transmitted_since_source_last_probe_duration_unknown",
+    "total_received_B": "reported_total_bytes_not_rate",
+    "total_transmitted_B": "reported_total_bytes_not_rate",
+    "packets_received": "count_since_source_last_probe",
+    "packets_transmitted": "count_since_source_last_probe",
+    "total_packets_received": "reported_total_count",
+    "total_packets_transmitted": "reported_total_count",
+    "errors_on_received": "reported_error_count_since_source_last_probe",
+    "errors_on_transmitted": "reported_error_count_since_source_last_probe",
+    "total_errors_on_received": "reported_total_error_count",
+    "total_errors_on_transmitted": "reported_total_error_count",
+    "is_up_reported": "reported_0_or_1_not_connectivity_or_delivery_proof",
+    "is_loopback_reported": "reported_0_or_1"
+  }
+}

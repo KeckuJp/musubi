@@ -28,7 +28,7 @@
     },
     "rtcp_record_kind": {
       "meaning": "rtcp_record_kind",
-      "unit": "SENDER_REPORT_for_one_decoded_sender_report_or_SOURCE_DESCRIPTION_CNAME_for_one_declared_canonical_name_they_are_different_rows_because_a_clock_pairing_is_not_an_identity",
+      "unit": "SENDER_REPORT_or_SOURCE_DESCRIPTION_CNAME_and_when_explicitly_selected_RECEIVER_REPORT_summary_or_RECEPTION_REPORT_BLOCK_each_is_a_distinct_saved_occurrence_not_a_join_or_quality_verdict",
       "basis": "declared"
     },
     "rtcp_source_address": {
@@ -128,12 +128,17 @@
     },
     "sr_reception_report_blocks_declared": {
       "meaning": "sr_reception_report_blocks_declared",
-      "unit": "how_many_reception_report_blocks_this_packet_declares_COUNTED_and_NOT_DECODED",
+      "unit": "how_many_reception_report_blocks_this_SR_declares_counted_only_by_default_or_each_emitted_as_a_separate_row_with_reception_reports_selected",
       "basis": "declared"
     },
     "sr_profile_extension_bytes": {
       "meaning": "sr_profile_extension_bytes",
       "unit": "how_many_bytes_of_this_report_lie_past_its_declared_reception_report_blocks_which_the_pinned_source_allows_as_a_profile_specific_extension_COUNTED_and_NOT_decoded_and_recoverable_through_the_retained_packet_digest",
+      "basis": "declared"
+    },
+    "sr_reception_report_basis": {
+      "meaning": "sr_reception_report_basis",
+      "unit": "default_says_blocks_are_counted_not_decoded_opt_in_says_they_are_reported_receiver_quantities_not_physical_loss_latency_or_a_quality_verdict",
       "basis": "declared"
     },
     "sdes_cname_hex": {
@@ -164,6 +169,91 @@
     "record_basis": {
       "meaning": "record_basis",
       "unit": "the_fixed_statement_that_every_row_is_an_OBSERVED_RECORD_read_from_a_saved_capture_that_it_is_never_a_transmission_never_a_session_never_a_decoded_medium_and_never_a_measured_transport_performance",
+      "basis": "declared"
+    },
+    "reception_blocks_declared": {
+      "meaning": "reception_blocks_declared",
+      "unit": "count_0_to_31_of_blocks_this_SR_or_RR_declares_not_a_packet_loss_count",
+      "basis": "declared"
+    },
+    "reception_blocks_status": {
+      "meaning": "reception_blocks_status",
+      "unit": "NO_RECEPTION_BLOCKS_REPORTED_or_RECEPTION_BLOCKS_REPORTED_absence_is_not_zero_loss_or_a_healthy_receiver",
+      "basis": "declared"
+    },
+    "reception_block_index": {
+      "meaning": "reception_block_index",
+      "unit": "zero_based_block_occurrence_in_this_packet_repeated_blocks_stay_distinct_blank_on_summaries",
+      "basis": "declared"
+    },
+    "reception_reportee_ssrc": {
+      "meaning": "reception_reportee_ssrc",
+      "unit": "the_source_this_block_reports_about_distinct_from_rtcp_ssrc_the_reporter_neither_is_authenticated_or_joined_across_records",
+      "basis": "declared"
+    },
+    "reception_fraction_lost_raw": {
+      "meaning": "reception_fraction_lost_raw",
+      "unit": "reported_uint8_fixed_point_fraction_lost_since_the_receivers_previous_SR_or_RR_raw_value_divided_by256_not_a_percent_or_recomputed_capture_loss",
+      "basis": "declared"
+    },
+    "reception_fraction_lost": {
+      "meaning": "reception_fraction_lost",
+      "unit": "exact_raw_fraction_byte_over256_zero_may_include_negative_loss_due_to_duplicates_or_subresolution_fraction_not_proof_of_no_loss",
+      "basis": "declared"
+    },
+    "reception_cumulative_lost_reported": {
+      "meaning": "reception_cumulative_lost_reported",
+      "unit": "signed24bit_reported_expected_minus_received_packet_count_since_reception_started_late_and_duplicate_received_packets_can_make_it_negative_not_clamped_or_certified_physical_loss",
+      "basis": "declared"
+    },
+    "reception_extended_highest_sequence_reported": {
+      "meaning": "reception_extended_highest_sequence_reported",
+      "unit": "uint32_reported_high16_cycle_count_low16_highest_sequence_receivers_may_have_different_start_times_no_gap_loss_inferred",
+      "basis": "declared"
+    },
+    "reception_jitter_rtp_ticks_reported": {
+      "meaning": "reception_jitter_rtp_ticks_reported",
+      "unit": "uint32_receiver_reported_interarrival_jitter_in_source_RTP_timestamp_units_not_seconds_no_clock_rate_guessed_and_no_jitter_recomputed",
+      "basis": "declared"
+    },
+    "reception_lsr_middle32_reported": {
+      "meaning": "reception_lsr_middle32_reported",
+      "unit": "uint32_middle32bits_of_the_last_received_SR_NTP_timestamp_zero_is_unresolved_no_era_epoch_UTC_alignment_or_full_timestamp_reconstructed",
+      "basis": "declared"
+    },
+    "reception_dlsr_ticks_reported": {
+      "meaning": "reception_dlsr_ticks_reported",
+      "unit": "uint32_reported_delay_since_last_SR_in_units_of1_over65536_seconds_zero_raw_retained_and_never_measured_zero_latency",
+      "basis": "declared"
+    },
+    "reception_dlsr_seconds_text": {
+      "meaning": "reception_dlsr_seconds_text",
+      "unit": "exact_decimal_of_reported_DLSR_raw_over65536_seconds_since_last_SR_not_RTT_or_end_to_end_latency_zero_is_preserved_without_resolving_last_SR_presence",
+      "basis": "declared"
+    },
+    "reception_last_sr_status": {
+      "meaning": "reception_last_sr_status",
+      "unit": "LAST_SR_REFERENCE_UNRESOLVED_ZERO_FIELD_or_LAST_SR_REFERENCE_REPORTED_NOT_ALIGNED_preserves_ambiguity_of_zero_LSR_and_never_binds_to_a_nearby_SR",
+      "basis": "declared"
+    },
+    "reception_block_hex": {
+      "meaning": "reception_block_hex",
+      "unit": "hex_of_all24_original_effective_block_bytes_excluding_padding_exact_provenance_not_authenticity_blank_on_summary",
+      "basis": "declared"
+    },
+    "reception_extension_bytes": {
+      "meaning": "reception_extension_bytes",
+      "unit": "summary_count_of_effective_bytes_after_declared_blocks_uninterpreted_not_an_extra_block",
+      "basis": "declared"
+    },
+    "reception_extension_hex": {
+      "meaning": "reception_extension_hex",
+      "unit": "summary_hex_of_all_uninterpreted_extension_bytes_hex_colon_when_none_no_extension_semantics_guessed",
+      "basis": "declared"
+    },
+    "reception_feedback_basis": {
+      "meaning": "reception_feedback_basis",
+      "unit": "fixed_qualification_receiver_report_not_physical_loss_latency_quality_or_cause_verdict_signed_loss_may_be_negative_jitter_keeps_RTP_ticks_LSR_unaligned_DLSR_reported_delay_absent_block_and_zero_fraction_do_not_prove_no_loss",
       "basis": "declared"
     }
   }

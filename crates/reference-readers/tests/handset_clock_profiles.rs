@@ -5,18 +5,24 @@ use musubi_reference_types::FamilyProfile;
 
 const CASE: &str = "profiles/declared/edgetx-handset-clock";
 
-const RTC_PROFILE: &str = include_str!("fixtures/edgetx-handset-clock--rtc-date-time.profile.toml");
+// The exact shipped files, embedded at compile time so the test cannot drift from the case.
+const RTC_PROFILE: &str =
+    include_str!("../../../profiles/declared/edgetx-handset-clock/rtc-date-time.profile.toml");
 const COUNTER_PROFILE: &str =
-    include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml");
+    include_str!("../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml");
 const ALTERNATIVES_PROFILE: &str =
-    include_str!("fixtures/edgetx-handset-clock--time-alternatives.profile.toml");
-const RTC_CSV: &[u8] = include_bytes!("fixtures/edgetx-handset-clock--authored-rtc.csv");
+    include_str!("../../../profiles/declared/edgetx-handset-clock/time-alternatives.profile.toml");
+const RTC_CSV: &[u8] =
+    include_bytes!("../../../profiles/declared/edgetx-handset-clock/authored-rtc.csv");
 const COUNTER_CSV: &[u8] =
-    include_bytes!("fixtures/edgetx-handset-clock--authored-boot-counter.csv");
-const AMBIGUOUS_CSV: &[u8] =
-    include_bytes!("fixtures/edgetx-handset-clock--authored-ambiguous-refused.csv");
-const SYNTH_PROFILE: &str = include_str!("fixtures/profile-synth-v1--candidate--profile.toml");
-const SYNTH_CSV: &[u8] = include_bytes!("fixtures/profile-synth-v1--input--sample.csv");
+    include_bytes!("../../../profiles/declared/edgetx-handset-clock/authored-boot-counter.csv");
+const AMBIGUOUS_CSV: &[u8] = include_bytes!(
+    "../../../profiles/declared/edgetx-handset-clock/authored-ambiguous-refused.csv"
+);
+// The shipped synthetic candidate, used only to show at runtime what its declaration actually does.
+const SYNTH_PROFILE: &str =
+    include_str!("../../../examples/saved-inputs/authored-handset-profile.toml");
+const SYNTH_CSV: &[u8] = include_bytes!("../../../examples/saved-inputs/authored-handset.csv");
 
 fn load(text: &str, name: &str) -> FamilyProfile {
     parse_profile(text, name).expect("the shipped profile must load through the existing loader")
@@ -28,11 +34,14 @@ fn the_rtc_profile_yields_unknown_clock_with_no_wall_time() {
     let observations = EdgeTxCsvReader.read(&profile, RTC_CSV).unwrap();
     assert_eq!(observations.len(), 4);
     for o in &observations {
+        // The RTC pair carries no zone, so order only: never a wall-clock anchor.
         assert_eq!(o.clock_basis, ClockBasis::Unknown);
         assert!(o.wall_ms.is_none());
         assert!(o.anchor_unix_us.is_none());
+        // Every source column is kept; the header is Date,Time,RQly(%).
         assert_eq!(o.fields.len(), 3);
     }
+    // Two rows share one RTC instant in the fixture and both survive, in file order.
     assert_eq!(observations[1].t_ms, observations[2].t_ms);
     assert!(observations[0].t_ms < observations[1].t_ms);
     assert!(observations[2].t_ms < observations[3].t_ms);
@@ -46,6 +55,8 @@ fn the_counter_profile_scales_the_tick_once_and_reports_boot_relative() {
     );
     let observations = EdgeTxCsvReader.read(&profile, COUNTER_CSV).unwrap();
     assert_eq!(observations.len(), 4);
+    // authored ticks: 3000, 3010, 3010, 3020. t_ms = tick * 10, applied exactly once - a second
+    // application anywhere would give 300000, and half of one would give 3000.
     assert_eq!(
         observations.iter().map(|o| o.t_ms).collect::<Vec<_>>(),
         vec![30_000, 30_100, 30_100, 30_200]
@@ -63,12 +74,14 @@ fn the_alternatives_profile_reads_either_header_and_refuses_both_at_once() {
         ALTERNATIVES_PROFILE,
         &format!("{CASE}/time-alternatives.profile.toml"),
     );
+    // Alternative one: the RTC header alone.
     let rtc = EdgeTxCsvReader.read(&profile, RTC_CSV).unwrap();
     assert_eq!(rtc.len(), 4);
     assert!(
         rtc.iter()
             .all(|o| o.clock_basis == ClockBasis::Unknown && o.wall_ms.is_none())
     );
+    // Alternative two: the counter header alone, with the same single scaling.
     let counter = EdgeTxCsvReader.read(&profile, COUNTER_CSV).unwrap();
     assert_eq!(counter.len(), 4);
     assert!(
@@ -77,6 +90,7 @@ fn the_alternatives_profile_reads_either_header_and_refuses_both_at_once() {
             .all(|o| o.clock_basis == ClockBasis::BootRelative)
     );
     assert_eq!(counter[0].t_ms, 30_000);
+    // Both headers present is ambiguous and refused, not resolved by preferring one.
     let failure = EdgeTxCsvReader
         .read(&profile, AMBIGUOUS_CSV)
         .expect_err("a header carrying both alternatives must be refused");
@@ -86,6 +100,8 @@ fn the_alternatives_profile_reads_either_header_and_refuses_both_at_once() {
     );
 }
 
+/// The pinned EdgeTX 65bb97db / OpenTX fb8622dd logs.cpp write `Time,` (then `%d` tmr10ms) for an
+/// RTC-less build. The shipped alternatives profile must read that header, not only `tmr10ms`.
 #[test]
 fn the_alternatives_profile_reads_the_pinned_writer_rtc_less_time_header() {
     let profile = load(
@@ -115,6 +131,8 @@ fn the_alternatives_profile_reads_the_pinned_writer_rtc_less_time_header() {
 
 #[test]
 fn a_decreasing_handset_clock_is_refused_rather_than_wrap_corrected() {
+    // A second power cycle inside one file: the counter restarts. The reader refuses; it never
+    // stitches two sessions or guesses a wrap.
     let profile = load(
         COUNTER_PROFILE,
         &format!("{CASE}/boot-counter.profile.toml"),
@@ -131,9 +149,13 @@ fn a_decreasing_handset_clock_is_refused_rather_than_wrap_corrected() {
 
 #[test]
 fn the_reader_assigns_the_basis_even_when_a_profile_declares_another() {
+    // The shipped synthetic candidate declares host_received and selects tmr10ms. That declaration
+    // is not a wrong clock on the output: the reader assigns the basis itself, so what reaches an
+    // Observation is boot_relative either way. This is what makes the new profiles a packaging and
+    // usability improvement rather than a defect fix.
     let synth = load(
         SYNTH_PROFILE,
-        "fixtures/profile-synth-v1--candidate--profile.toml",
+        "examples/saved-inputs/authored-handset-profile.toml",
     );
     assert_eq!(synth.default_clock_basis, ClockBasis::HostReceived);
     let observations = EdgeTxCsvReader.read(&synth, SYNTH_CSV).unwrap();
@@ -143,6 +165,7 @@ fn the_reader_assigns_the_basis_even_when_a_profile_declares_another() {
             .iter()
             .all(|o| o.clock_basis == ClockBasis::BootRelative && o.wall_ms.is_none())
     );
+    // The case profile declares what the reader will assign, so declaration and behaviour agree.
     let declared = load(
         COUNTER_PROFILE,
         &format!("{CASE}/boot-counter.profile.toml"),

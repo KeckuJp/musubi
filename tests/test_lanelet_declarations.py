@@ -14,6 +14,8 @@ from scripts.convert_lanelet_declarations import convert
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT / "profiles/declared/lanelet-declarations/profile.toml"
 
+# Map A: a lanelet with both borders, a regulatory element, an area way, a declared
+# elevation, a missing elevation, a vendor tag and a relation type this pin ignores.
 MAP_A = """<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6" generator="authored">
   <!-- authored declaration, not a recording -->
@@ -41,6 +43,8 @@ MAP_A = """<?xml version="1.0" encoding="UTF-8"?>
 </osm>
 """
 
+# Map B: a different shape - negative ids, a centerline, a multipolygon area with an
+# inner ring, a southern/western hemisphere position and no regulatory element at all.
 MAP_B = """<osm version="0.6">
   <node id="-1" lat="-33.86" lon="151.20"/>
   <node id="-2" lat="-33.8601" lon="151.2001"/>
@@ -77,6 +81,61 @@ def decoded(row, column):
 
 
 class LaneletDeclarationTests(unittest.TestCase):
+    def test_regulatory_optin_preserves_default_and_maps_explicit_speed(self):
+        for speed, expected in [('36 km/h', 10), ('20 mph', 8.9408), ('36', 10), ('2 mps', 2)]:
+            data = MAP_A.replace('v="traffic_sign"', 'v="speed_limit"').replace(
+                '<tag k="subtype" v="speed_limit"/>',
+                f'<tag k="subtype" v="speed_limit"/><tag k="sign_type" v="{speed}"/>')
+            output, report = convert(data.encode(), 777, regulatory_declarations=True)
+            rs = list(csv.DictReader(io.StringIO(output)))
+            relation = next(r for r in rs if r['map_record_kind'] == 'RELATION' and r['map_element_id'] == '200')
+            self.assertAlmostEqual(float(relation['map_declared_speed_limit_m_s']), expected)
+            self.assertEqual(relation['map_dynamic_disposition'], 'ABSENT')
+            member = next(r for r in rs if r['map_record_kind'] == 'MEMBER' and r['map_owner_id'] == '200')
+            self.assertEqual(member['map_regulatory_parameter_meaning'], 'DECLARED_RESTRICTION_ORIGIN')
+            self.assertEqual(convert(data.encode(), 777), convert(data.encode(), 777, regulatory_declarations=False))
+            reader = os.environ.get('MUSUBI_TELEMETRY_READER')
+            if not reader:
+                self.skipTest('actual reader not configured')
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / 'map.csv'; path.write_text(output)
+                common = json.loads(subprocess.run([reader, str(PROFILE), str(path), '--allow-equal-time'],
+                    check=True, capture_output=True).stdout)
+                selected = next(o for o in common['observations'] if o['fields']['map_record_kind'] == 'RELATION' and o['fields']['map_element_id'] == 200)
+                self.assertAlmostEqual(selected['fields']['map_declared_speed_limit_m_s'], expected)
+                self.assertEqual(selected['clock_basis'], 'Unknown')
+        with self.assertRaises(ValueError):
+            convert(MAP_A.encode(), 777, regulatory_declarations='false')
+        for value in ('DE:274', 'not a speed'):
+            data = MAP_A.replace('v="traffic_sign"', 'v="speed_limit"').replace(
+                '<tag k="subtype" v="speed_limit"/>', f'<tag k="subtype" v="speed_limit"/><tag k="sign_type" v="{value}"/>')
+            output, _ = convert(data.encode(), 777, regulatory_declarations=True)
+            relation = next(r for r in csv.DictReader(io.StringIO(output)) if r['map_record_kind'] == 'RELATION' and r['map_element_id'] == '200')
+            self.assertEqual(relation['map_speed_limit_disposition'], 'UNQUALIFIED_SIGN_TEXT')
+            self.assertEqual(relation['map_declared_speed_limit_m_s'], '')
+
+    def test_regulatory_subtypes_roles_pairing_and_unknown_boundaries(self):
+        for subtype in ('traffic_sign', 'speed_limit', 'traffic_light', 'right_of_way', 'all_way_stop', 'custom'):
+            data = MAP_A.replace('v="traffic_sign"', f'v="{subtype}"').replace(
+                '<member type="way" role="refers" ref="12"/>',
+                '<member type="way" role="refers" ref="12"/>'
+                '<member type="relation" role="yield" ref="100"/>'
+                '<member type="way" role="ref_line" ref="10"/>'
+                '<member type="node" role="future" ref="1"/>').replace(
+                f'<tag k="subtype" v="{subtype}"/>', f'<tag k="subtype" v="{subtype}"/><tag k="dynamic" v="yes"/><tag k="fallback" v="maybe"/>')
+            output, _ = convert(data.encode(), 12, regulatory_declarations=True)
+            members = [r for r in csv.DictReader(io.StringIO(output)) if r['map_record_kind'] == 'MEMBER' and r['map_owner_id'] == '200']
+            self.assertEqual(members[-1]['map_regulatory_parameter_meaning'], 'UNQUALIFIED_ROLE_OR_TARGET')
+            self.assertEqual(members[0]['map_dynamic_disposition'], 'DECLARED_YES')
+            self.assertEqual(members[0]['map_fallback_disposition'], 'UNQUALIFIED_DECLARATION')
+            if subtype == 'all_way_stop':
+                self.assertEqual(members[2]['map_associated_lanelet_id'], '100')
+                broken = data.replace('<member type="relation" role="yield" ref="100"/>', '')
+                broken_csv, _ = convert(broken.encode(), 12, regulatory_declarations=True)
+                line = next(r for r in csv.DictReader(io.StringIO(broken_csv)) if r['map_record_kind'] == 'MEMBER' and r['map_owner_id'] == '200' and r['map_reference_id'] == '10')
+                self.assertEqual(line['map_stop_line_pairing'], 'UNQUALIFIED_COUNT_OR_TARGET')
+                self.assertEqual(line['map_associated_lanelet_id'], '')
+
     def test_two_maps_keep_coordinates_order_relations_and_reach_common_output(self):
         for text, nodes, ways, relations in ((MAP_A, 4, 3, 3), (MAP_B, 5, 4, 2)):
             rows, report, output = rows_of(text)
@@ -95,6 +154,7 @@ class LaneletDeclarationTests(unittest.TestCase):
                 self.assertTrue(-180 <= float(row["map_longitude_deg"]) <= 180)
                 self.assertEqual(row["map_declaration_basis"],
                                  "DECLARED_MAP_NOT_PROJECTED_ROUTED_OR_CERTIFIED")
+            # Ordered references: every way's nd list is 0..n-1 in declaration order.
             for way in [row for row in rows if row["map_record_kind"] == "WAY"]:
                 references = [row for row in rows if row["map_record_kind"] == "WAY_REF"
                               and row["map_owner_id"] == way["map_element_id"]]
@@ -108,6 +168,7 @@ class LaneletDeclarationTests(unittest.TestCase):
                 self.assertEqual([int(row["map_member_ordinal"]) for row in members],
                                  list(range(len(members))))
                 self.assertEqual(int(relation["map_reference_count"]), len(members))
+            # Rows stay in document element order and every row is indexed.
             indexes = [int(row["map_element_index"]) for row in rows]
             self.assertEqual(indexes, sorted(indexes))
             self.assertEqual(len(set(indexes)), len(indexes))
@@ -133,6 +194,7 @@ class LaneletDeclarationTests(unittest.TestCase):
         self.assertEqual(float(nodes["1"]["map_elevation_m"]), 115.25)
         self.assertEqual(nodes["1"]["map_elevation_status"], "DECLARED_METRES_OVER_WGS84_ELLIPSOID")
         self.assertEqual(float(nodes["3"]["map_elevation_m"]), -2.5)
+        # A missing elevation stays missing: never 0, which would be a measurement claim.
         self.assertEqual(nodes["2"]["map_elevation_m"], "")
         self.assertEqual(nodes["2"]["map_elevation_status"], "ELEVATION_NOT_DECLARED")
         self.assertEqual(nodes["4"]["map_elevation_m"], "")
@@ -141,6 +203,7 @@ class LaneletDeclarationTests(unittest.TestCase):
         self.assertEqual(decoded(relations["100"], "map_relation_subtype_hex"), "road")
         self.assertEqual(relations["200"]["map_relation_type"], "REGULATORY_ELEMENT")
         self.assertEqual(decoded(relations["200"], "map_relation_subtype_hex"), "traffic_sign")
+        # A relation type this pin ignores is retained here, explicitly unqualified.
         self.assertEqual(relations["300"]["map_relation_type"], "OTHER_UNQUALIFIED")
         members = [row for row in rows if row["map_record_kind"] == "MEMBER"]
         meanings = {(row["map_owner_id"], int(row["map_member_ordinal"])): row for row in members}
@@ -149,9 +212,11 @@ class LaneletDeclarationTests(unittest.TestCase):
         self.assertEqual(meanings[("100", 2)]["map_member_role_meaning"], "REGULATORY_ELEMENT")
         self.assertEqual(meanings[("100", 2)]["map_reference_kind"], "relation")
         self.assertEqual(int(meanings[("100", 2)]["map_reference_id"]), 200)
+        # A regulatory-element role is kept verbatim but not interpreted.
         self.assertEqual(meanings[("200", 0)]["map_member_role_meaning"], "UNQUALIFIED_ROLE")
         self.assertEqual(decoded(meanings[("200", 0)], "map_member_role_hex"), "refers")
         self.assertEqual(meanings[("300", 0)]["map_member_role_meaning"], "UNQUALIFIED_ROLE")
+        # Every declared tag is retained, including vendor ones and the structural ones.
         tags = {(row["map_owner_id"], decoded(row, "map_tag_key_hex")): decoded(row, "map_tag_value_hex")
                 for row in rows if row["map_record_kind"] == "TAG"}
         self.assertEqual(tags[("3", "custom_marker")], "vendor")
@@ -162,6 +227,7 @@ class LaneletDeclarationTests(unittest.TestCase):
         ways = {row["map_element_id"]: row for row in rows if row["map_record_kind"] == "WAY"}
         self.assertEqual(ways["12"]["map_way_kind"], "POLYGON_DECLARED_AREA_TAG")
         self.assertEqual(ways["10"]["map_way_kind"], "LINESTRING_DEFAULT")
+        # Map B: centerline and area rings carry their established meanings.
         other, _, _ = rows_of(MAP_B)
         other_members = {(row["map_owner_id"], int(row["map_member_ordinal"])): row
                          for row in other if row["map_record_kind"] == "MEMBER"}
@@ -222,6 +288,8 @@ class LaneletDeclarationTests(unittest.TestCase):
         for capture in (None, -1, True, 2**63):
             with self.subTest(capture=capture), self.assertRaises(ValueError):
                 convert(base.encode(), capture)
+        # A commented map is ordinary and converts; a deleted element that nothing
+        # references is retained with its disposition rather than dropped.
         commented = "<!-- hand edited -->\n" + base.replace("<way", "<!-- the way --><way", 1)
         self.assertEqual(rows_of(commented)[1]["output_records"], rows_of(base)[1]["output_records"])
         with_deleted = base.replace("</osm>", '<node id="3" lat="1.2" lon="2.2" action="delete"/></osm>')
@@ -231,6 +299,8 @@ class LaneletDeclarationTests(unittest.TestCase):
         self.assertEqual(deleted_row["map_load_disposition"], "DELETED_ACTION_NOT_LOADED")
 
     def test_practical_map_and_cli_write_the_same_declarations(self):
+        # 10000 declared nodes in 2000 ways under 1000 lanelet relations: an ordinary
+        # saved map size, not a toy example.
         parts = ['<osm version="0.6">']
         for index in range(10000):
             parts.append(f'<node id="{index + 1}" lat="{49.0 + index * 1e-5:.5f}" '
@@ -289,6 +359,7 @@ class LaneletDeclarationTests(unittest.TestCase):
             return base + f'<relation id="100">{body}<tag k="type" v="{kind}"/></relation></osm>'
 
         borders = '<member type="way" role="left" ref="10"/><member type="way" role="right" ref="11"/>'
+        # A boundary or ring the pin enforces as a way is refused when declared otherwise.
         for label, body, kind in (
                 ("node left", '<member type="node" role="left" ref="1"/>' + borders[46:], "lanelet"),
                 ("relation right", '<member type="way" role="left" ref="10"/>'
@@ -299,6 +370,7 @@ class LaneletDeclarationTests(unittest.TestCase):
                  '<member type="node" role="inner" ref="1"/>', "multipolygon")):
             with self.subTest(refused=label), self.assertRaises(ValueError):
                 convert(relation(body, kind).encode(), 1)
+        # A role string only carries meaning inside the relation type that establishes it.
         for kind in ("regulatory_element", "vendor_extension"):
             text = base + (f'<relation id="100"><member type="way" role="left" ref="10"/>'
                            f'<tag k="type" v="{kind}"/>'
@@ -309,11 +381,14 @@ class LaneletDeclarationTests(unittest.TestCase):
             with self.subTest(relation=kind):
                 self.assertEqual(member["map_member_role_meaning"], "UNQUALIFIED_ROLE")
                 self.assertEqual(decoded(member, "map_member_role_hex"), "left")
+        # The regulatory_element member kind is only documented, not enforced at the pin:
+        # a way in that role stays unqualified rather than being refused or promoted.
         rows, _, _ = rows_of(relation(borders + '<member type="way" role="regulatory_element" ref="10"/>'))
         documented = [row for row in rows if row["map_record_kind"] == "MEMBER"][2]
         self.assertEqual(documented["map_member_role_meaning"], "UNQUALIFIED_ROLE")
         self.assertEqual(documented["map_reference_kind"], "way")
 
+        # Unknown children and attributes are counted, dispositioned and located by index.
         unknown = base.replace('<node id="1" lat="1.0" lon="2.0"/>',
                                '<node id="1" lat="1.0" lon="2.0" version="3" user="mapper">'
                                '<extra a="1"/><tag k="x" v="y" source="survey"/></node>') + "</osm>"
@@ -332,8 +407,10 @@ class LaneletDeclarationTests(unittest.TestCase):
         child = [row for row in extras if decoded(row, "map_tag_key_hex") == "extra"][0]
         self.assertEqual(child["map_record_kind"], "UNKNOWN_CHILD")
         self.assertEqual(child["map_reference_count"], "1")
+        # The known tag beside them is still emitted, so nothing is traded away.
         self.assertEqual(sum(1 for row in rows if row["map_record_kind"] == "TAG"), 1)
 
+        # Repeated structural keys: identical is kept with both rows, conflicting refuses.
         repeated = base.replace('<node id="1" lat="1.0" lon="2.0"/>',
                                 '<node id="1" lat="1.0" lon="2.0"><tag k="ele" v="5.5"/>'
                                 '<tag k="ele" v="5.5"/></node>') + "</osm>"
@@ -365,6 +442,8 @@ class LaneletDeclarationTests(unittest.TestCase):
                 '<relation id="100"><member type="way" role="left" ref="10" member_extra="vendor"/>'
                 '<member type="way" role="right" ref="11"/><tag k="type" v="lanelet"/></relation></osm>')
         rows, report, output = rows_of(text)
+        # An unknown attribute on an `nd` and on a `member` is accounted for, like the
+        # ones on elements and tags - this is what the earlier result wrongly claimed.
         unknown = {decoded(row, "map_tag_key_hex"): row for row in rows
                    if row["map_record_kind"] == "UNKNOWN_ATTRIBUTE"}
         self.assertEqual(set(unknown), {"nd_extra", "member_extra"})
@@ -378,6 +457,7 @@ class LaneletDeclarationTests(unittest.TestCase):
             self.assertNotEqual(row["map_element_index"], "")
         self.assertEqual(report["rows_by_kind"]["UNKNOWN_ATTRIBUTE"], 2)
         self.assertEqual(report["unknown_declarations"], 2)
+        # Root metadata is not promoted and not interpreted, but it is named and located.
         self.assertEqual(report["root_metadata_elements"], 2)
         self.assertEqual([entry["element"] for entry in report["root_metadata"]],
                          ["bounds", "note"])
@@ -398,6 +478,8 @@ class LaneletDeclarationTests(unittest.TestCase):
                 kinds = [o["fields"]["map_record_kind"] for o in common["observations"]]
                 self.assertEqual(kinds.count("UNKNOWN_ATTRIBUTE"), 2)
 
+        # Declared ids are signed 64-bit; the existing common reader keeps them exact, so
+        # no textual identifier form is introduced. 2**53+1 would round under a float.
         big, maximum = 9007199254740993, 9223372036854775807
         exact = (f'<osm version="0.6"><node id="{big}" lat="1.0" lon="2.0"/>'
                  f'<node id="{maximum}" lat="1.1" lon="2.1"/>'

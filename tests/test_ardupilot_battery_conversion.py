@@ -68,11 +68,15 @@ class ConversionTests(unittest.TestCase):
                     fields = common["observations"][0]["fields"]
                     self.assertAlmostEqual(fields["battery_temperature_k"], 260.81)
                     self.assertEqual(fields["battery_current_a"], -2.)
+                    # The remaining two selected quantities, in the Observation rather than
+                    # only the CSV: the reported fraction and the watts derived from this
+                    # same record's V and A.
                     self.assertEqual(fields["battery_remaining_fraction"], .75)
                     self.assertEqual(fields["battery_power_w"], -48.)
                     second = common["observations"][1]["fields"]
                     self.assertIsNone(second["battery_remaining_fraction"])  # RemPct 255
                     self.assertEqual(second["battery_power_w"], 12.)
+                    # This log states no sign convention, so the declaration establishes none.
                     units = common["profile_units"]
                     self.assertTrue(units["battery_current_a"].startswith("A_native_sign_kept"))
                     self.assertIn("states_no_sign_convention", units["battery_current_a"])

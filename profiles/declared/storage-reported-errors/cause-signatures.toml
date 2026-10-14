@@ -1,0 +1,29 @@
+version = "recorded-journal-failure-cues-v1"
+
+[[signature]]
+id = "reported_storage_no_space"
+kind = "storage_failure"
+required = ["event:reported_no_space"]
+discriminators = ["operation_and_target", "capacity_or_allocation_constraint", "independent_confirmation_of_client_errno"]
+consistent_with = "consistent with a reported allocation/capacity constraint; no write operation or physical disk failure established"
+
+[[signature]]
+id = "reported_readonly_intended"
+kind = "storage_failure"
+required = ["event:reported_readonly"]
+discriminators = ["intended_mount_policy", "mount_transition_and_error_evidence", "operation_and_target"]
+consistent_with = "consistent with rejection under intended read-only policy; this alternative need not be a fault"
+
+[[signature]]
+id = "reported_readonly_after_error"
+kind = "storage_failure"
+required = ["event:reported_readonly"]
+discriminators = ["intended_mount_policy", "mount_transition_and_error_evidence", "operation_and_target"]
+consistent_with = "consistent with an error-induced read-only state; no remount or underlying fault established"
+
+[[signature]]
+id = "reported_configuration_discrepancy"
+kind = "configuration_error"
+required = ["event:reported_configured_limit", "event:caller_asserted_limit_discrepancy"]
+discriminators = ["expected_configuration_authority_and_revision", "observed_configuration_source_and_revision", "same_component_configuration_binding"]
+consistent_with = "consistent with a caller-asserted expected/observed limit discrepancy; applied limit alone is not misconfiguration"

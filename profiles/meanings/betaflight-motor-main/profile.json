@@ -6,6 +6,16 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "source_file_sha256": {
+      "meaning": "source_file_sha256",
+      "unit": "sha256_of_entire_saved_decoded_CSV_not_authenticated_firmware_identity",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "zero_based_global_data_record_index_excluding_header_not_decoder_frame_sequence",
+      "basis": "declared"
+    },
     "record_time_us": {
       "meaning": "record_time_us",
       "unit": "us_boot_relative_from_the_decoded_main_frame_time_column_no_absolute_clock_is_established_by_this_path",

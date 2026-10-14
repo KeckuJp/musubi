@@ -1,0 +1,27 @@
+{
+  "profile_id": "saved_storage_state_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "capture_time_us"
+  },
+  "units": {
+    "capture_time_us": "caller_capture_microseconds_unknown_clock",
+    "source_record_index": "one_based_source_physical_record",
+    "partition_ordinal": "zero_based_in_original_mount_inventory",
+    "partition_count": "reported_mount_entries",
+    "warning_byte": "reported_nvme_critical_warning_bitmask",
+    "unknown_warning_bits": "uninterpreted_bits_6_7",
+    "health_report": "reported_self_assessment_not_physical_diagnosis",
+    "mount_access_report": "reported_mount_option_not_verified_writeability"
+  }
+}

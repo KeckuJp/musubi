@@ -46,6 +46,11 @@ REFERENCE_ONLY = "REFERENCE_ONLY_SEE_SOURCE_DOCUMENT_AT_THIS_PATH"
 LIMIT = 16 * 1024 * 1024
 OUTPUT_LIMIT = 128 * 1024 * 1024
 MODEL_COUNT = 64  # config.h CONFIG_TX_MODEL_CNT
+BUTTON_ACTIONS = ("ACTION_NONE", "ACTION_INCREASE_POWER", "ACTION_GOTO_VTX_BAND",
+                  "ACTION_GOTO_VTX_CHANNEL", "ACTION_SEND_VTX", "ACTION_START_WIFI",
+                  "ACTION_BIND", "ACTION_BLE_JOYSTICK", "ACTION_RESET_REBOOT")
+BUTTON_COLUMNS = ("button_index", "button_action_index", "button_press_kind",
+                  "button_count_raw", "button_matching_callback_count")
 COLUMNS = ("record_time_us", "elrs_setting_index", "elrs_scope", "elrs_model_index",
            "elrs_setting_path_hex", "elrs_value_reported", "elrs_value_label",
            "elrs_value_status", "packet_rate_configured_hz", "packet_rate_basis",
@@ -159,7 +164,8 @@ def telemetry_row(value):
     return TLM_LABELS[value], "REPORTED", TLM_DENOMINATORS.get(value, "")
 
 
-def convert_elrs_settings(text, *, source_format, capture_time_us, role, radio=None):
+def convert_elrs_settings(text, *, source_format, capture_time_us, role, radio=None,
+                          include_button_actions=False):
     """Selected settings by name; the document is never copied out wholesale."""
     # Declared, never inferred: the shape of a document does not identify a release.
     if source_format != SOURCE_FORMAT:
@@ -193,15 +199,18 @@ def convert_elrs_settings(text, *, source_format, capture_time_us, role, radio=N
     source = "sha256:" + hashlib.sha256(raw).hexdigest()
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
-    writer.writerow(COLUMNS)
+    writer.writerow(COLUMNS + BUTTON_COLUMNS if include_button_actions else COLUMNS)
     rows, handled = 0, set()
     accounting = {"retained": [], "redacted": [], "unknown_retained": []}
 
     def emit(scope, model, path, value, label="", status="REPORTED", hertz="", basis="",
-             denominator=""):
+             denominator="", button_fields=None):
         nonlocal rows
-        writer.writerow([capture_time_us, rows, scope, "" if model is None else model,
-                         text_hex(path), value, label, status, hertz, basis, denominator, source])
+        row = [capture_time_us, rows, scope, "" if model is None else model,
+               text_hex(path), value, label, status, hertz, basis, denominator, source]
+        if include_button_actions:
+            row += button_fields or [""] * len(BUTTON_COLUMNS)
+        writer.writerow(row)
         rows += 1
         accounting["retained"].append(path)
         if output.tell() > OUTPUT_LIMIT:
@@ -232,6 +241,51 @@ def convert_elrs_settings(text, *, source_format, capture_time_us, role, radio=N
                 # path and whole-document digest rather than copied out.
                 accounting["unknown_retained"].append(
                     {"path": path, "status": REFERENCE_ONLY, "source_sha256": source})
+
+    if include_button_actions and "button-actions" in config:
+        buttons = config["button-actions"]
+        if not isinstance(buttons, list) or len(buttons) > 2:
+            raise ValueError("button-actions must contain at most two button declarations")
+        handled.add("config.button-actions")
+        for button_index, button in enumerate(buttons):
+            prefix = f"config.button-actions.{button_index}"
+            if not isinstance(button, dict):
+                raise ValueError("button declaration must be an object")
+            if any(secret_key(key) for key in button):
+                redact(prefix, button)
+                continue
+            actions = button.get("action")
+            if not isinstance(actions, list) or len(actions) != 2:
+                raise ValueError("button declaration requires exactly two action slots")
+            handled.add(prefix + ".action")
+            for action_index, action in enumerate(actions):
+                path = f"{prefix}.action.{action_index}"
+                if not isinstance(action, dict):
+                    raise ValueError("button action slot must be an object")
+                if any(secret_key(key) for key in action):
+                    redact(path, action)
+                    continue
+                press = action.get("is-long-press")
+                if "is-long-press" in action and type(press) is not bool:
+                    raise ValueError("button is-long-press must be a boolean")
+                if any(key in action and type(action[key]) is not int for key in ("count", "action")):
+                    raise ValueError("button count/action must be integers, not booleans")
+                count = bounded(action["count"], "button count", 3) if "count" in action else None
+                code = bounded(action["action"], "button action", 4) if "action" in action else None
+                label = BUTTON_ACTIONS[code] if code is not None and code < len(BUTTON_ACTIONS) else ""
+                status = ("INCOMPLETE_DECLARATION" if any(v is None for v in (press, count, code))
+                          else "UNKNOWN_ENUM_RETAINED" if not label else
+                          "DISABLED_DECLARATION" if code == 0 else "DECLARED_NOT_EXECUTED")
+                emit("BUTTON", None, path, "" if code is None else code, label, status,
+                     button_fields=[button_index, action_index,
+                                    "" if press is None else "LONG_PRESS" if press else "SHORT_PRESS",
+                                    "" if count is None else count,
+                                    "" if count is None else count + 1])
+                for key in ("is-long-press", "count", "action"):
+                    if key in action:
+                        handled.add(path + "." + key)
+                account(path + ".", action)
+            account(prefix + ".", button)
 
     for name, bits in DEVICE_FIELDS:
         if name in config:
@@ -316,13 +370,16 @@ def main(argv=None):
     parser.add_argument("--role", required=True, choices=("tx", "rx"), help="declared export role")
     parser.add_argument("--radio", choices=sorted(RATE_TABLES),
                         help="declared radio; without it a packet rate index stays unresolved")
+    parser.add_argument("--include-button-actions", action="store_true",
+                        help="decode saved TX button declarations, never execute them")
     args = parser.parse_args(argv)
     with args.input.open("rb") as stream:
         raw = stream.read(LIMIT + 1)
     if len(raw) > LIMIT:
         raise ValueError("saved ExpressLRS export exceeds 16MiB")
     text, report = convert_elrs_settings(raw.decode("utf-8"), source_format=args.source_format,
-        capture_time_us=args.capture_time_us, role=args.role, radio=args.radio)
+        capture_time_us=args.capture_time_us, role=args.role, radio=args.radio,
+        include_button_actions=args.include_button_actions)
     args.output.mkdir()
     (args.output / "observations.csv").write_text(text, encoding="utf-8", newline="")
     (args.output / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n",

@@ -1,6 +1,7 @@
 # Musubi
 
 For additional offline declarations and reports, see [saved input examples](docs/additional-saved-inputs.md).
+For host reports, explicit comparisons and saved geometry, see [saved reports and comparisons](docs/saved-input-comparisons.md).
 
 Musubi turns signals from equipment you cannot fully trust into **evidence you can check**.
 

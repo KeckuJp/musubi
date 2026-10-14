@@ -4,10 +4,42 @@ use musubi_reference_readers::{
 
 fn profile() -> musubi_reference_readers::FamilyProfile {
     musubi_reference_readers::profile::parse_profile(
-        include_str!("fixtures/unknown-adapter--turtlebot3-trajectory--profile.toml"),
+        include_str!("../../../profiles/declared/turtlebot3-trajectory/profile.toml"),
         "public",
     )
     .unwrap()
+}
+
+#[test]
+fn explicit_header_only_retains_schema_and_profile_validation() {
+    let mut selected = profile();
+    let options = musubi_decoded_csv::ParseOptions {
+        allow_empty_rows: true,
+        ..Default::default()
+    };
+    let bytes = b"record_time (us),x_true\n";
+    let report = TelemetryCsvReader
+        .read_report_with_options(&selected, bytes, options)
+        .unwrap();
+    assert_eq!(report.source_rows, 0);
+    assert!(report.observations.is_empty());
+    assert_eq!(report.source_columns.len(), 2);
+    assert!(
+        TelemetryCsvReader
+            .read_report_with_options(&selected, bytes, Default::default())
+            .is_err()
+    );
+    assert!(
+        TelemetryCsvReader
+            .read_report_with_options(&selected, b"wrong,x\n", options)
+            .is_err()
+    );
+    selected.format = "wrong".into();
+    assert!(
+        TelemetryCsvReader
+            .read_report_with_options(&selected, bytes, options)
+            .is_err()
+    );
 }
 
 #[test]
@@ -15,9 +47,9 @@ fn single_parse_report_preserves_columns_rows_policies_and_observations() {
     let selected = profile();
     let bytes = b"record_time (us),x_true,future\n1001,2.75,NaN\n1001,3.25,next\n";
     let options = musubi_decoded_csv::ParseOptions {
-        allow_empty_rows: false,
         allow_equal_time: true,
         preserve_nonfinite_as_text: true,
+        ..Default::default()
     };
     let report = TelemetryCsvReader
         .read_report_with_options(&selected, bytes, options)

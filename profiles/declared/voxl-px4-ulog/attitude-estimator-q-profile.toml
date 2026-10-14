@@ -1,0 +1,20 @@
+profile_id = "voxl_declared_attitude_estimator_q_v1"
+version = "1"
+family = "unknown"
+source_role = "fc"
+format = "px4_ulog"
+extensions = ["ulg"]
+default_clock_basis = "boot_relative"
+channels = ["onboard"]
+
+[fields]
+time = "timestamp"
+
+[units]
+"vehicle_attitude.timestamp" = "us_time_since_system_start_not_UTC"
+"vehicle_attitude.timestamp_sample" = "us_raw_data_sample_timestamp_separate_from_record_timestamp"
+"vehicle_attitude.q[0]" = "dimensionless_reported_Hamilton_w_FRD_body_to_NED_earth_caller_declared_writer_not_authenticated_not_validated_or_normalized_by_reader"
+"vehicle_attitude.q[1]" = "dimensionless_reported_Hamilton_x_FRD_body_to_NED_earth_caller_declared_writer_not_authenticated_not_validated_or_normalized_by_reader"
+"vehicle_attitude.q[2]" = "dimensionless_reported_Hamilton_y_FRD_body_to_NED_earth_caller_declared_writer_not_authenticated_not_validated_or_normalized_by_reader"
+"vehicle_attitude.q[3]" = "dimensionless_reported_Hamilton_z_FRD_body_to_NED_earth_caller_declared_writer_not_authenticated_not_validated_or_normalized_by_reader"
+"vehicle_attitude.quat_reset_counter" = "reported_reset_counter_not_orientation_validity"

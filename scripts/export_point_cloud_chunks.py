@@ -36,7 +36,7 @@ Each segment is independently consumable by the common reader with the adopted p
     done
 
 Contract, measurements and limits:
-docs/saved-inputs.md.
+docs/saved-input-comparisons.md.
 """
 import argparse
 import hashlib
@@ -51,9 +51,9 @@ except ModuleNotFoundError:  # running the script directly from scripts/
     from convert_saved_point_cloud import (MAX_INPUT, MAX_POINT_ROWS, convert, point_count,
                                            point_span, read_header)
 
-# The default leaves room for the recorded report envelope and source declarations.
-# CSV and report byte limits are still enforced; unusual declarations may need smaller chunks.
-DEFAULT_POINTS_PER_CHUNK = 1024
+# The default segment is well inside the adopted per-call bound: measured on this machine one
+# segment of this size is about 11 MB of CSV and about 300 MB resident in the common reader.
+DEFAULT_POINTS_PER_CHUNK = 8192
 # This path's own bound on how many directories one run may produce, so a mistaken segment size
 # cannot fill a disk with millions of directories. At the default segment it allows more points
 # than the adopted 64 MiB input ceiling can hold.

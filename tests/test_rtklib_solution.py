@@ -21,8 +21,10 @@ from scripts.convert_rtklib_solution import FIELDS, convert
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT / "profiles/declared/rtklib-solution/profile.toml"
 
+# The optional first header line, gated by `opt->outhead`, with `s1[datum]/s2[height]`.
 OPTION_LINE = ("%% (lat/lon/height=%s/%s,Q=1:fix,2:float,3:sbas,4:dgps,5:single,6:ppp,"
                "ns=# of satellites)")
+# The column line `outsolheads` always writes for SOLF_LLH in decimal degrees.
 COLUMN_LINE = ("%%  %-22s latitude(deg)   longitude(deg)  height(m)   Q  ns   sdn(m)   sde(m)   "
                "sdu(m)  sdne(m)  sdeu(m)  sdun(m)   age(s)  ratio")
 EPOCH = ("2024/01/15 03:04:05.000   35.681236000  139.767125000    40.1234   1   9   0.0123   "
@@ -50,6 +52,57 @@ def rows_of(data, **kwargs):
 
 
 class RtklibSolution(unittest.TestCase):
+    def test_pinned_reported_velocity_reuses_position_and_common(self):
+        from scripts.convert_rtklib_solution import VELOCITY_COLUMNS, VELOCITY_FIELDS
+        reader = os.environ.get("MUSUBI_TELEMETRY_READER")
+        self.assertTrue(reader, "postbuild RTKLIB step must supply common reader")
+        for times, velocity in (("UTC", "1.50000 -2.00000 0.00000 .1 .2 .3 -.01 .02 -.03"),
+                                ("GPST", "-3.00000 4.50000 1.25000 .4 .5 .6 .02 -.03 .04")):
+            source = document(times=times, columns=(COLUMN_LINE % times) + " " +
+                              " ".join(VELOCITY_COLUMNS), rows=(EPOCH + " " + velocity,))
+            default, old_report = convert(source)
+            output, report = convert(source, reported_velocity=True)
+            row = next(csv.DictReader(io.StringIO(output)))
+            old = next(csv.DictReader(io.StringIO(default)))
+            for field in FIELDS:
+                if field not in ("uncarried_column_count", "uncarried_column_names_hex"):
+                    self.assertEqual(row[field], old[field])
+            self.assertEqual(old_report["uncarried_columns"], list(VELOCITY_COLUMNS))
+            self.assertEqual(report["uncarried_columns"], [])
+            self.assertIn("SIGNED_SQRT_COVARIANCE", report["velocity_basis"])
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "rows.csv"
+                path.write_text(output)
+                common = json.loads(subprocess.run([reader, str(PROFILE), str(path)],
+                                    check=True, capture_output=True).stdout)
+                self.assertEqual(common["main_rows"], 1)
+                self.assertEqual(common["observations"][0]["clock_basis"], "Unknown")
+                for field, value in zip(VELOCITY_FIELDS, velocity.split()):
+                    self.assertEqual(common["observations"][0]["fields"][field], float(value))
+                raw = Path(directory) / "input.pos"
+                raw.write_bytes(source)
+                target = Path(directory) / "converted"
+                subprocess.run([sys.executable, "-m", "scripts.convert_rtklib_solution",
+                                str(raw), str(target), "--reported-velocity"], cwd=ROOT,
+                               check=True, capture_output=True)
+                self.assertEqual((target / "observations.csv").read_text(), output)
+
+    def test_reported_velocity_refuses_unqualified_header_and_values(self):
+        from scripts.convert_rtklib_solution import VELOCITY_COLUMNS
+        header = COLUMN_LINE % "UTC" + " " + " ".join(VELOCITY_COLUMNS)
+        values = "1 2 3 .1 .2 .3 -.1 -.2 -.3"
+        for source in (document(), document(columns=header.replace("vn(m/s)", "vn(km/h)"),
+                                            rows=(EPOCH + " " + values,))):
+            with self.assertRaises(ValueError):
+                convert(source, reported_velocity=True)
+        for invalid in ("nan 2 3 .1 .2 .3 -.1 -.2 -.3", "inf 2 3 .1 .2 .3 -.1 -.2 -.3",
+                        "1 2 3 -.1 .2 .3 -.1 -.2 -.3"):
+            with self.assertRaises(ValueError):
+                convert(document(columns=header, rows=(EPOCH + " " + invalid,)),
+                        reported_velocity=True)
+        with self.assertRaises(ValueError):
+            convert(document(), reported_velocity=1)
+
     def test_a_saved_solution_reaches_common_output_with_its_declared_meaning(self):
         rows, report, _ = rows_of(document())
         self.assertEqual(len(rows), 1)
@@ -57,6 +110,7 @@ class RtklibSolution(unittest.TestCase):
         self.assertEqual(row["latitude_deg"], "35.681236000")
         self.assertEqual(row["longitude_deg"], "139.767125000")
         self.assertEqual(row["height_m"], "40.1234")
+        # The producer's own digits survive; nothing is reformatted.
         self.assertEqual(row["solution_time_text"], "2024/01/15 03:04:05.000")
         self.assertEqual(row["solution_time_system"], "GPST")
         self.assertEqual(row["height_reference"], "ellipsoidal")
@@ -68,11 +122,13 @@ class RtklibSolution(unittest.TestCase):
         self.assertEqual(row["satellites_used_reported"], "9")
         self.assertEqual(row["sdn_m"], "0.0123")
         self.assertEqual(row["sde_m"], "0.0098")
+        # The cross terms keep their sign, because the writer's helper is signed.
         self.assertEqual(row["sdne_signed_m"], "-0.0011")
         self.assertEqual(row["sdun_signed_m"], "-0.0003")
         self.assertEqual(row["age_of_differential_s"], "1.20")
         self.assertEqual(row["ambiguity_ratio_reported"], "99.9")
         self.assertEqual(len(row["source_sha256"]), 64)
+        # None of it becomes verified accuracy on the way through.
         self.assertIn("NEVER_VERIFIED_ACCURACY", row["quality_basis"])
         self.assertIn("SIGNED_SQUARE_ROOTS_OF_COVARIANCE_AND_NOT_STANDARD_DEVIATIONS",
                       row["deviation_basis"])
@@ -86,22 +142,27 @@ class RtklibSolution(unittest.TestCase):
             with self.subTest(times=times):
                 rows, _, _ = rows_of(document(times=times))
                 self.assertEqual(rows[0]["solution_time_system"], times)
+                # The row axis is unchanged: this path converts between no time systems.
                 self.assertEqual(int(rows[0]["record_time_us"]),
                                  int(rows_of(document(times="GPST"))[0][0]["record_time_us"]))
         for height in ("ellipsoidal", "geodetic"):
             with self.subTest(height=height):
                 rows, _, _ = rows_of(document(height=height))
                 self.assertEqual(rows[0]["height_reference"], height)
+                # The height value itself is untouched either way; only the stated reference differs.
                 self.assertEqual(rows[0]["height_m"], "40.1234")
         rows, _, _ = rows_of(document(datum="Tokyo"))
         self.assertEqual(rows[0]["horizontal_datum"], "Tokyo")
 
     def test_a_week_and_seconds_of_week_epoch_is_read_exactly(self):
+        # `outsols` writes week + seconds-of-week when its calendar option is off.
         rows, _, _ = rows_of(document(rows=(EPOCH.replace(
             "2024/01/15 03:04:05.000", "2297 356645.000"),)))
         self.assertEqual(rows[0]["solution_time_text"], "2297 356645.000")
+        # GPS week 2297 * 604800 + 356645 seconds after 1980-01-06, in microseconds.
         expected = ((2297 * 604800 + 356645) + 315964800) * 1000000
         self.assertEqual(int(rows[0]["record_time_us"]), expected)
+        # Sub-microsecond seconds-of-week is refused, not rounded.
         with self.assertRaises(ValueError):
             convert(document(rows=(EPOCH.replace(
                 "2024/01/15 03:04:05.000", "2297 356645.0000001"),)))
@@ -119,6 +180,7 @@ class RtklibSolution(unittest.TestCase):
         with self.assertRaises(ValueError) as caught:
             week_tow_time_us("2297", tail)
         self.assertIn("finer than one microsecond", str(caught.exception))
+        # Ordinary exact microseconds still convert, and the result cannot be moved by the context.
         for precision in (5, 9, 28, 200):
             with self.subTest(precision=precision), decimal.localcontext() as context:
                 context.prec = precision
@@ -129,12 +191,16 @@ class RtklibSolution(unittest.TestCase):
 
     def test_the_time_ranges_are_the_pinned_writers_own(self):
         """`:60` and a full week are both outside what this writer emits, so both are refused."""
+        # time2epoch computes ep[5] = sec%60 + fraction with fraction in [0,1), and time2str rounds
+        # the fraction up into the integer second first, so 60 is never printed.
         with self.assertRaises(ValueError) as caught:
             convert(document(rows=(EPOCH.replace("03:04:05.000", "03:04:60.000"),)))
         self.assertIn("never prints 60", str(caught.exception))
         self.assertIn("none is invented", str(caught.exception))
+        # 59 is inside the range and is not normalised away.
         rows, _, _ = rows_of(document(rows=(EPOCH.replace("03:04:05.000", "03:04:59.000"),)))
         self.assertEqual(rows[0]["solution_time_text"], "2024/01/15 03:04:59.000")
+        # outsols rolls a full week into the next week number, so 604800 is outside its range.
         with self.assertRaises(ValueError) as caught:
             convert(document(rows=(EPOCH.replace("2024/01/15 03:04:05.000", "2297 604800.000"),)))
         self.assertIn("never emits 604800", str(caught.exception))
@@ -143,28 +209,34 @@ class RtklibSolution(unittest.TestCase):
         self.assertEqual(rows[0]["solution_time_text"], "2297 604799.999999")
 
     def test_a_conflicting_or_repeated_header_basis_is_refused_not_last_wins(self):
+        # Two option lines that disagree: the last one must not silently win.
         with self.assertRaises(ValueError) as caught:
             convert(document(extra_header=(OPTION_LINE % ("Tokyo", "geodetic"),)))
         self.assertIn("contradictory basis is refused", str(caught.exception))
+        # An identical repeat is producer metadata the source permits, and is accepted.
         rows, _, _ = rows_of(document(extra_header=(OPTION_LINE % ("WGS84", "ellipsoidal"),)))
         self.assertEqual(rows[0]["height_reference"], "ellipsoidal")
         self.assertIn("PRODUCER_DECLARED", rows[0]["height_reference_basis"])
 
+        # Two column headers: concatenated layouts are refused, not read as one.
         with self.assertRaises(ValueError) as caught:
             convert(document(extra_header=(COLUMN_LINE % "UTC",)))
         self.assertIn("second column header", str(caught.exception))
 
+        # A repeated column label would make the row mapping ambiguous and last-wins.
         doubled = COLUMN_LINE % "GPST" + "   height(m)"
         with self.assertRaises(ValueError) as caught:
             convert(document(columns=doubled))
         self.assertIn("repeats", str(caught.exception))
 
+        # A comment after the first epoch must not retroactively declare anything.
         trailing = document().decode() + "% (lat/lon/height=Tokyo/geodetic,Q=1:fix)\r\n"
         with self.assertRaises(ValueError) as caught:
             convert(trailing.encode())
         self.assertIn("retroactively change", str(caught.exception))
 
     def test_a_missing_option_line_needs_a_caller_declaration_and_says_it_is_one(self):
+        # Without the optional line the height reference and datum are simply unstated.
         with self.assertRaises(ValueError) as caught:
             convert(document(option=False))
         self.assertIn("refuses a missing basis", str(caught.exception))
@@ -175,6 +247,7 @@ class RtklibSolution(unittest.TestCase):
         self.assertIn("CALLER_DECLARED", rows[0]["height_reference_basis"])
         self.assertIn("NOT_producer_provenance", rows[0]["height_reference_basis"])
         self.assertIn("CALLER_DECLARED", report["height_reference_basis"])
+        # The time system was still in the column line, so it stays producer-declared.
         self.assertIn("PRODUCER_DECLARED", rows[0]["solution_time_basis"])
 
     def test_a_caller_declaration_contradicting_the_header_is_refused(self):
@@ -185,6 +258,7 @@ class RtklibSolution(unittest.TestCase):
             convert(document(datum="WGS84"), horizontal_datum="Tokyo")
         with self.assertRaises(ValueError):
             convert(document(times="GPST"), time_system="UTC")
+        # Agreeing with the header is accepted and stays producer-declared.
         rows, _, _ = rows_of(document(height="geodetic"), height_reference="geodetic")
         self.assertIn("PRODUCER_DECLARED", rows[0]["height_reference_basis"])
 
@@ -199,11 +273,13 @@ class RtklibSolution(unittest.TestCase):
                 self.assertTrue(
                     rows[0]["solution_quality_in_header_legend"].startswith(expected),
                     rows[0]["solution_quality_in_header_legend"])
+        # 0 is never written by the producer, and a value outside the enumeration is refused.
         for bad in ("   0   9", "   8   9", "  -1   9"):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 convert(document(rows=(EPOCH.replace("   1   9", bad),)))
 
     def test_columns_this_path_does_not_carry_are_accounted_not_dropped(self):
+        # `opt->outvel` appends nine velocity columns; they are counted, never decoded.
         with_velocity = COLUMN_LINE % "GPST" + ("   vn(m/s)   ve(m/s)   vu(m/s)     sdvn     sdve"
                                                "     sdvu    sdvne    sdveu    sdvun")
         row = EPOCH + "   0.010   -0.020    0.003   0.0010   0.0011   0.0012   0.0001   0.0002   0.0003"
@@ -212,6 +288,7 @@ class RtklibSolution(unittest.TestCase):
         self.assertEqual(json.loads(unhex(rows[0]["uncarried_column_names_hex"]))[:3],
                          ["vn(m/s)", "ve(m/s)", "vu(m/s)"])
         self.assertEqual(report["uncarried_columns"][0], "vn(m/s)")
+        # Counted is not carried: no velocity value appears in the output.
         self.assertNotIn("-0.020", output)
 
     def test_the_producers_own_provenance_lines_are_carried_unresolved(self):
@@ -267,6 +344,7 @@ class RtklibSolution(unittest.TestCase):
             convert(document(times="TAI"), time_system="GPST")
         self.assertIn("refused rather than being absorbed", str(caught.exception).replace(
             "refused rather than absorbed", "refused rather than being absorbed"))
+        # A header with no time token at all is a different case: unstated, and declarable.
         no_token = COLUMN_LINE % ""
         with self.assertRaises(ValueError):
             convert(document(columns=no_token))
@@ -296,6 +374,7 @@ class RtklibSolution(unittest.TestCase):
         self.assertEqual(fields["height_reference"], "ellipsoidal")
         self.assertEqual(fields["solution_quality_name"], "FIX")
         self.assertEqual(fields["sdne_signed_m"], -0.0011)
+        # The clock stays the producer's declaration, never promoted to a synchronised one.
         self.assertTrue(all(o["clock_basis"] == "Unknown" for o in common["observations"]))
 
     def test_the_command_line_writes_the_same_rows_and_never_overwrites(self):

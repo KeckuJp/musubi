@@ -1,0 +1,140 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "capture_time_us": {
+      "meaning": "capture_time_us",
+      "unit": "caller_capture_microseconds_no_UTC_or_device_clock_inference",
+      "basis": "declared"
+    },
+    "reported_unix_seconds_hex": {
+      "meaning": "reported_unix_seconds_hex",
+      "unit": "exact_decimal_text_of_reported_Unix_seconds_not_capture_clock_anchor",
+      "basis": "declared"
+    },
+    "host_name_hex": {
+      "meaning": "host_name_hex",
+      "unit": "reported_hostname_not_authenticated_device_identity",
+      "basis": "declared"
+    },
+    "session_hex": {
+      "meaning": "session_hex",
+      "unit": "caller_file_bound_session_not_physical_identity",
+      "basis": "declared"
+    },
+    "cpu_frequency_hz": {
+      "meaning": "cpu_frequency_hz",
+      "unit": "Hz_from_consumer_declared_MHz",
+      "basis": "declared"
+    },
+    "cpu_usage_fraction": {
+      "meaning": "cpu_usage_fraction",
+      "unit": "fraction_from_consumer_declared_0_to_100_percent",
+      "basis": "declared"
+    },
+    "memory_total_declared_kB": {
+      "meaning": "memory_total_declared_kB",
+      "unit": "source_declared_kB_base_unqualified_not_bytes",
+      "basis": "declared"
+    },
+    "memory_used_declared_kB": {
+      "meaning": "memory_used_declared_kB",
+      "unit": "source_declared_kB_base_unqualified_not_bytes",
+      "basis": "declared"
+    },
+    "memory_used_fraction": {
+      "meaning": "memory_used_fraction",
+      "unit": "same_unit_used_div_total_blank_for_missing_or_zero_total",
+      "basis": "declared"
+    },
+    "temperature_k": {
+      "meaning": "temperature_k",
+      "unit": "K_from_declared_Celsius_not_calibration_or_health_certification",
+      "basis": "declared"
+    },
+    "maximum_temperature_k": {
+      "meaning": "maximum_temperature_k",
+      "unit": "K_reported_maximum_not_independent_safe_limit",
+      "basis": "declared"
+    },
+    "critical_temperature_k": {
+      "meaning": "critical_temperature_k",
+      "unit": "K_reported_critical_not_independent_failure_diagnosis",
+      "basis": "declared"
+    },
+    "received_B": {
+      "meaning": "received_B",
+      "unit": "bytes_received_since_source_last_probe_duration_unknown",
+      "basis": "declared"
+    },
+    "transmitted_B": {
+      "meaning": "transmitted_B",
+      "unit": "bytes_transmitted_since_source_last_probe_duration_unknown",
+      "basis": "declared"
+    },
+    "total_received_B": {
+      "meaning": "total_received_B",
+      "unit": "reported_total_bytes_not_rate",
+      "basis": "declared"
+    },
+    "total_transmitted_B": {
+      "meaning": "total_transmitted_B",
+      "unit": "reported_total_bytes_not_rate",
+      "basis": "declared"
+    },
+    "packets_received": {
+      "meaning": "packets_received",
+      "unit": "count_since_source_last_probe",
+      "basis": "declared"
+    },
+    "packets_transmitted": {
+      "meaning": "packets_transmitted",
+      "unit": "count_since_source_last_probe",
+      "basis": "declared"
+    },
+    "total_packets_received": {
+      "meaning": "total_packets_received",
+      "unit": "reported_total_count",
+      "basis": "declared"
+    },
+    "total_packets_transmitted": {
+      "meaning": "total_packets_transmitted",
+      "unit": "reported_total_count",
+      "basis": "declared"
+    },
+    "errors_on_received": {
+      "meaning": "errors_on_received",
+      "unit": "reported_error_count_since_source_last_probe",
+      "basis": "declared"
+    },
+    "errors_on_transmitted": {
+      "meaning": "errors_on_transmitted",
+      "unit": "reported_error_count_since_source_last_probe",
+      "basis": "declared"
+    },
+    "total_errors_on_received": {
+      "meaning": "total_errors_on_received",
+      "unit": "reported_total_error_count",
+      "basis": "declared"
+    },
+    "total_errors_on_transmitted": {
+      "meaning": "total_errors_on_transmitted",
+      "unit": "reported_total_error_count",
+      "basis": "declared"
+    },
+    "is_up_reported": {
+      "meaning": "is_up_reported",
+      "unit": "reported_0_or_1_not_connectivity_or_delivery_proof",
+      "basis": "declared"
+    },
+    "is_loopback_reported": {
+      "meaning": "is_loopback_reported",
+      "unit": "reported_0_or_1",
+      "basis": "declared"
+    }
+  }
+}

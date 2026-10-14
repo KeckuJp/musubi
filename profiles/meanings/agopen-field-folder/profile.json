@@ -1,0 +1,30 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_capture_microseconds_not_source_timestamp",
+      "basis": "declared"
+    },
+    "declared_origin_latitude_deg": {
+      "meaning": "declared_origin_latitude_deg",
+      "unit": "degrees_WGS84_declared_field_origin_not_vehicle_position",
+      "basis": "declared"
+    },
+    "declared_origin_longitude_deg": {
+      "meaning": "declared_origin_longitude_deg",
+      "unit": "degrees_WGS84_declared_field_origin_not_vehicle_position",
+      "basis": "declared"
+    },
+    "source_timestamp_hex": {
+      "meaning": "source_timestamp_hex",
+      "unit": "hex_original_writer_DateTime_text_timezone_unspecified_not_UTC",
+      "basis": "declared"
+    }
+  }
+}

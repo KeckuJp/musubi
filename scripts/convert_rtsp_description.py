@@ -22,7 +22,7 @@ authenticity (RFC 2326 §10.2/§10.4; wall-clock correspondence lives in an RTCP
 §6.4.1, which is not part of DESCRIBE).
 
 Contract, accepted envelope and refusal policy:
-docs/saved-inputs.md.
+docs/saved-input-comparisons.md.
 """
 import argparse
 import csv

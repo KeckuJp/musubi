@@ -5,6 +5,7 @@ vendor sample is replayed, and every subprocess is a fixed argv over a local fil
 other than file).
 """
 import csv
+import base64
 import importlib.util
 import io
 import json
@@ -54,6 +55,7 @@ DECODER_REASON = (f"locally qualified ffmpeg/ffprobe {QUALIFIED_VERSION} not ava
                   "dependency hold, not a pass")
 
 
+# ---------------------------------------------------------------- authored H.264 and packetization
 
 def author_video(directory, name, *, size="64x48", rate=5, duration=1.2, keyint=3, reordered=False):
     """Generate a small H.264 Annex B elementary stream with the qualified encoder (fixed argv).
@@ -106,6 +108,7 @@ def packetize(grouped, *, layout, mtu=200, first_sequence=1000, ssrc=0x0A0B0C0D)
         timestamp = (index * (CLOCK // 5)) % (1 << 32)
         emitted = []
         if layout == "stap-a":
+            # Parameter sets aggregated in one STAP-A, then each remaining NAL as a single packet.
             sets = [nal for nal in unit if nal[0] & 0x1F in (7, 8)]
             rest = [nal for nal in unit if nal[0] & 0x1F not in (7, 8)]
             if sets:
@@ -115,6 +118,7 @@ def packetize(grouped, *, layout, mtu=200, first_sequence=1000, ssrc=0x0A0B0C0D)
                 emitted.append(body)
             emitted.extend(rest)
         elif layout == "fu-a":
+            # Every NAL larger than the MTU is fragmented; the rest stay single NAL packets.
             for nal in unit:
                 if len(nal) <= mtu:
                     emitted.append(nal)
@@ -140,6 +144,104 @@ def capture_of(packets):
     return pcap_batch([datagram(packet, port=PORT) for packet in packets])
 
 
+def saved_description(sps, pps, *, extra="", profile=None, mode="1"):
+    sprop = ",".join(base64.b64encode(nal).decode() for nal in (sps, pps))
+    body = ("v=0\r\no=- 1 1 IN IP4 127.0.0.1\r\ns=authored\r\nt=0 0\r\n"
+            "m=video 5006 RTP/AVP 96\r\na=rtpmap:96 H264/90000\r\n"
+            f"a=fmtp:96 packetization-mode={mode};profile-level-id={profile or sps[1:4].hex()};"
+            f"sprop-parameter-sets={sprop}{extra}\r\na=x-unknown:retained\r\n").encode()
+    return (f"RTSP/1.0 200 OK\r\nContent-Type: application/sdp\r\nContent-Length: {len(body)}\r\n\r\n".encode()
+            + body)
+
+
+class RtpH264DescriptionTests(unittest.TestCase):
+    def setUp(self):
+        self.bridge = load()
+
+    def test_explicit_sets_refusals_and_source_accounting(self):
+        sps, pps, picture = b"\x67\x42\x00\x0a\x80", b"\x68\xce\x0f\x19", b"\x65\x88"
+        source = capture_of([rtp(1, 0, payload_type=96, payload=picture, marker=True)])
+        description = saved_description(sps, pps)
+        with self.assertRaises(ValueError):
+            self.bridge.depacketize(source, PORT, payload_type=96)
+        stream, report = self.bridge.depacketize(source, PORT, payload_type=96,
+            rtsp_description=description, media_index=0)
+        self.assertEqual(stream, b"".join(self.bridge.START_CODE + n for n in (sps, pps, picture)))
+        self.assertEqual(report["initial_parameter_bytes"], 8 + len(sps) + len(pps))
+        self.assertEqual(report["access_units"][0]["elementary_offset"], report["initial_parameter_bytes"])
+        self.assertEqual(report["access_units"][0]["nal_types"], [5])
+        self.assertEqual(report["retained_packets"], 1)
+        self.assertTrue(report["initial_parameter_sets"]["retained_unselected_lines"] > 0)
+        for bad in (saved_description(sps, pps, extra=";future=1"),
+                    saved_description(sps, pps, extra=";packetization-mode=1"),
+                    saved_description(sps, pps, profile="ffffff"),
+                    saved_description(sps, pps, mode="0"), saved_description(sps, picture),
+                    saved_description(bytes([sps[0] | 128]) + sps[1:], pps),
+                    description.replace(base64.b64encode(pps), b"!" * len(base64.b64encode(pps)))):
+            with self.subTest(bad=bad[-70:]), self.assertRaises(ValueError):
+                self.bridge.depacketize(source, PORT, payload_type=96, rtsp_description=bad, media_index=0)
+        with self.assertRaises(ValueError):
+            self.bridge.depacketize(source, PORT, payload_type=96, rtsp_description=description)
+        conflicting = capture_of([rtp(1, 0, payload_type=96, payload=pps + b"x"),
+                                  rtp(2, 0, payload_type=96, payload=picture, marker=True)])
+        with self.assertRaises(ValueError):
+            self.bridge.depacketize(conflicting, PORT, payload_type=96,
+                rtsp_description=description, media_index=0)
+
+    def test_description_cli_and_ambiguous_binding_refusal(self):
+        sps, pps = b"\x67\x42\x00\x0a\x80", b"\x68\xce\x0f\x19"
+        source = capture_of([rtp(1, 0, payload_type=96, payload=b"\x65\x88", marker=True)])
+        description = saved_description(sps, pps)
+        for bad in (description.replace(b"H264/90000", b"H264/48000"),
+                    description.replace(b"H264/90000", b"H265/90000"),
+                    saved_description(sps * 4096, pps)):
+            with self.assertRaises(ValueError):
+                self.bridge.depacketize(source, PORT, payload_type=96, rtsp_description=bad, media_index=0)
+        with tempfile.TemporaryDirectory() as directory:
+            path, desc, out = (Path(directory) / n for n in ("source.pcap", "description.rtsp", "output"))
+            path.write_bytes(source)
+            desc.write_bytes(description)
+            command = [sys.executable, str(BRIDGE), str(path), str(out), "--udp-destination-port", str(PORT),
+                       "--payload-type", "96", "--rtsp-description", str(desc), "--media-index", "0"]
+            subprocess.run(command, check=True, capture_output=True)
+            report = json.loads((out / "access_units.json").read_text())
+            self.assertEqual(report["initial_parameter_sets"]["parameter_set_profile"], "42000a")
+            self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
+
+    @unittest.skipUnless(FFMPEG and FFPROBE, DECODER_REASON)
+    def test_two_authored_description_inputs_decode_and_reach_common(self):
+        reader = os.environ.get("MUSUBI_TELEMETRY_READER")
+        if not reader:
+            self.skipTest("actual common reader required")
+        for size, layout in (("64x48", "stap-a"), ("96x64", "fu-a")):
+            with self.subTest(size=size), tempfile.TemporaryDirectory() as directory:
+                units = annex_b_units(author_video(directory, "author", size=size, duration=.6))
+                sps = next(n for n in units if n[0] & 31 == 7)
+                pps = next(n for n in units if n[0] & 31 == 8)
+                grouped = access_units([n for n in units if n[0] & 31 not in (7, 8)])
+                source = capture_of(packetize(grouped, layout=layout))
+                stream, report = self.bridge.depacketize(source, PORT, payload_type=96,
+                    rtsp_description=saved_description(sps, pps), media_index=0)
+                elementary, muxed = Path(directory) / "rebuilt.h264", Path(directory) / "muxed.mp4"
+                elementary.write_bytes(stream)
+                subprocess.run([FFMPEG, "-loglevel", "error", "-f", "h264", "-r", "5", "-i",
+                    str(elementary), "-c", "copy", "-video_track_timescale", "90000", str(muxed)],
+                    check=True, capture_output=True)
+                probe = json.loads(subprocess.run([FFPROBE, "-loglevel", "error", "-show_program_version",
+                    "-show_streams", "-show_frames", "-count_frames", "-of", "json", str(muxed)],
+                    check=True, capture_output=True).stdout)
+                self.assertTrue(self.bridge.verify_decoder_join(report, probe)["timing_equivalent"])
+                metadata, output = Path(directory) / "probe.json", Path(directory) / "converted"
+                metadata.write_text(json.dumps(probe))
+                subprocess.run([sys.executable, str(VIDEO_CONVERTER), str(metadata), "0", str(output)],
+                    check=True, capture_output=True)
+                common = json.loads(subprocess.run([reader, str(VIDEO_PROFILE), str(output / "observations.csv")],
+                    check=True, capture_output=True).stdout)
+                self.assertEqual(common["main_rows"], len(grouped))
+                self.assertEqual(common["observations"][0]["fields"]["width_px"], int(size.split("x")[0]))
+                self.assertEqual(common["observations"][0]["clock_basis"], "Unknown")
+
+
 class RtpH264BridgeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -152,6 +254,7 @@ class RtpH264BridgeTests(unittest.TestCase):
         kwargs.setdefault("payload_type", PAYLOAD_TYPE)
         return self.bridge.depacketize(capture_of(packets), PORT, **kwargs)
 
+    # ------------------------------------------------------------ authored-packet rules (no decoder)
 
     def test_single_nal_and_stap_a_rebuild_exactly_what_was_packetized(self):
         sps, pps = bytes([0x67, 0x42, 0x00, 0x0A]), bytes([0x68, 0xCE, 0x0F, 0x19])
@@ -182,6 +285,7 @@ class RtpH264BridgeTests(unittest.TestCase):
                    rtp(21, 0, payload_type=PAYLOAD_TYPE, payload=bytes([0x7C, 0x05]) + chunks[1]),
                    rtp(22, 0, payload_type=PAYLOAD_TYPE, payload=bytes([0x7C, 0x45]) + chunks[2],
                        marker=True)]
+        # A parameter-set access unit has to precede it, exactly as a real stream carries.
         packets = [rtp(19, 0, payload_type=PAYLOAD_TYPE, payload=bytes([0x67, 0x42, 0x00, 0x0A]))] + \
                   [rtp(p_index + 20, 0, payload_type=PAYLOAD_TYPE,
                        payload=packets[p_index]["payload"] if isinstance(packets[p_index], dict)
@@ -207,10 +311,12 @@ class RtpH264BridgeTests(unittest.TestCase):
                 rtp(11, 0, payload_type=PAYLOAD_TYPE, payload=pps)]
         fragment = bytes([0x7C, 0x85]) + slice_nal[1:20]
         cases = {
+            # forbidden in mode 1 and reserved structures
             "stap-b": head + [rtp(12, 0, payload_type=PAYLOAD_TYPE, payload=bytes([0x19, 0, 0]))],
             "mtap16": head + [rtp(12, 0, payload_type=PAYLOAD_TYPE, payload=bytes([0x1A, 0, 0]))],
             "fu-b": head + [rtp(12, 0, payload_type=PAYLOAD_TYPE, payload=bytes([0x1D, 0x85, 1]))],
             "reserved": head + [rtp(12, 0, payload_type=PAYLOAD_TYPE, payload=bytes([0x1F, 0]))],
+            # FU-A chain problems
             "continuation_without_start": head + [
                 rtp(12, 0, payload_type=PAYLOAD_TYPE, payload=bytes([0x7C, 0x05]) + b"\x01\x02")],
             "start_and_end": head + [
@@ -228,6 +334,7 @@ class RtpH264BridgeTests(unittest.TestCase):
                 rtp(12, 0, payload_type=PAYLOAD_TYPE, payload=fragment),
                 rtp(13, 18000, payload_type=PAYLOAD_TYPE,
                     payload=bytes([0x7C, 0x45]) + b"\x02", marker=True)],
+            # STAP-A problems
             "stap_zero_size": head + [
                 rtp(12, 0, payload_type=PAYLOAD_TYPE, payload=bytes([0x18]) + struct.pack(">H", 0))],
             "stap_overrun": head + [
@@ -239,6 +346,7 @@ class RtpH264BridgeTests(unittest.TestCase):
             "stap_nested_fragment": head + [
                 rtp(12, 0, payload_type=PAYLOAD_TYPE, payload=bytes([0x18])
                     + struct.pack(">H", 3) + bytes([0x7C, 0x85, 0x01]))],
+            # transport-side ambiguity and stream-level requirements
             "sequence_gap": head + [rtp(13, 0, payload_type=PAYLOAD_TYPE, payload=slice_nal,
                                         marker=True)],
             "duplicate": head + [rtp(11, 0, payload_type=PAYLOAD_TYPE, payload=pps)],
@@ -255,6 +363,7 @@ class RtpH264BridgeTests(unittest.TestCase):
         for name, packets in cases.items():
             with self.assertRaises(ValueError, msg=f"{name} must be refused, not assembled"):
                 self.rebuild(packets)
+        # Declared selection errors.
         good = head + [rtp(12, 0, payload_type=PAYLOAD_TYPE, payload=slice_nal, marker=True)]
         with self.assertRaises(ValueError):
             self.rebuild(good, clock_rate=8000)
@@ -262,6 +371,7 @@ class RtpH264BridgeTests(unittest.TestCase):
             self.rebuild(good, payload_type=200)
         with self.assertRaises(ValueError):
             self.rebuild(good, ssrc=0xDEAD)
+        # The same capture succeeds once the declarations are right.
         stream, report = self.rebuild(good)
         self.assertEqual(report["access_unit_count"], 1)
         self.assertTrue(stream.startswith(b"\x00\x00\x00\x01" + sps))
@@ -269,6 +379,7 @@ class RtpH264BridgeTests(unittest.TestCase):
     def test_the_parameter_set_prerequisite_is_both_sets_and_a_coded_slice(self):
         sps, pps = bytes([0x67, 0x42, 0x00, 0x0A]), bytes([0x68, 0xCE, 0x0F, 0x19])
         slice_nal = bytes([0x65]) + bytes(range(40))
+        # SPS alone is not the promised prerequisite, and neither is PPS alone.
         for sets in ([sps], [pps]):
             packets = [rtp(10 + index, 0, payload_type=PAYLOAD_TYPE, payload=nal)
                        for index, nal in enumerate(sets)]
@@ -276,9 +387,12 @@ class RtpH264BridgeTests(unittest.TestCase):
                                marker=True))
             with self.assertRaises(ValueError):
                 self.rebuild(packets)
+        # Parameter sets with no coded slice at all is not a decodable stream either.
         with self.assertRaises(ValueError):
             self.rebuild([rtp(10, 0, payload_type=PAYLOAD_TYPE, payload=sps),
                           rtp(11, 0, payload_type=PAYLOAD_TYPE, payload=pps, marker=True)])
+        # Parameter sets that follow the slice *inside the same access unit* are late too: one
+        # timestamp, slice first, then SPS and PPS.
         with self.assertRaises(ValueError):
             self.rebuild([rtp(10, 0, payload_type=PAYLOAD_TYPE, payload=slice_nal),
                           rtp(11, 0, payload_type=PAYLOAD_TYPE, payload=sps),
@@ -289,13 +403,16 @@ class RtpH264BridgeTests(unittest.TestCase):
                                                marker=True)])
         self.assertEqual(report["access_units"][0]["nal_types"], [7, 8, 5],
                          "the same three NALs in the other order are the accepted shape")
+        # Directly on the helper: a single unit [slice, SPS, PPS] yields no parameter set as "before".
         self.assertEqual(self.bridge._prerequisites([{"nal_types": [5, 7, 8]}])[0], [])
         self.assertEqual(self.bridge._prerequisites([{"nal_types": [7, 5, 8]}])[0], [7])
+        # Parameter sets that arrive only *after* the first slice do not satisfy it.
         with self.assertRaises(ValueError):
             self.rebuild([rtp(10, 0, payload_type=PAYLOAD_TYPE, payload=slice_nal, marker=True),
                           rtp(11, 18000, payload_type=PAYLOAD_TYPE, payload=sps),
                           rtp(12, 18000, payload_type=PAYLOAD_TYPE, payload=pps),
                           rtp(13, 18000, payload_type=PAYLOAD_TYPE, payload=slice_nal, marker=True)])
+        # Both sets before the first slice, and a slice to decode: accepted, and said to be structural.
         _, report = self.rebuild([rtp(10, 0, payload_type=PAYLOAD_TYPE, payload=sps),
                                   rtp(11, 0, payload_type=PAYLOAD_TYPE, payload=pps),
                                   rtp(12, 0, payload_type=PAYLOAD_TYPE, payload=slice_nal,
@@ -321,6 +438,8 @@ class RtpH264BridgeTests(unittest.TestCase):
                 sequence += 1
             return packets
 
+        # A legitimate 32 bit wrap: elapsed ticks keep rising, nothing goes negative, and the mux rate
+        # stays positive because the cadence is a positive constant divisor of 90000.
         step = CLOCK // 5
         base = (1 << 32) - step
         _, report = self.rebuild(stream_of([base, (base + step) % (1 << 32),
@@ -336,6 +455,8 @@ class RtpH264BridgeTests(unittest.TestCase):
         self.assertGreater(report["declared_mux_frame_rate"], 0)
         self.assertTrue(report["rtp_timing_monotonic"])
 
+        # A backward step is a non-monotonic presentation order (B pictures): those units are untimed,
+        # never retimed into a constant display cadence, and no mux rate is offered.
         _, report = self.rebuild(stream_of([0, 2 * step, step, 3 * step]))
         states = [unit["rtp_time_state"] for unit in report["access_units"]]
         self.assertEqual(states,
@@ -349,6 +470,7 @@ class RtpH264BridgeTests(unittest.TestCase):
         self.assertIsNone(report["declared_mux_frame_rate"])
         self.assertIn("NOT_OFFERED", report["mux_timing_basis"])
 
+        # A forward jump beyond the declared window stays unknown rather than being measured.
         _, report = self.rebuild(stream_of([0, step, step + self.bridge.MAX_FORWARD_TICKS + 1]))
         self.assertEqual(report["access_units"][2]["rtp_time_state"], "unknown_forward_jump")
         self.assertIsNone(report["access_units"][2]["rtp_ticks_since_first"])
@@ -357,14 +479,19 @@ class RtpH264BridgeTests(unittest.TestCase):
     def test_a_second_source_may_not_fill_the_selected_sources_sequence_gap(self):
         sps, pps = bytes([0x67, 0x42, 0x00, 0x0A]), bytes([0x68, 0xCE, 0x0F, 0x19])
         slice_nal = bytes([0x65]) + bytes(range(40))
+        # Sequence 12 belongs to a *different* SSRC and carries a different payload type. It must not
+        # be allowed to make the selected source's 11 -> 13 gap look continuous.
         packets = [rtp(10, 0, ssrc=0xAA, payload_type=PAYLOAD_TYPE, payload=sps),
                    rtp(11, 0, ssrc=0xAA, payload_type=PAYLOAD_TYPE, payload=pps),
                    rtp(12, 0, ssrc=0xBB, payload_type=97, payload=b"\x01\x02\x03"),
                    rtp(13, 0, ssrc=0xAA, payload_type=PAYLOAD_TYPE, payload=slice_nal, marker=True)]
         with self.assertRaises(ValueError):
             self.rebuild(packets)
+        # Naming the SSRC makes the other source unselected, and the real gap is then refused on its
+        # own terms rather than hidden.
         with self.assertRaises(ValueError):
             self.rebuild(packets, ssrc=0xAA)
+        # The same shape without the gap, with the other source named away, assembles.
         packets[3] = rtp(12, 0, ssrc=0xAA, payload_type=PAYLOAD_TYPE, payload=slice_nal, marker=True)
         _, report = self.rebuild(packets, ssrc=0xAA)
         self.assertEqual(report["retained_packets"], 3)
@@ -372,6 +499,8 @@ class RtpH264BridgeTests(unittest.TestCase):
         self.assertEqual(report["unselected_packets"], 1)
 
     def test_the_prerequisite_scan_stays_linear_on_a_large_authored_list(self):
+        # Direct call of the module's own helper on authored access-unit records: the membership test
+        # it used to do per NAL against a growing list is quadratic, which a list this size exposes.
         units = [{"nal_types": [7, 8, 5] if index == 0 else [1],
                   "nal_sizes": [4, 4, 40] if index == 0 else [900],
                   "rtp_timestamp": index * 18000, "index": index} for index in range(20_000)]
@@ -383,6 +512,7 @@ class RtpH264BridgeTests(unittest.TestCase):
         self.assertIs(slice_units[0], units[0])
         self.assertIs(slice_units[-1], units[-1])
         self.assertLess(elapsed, 1.0, f"prerequisite scan took {elapsed:.3f}s for {len(units)} units")
+        # Units without a coded slice are not counted as ones that carry a picture.
         mixed = [{"nal_types": [7, 8], "nal_sizes": [4, 4]},
                  {"nal_types": [6], "nal_sizes": [20]},
                  {"nal_types": [5], "nal_sizes": [40]},
@@ -447,6 +577,7 @@ class RtpH264DecodedFrameTests(unittest.TestCase):
                 self.assertEqual(report["rtp_cadence_ticks"], CLOCK // 5)
                 self.assertEqual(report["declared_mux_frame_rate"], 5)
                 self.assertEqual(report["parameter_sets_before_first_slice"], [7, 8])
+                # The layouts really differ: fragmentation only exists in the second one.
                 packets = packetize(grouped, layout=layout)
                 fragments = [p for p in packets if p[12] & 0x1F == 28]
                 aggregations = [p for p in packets if p[12] & 0x1F == 24]
@@ -456,6 +587,7 @@ class RtpH264DecodedFrameTests(unittest.TestCase):
                 else:
                     self.assertFalse(fragments)
                     self.assertTrue(aggregations, "this layout must aggregate the parameter sets")
+                # The rebuilt stream really decodes: the qualified decoder counts the frames.
                 elementary = Path(work) / f"{name}.rebuilt.h264"
                 elementary.write_bytes(stream)
                 _, probed = self.probe(elementary, work)
@@ -474,6 +606,8 @@ class RtpH264DecodedFrameTests(unittest.TestCase):
             self.assertEqual(report["access_unit_count"], frames)
             elementary = Path(work) / "multi.rebuilt.h264"
             elementary.write_bytes(stream)
+            # Declared mux, offered only because the RTP cadence is a constant divisor of 90 kHz, so
+            # container ticks coincide with RTP ticks by arithmetic rather than assumption.
             self.assertEqual(report["declared_mux_frame_rate"], rate)
             muxed = Path(work) / "multi.mp4"
             subprocess.run([FFMPEG, "-loglevel", "error", "-f", "h264", "-r",
@@ -485,6 +619,7 @@ class RtpH264DecodedFrameTests(unittest.TestCase):
             self.assertEqual(int(stream_info["nb_read_frames"]), frames)
             self.assertEqual(stream_info["time_base"], f"1/{CLOCK}")
 
+            # The existing video converter, unchanged, and then the common CSV reader.
             out = Path(work) / "frames"
             subprocess.run([sys.executable, str(VIDEO_CONVERTER), str(probe_json), "0", str(out)],
                            check=True, capture_output=True)
@@ -492,20 +627,29 @@ class RtpH264DecodedFrameTests(unittest.TestCase):
             self.assertEqual(len(rows), frames, "one common frame row per authored frame")
             self.assertEqual({r["width_px"] for r in rows}, {"96"})
             self.assertEqual({r["height_px"] for r in rows}, {"64"})
+            # Decoder ticks and RTP ticks coincide here, and stay separate columns/records.
             decoder_ticks = [int(r["presentation_timestamp_ticks"]) for r in rows]
             rtp_ticks = [unit["rtp_ticks_since_first"] for unit in report["access_units"]]
             self.assertEqual(decoder_ticks, rtp_ticks)
             self.assertEqual(decoder_ticks[1] - decoder_ticks[0], report["rtp_cadence_ticks"])
             self.assertNotIn("rtp_timestamp", rows[0], "RTP timing is not merged into frame rows")
+            # Frame sizes link back to the access units this bridge rebuilt.
             probed_sizes = [int(f["pkt_size"]) for f in probed["frames"]]
             self.assertEqual(len(probed_sizes), len(report["access_units"]))
             for probed_size, unit in zip(probed_sizes, report["access_units"]):
+                # Measured relation, not assumed: a muxed sample carries exactly the NAL bytes of the
+                # access unit, a 4 byte length prefix replacing each 4 byte start code, so the decoder's
+                # packet size equals the bytes this bridge rebuilt for that unit.
                 self.assertEqual(probed_size, unit["elementary_bytes"],
                                  "muxed sample sizes account for the bytes the bridge rebuilt")
             self.assertEqual(sum(probed_sizes), len(stream))
+            # Source linkage: every access unit names the capture packets and sequences it came from.
             self.assertEqual(sum(len(u["packet_indices"]) for u in report["access_units"]),
                              report["retained_packets"])
             self.assertEqual([u["index"] for u in report["access_units"]], list(range(frames)))
+            # The equivalence claim is made only after the decoder's own output agrees on every
+            # condition: frame count against coded-slice access units, no reordering, presentation
+            # equal to decode, progressive only, monotonic RTP timing and ticks that actually match.
             verdict = self.bridge.verify_decoder_join(report, probed)
             self.assertTrue(verdict["timing_equivalent"], verdict["failed_checks"])
             self.assertEqual(verdict["failed_checks"], [])
@@ -541,6 +685,8 @@ class RtpH264DecoderJoinTests(unittest.TestCase):
                              "the bytes still come back unchanged; only the timing claim is at stake")
             elementary = Path(work) / "bframes.h264"
             elementary.write_bytes(stream)
+            # The packetized cadence is constant, so the bridge would offer a mux rate - and that is
+            # exactly why the claim must wait for the decoder.
             self.assertEqual(report["declared_mux_frame_rate"], 5)
             self.assertIn("REQUIRES_A_DECODER_JOIN", report["mux_timing_basis"])
             muxed = Path(work) / "bframes.mp4"
@@ -554,6 +700,9 @@ class RtpH264DecoderJoinTests(unittest.TestCase):
                             "this fixture must really contain reordering")
             verdict = self.bridge.verify_decoder_join(report, probed)
             self.assertFalse(verdict["timing_equivalent"])
+            # On this reordered stream the qualified decoder itself withholds `pkt_dts` for the
+            # reordered frames, so the required metadata is absent and the verdict is invalid rather
+            # than merely failing a check: either way no timing claim is possible.
             self.assertFalse(verdict["input_valid"])
             self.assertTrue(any(name.endswith(".pkt_dts") for name in verdict["missing_or_invalid"]),
                             verdict["missing_or_invalid"])
@@ -618,10 +767,13 @@ class RtpH264DecoderJoinTests(unittest.TestCase):
         second = {"index": 1, "codec_type": "video", "has_b_frames": "0",
                   "field_order": "progressive", "time_base": f"1/{CLOCK}", "nb_read_frames": "9"}
         ambiguous = self.probe_of(frames, extra_streams=(second,))
+        # Two video streams and no explicit index: the first entry is not silently assumed.
         verdict = self.bridge.verify_decoder_join(report, ambiguous)
         self.assertFalse(verdict["input_valid"])
         self.assertIn("exactly_one_video_stream_or_an_explicit_stream_index",
                       verdict["missing_or_invalid"])
+        # Naming the index selects that stream, and another stream's properly bound frames are
+        # neither counted nor treated as a defect.
         ambiguous["frames"].append({"media_type": "video", "stream_index": 1, "pts": 0,
                                     "pkt_dts": 0, "pict_type": "I", "interlaced_frame": 0})
         ambiguous["frames"].append({"media_type": "audio", "stream_index": 2, "pts": 0,
@@ -630,6 +782,7 @@ class RtpH264DecoderJoinTests(unittest.TestCase):
         self.assertTrue(verdict["input_valid"], verdict["missing_or_invalid"])
         self.assertEqual(verdict["selected_stream_index"], 0)
         self.assertTrue(verdict["timing_equivalent"], verdict["failed_checks"])
+        # An audio-only probe, or an index that is not present, is refused rather than guessed.
         self.assertFalse(self.bridge.verify_decoder_join(report, ambiguous,
                                                          stream_index=7)["input_valid"])
         audio_only = {"streams": [{"index": 0, "codec_type": "audio"}], "frames": []}
@@ -645,6 +798,7 @@ class RtpH264DecoderJoinTests(unittest.TestCase):
         interlaced = self.probe_of([(0, 0, "I"), (18000, 18000, "P")], field_order="tt")
         self.assertIn("progressive_only",
                       self.bridge.verify_decoder_join(report, interlaced)["failed_checks"])
+        # A picture kind this path has not qualified is never read as "not a B picture".
         for unknown in ("?", "BI", "SP", "X"):
             probe = self.probe_of([(0, 0, "I"), (18000, 18000, unknown)])
             verdict = self.bridge.verify_decoder_join(report, probe)
@@ -656,6 +810,7 @@ class RtpH264DecoderJoinTests(unittest.TestCase):
     def test_the_join_refuses_a_frame_count_that_does_not_match_the_coded_slice_units(self):
         report = self.two_unit_report()
         self.assertEqual(report["coded_slice_access_units"], 2)
+        # A decoder that reports a different number of frames breaks the claim, whatever the mux said.
         probe = self.probe_of([(0, 0, "I"), (18000, 18000, "P"), (36000, 36000, "P")])
         verdict = self.bridge.verify_decoder_join(report, probe)
         self.assertTrue(verdict["input_valid"], verdict["missing_or_invalid"])
@@ -691,6 +846,7 @@ class RtpH264CommandLineTests(unittest.TestCase):
             report = json.loads((target / "access_units.json").read_text())
             self.assertEqual(report["access_unit_count"], 1)
             self.assertEqual((target / "elementary.h264").read_bytes()[:4], b"\x00\x00\x00\x01")
+            # An existing directory is never overwritten, and a refusal writes nothing at all.
             done = subprocess.run([sys.executable, str(BRIDGE), str(source), str(target),
                                    "--udp-destination-port", str(PORT),
                                    "--payload-type", str(PAYLOAD_TYPE)],

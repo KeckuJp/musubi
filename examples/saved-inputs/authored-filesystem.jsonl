@@ -1,0 +1,1 @@
+{"source_format":"linux-psutil-7.0.0-ea5b55605f857affa4e65fa27eb80f4f2bfebd63-disk_usage","capture_time_us":1,"subject":"authored-host","path":"/authored/data","disk_usage":{"total":1000,"used":600,"free":350,"percent":63.2}}

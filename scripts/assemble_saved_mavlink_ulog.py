@@ -8,7 +8,7 @@ and the upstream streaming tool is never executed. Losses that cannot be reconst
 with a reason code instead of being padded, re-timed or resynchronised.
 
 Contract, bounds and the unreconstructable cases are fixed in
-docs/saved-inputs.md.
+docs/saved-input-comparisons.md.
 """
 import argparse
 import hashlib

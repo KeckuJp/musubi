@@ -1,0 +1,21 @@
+profile_id = "saved_block_error_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+
+[fields]
+time = "capture_time_us"
+
+[units]
+capture_time_us = "caller_supplied_microseconds_unknown_clock"
+device_major = "reported_linux_dev_major_not_authenticated"
+device_minor = "reported_linux_dev_minor_not_authenticated"
+request_sector_count = "reported_512_byte_sector_count"
+request_sector_bytes = "byte_floor_of_reported_nr_bytes_to_512"
+reported_negative_errno = "negative_linux_6_12_asm_generic_errno"
+source_record_index = "one_based_original_physical_record"
+source_record_byte_offset = "byte_offset_in_original"

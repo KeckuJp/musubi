@@ -1,0 +1,51 @@
+{
+  "profile_id": "model_state_declared_composition_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time"
+  },
+  "units": {
+    "record_time": "us_exact_state_seconds_conversion_not_model_capture_or_trusted_UTC",
+    "timestamp_unix_s": "s_source_pose_convention_name_not_wall_clock_authentication",
+    "tx": "m_reported_pose_child_origin_in_caller_declared_reference_frame_not_world_inferred",
+    "ty": "m_same_declared_pose_reference_frame",
+    "tz": "m_same_declared_pose_reference_frame",
+    "qx": "1_reported_quaternion_not_normalized_or_rotated_here",
+    "qy": "1_reported_quaternion",
+    "qz": "1_reported_quaternion",
+    "qw": "1_reported_quaternion",
+    "model_mass_kg": "kg_positive_declared_configuration_mass_under_explicit_caller_unit_not_measured_mass",
+    "model_reported_mass": "original_declared_mass_token_missing_stays_blank_nonpositive_retained",
+    "model_mass_disposition": "existing_SDF_REPORTED_NOT_REPORTED_or_nonpositive_disposition_not_zero_fallback",
+    "model_element_index": "zero_based_SDF_model_child_index_not_state_row_index",
+    "source_state_row_index": "zero_based_pose_data_row_index_preserves_equal_times_and_source_order",
+    "model_sdf_version": "selected_document_declared_schema_version_not_firmware",
+    "source_model_sha256": "exact_SDF_bytes_digest_not_authenticity",
+    "source_state_sha256": "exact_pose_bytes_digest_not_producer_identity",
+    "source_declaration_sha256": "exact_caller_declaration_bytes_digest_required_for_comparison_key",
+    "model_capture_time_us_hex": "UTF8_hex_exact_caller_intake_microseconds_not_model_state_time",
+    "state_time_exact_hex": "UTF8_hex_original_seconds_token_for_exact_comparison_not_lossy_float_timestamp",
+    "model_unit_declaration_hex": "UTF8_hex_existing_SDF_explicit_unit_and_basis_statement",
+    "model_name_hex": "UTF8_hex_name_resolved_in_exact_SDF_document_not_physical_identity",
+    "link_name_hex": "UTF8_hex_link_resolved_in_exact_SDF_document_not_physical_part",
+    "state_entity_hex": "UTF8_hex_file_scope_caller_entity_declaration_not_per_row_reported_identity",
+    "state_child_frame_hex": "UTF8_hex_caller_pose_child_frame_label",
+    "state_reference_frame_hex": "UTF8_hex_caller_pose_reference_frame_label_not_automatically_world",
+    "state_clock_id_hex": "UTF8_hex_caller_clock_label_not_synchronization_or_UTC_trust",
+    "run_id_hex": "UTF8_hex_file_scope_caller_run_label",
+    "citation_hex": "UTF8_hex_caller_mapping_citation_not_verified_authority",
+    "frame_relation": "caller_declares_pose_child_origin_and_axes_are_selected_model_link_no_transform_performed",
+    "model_time_relation": "TIMELESS_CONFIGURATION_no_model_state_time_to_align_or_subtract",
+    "declaration_basis": "file_scope_caller_mapping_not_producer_verified_entity_frame_or_clock"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "latitude_deg": {
+      "meaning": "latitude_deg",
+      "unit": "degree",
+      "basis": "declared"
+    },
+    "longitude_deg": {
+      "meaning": "longitude_deg",
+      "unit": "degree",
+      "basis": "declared"
+    },
+    "altitude_amsl_m": {
+      "meaning": "altitude_amsl_m",
+      "unit": "m_AMSL_reported",
+      "basis": "declared"
+    },
+    "altitude_takeoff_relative_m": {
+      "meaning": "altitude_takeoff_relative_m",
+      "unit": "m_relative_to_takeoff_reported",
+      "basis": "declared"
+    },
+    "battery_voltage_v": {
+      "meaning": "battery_voltage_v",
+      "unit": "V",
+      "basis": "declared"
+    },
+    "battery_current_a": {
+      "meaning": "battery_current_a",
+      "unit": "A",
+      "basis": "declared"
+    },
+    "battery_temperature_k": {
+      "meaning": "battery_temperature_k",
+      "unit": "K",
+      "basis": "declared"
+    },
+    "battery_consumed_ah": {
+      "meaning": "battery_consumed_ah",
+      "unit": "Ah",
+      "basis": "declared"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "ratio",
+      "basis": "declared"
+    },
+    "battery_time_remaining_s": {
+      "meaning": "battery_time_remaining_s",
+      "unit": "s",
+      "basis": "declared"
+    },
+    "reported_velocity_north_m_s": {
+      "meaning": "reported_velocity_north_m_s",
+      "unit": "m/s",
+      "basis": "declared"
+    },
+    "reported_velocity_east_m_s": {
+      "meaning": "reported_velocity_east_m_s",
+      "unit": "m/s",
+      "basis": "declared"
+    },
+    "reported_velocity_down_m_s": {
+      "meaning": "reported_velocity_down_m_s",
+      "unit": "m/s",
+      "basis": "declared"
+    },
+    "attitude_roll_rad": {
+      "meaning": "attitude_roll_rad",
+      "unit": "rad",
+      "basis": "declared"
+    },
+    "attitude_pitch_rad": {
+      "meaning": "attitude_pitch_rad",
+      "unit": "rad",
+      "basis": "declared"
+    },
+    "attitude_yaw_rad": {
+      "meaning": "attitude_yaw_rad",
+      "unit": "rad",
+      "basis": "declared"
+    }
+  }
+}

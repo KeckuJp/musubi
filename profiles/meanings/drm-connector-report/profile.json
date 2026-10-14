@@ -1,0 +1,50 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "caller_capture_microseconds_not_event_or_authenticated_clock",
+      "basis": "declared"
+    },
+    "connector_id": {
+      "meaning": "connector_id",
+      "unit": "reported_DRM_connector_identifier_within_node_not_physical_identity",
+      "basis": "declared"
+    },
+    "connector_type_reported": {
+      "meaning": "connector_type_reported",
+      "unit": "raw_DRM_connector_type_number",
+      "basis": "declared"
+    },
+    "connection_status_raw": {
+      "meaning": "connection_status_raw",
+      "unit": "raw_DRM_connection_enum_not_mechanical_diagnosis",
+      "basis": "declared"
+    },
+    "link_status": {
+      "meaning": "link_status",
+      "unit": "reported_link_condition_not_loose_or_damaged_connector",
+      "basis": "declared"
+    },
+    "link_value_hex": {
+      "meaning": "link_value_hex",
+      "unit": "exact_unsigned64_enum_word_hex",
+      "basis": "declared"
+    },
+    "property_id": {
+      "meaning": "property_id",
+      "unit": "reported_DRM_property_identifier",
+      "basis": "declared"
+    },
+    "other_properties_count": {
+      "meaning": "other_properties_count",
+      "unit": "count_not_interpreted_original_retained",
+      "basis": "declared"
+    }
+  }
+}

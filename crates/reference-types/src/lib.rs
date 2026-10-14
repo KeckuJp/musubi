@@ -408,6 +408,10 @@ pub enum FailureKind {
     CameraStop,
     GnssDegradation,
     GnssInconsistency,
+    /// Saved report classification only; no scenario injection or physical diagnosis.
+    StorageFailure,
+    /// Saved declaration disagreement only; not an authenticated configuration verdict.
+    ConfigurationError,
 }
 
 impl FailureKind {
@@ -421,6 +425,8 @@ impl FailureKind {
             Self::CameraStop => "camera_stop",
             Self::GnssDegradation => "gnss_degradation",
             Self::GnssInconsistency => "gnss_inconsistency",
+            Self::StorageFailure => "storage_failure",
+            Self::ConfigurationError => "configuration_error",
         }
     }
 
@@ -434,6 +440,8 @@ impl FailureKind {
             "camera_stop" => Some(Self::CameraStop),
             "gnss_degradation" => Some(Self::GnssDegradation),
             "gnss_inconsistency" => Some(Self::GnssInconsistency),
+            "storage_failure" => Some(Self::StorageFailure),
+            "configuration_error" => Some(Self::ConfigurationError),
             _ => None,
         }
     }

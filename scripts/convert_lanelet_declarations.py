@@ -6,6 +6,7 @@ and no datum or elevation is inferred.
 """
 import argparse
 import csv
+from decimal import Decimal
 import hashlib
 import io
 import json
@@ -52,6 +53,81 @@ FIELDS = ["map_record_kind", "map_element_index", "map_element_id", "map_owner_i
           "map_member_role_hex", "map_member_role_meaning", "map_way_kind",
           "map_reference_count", "map_tag_key_hex", "map_tag_value_hex", "map_load_disposition",
           "map_declaration_basis"]
+REGULATORY_ROLES = {
+    'traffic_sign': ('refers', 'cancels', 'ref_line', 'cancel_line'),
+    'speed_limit': ('refers', 'cancels', 'ref_line', 'cancel_line'),
+    'traffic_light': ('refers', 'ref_line'),
+    'right_of_way': ('yield', 'right_of_way', 'ref_line'),
+    'all_way_stop': ('yield', 'ref_line', 'refers'),
+}
+PARAMETER_MEANINGS = dict(refers='DECLARED_RESTRICTION_ORIGIN', cancels='DECLARED_END_MARKER',
+    ref_line='DECLARED_REFERENCE_LINE', cancel_line='DECLARED_END_LINE',
+    yield_='DECLARED_YIELD_LANELET', right_of_way='DECLARED_PRIORITY_LANELET')
+REGULATORY_FIELDS = ['map_regulatory_subtype', 'map_regulatory_parameter_meaning',
+    'map_associated_lanelet_id', 'map_stop_line_pairing', 'map_declared_speed_limit_m_s',
+    'map_speed_limit_disposition', 'map_dynamic_disposition', 'map_fallback_disposition',
+    'map_regulatory_basis']
+GERMAN_SPEEDS_KMH = {'de274': 30, 'de274_1': 30, 'de274_1-20': 20, 'de310': 50,
+    **{'de274-' + str(n): n for n in (5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130)}}
+SIGN_FIELDS = ['map_speed_type_selected_hex', 'map_speed_type_source',
+               'map_speed_type_alternate_hex', 'map_speed_type_conflict', 'map_traffic_rules_basis']
+
+
+def speed_fields(value):
+    result = {'map_speed_limit_disposition': 'NOT_DECLARED' if value is None else 'UNQUALIFIED_SIGN_TEXT'}
+    match = re.fullmatch(r'([0-9]+(?:\.[0-9]+)?)\s*(km/h|mph|mps)?', value or '')
+    if match:
+        if len(match[1]) > 256:
+            raise ValueError('declared speed numeric text exceeds bound')
+        number = Decimal(match[1])
+        unit = match[2] or 'km/h'
+        scaled = number / Decimal('3.6') if unit == 'km/h' else number * (Decimal('0.44704') if unit == 'mph' else 1)
+        speed = float(scaled)
+        if not math.isfinite(speed) or (number != 0 and speed == 0):
+            raise ValueError('declared speed exceeds finite common range')
+        result.update(map_declared_speed_limit_m_s=speed,
+            map_speed_limit_disposition='DECLARED_NUMERIC_UNIT' if match[2] else 'DOCUMENTED_KMH_DEFAULT')
+    return result
+
+
+def german_speed_context(element, ways):
+    """Fixed reported sign meaning, not effective road permission or driving."""
+    alternate = structural_tag(element, 'sign_type')
+    value, basis = alternate, 'RELATION_SIGN_TYPE_NO_SIGN_WAY'
+    signs = [m for m in element.findall('member') if m.get('role') == 'refers' and m.get('type') == 'way']
+    if signs:
+        ref = signs[0].get('ref', '')
+        if not re.fullmatch(r'-?[0-9]{1,19}', ref) or int(ref) not in ways:
+            raise ValueError('speed sign references an unavailable way')
+        value = structural_tag(ways[int(ref)], 'subtype')
+        if value is None:
+            raise ValueError('fixed TrafficSign first refers way requires subtype')
+        basis = 'FIRST_REFERS_WAY_SUBTYPE_FIXED_PRECEDENCE'
+    result = speed_fields(value)
+    if value in GERMAN_SPEEDS_KMH:
+        result.update(map_declared_speed_limit_m_s=float(Decimal(GERMAN_SPEEDS_KMH[value]) / Decimal('3.6')),
+                      map_speed_limit_disposition='FIXED_GERMAN_VEHICLE_SIGN_CODE')
+    result.update(map_speed_type_selected_hex=None if value is None else text_hex(value),
+        map_speed_type_source=basis,
+        map_speed_type_alternate_hex=None if alternate is None else text_hex(alternate),
+        map_speed_type_conflict='ALTERNATE_DIFFERENT_FIXED_PRECEDENCE_NOT_ROAD_VALIDITY' if signs and alternate is not None and alternate != value else 'NONE_REPORTED',
+        map_traffic_rules_basis='LANELET_1_2_1_GERMANY_VEHICLE_REPORTED_SIGN_NOT_LEGAL_OR_OPERATIONAL_VALIDITY')
+    return result
+
+
+def regulatory_context(element, subtype):
+    known = subtype in REGULATORY_ROLES
+    result = dict(map_regulatory_subtype=subtype if known else 'UNQUALIFIED_SUBTYPE',
+        map_regulatory_basis='DECLARED_PARAMETERS_NOT_RULE_VALIDITY_PERMISSION_OR_EXECUTION',
+        map_speed_limit_disposition='NOT_SELECTED_SUBTYPE')
+    for name in ('dynamic', 'fallback'):
+        value = structural_tag(element, name)
+        result[f'map_{name}_disposition'] = ('ABSENT' if value is None else
+            'DECLARED_' + value.upper() if value in ('yes', 'no') else 'UNQUALIFIED_DECLARATION')
+    if subtype == 'speed_limit':
+        value = structural_tag(element, 'sign_type')
+        result.update(speed_fields(value))
+    return result
 
 
 def text_hex(value):
@@ -111,7 +187,11 @@ def deleted(element):
     return element.get("action") == "delete"
 
 
-def convert(data, capture_time_us):
+def convert(data, capture_time_us, *, regulatory_declarations=False, traffic_rules=None):
+    if type(regulatory_declarations) is not bool:
+        raise ValueError('regulatory_declarations must be an explicit boolean')
+    if traffic_rules is not None and (traffic_rules != 'germany-vehicle-1.2.1' or not regulatory_declarations):
+        raise ValueError('explicit qualified traffic rules require regulatory declarations')
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
         raise ValueError("explicit capture time required")
     if not data or len(data) > LIMIT:
@@ -242,6 +322,12 @@ def convert(data, capture_time_us):
         if relation_type == "REGULATORY_ELEMENT" and not subtype:
             raise ValueError("regulatory element relation needs a subtype tag")
         members = element.findall("member")
+        regulatory = regulatory_context(element, subtype) if regulatory_declarations and relation_type == 'REGULATORY_ELEMENT' else {}
+        if traffic_rules is not None and subtype == 'speed_limit' and relation_type == 'REGULATORY_ELEMENT':
+            regulatory.pop('map_declared_speed_limit_m_s', None)
+            regulatory.update(german_speed_context(element, ways))
+        yields = [m for m in members if m.get('role') == 'yield']
+        lines = [m for m in members if m.get('role') == 'ref_line']
         skipped = deleted(element)
         roles = []
         # Only members whose kind matches the established role count towards the rule.
@@ -269,10 +355,29 @@ def convert(data, capture_time_us):
                                  + established[1])
             else:
                 meaning = "UNQUALIFIED_ROLE"
+            parameter = {}
+            if regulatory_declarations:
+                parameter = dict(regulatory)
+                parameter['map_regulatory_parameter_meaning'] = 'UNQUALIFIED_ROLE_OR_TARGET'
+                if relation_type in ('LANELET', 'MULTIPOLYGON') and role == 'regulatory_element' and kind == 'relation' and structural_tag(table[int(target)], 'type') == 'regulatory_element':
+                    parameter['map_regulatory_parameter_meaning'] = 'DECLARED_ASSOCIATED_REGULATORY_ELEMENT'
+                elif role in REGULATORY_ROLES.get(subtype, ()) and relation_type == 'REGULATORY_ELEMENT':
+                    qualified = ((role in ('refers', 'cancels') and kind in ('node', 'way')) or
+                                 (role in ('ref_line', 'cancel_line') and kind == 'way') or
+                                 (role in ('yield', 'right_of_way') and kind == 'relation' and structural_tag(table[int(target)], 'type') == 'lanelet'))
+                    if qualified:
+                        parameter['map_regulatory_parameter_meaning'] = PARAMETER_MEANINGS['yield_' if role == 'yield' else role]
+                    if subtype == 'all_way_stop' and role == 'ref_line':
+                        parameter['map_stop_line_pairing'] = 'UNQUALIFIED_COUNT_OR_TARGET'
+                        if qualified and len(lines) == len(yields):
+                            y = yields[lines.index(member)]
+                            ref = y.get('ref', '')
+                            if y.get('type') == 'relation' and ref.lstrip('-').isdigit() and int(ref) in relations and structural_tag(relations[int(ref)], 'type') == 'lanelet':
+                                parameter.update(map_associated_lanelet_id=int(ref), map_stop_line_pairing='DECLARED_SAME_ROLE_ORDER')
             append(dict(map_record_kind="MEMBER", map_element_index=order[member],
                         map_owner_id=element_id, map_member_ordinal=ordinal,
                         map_reference_id=int(target), map_reference_kind=kind,
-                        map_member_role_hex=text_hex(role), map_member_role_meaning=meaning))
+                        map_member_role_hex=text_hex(role), map_member_role_meaning=meaning, **parameter))
             unknown_attributes(member, "member", element_id)
         if relation_type == "LANELET" and not skipped:
             # OsmHandlerLoad.cpp: a lanelet needs exactly one left and one right border.
@@ -283,14 +388,16 @@ def convert(data, capture_time_us):
                     map_element_id=element_id, map_relation_type=relation_type,
                     map_relation_subtype_hex=None if subtype is None else text_hex(subtype),
                     map_reference_count=len(members),
-                    map_load_disposition="DELETED_ACTION_NOT_LOADED" if skipped else "DECLARED"))
+                    map_load_disposition="DELETED_ACTION_NOT_LOADED" if skipped else "DECLARED", **regulatory))
         tag_rows(element, "relation", element_id)
 
     if not rows:
         raise ValueError("no declared map elements")
     digest = "sha256:" + hashlib.sha256(data).hexdigest()
     output = io.StringIO(newline="")
-    writer = csv.DictWriter(output, ["record_time_us", "source_document_sha256", *FIELDS],
+    writer = csv.DictWriter(output, ["record_time_us", "source_document_sha256", *FIELDS,
+                                   *(REGULATORY_FIELDS if regulatory_declarations else []),
+                                   *(SIGN_FIELDS if traffic_rules is not None else [])],
                             lineterminator="\n")
     writer.writeheader()
     rows.sort(key=lambda row: row["map_element_index"])
@@ -313,6 +420,11 @@ def convert(data, capture_time_us):
                   source_sha256=digest, clock="Unknown", pin=PIN,
                   scope="declared map elements only; no projection, datum, routing, traffic rule "
                         "or certification; a map does not establish a vehicle domain")
+    if traffic_rules is not None:
+        report['traffic_rules_interpretation'] = dict(selector=traffic_rules,
+            basis='FIXED_SOURCE_DECLARATION_MAPPING_NOT_EFFECTIVE_ROAD_RULES',
+            unknown_sign_codes='RETAINED_WITHOUT_NUMERIC_VALUE',
+            country_defaults_and_participant_overrides='NOT_EVALUATED')
     return output.getvalue(), report
 
 
@@ -322,11 +434,12 @@ def main():
     parser.add_argument("output_directory", type=Path)
     parser.add_argument("--capture-time-us", type=int, required=True,
                         help="caller capture clock; the common clock basis stays Unknown")
+    parser.add_argument('--regulatory-declarations', action='store_true')
     args = parser.parse_args()
     try:
         with args.input.open("rb") as stream:
             data = stream.read(LIMIT + 1)  # one bounded read before allocation
-        output, report = convert(data, args.capture_time_us)
+        output, report = convert(data, args.capture_time_us, regulatory_declarations=args.regulatory_declarations)
         args.output_directory.mkdir()  # Refuse an existing output/evidence directory.
         (args.output_directory / "observations.csv").write_text(output, encoding="utf-8")
         (args.output_directory / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")

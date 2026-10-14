@@ -11,7 +11,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import patch
-from tests.saved_ardupilot_profiles import INPUT_PROFILE
+from tests.test_ardupilot_rcout import INPUT_PROFILE
 
 ROOT = Path(__file__).resolve().parents[1]
 CASE = ROOT / "profiles/declared/ardusub-vertical"
@@ -102,6 +102,7 @@ class VerticalReports(unittest.TestCase):
                     report(identity, record()), report(identity, dict(meta=dict(type="CTUN"), data=dict(selected["data"], Alt=True)))):
             with self.assertRaises(ValueError):
                 self.c.convert(raw, source_version=SOURCE, underwater_position=True)
+        # Old default does not use or interpret position/build fields.
         raw = report(identity, selected)
         self.assertEqual(self.c.convert(raw, source_version=SOURCE),
                          self.c.convert(raw, source_version=SOURCE, underwater_position=False))

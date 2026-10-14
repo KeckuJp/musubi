@@ -181,14 +181,54 @@ def blocks(raw):
         offset += length
 
 
-def convert(raw, capture_time_us):
+COUNTER_TIME_BASIS = (
+    "PINNED_DRIVER_GPS_WEEK_AND_MILLISECONDS_SINCE_1980_01_06_NO_UTC_LEAP_CORRECTION_"
+    "OR_CLOCK_VALIDITY_CLAIM")
+COUNTER_COLUMNS = ("sbf_tow_ms", "sbf_gps_elapsed_ms", "sbf_counter_time_status",
+                   "sbf_counter_time_basis")
+
+
+def counter_time(header):
+    """Pinned timestampSBF units, without its dynamic UTC leap-second operation."""
+    tow = None if header["tow"] == U32_NOT_AVAILABLE else header["tow"]
+    week = None if header["wnc"] == U16_NOT_AVAILABLE else header["wnc"]
+    if tow is not None and tow >= 604800000:
+        raise ValueError("reported TOW milliseconds outside one GPS week")
+    elapsed = None if tow is None or week is None else week * 604800000 + tow
+    return {"sbf_tow_ms": tow, "sbf_gps_elapsed_ms": elapsed,
+            "sbf_counter_time_status": ("COUNTER_NOT_AVAILABLE" if elapsed is None else
+                                        "REPORTED_GPS_SCALE_NOT_VERIFIED_TIME"),
+            "sbf_counter_time_basis": COUNTER_TIME_BASIS}
+
+
+MODE_LABELS = ("NO_PVT", "STAND_ALONE", "DGPS", "FIXED", "RTK_FIXED", "RTK_FLOAT",
+               "SBAS", "MOVING_BASE_RTK_FIXED", "MOVING_BASE_RTK_FLOAT", "PPP")
+MODE_COLUMNS = ("sbf_mode_low_nibble", "sbf_mode_upper_bits_raw", "sbf_reported_mode",
+                "sbf_mode_disposition", "sbf_mode_basis")
+MODE_BASIS = "DRIVER_5613AF29_TYPEOFPVT_LOW_NIBBLE_REPORTED_ONLY_NOT_PHYSICAL_FIX_OR_ERROR_VALIDITY"
+
+
+def reported_mode(mode):
+    code = mode & 15
+    known = code < len(MODE_LABELS)
+    return dict(zip(MODE_COLUMNS, (code, mode & 240, MODE_LABELS[code] if known else "",
+        "REPORTED_MODE" if known else "UNKNOWN_REPORTED_MODE", MODE_BASIS)))
+
+
+def convert(raw, capture_time_us, *, include_counter_time=False, include_reported_mode=False):
     """Selected PVTGeodetic fields of validated blocks; never a receiver or a fix guarantee."""
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2**63:
         raise ValueError("explicit caller capture microseconds required")
+    if type(include_counter_time) is not bool:
+        raise ValueError("explicit boolean counter-time option required")
+    if type(include_reported_mode) is not bool:
+        raise ValueError("explicit boolean reported-mode option required")
     if not raw or len(raw) > MAX_INPUT:
         raise ValueError("empty or oversized saved SBF input")
     output = io.StringIO(newline="")
-    writer = csv.DictWriter(output, COLUMNS, lineterminator="\n")
+    writer = csv.DictWriter(output, COLUMNS + (COUNTER_COLUMNS if include_counter_time else ())
+                            + (MODE_COLUMNS if include_reported_mode else ()),
+                            lineterminator="\n")
     writer.writeheader()
     report = dict(reference=REFERENCE, source_sha256="sha256:" + hashlib.sha256(raw).hexdigest(),
                   source_bytes=len(raw), blocks_scanned=0, decoded_blocks=0,
@@ -273,7 +313,7 @@ def convert(raw, capture_time_us):
             "sbf_block_sha256": digest, "sbf_block_extra_bytes": extra,
             "sbf_tow_reported": None if header["tow"] == U32_NOT_AVAILABLE else header["tow"],
             "sbf_wnc_reported": None if header["wnc"] == U16_NOT_AVAILABLE else header["wnc"],
-            "sbf_time_basis": TIME_BASIS,
+            "sbf_time_basis": COUNTER_TIME_BASIS if include_counter_time else TIME_BASIS,
             "sbf_latitude_deg": None if radians[0] is None else math.degrees(radians[0]),
             "sbf_longitude_deg": None if radians[1] is None else math.degrees(radians[1]),
             "sbf_position_disposition": ("NOT_AVAILABLE_SENTINEL" if None in radians
@@ -294,7 +334,9 @@ def convert(raw, capture_time_us):
             "sbf_mode_code": mode, "sbf_error_code": error,
             "sbf_nr_sv_reported": None if nr_sv == 255 else nr_sv,
             "sbf_alert_flag_code": alert, "sbf_time_system_code": time_system,
-            "sbf_datum_code": datum, "sbf_code_basis": CODE_BASIS})
+            "sbf_datum_code": datum, "sbf_code_basis": CODE_BASIS,
+            **(counter_time(header) if include_counter_time else {}),
+            **(reported_mode(mode) if include_reported_mode else {})})
         report["decoded_blocks"] += 1
         if output.tell() > MAX_OUTPUT:
             raise ValueError("converted SBF output exceeds bound")
@@ -308,6 +350,12 @@ def convert(raw, capture_time_us):
                                    + report["invalid_blocks"]
                                    + report["unsupported_revision_blocks"]):
         raise ValueError("SBF block accounting mismatch")
+    if include_counter_time:
+        report["time_basis"] = COUNTER_TIME_BASIS
+        report["counter_time_basis"] = COUNTER_TIME_BASIS
+        report["counter_time_unit"] = "milliseconds_since_GPS_epoch_not_Unix_UTC"
+    if include_reported_mode:
+        report["mode_basis"] = MODE_BASIS
     return output.getvalue(), report
 
 
@@ -317,13 +365,19 @@ def main(argv=None):
     parser.add_argument("output_directory", type=Path, help="new directory for the CSV and report")
     parser.add_argument("--capture-time-us", type=int, required=True,
                         help="caller declared capture microseconds; not the receiver clock")
+    parser.add_argument("--include-counter-time", action="store_true",
+                        help="interpret pinned GPS week/TOW units without UTC conversion")
+    parser.add_argument("--include-reported-mode", action="store_true",
+                        help="interpret fixed driver low-nibble mode, not physical fix validity")
     args = parser.parse_args(argv)
     # Bounded read: one byte past the limit is enough to refuse without loading a large file.
     with args.input.open("rb") as handle:
         raw = handle.read(MAX_INPUT + 1)
     if len(raw) > MAX_INPUT:
         raise ValueError("empty or oversized saved SBF input")
-    converted, report = convert(raw, args.capture_time_us)
+    converted, report = convert(raw, args.capture_time_us,
+                                include_counter_time=args.include_counter_time,
+                                include_reported_mode=args.include_reported_mode)
     args.output_directory.mkdir()
     (args.output_directory / "observations.csv").write_text(converted, encoding="utf-8")
     (args.output_directory / "report.json").write_text(

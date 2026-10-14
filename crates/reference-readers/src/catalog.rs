@@ -40,6 +40,8 @@ fn parse_kind(s: &str) -> Option<FailureKind> {
         "camera_stop" => FailureKind::CameraStop,
         "gnss_degradation" => FailureKind::GnssDegradation,
         "gnss_inconsistency" => FailureKind::GnssInconsistency,
+        "storage_failure" => FailureKind::StorageFailure,
+        "configuration_error" => FailureKind::ConfigurationError,
         _ => return None,
     })
 }

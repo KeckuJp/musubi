@@ -30,6 +30,8 @@ def body(mode=4, error=0, latitude_deg=52.0, longitude_deg=4.5, height=45.25, un
          sentinel=False, vn=0.5, ve=-0.25, vu=0.125, cog=90.0):
     """The base PVTGeodetic field set in the pinned order and byte order."""
     if sentinel:
+        # The pinned driver's do-not-use double, and the u16/u32 not-available values. The velocity
+        # fields take it too: a saved block can report no motion solution at all.
         latitude = longitude = height = undulation_value = module.FLOAT_NOT_AVAILABLE
         vn = ve = vu = cog = module.FLOAT_NOT_AVAILABLE
     else:
@@ -103,19 +105,60 @@ def read_common(case, csv_text, expected_rows):
 
 
 class SbfRecordsTests(unittest.TestCase):
+    def test_counter_time_week_boundary_reaches_common_without_clock_promotion(self):
+        raw = block(tow=604799999, wnc=2200) + block(tow=0, wnc=2201)
+        output, report = module.convert(raw, 77, include_counter_time=True)
+        common = read_common(self, output, 2)
+        first, second = [record["fields"] for record in common["observations"]]
+        self.assertEqual(first["sbf_tow_ms"], 604799999)
+        self.assertEqual(second["sbf_gps_elapsed_ms"] - first["sbf_gps_elapsed_ms"], 1)
+        self.assertEqual(first["sbf_gps_elapsed_ms"], 2201 * 604800000 - 1)
+        self.assertEqual(first["record_time_us"], 77)
+        self.assertIn("NO_UTC", report["counter_time_basis"])
+        self.assertTrue(all(record["clock_basis"] == "Unknown" for record in common["observations"]))
+
+    def test_counter_time_separate_revision_reuse_and_absent_week(self):
+        raw = block(revision=2, extra=b"\0" * 10, tow=17, wnc=65534, time_system=17)
+        raw += block(tow=19, wnc=module.U16_NOT_AVAILABLE) + sentinel_block()
+        output, _ = module.convert(raw, 99, include_counter_time=True)
+        common = read_common(self, output, 3)
+        first, second, third = [record["fields"] for record in common["observations"]]
+        self.assertEqual(first["sbf_gps_elapsed_ms"], 65534 * 604800000 + 17)
+        self.assertEqual(first["sbf_time_system_code"], 17)  # body code is not a header-time selector
+        self.assertEqual(second["sbf_tow_ms"], 19)
+        self.assertIsNone(second["sbf_gps_elapsed_ms"])
+        self.assertIsNone(third["sbf_tow_ms"])
+        self.assertEqual(third["sbf_counter_time_status"], "COUNTER_NOT_AVAILABLE")
+
+    def test_counter_time_opt_in_refusal_and_default_parity(self):
+        raw = block(tow=604800000)
+        self.assertEqual(module.convert(raw, 1), module.convert(raw, 1, include_counter_time=False))
+        self.assertNotIn("sbf_gps_elapsed_ms", module.convert(raw, 1)[0])
+        with self.assertRaises(ValueError):
+            module.convert(raw, 1, include_counter_time=True)
+        with self.assertRaises(ValueError):
+            module.convert(block(), 1, include_counter_time="yes")
+
     def test_authored_fix_blocks_reach_common_output_with_declared_units(self):
+        # Authored set one: two validated blocks with different reported values, the second at
+        # revision 1 so the appended bytes are present but not decoded.
         first, second = fix_pair()
         rows, report, text = rows_of(first + second)
         self.assertEqual(len(rows), 2)
+        # Position: degrees converted from the source's stated radians, frame stated not verified.
         self.assertAlmostEqual(float(rows[0]["sbf_latitude_deg"]), 52.0, places=9)
         self.assertAlmostEqual(float(rows[0]["sbf_longitude_deg"]), 4.5, places=9)
         self.assertAlmostEqual(float(rows[1]["sbf_latitude_deg"]), -33.8688, places=9)
         self.assertEqual(rows[0]["sbf_position_disposition"], "REPORTED_NOT_VERIFIED")
         self.assertIn("NOT_A_VERIFIED_DATUM", rows[0]["sbf_position_basis"])
+        # Height stays ellipsoidal and the undulation stays a separate reported column: no MSL
+        # height is derived here, and the old altitude-datum hold is untouched.
         self.assertEqual(float(rows[0]["sbf_height_ellipsoidal_m"]), 45.25)
         self.assertEqual(float(rows[0]["sbf_undulation_m"]), 43.0)
         self.assertEqual(rows[0]["sbf_height_disposition"], "REPORTED_ELLIPSOIDAL_NOT_MEAN_SEA_LEVEL")
         self.assertEqual(float(rows[1]["sbf_height_ellipsoidal_m"]), -12.5)
+        # Motion: the components and the course the block already carried, in the units the pinned
+        # message declares. Nothing is rotated and no speed is derived from the components.
         self.assertEqual((float(rows[0]["sbf_velocity_north_m_s"]),
                           float(rows[0]["sbf_velocity_east_m_s"]),
                           float(rows[0]["sbf_velocity_up_m_s"])), (0.5, -0.25, 0.125))
@@ -124,17 +167,20 @@ class SbfRecordsTests(unittest.TestCase):
                          ("REPORTED_NOT_VERIFIED", "REPORTED_NOT_VERIFIED"))
         self.assertIn("NOT_A_PNT_SOLUTION", rows[0]["sbf_velocity_basis"])
         self.assertNotIn("sbf_speed_m_s", rows[0])
+        # Quality and code columns: reported values with the table-not-established basis.
         self.assertEqual((rows[0]["sbf_mode_code"], rows[0]["sbf_error_code"]), ("4", "0"))
         self.assertEqual((rows[0]["sbf_nr_sv_reported"], rows[1]["sbf_nr_sv_reported"]), ("11", "7"))
         self.assertEqual(rows[1]["sbf_mode_code"], "6")
         self.assertEqual(rows[0]["sbf_code_basis"],
                          "REPORTED_CODE_VALUE_TABLE_NOT_ESTABLISHED_BY_THE_PINNED_SOURCE")
+        # Receiver counters exactly as read; the row clock is the caller's declaration.
         self.assertEqual((rows[0]["sbf_tow_reported"], rows[0]["sbf_wnc_reported"]),
                          ("123456000", "2300"))
         self.assertEqual((rows[1]["sbf_tow_reported"], rows[1]["sbf_wnc_reported"]),
                          ("123457000", "2301"))
         self.assertEqual({row["record_time_us"] for row in rows}, {"1000"})
         self.assertIn("NO_UTC_AND_NO_LEAP_SECOND_APPLIED", rows[0]["sbf_time_basis"])
+        # Provenance: offset, length, id, revision and the block digest, plus appended-byte count.
         self.assertEqual([row["sbf_block_offset"] for row in rows], ["0", str(len(first))])
         self.assertEqual([row["sbf_block_id"] for row in rows], ["4007", "4007"])
         self.assertEqual([row["sbf_block_revision"] for row in rows], ["0", "1"])
@@ -142,6 +188,7 @@ class SbfRecordsTests(unittest.TestCase):
         self.assertEqual(rows[0]["sbf_block_sha256"],
                          "sha256:" + hashlib.sha256(first).hexdigest())
         self.assertEqual(report["revision_appended_fields_present"], 1)
+        # Accounting, including byte-loss: the framed blocks cover the whole authored file here.
         self.assertEqual((report["blocks_scanned"], report["decoded_blocks"]), (2, 2))
         self.assertEqual((report["unselected_blocks"], report["invalid_blocks"],
                           report["unsupported_revision_blocks"]), (0, 0, 0))
@@ -160,14 +207,18 @@ class SbfRecordsTests(unittest.TestCase):
             self.assertEqual(json.loads((out / "report.json").read_text())["decoded_blocks"], 2)
 
     def test_authored_sentinel_set_and_failure_accounting(self):
+        # Authored set two, independent of the first: do-not-use position, non-zero error, and the
+        # u16/u32 not-available counters.
         sentinel = sentinel_block()
         rows, report, _ = rows_of(sentinel)
         row = rows[0]
+        # Withheld, never zero, and each with its own disposition.
         self.assertEqual((row["sbf_latitude_deg"], row["sbf_longitude_deg"]), ("", ""))
         self.assertEqual(row["sbf_position_disposition"], "NOT_AVAILABLE_SENTINEL")
         self.assertEqual((row["sbf_height_ellipsoidal_m"], row["sbf_height_disposition"]),
                          ("", "NOT_AVAILABLE_SENTINEL"))
         self.assertEqual(row["sbf_undulation_m"], "")
+        # A do-not-use motion solution is withheld under the same rule: blank, never a standstill.
         self.assertEqual((row["sbf_velocity_north_m_s"], row["sbf_velocity_east_m_s"],
                           row["sbf_velocity_up_m_s"], row["sbf_course_over_ground_deg"]),
                          ("", "", "", ""))
@@ -175,9 +226,12 @@ class SbfRecordsTests(unittest.TestCase):
                          ("NOT_AVAILABLE_SENTINEL", "NOT_AVAILABLE_SENTINEL"))
         self.assertEqual((row["sbf_tow_reported"], row["sbf_wnc_reported"]), ("", ""))
         self.assertEqual(row["sbf_nr_sv_reported"], "")
+        # The reported codes are still carried: a no-position report is not an absent report.
         self.assertEqual((row["sbf_mode_code"], row["sbf_error_code"]), ("0", "1"))
         self.assertEqual(report["decoded_blocks"], 1)
 
+        # A mixed file: valid, another block id, a bad CRC, an unsupported revision, and bytes
+        # outside any block. Nothing is silently accepted and nothing is silently dropped.
         good = block(latitude_deg=1.5, longitude_deg=2.5)
         other = block(identifier=4006)
         corrupt = block(bad_crc=True)
@@ -189,6 +243,7 @@ class SbfRecordsTests(unittest.TestCase):
         self.assertEqual((report["blocks_scanned"], report["decoded_blocks"],
                           report["unselected_blocks"], report["invalid_blocks"],
                           report["unsupported_revision_blocks"]), (4, 1, 1, 1, 1))
+        # Every non-decoded block is retained by offset and digest with a reason.
         self.assertEqual(report["unselected"][0]["id"], 4006)
         self.assertEqual(report["unselected"][0]["offset"], len(good))
         self.assertEqual(report["invalid"][0]["reason"], "CRC_MISMATCH")
@@ -197,6 +252,7 @@ class SbfRecordsTests(unittest.TestCase):
         self.assertEqual(report["unsupported_revision"][0]["revision"], 3)
         self.assertEqual(report["unsupported_revision"][0]["offset"],
                          len(good + other + corrupt))
+        # Byte-loss accounting: the trailing noise is outside every block and is reported as such.
         self.assertEqual(report["bytes_in_blocks"], len(good + other + corrupt + future))
         self.assertEqual(report["bytes_outside_blocks"], len(noise))
         self.assertEqual(report["blocks_scanned"], report["decoded_blocks"]
@@ -224,6 +280,7 @@ class SbfRecordsTests(unittest.TestCase):
             module.convert(b"", 1000)
 
     def test_practical_multi_block_capacity_reaches_common_output(self):
+        # A practical saved file: 2000 validated blocks, every one decoded, nothing sampled.
         many = batch()
         rows, report, text = rows_of(many)
         self.assertEqual(len(rows), 2000)
@@ -233,6 +290,7 @@ class SbfRecordsTests(unittest.TestCase):
         self.assertEqual([int(row["sbf_block_offset"]) for row in rows[:2]], [0, len(block())])
         self.assertLess(len(many), module.MAX_INPUT)
 
+    # --- actual common reader checks: skipped explicitly when no reader is configured ---
 
     def test_fix_pair_reaches_the_actual_common_reader(self):
         first, second = fix_pair()
@@ -252,6 +310,7 @@ class SbfRecordsTests(unittest.TestCase):
         self.assertIn("converted_from_the_sources_stated_radians", declared["sbf_latitude_deg"])
         self.assertIn("not_established_by_the_pinned_source", declared["sbf_mode_code"])
         self.assertIn("no_week_rollover_arithmetic", declared["sbf_wnc_reported"])
+        # The motion the block already carried now reaches common Observation with its units.
         self.assertEqual((fields["sbf_velocity_north_m_s"], fields["sbf_velocity_east_m_s"],
                           fields["sbf_velocity_up_m_s"]), (0.5, -0.25, 0.125))
         self.assertEqual(fields["sbf_course_over_ground_deg"], 90.0)
@@ -266,17 +325,22 @@ class SbfRecordsTests(unittest.TestCase):
                             vu=module.FLOAT_NOT_AVAILABLE, cog=271.5)
         components_only = block(vn=1.25, ve=2.5, vu=-0.75, cog=module.FLOAT_NOT_AVAILABLE)
         rows = rows_of(course_only + components_only)[0]
+        # A course with no components: the course is still reported, and no component is invented.
         self.assertEqual((rows[0]["sbf_velocity_north_m_s"], rows[0]["sbf_velocity_east_m_s"],
                           rows[0]["sbf_velocity_up_m_s"]), ("", "", ""))
         self.assertEqual(rows[0]["sbf_velocity_disposition"], "NOT_AVAILABLE_SENTINEL")
         self.assertEqual(float(rows[0]["sbf_course_over_ground_deg"]), 271.5)
         self.assertEqual(rows[0]["sbf_course_disposition"], "REPORTED_NOT_VERIFIED")
+        # Components with no course: the course stays absent rather than being computed from them.
         self.assertEqual((float(rows[1]["sbf_velocity_north_m_s"]),
                           float(rows[1]["sbf_velocity_east_m_s"]),
                           float(rows[1]["sbf_velocity_up_m_s"])), (1.25, 2.5, -0.75))
         self.assertEqual(rows[1]["sbf_velocity_disposition"], "REPORTED_NOT_VERIFIED")
         self.assertEqual(rows[1]["sbf_course_over_ground_deg"], "")
         self.assertEqual(rows[1]["sbf_course_disposition"], "NOT_AVAILABLE_SENTINEL")
+        # One unavailable component marks the triple incomplete without discarding the other two:
+        # the aggregate disposition says the solution was not fully reported, and every value the
+        # source did report is still carried. Only the unavailable one is blank.
         partial = rows_of(block(vu=module.FLOAT_NOT_AVAILABLE))[0][0]
         self.assertEqual(partial["sbf_velocity_disposition"], "NOT_AVAILABLE_SENTINEL")
         self.assertEqual(partial["sbf_velocity_up_m_s"], "")
@@ -292,12 +356,14 @@ class SbfRecordsTests(unittest.TestCase):
         self.assertEqual(fields["sbf_error_code"], 1)
 
     def test_practical_2000_block_batch_reaches_the_actual_common_reader(self):
+        # The capacity proof is the reader's own count, not the CSV alone.
         common = read_common(self, rows_of(batch())[2], 2000)
         self.assertEqual(len(common["observations"]), 2000)
         self.assertEqual(common["observations"][-1]["fields"]["sbf_tow_reported"], 123456000 + 1999)
         self.assertEqual(common["observations"][-1]["fields"]["sbf_block_id"], 4007)
 
     def test_a_configured_but_unusable_reader_fails_instead_of_passing_quietly(self):
+        # A wrong reader path must not look like a skip or a pass: the check has to fail.
         with tempfile.TemporaryDirectory() as tmp:
             missing = Path(tmp) / "not-a-reader"
             previous = os.environ.get("MUSUBI_TELEMETRY_READER")
@@ -311,8 +377,11 @@ class SbfRecordsTests(unittest.TestCase):
                 else:
                     os.environ["MUSUBI_TELEMETRY_READER"] = previous
 
+    # --- boundary fixes ---
 
     def test_candidate_bound_refuses_instead_of_dropping_the_remainder(self):
+        # Exactly at the bound converts; one over is refused, because returning short would emit
+        # rows for the first blocks and call the unexamined remainder bytes outside any block.
         previous = module.MAX_BLOCKS
         self.addCleanup(setattr, module, "MAX_BLOCKS", previous)
         module.MAX_BLOCKS = 3
@@ -323,10 +392,13 @@ class SbfRecordsTests(unittest.TestCase):
         with self.assertRaises(ValueError) as caught:
             module.convert(b"".join(block(tow=index) for index in range(4)), 1000)
         self.assertEqual(str(caught.exception), "saved SBF input exceeds the candidate block bound")
+        # The real bound is unchanged for ordinary input.
         module.MAX_BLOCKS = previous
         self.assertEqual(module.MAX_BLOCKS, 65536)
 
     def test_overlapping_candidate_keeps_byte_accounting_non_negative(self):
+        # A bad-CRC candidate whose declared length swallows a later valid frame: the resync finds
+        # the inner frame, so the two candidate spans overlap.
         inner = block(tow=77)
         outer = block(payload=b"\x00\x00" + inner, bad_crc=True)
         rows, report, _ = rows_of(outer)
@@ -335,9 +407,11 @@ class SbfRecordsTests(unittest.TestCase):
         self.assertEqual((report["blocks_scanned"], report["decoded_blocks"],
                           report["invalid_blocks"]), (2, 1, 1))
         self.assertEqual(report["overlapping_candidates"], 1)
+        # Each byte counted once, nothing negative, and the total still adds up.
         self.assertGreaterEqual(report["bytes_outside_blocks"], 0)
         self.assertEqual(report["bytes_in_blocks"] + report["bytes_outside_blocks"], len(outer))
         self.assertLessEqual(report["bytes_in_blocks"], len(outer))
+        # The resync evidence survives: the invalid outer candidate keeps its own offset and digest.
         self.assertEqual(report["invalid"][0]["reason"], "CRC_MISMATCH")
         self.assertEqual(report["invalid"][0]["offset"], 0)
         self.assertEqual(report["invalid"][0]["sha256"],
@@ -355,6 +429,7 @@ class SbfRecordsTests(unittest.TestCase):
         self.assertNotEqual(entry["sha256"], "sha256:" + hashlib.sha256(b"").hexdigest())
         self.assertEqual(report["bytes_in_blocks"] + report["bytes_outside_blocks"],
                          len(good + tail))
+        # A header cut short keeps its available bytes too.
         short_header = good + b"$@\x01\x02"
         report = rows_of(short_header)[1]
         header_entry = report["invalid"][0]
@@ -366,6 +441,7 @@ class SbfRecordsTests(unittest.TestCase):
     def test_cli_refuses_an_oversized_file_before_reading_it_whole(self):
         with tempfile.TemporaryDirectory() as tmp:
             source, out = Path(tmp) / "big.sbf", Path(tmp) / "out"
+            # Sparse write: the file is larger than the bound without occupying that much space.
             with source.open("wb") as handle:
                 handle.truncate(module.MAX_INPUT + 1)
             finished = subprocess.run([sys.executable, str(ROOT / "scripts/convert_sbf_records.py"),
@@ -376,16 +452,23 @@ class SbfRecordsTests(unittest.TestCase):
             self.assertFalse(out.exists())
 
     def test_candidate_byte_budget_bounds_overlapping_resync_work(self):
+        # A bad-CRC candidate resyncs two bytes on, so overlapping declared lengths could make the
+        # bytes examined far exceed the file. One long bad-CRC candidate spanning many valid frames
+        # reproduces that shape without a multi-gigabyte fixture.
         inner = b"".join(block(tow=index) for index in range(20))
         overlapping = block(payload=b"\x00\x00" + inner, bad_crc=True)
         previous = module.MAX_CANDIDATE_BYTES
         self.addCleanup(setattr, module, "MAX_CANDIDATE_BYTES", previous)
+        # The real budget is a documented finite multiple of the input cap.
         self.assertEqual(previous, 4 * module.MAX_INPUT)
+        # With a reduced budget the crafted overlap refuses by name - it is never reported as frames
+        # outside a block, and no partial success is emitted.
         module.MAX_CANDIDATE_BYTES = 600
         with self.assertRaises(ValueError) as caught:
             module.convert(overlapping, 1000)
         self.assertEqual(str(caught.exception),
                          "saved SBF input exceeds the candidate byte budget")
+        # At the real budget the same input converts, and the union provenance still holds.
         module.MAX_CANDIDATE_BYTES = previous
         rows, report, _ = rows_of(overlapping)
         self.assertEqual((len(rows), report["decoded_blocks"]), (20, 20))
@@ -395,9 +478,12 @@ class SbfRecordsTests(unittest.TestCase):
                          len(overlapping))
         self.assertGreater(report["candidate_bytes_examined"], len(overlapping))
         self.assertEqual(report["candidate_byte_budget"], 4 * module.MAX_INPUT)
+        # Ordinary non-overlapping input examines exactly its own length, so the budget cannot bite:
+        # the 2000-block batch and a single block both come out at a ratio of one.
         for raw in (block(), batch()):
             examined = rows_of(raw)[1]["candidate_bytes_examined"]
             self.assertEqual(examined, len(raw))
+        # And the previously fixed count bound is still in force alongside the byte budget.
         self.assertEqual(module.MAX_BLOCKS, 65536)
 
 

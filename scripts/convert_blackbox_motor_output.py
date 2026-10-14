@@ -19,6 +19,10 @@ import io
 import json
 from pathlib import Path
 import re
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from convert_recorded_angles_csv import convert_selected_csv_path
 
 LIMIT = 16 * 1024 * 1024
 # blackbox.c at 8f2d21460a9913d58bd1c33f8348c3791451fb45 defines field rows motor[0..7] under
@@ -145,6 +149,24 @@ def convert(text, schema, scale):
     return output.getvalue(), report
 
 
+def convert_path(path, schema, scale, *, start_record, stop_record):
+    if schema not in SCHEMAS:
+        raise ValueError("unsupported motor schema")
+    semantics = {}
+
+    def selected(text):
+        output, report = convert(text, schema, scale)
+        semantics.update(report)
+        return output
+
+    output, report = convert_selected_csv_path(
+        path, time_field=SCHEMAS[schema], required_fields=(), transform=selected,
+        label="motor demand", start_record=start_record, stop_record=stop_record)
+    report.update(schema="motor-output-csv-record-selection/v1", source_schema=schema,
+                  motor_semantics=semantics)
+    return output, report
+
+
 def parse_scale(text):
     pair = re.fullmatch(r"([0-9]{1,5}),([0-9]{1,5})", text)
     if pair is None:
@@ -160,12 +182,20 @@ def main():
     parser.add_argument("--output-scale", type=parse_scale, required=True,
                         help="the writer's declared motorOutput LOW,HIGH from decode.json")
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--start-record", type=int)
+    parser.add_argument("--stop-record", type=int)
     args = parser.parse_args()
     try:
-        if args.input.stat().st_size > LIMIT:
-            raise ValueError("input exceeds bound")
-        text, report = convert(args.input.read_text(encoding="utf-8"), args.schema,
-                               args.output_scale)
+        if args.start_record is not None or args.stop_record is not None:
+            if args.start_record is None or args.stop_record is None:
+                raise ValueError("both interval boundaries required")
+            text, report = convert_path(args.input, args.schema, args.output_scale,
+                                       start_record=args.start_record, stop_record=args.stop_record)
+        else:
+            if args.input.stat().st_size > LIMIT:
+                raise ValueError("input exceeds bound")
+            text, report = convert(args.input.read_text(encoding="utf-8"), args.schema,
+                                   args.output_scale)
         with args.output.open("x", encoding="utf-8") as stream:
             stream.write(text)
         with args.report.open("x", encoding="utf-8") as stream:

@@ -100,6 +100,7 @@ pub(super) fn enrich(
                 let FieldValue::I64(v) = value else {
                     return Err(fail());
                 };
+                // Fixed writer prints a signed int; no inferred servo or actuator range.
                 if i32::try_from(*v).is_err() {
                     return Err(fail());
                 }

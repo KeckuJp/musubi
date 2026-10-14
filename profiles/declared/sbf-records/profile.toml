@@ -11,6 +11,15 @@ channels = ["onboard"]
 time = "record_time_us"
 
 [units]
+sbf_mode_low_nibble = "reported_mode_bitwise_and_15"
+sbf_mode_upper_bits_raw = "uninterpreted_original_upper_four_bits"
+sbf_reported_mode = "fixed_driver_TypeOfPVT_enum_not_physical_fix_or_accuracy"
+sbf_mode_disposition = "REPORTED_MODE_or_UNKNOWN_REPORTED_MODE"
+sbf_mode_basis = "pinned_driver_operational_mapping_error_code_remains_unqualified"
+sbf_tow_ms = "milliseconds_of_GPS_week_from_fixed_driver_not_UTC"
+sbf_gps_elapsed_ms = "milliseconds_since_GPS_epoch_1980_01_06_no_leap_correction"
+sbf_counter_time_status = "reported_counter_coordinate_or_not_available_not_clock_validity"
+sbf_counter_time_basis = "fixed_driver_timestampSBF_operational_meaning"
 record_time_us = "caller_declared_capture_microseconds_separate_from_every_receiver_counter_in_this_row"
 capture_clock_basis = "the_common_capture_clock_is_a_caller_declaration_not_the_receiver_clock"
 sbf_block_offset = "byte_offset_of_this_block_in_the_saved_file_so_a_row_is_locatable_in_the_original_bytes"

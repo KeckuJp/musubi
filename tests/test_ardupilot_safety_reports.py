@@ -43,6 +43,7 @@ class ArduPilotSafetyReportTests(unittest.TestCase):
         output, report = convert(text, **kwargs)
         return list(csv.DictReader(io.StringIO(output))), report, output
 
+    # ------------------------------------------------------- the reported safety reasons
 
     def test_a_fence_breach_and_each_named_failsafe_are_reported_with_their_kind(self):
         rows, report, _ = self.rows_of(export(
@@ -57,18 +58,23 @@ class ArduPilotSafetyReportTests(unittest.TestCase):
         self.assertEqual(fence["safety_domain"], "GEOFENCE")
         self.assertEqual(fence["reported_geofence_report"], "BREACH_REPORTED")
         self.assertEqual(fence["reported_failsafe_kind"], "")
+        # No boundary, no fence type and no position is in the record, so none is stated.
         self.assertIn("NO_BOUNDARY_NO_FENCE_TYPE_AND_NO_POSITION", fence["report_basis"])
         self.assertEqual([r["reported_failsafe_kind"] for r in (battery, radio, ekf)],
                          ["BATTERY", "RADIO", "EKF"])
         self.assertTrue(all(r["safety_domain"] == "FAILSAFE" for r in (battery, radio, ekf)))
+        # The clock is the record's own boot time, and the record itself is retained.
         self.assertEqual(fence["record_time_us"], "1000000")
         self.assertEqual(unhex(fence["original_record_hex"]), "1000000,RTL,11,10")
         self.assertEqual(fence["producer_pin"], "ardupilot-plane-4.5.5-d6ebfc21")
+        # A reported failsafe is not a claim that the underlying thing failed.
         self.assertIn("NOT_THAT_THE_UNDERLYING_THING_FAILED", battery["report_basis"])
+        # Nothing is compared with a configured limit, because no quantity exists in the record.
         self.assertIn("NO_QUANTITY_IS_EMITTED", fence["quantity_basis"])
         self.assertFalse([name for name in fence if "threshold" in name or "distance" in name])
 
     def test_a_command_is_never_read_as_a_safety_event(self):
+        # Every commanded reason the pinned enum carries.
         rows, report, _ = self.rows_of(export(
             *(record(1_000_000 + index, code) for index, code in enumerate((1, 2, 30, 32, 41, 42, 52)))
         ))
@@ -117,15 +123,18 @@ class ArduPilotSafetyReportTests(unittest.TestCase):
         for row in (unknown, unavailable):
             self.assertEqual(row["reason_class"], "SOURCE_DECLARED_UNKNOWN")
             self.assertEqual(row["safety_domain"], "")
+        # An unmapped number never falls through into a safety event.
         self.assertEqual(unmapped["reported_mode_reason"], "UNKNOWN_CODE_200")
         self.assertEqual(unmapped["reason_class"], "UNMAPPED_CODE_NO_MEANING_ASSIGNED")
         self.assertEqual(unmapped["safety_domain"], "")
         self.assertEqual(report["unmapped_codes"], 1)
+        # No code in the pinned enum is left without a class, and none outside it gains one.
         for code in MODE_REASONS:
             self.assertNotEqual(classify(code)[0], "UNMAPPED_CODE_NO_MEANING_ASSIGNED")
         for code in (53, 99, 255):
             self.assertEqual(classify(code), ("UNMAPPED_CODE_NO_MEANING_ASSIGNED", "", "", "", ""))
 
+    # ------------------------------------------------------- what is refused
 
     def test_an_export_that_is_not_this_producers_shape_is_refused(self):
         for text, why in (
@@ -161,6 +170,8 @@ class ArduPilotSafetyReportTests(unittest.TestCase):
         self.assertEqual(rows[0]["original_record_columns"], "6")
 
     def test_a_quoted_record_keeps_the_writers_own_characters(self):
+        # Quoting is retained exactly as written, because the record is kept as its own characters
+        # rather than re-serialised from parsed cells.
         line = '1000000,"RTL, with a comma",11,10,"say ""hi"""'
         rows, report, _ = self.rows_of(export(line, header="TimeUS,Mode,ModeNum,Rsn,Note"))
         self.assertEqual(report["geofence_breach_reports"], 1)
@@ -182,10 +193,13 @@ class ArduPilotSafetyReportTests(unittest.TestCase):
             with self.assertRaises(ValueError, msg=why) as refusal:
                 self.rows_of(export(line, header=HEADER + ",Note"))
             self.assertIn("broken quoting", str(refusal.exception))
+        # The well-formed quoted record in the regression above is unaffected.
         rows, _, _ = self.rows_of(export('1000000,RTL,11,10,"ok"', header=HEADER + ",Note"))
         self.assertEqual(unhex(rows[0]["original_record_hex"]), '1000000,RTL,11,10,"ok"')
 
     def test_an_ambiguous_header_or_a_ragged_record_is_refused_rather_than_lost(self):
+        # A repeated column name makes a later cell overwrite an earlier one; a ragged record either
+        # drops a cell or reads a neighbour's. Both lose data, so both are refused.
         with self.assertRaises(ValueError) as duplicate:
             self.rows_of(export("1000000,RTL,11,10,99",
                                 header="TimeUS,Mode,ModeNum,Rsn,Rsn"))
@@ -200,12 +214,15 @@ class ArduPilotSafetyReportTests(unittest.TestCase):
             self.rows_of(export(record(1_000_000, 10), header="TimeUS,Mode,ModeNum, Rsn"))
 
     def test_only_ascii_decimal_is_read_as_the_producers_number(self):
+        # `str.isdigit()` accepts other Unicode digits; `int()` then reads a different number or
+        # refuses. This writer prints ASCII, so anything else is refused rather than converted.
         for token, why in (("١٢٣", "Arabic-Indic digits int() would accept as 123"),
                            ("²", "a superscript digit int() refuses"),
                            ("+10", "a signed token"), ("1_0", "an underscore separator"),
                            (" 10", "a padded token"), ("0x0a", "a hexadecimal token")):
             with self.assertRaises(ValueError, msg=why):
                 self.rows_of(export(record(1_000_000, token)))
+        # The declared domains are the producer's own: uint8 fields and an i64-readable time.
         with self.assertRaises(ValueError):
             self.rows_of(export(record(1_000_000, 10, mode_num=256)))
         with self.assertRaises(ValueError):
@@ -214,9 +231,9 @@ class ArduPilotSafetyReportTests(unittest.TestCase):
         self.assertEqual(rows[0]["record_time_us"], str(2 ** 63 - 1))
 
     def test_a_vehicle_version_the_enum_was_not_read_at_keeps_the_raw_code_unread(self):
-        """The pin is Plane 4.5.5; another selector names a release whose tree was not read."""
+        """Plane/Copter 4.5.5 are qualified; 4.5.4's enum was not read."""
         rows, report, _ = self.rows_of(export(record(1_000_000, 10), record(2_000_000, 4)),
-                                       vehicle="copter-4.5.5")
+                                       vehicle="copter-4.5.4")
         self.assertEqual(report["unqualified_vehicle_records"], 2)
         self.assertEqual((report["geofence_breach_reports"], report["failsafe_reports"]), (0, 0))
         for row, code in zip(rows, ("10", "4")):
@@ -227,9 +244,11 @@ class ArduPilotSafetyReportTests(unittest.TestCase):
             self.assertEqual((row["safety_domain"], row["reported_failsafe_kind"],
                               row["reported_geofence_report"]), ("", "", ""))
             self.assertIn("DIFFERENT_RELEASE_WHOSE_TREE_WAS_NOT_READ", row["report_basis"])
+            # The Plane pin is not claimed for a release that was not read.
             self.assertNotIn("plane-4.5.5", row["producer_pin"])
         self.assertNotIn("plane-4.5.5", report["reason_interpretation"])
 
+    # ------------------------------------------------------- common output
 
     @unittest.skipUnless(os.environ.get("MUSUBI_TELEMETRY_READER"), "required CI sets the built reader")
     def test_both_roles_reach_common_observations(self):
@@ -250,6 +269,7 @@ class ArduPilotSafetyReportTests(unittest.TestCase):
         self.assertEqual(common["observations"][0]["t_ms"], 1000)
         fence, battery, command = (o["fields"] for o in common["observations"])
         self.assertEqual(fence["reported_geofence_report"], "BREACH_REPORTED")
+        # Every column of the saved record reaches common output, quoting and all.
         self.assertEqual(fence["original_record_columns"], 5)
         self.assertEqual(unhex(fence["original_record_hex"]), "1000000,RTL,11,10,extra-field")
         self.assertEqual(unhex(battery["original_record_hex"]),

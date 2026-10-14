@@ -1,0 +1,47 @@
+{
+  "profile_id": "saved_rmf_fleet_array_6990fc74_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "source_record_hex": "exact_UTF8_saved_export_line_once_on_FLEET_SUMMARY_including_unknown_fields_not_original_CDR",
+    "fleet_name_hex": "reported_FleetState_name_UTF8_hex_not_authenticated_fleet_identity",
+    "fleet_robot_index": "zero_based_saved_robots_array_position_within_source_record_not_a_global_robot_identifier_same_names_are_not_deduplicated",
+    "fleet_robot_count": "reported_robots_array_length_zero_is_explicit_empty_not_missing_or_physical_fleet_size",
+    "battery_remaining_fraction": "reported_battery_percent_divided_by_100_not_measured_charge_or_health",
+    "rmf_name_hex": "untrusted_reported_robot_name_UTF8_hex",
+    "rmf_model_hex": "reported_model_UTF8_hex_not_identification",
+    "rmf_task_id_hex": "reported_request_reference_not_execution_receipt",
+    "rmf_sequence_reported_text": "uint64_text_not_authenticated_order",
+    "rmf_mode_number_reported": "uint32_reported_mode_including_unknown_values",
+    "rmf_mode_reported": "RobotMode_name_not_physical_state_or_task_acceptance",
+    "rmf_mode_request_id_reported_text": "uint64_reported_reference_not_acknowledgement",
+    "rmf_performing_action_hex": "reported_action_description_not_an_instruction",
+    "rmf_source_record_index": "zero_based_saved_export_line_position_file_order_is_not_time_combine_with_fleet_robot_index_for_same_name_robots",
+    "rmf_snapshot_sha256": "sha256_of_exact_saved_export_line_binds_summary_robot_and_path_rows_not_authentication",
+    "rmf_record_kind": "FLEET_SUMMARY_once_per_saved_array_including_empty_STATE_per_robot_PATH_POINT_per_reported_plan_point_no_battery_or_mode_on_summary_or_plan_rows",
+    "rmf_path_point_index": "zero_based_position_of_this_waypoint_in_the_reported_path_array_as_saved_the_pinned_message_defines_no_ordering_and_the_pinned_consumers_read_the_array_as_travel_order_so_this_is_array_order_not_proven_travel_sequence",
+    "rmf_path_point_count": "how_many_waypoints_the_record_reported_zero_means_a_reported_empty_plan_not_an_absent_one_and_every_reported_point_gets_its_own_row",
+    "rmf_map_name_hex": "utf8_hex_of_the_reported_level_or_map_name_an_opaque_navigation_graph_name_not_a_datum_a_frame_definition_or_a_verified_map",
+    "rmf_map_x_m": "m_reported_x_in_the_named_map_frame_the_unit_is_the_callers_declaration_because_the_pinned_message_states_none_never_a_global_or_geodetic_coordinate",
+    "rmf_map_y_m": "m_reported_y_in_the_named_map_frame_under_the_same_caller_declaration",
+    "rmf_map_yaw_rad": "rad_reported_yaw_in_the_named_map_frame_under_the_callers_radian_declaration_not_a_true_north_heading",
+    "rmf_position_basis": "CALLER_DECLARED_UNITS_IN_REPORTED_MAP_FRAME_NOT_GLOBAL_OR_GEODETIC_or_NOT_REPORTED_or_NOT_SELECTED_WITHOUT_CALLER_UNIT_DECLARATION_no_inferred_units",
+    "rmf_waypoint_index_text": "uint64_text_of_the_reported_waypoint_index_an_opaque_reference_the_pinned_message_gives_it_no_meaning_and_no_graph_is_resolved_here",
+    "rmf_waypoint_time_us_reported": "us_from_the_reported_per_waypoint_time_seconds_and_nanoseconds_a_reported_value_only_never_the_row_clock_and_never_merged_with_capture_time",
+    "rmf_waypoint_time_basis": "REPORTED_WAYPOINT_TIME_CLOCK_BASIS_NOT_ESTABLISHED_BY_THE_PIN_NOT_THE_ROW_CLOCK_the_pinned_writer_stamps_a_planned_waypoint_time_and_names_no_epoch_or_clock_source",
+    "rmf_approach_speed_limit_m_s": "m_s_the_one_unit_the_pinned_message_states_for_the_lane_leading_to_this_waypoint_present_only_when_the_publisher_also_reported_that_the_limit_is_obeyed",
+    "rmf_approach_speed_limit_disposition": "REPORTED_LANE_LIMIT_OBEYED_or_REPORTED_NOT_OBEYED_VALUE_RETAINED_IN_SOURCE_or_NOT_REPORTED_or_NOT_SELECTED_WITHOUT_CALLER_UNIT_DECLARATION_not_measured_or_commanded_speed"
+  }
+}

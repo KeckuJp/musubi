@@ -1,0 +1,40 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_since_epoch_journal_reception_not_event_time_or_verified_UTC",
+      "basis": "declared"
+    },
+    "lifecycle_event": {
+      "meaning": "lifecycle_event",
+      "unit": "fixed_producer_report_not_physical_reboot_or_cause",
+      "basis": "declared"
+    },
+    "operation_limit": {
+      "meaning": "operation_limit",
+      "unit": "ordinary_soft_startup_or_poweroff_reboot_failure_remain_undistinguished",
+      "basis": "declared"
+    },
+    "reported_message_id": {
+      "meaning": "reported_message_id",
+      "unit": "exact_systemd_v257_catalog_ID_checked_against_writer_callsites",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "one_based_physical_line_index",
+      "basis": "declared"
+    },
+    "uninterpreted_field_count": {
+      "meaning": "uninterpreted_field_count",
+      "unit": "fields_retained_by_reference_to_required_original_input",
+      "basis": "declared"
+    }
+  }
+}

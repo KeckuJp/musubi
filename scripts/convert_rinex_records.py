@@ -185,11 +185,12 @@ def checked_seconds(token, what):
     return token, LEAP_SECOND_BASIS if value >= 60.0 else None
 
 
-def new_header_state():
+def new_header_state(reported_scale_factors=False):
     return {"rinex_version": None, "rinex_file_type": None, "satellite_system": None,
             "time_system": None, "time_system_basis": None, "signal_unit": SIGNAL_UNIT_UNRESOLVED,
             "interval_s": None, "systems": {}, "codes": [], "labels": {}, "records": 0,
-            "current_system": None, "updates": []}
+            "current_system": None, "updates": [], "reported_scale_factors": reported_scale_factors,
+            "scale_factors": {}}
 
 
 def header_records(lines, header, *, first=False, event=False):
@@ -204,6 +205,21 @@ def header_records(lines, header, *, first=False, event=False):
     # system, and that replacement is exactly the update being applied.
     header["current_system"] = None
     section, singletons = set(), {}
+    scale_pending, scale_seen = None, set()
+
+    def complete_scale(pending):
+        if pending is None:
+            return
+        system, factor, count, codes = pending
+        if len(codes) != count:
+            raise ValueError("scale observation count disagrees with descriptors")
+        for code in codes:
+            key = (system, code)
+            if key in scale_seen:
+                raise ValueError("overlapping scale declarations in one header section")
+            scale_seen.add(key)
+            header["scale_factors"][key] = factor
+
     for index, line in enumerate(lines):
         header["records"] += 1
         if header["records"] > MAX_HEADER_RECORDS:
@@ -211,9 +227,38 @@ def header_records(lines, header, *, first=False, event=False):
         label = text(line, 60, 80).strip()
         header["labels"][label] = header["labels"].get(label, 0) + 1
         if label == SCALE_FACTOR_LABEL:
-            # 5.5: the stored phase data was multiplied. Ignoring that would report a
-            # wrong number, so an unhandled semantic update refuses before any success.
-            raise ValueError("SYS / SCALE FACTOR changes stored values and is not supported")
+            if not header["reported_scale_factors"]:
+                raise ValueError("SYS / SCALE FACTOR changes stored values and is not supported")
+            system = text(line, 0, 1).strip()
+            descriptors = [text(line, 11 + 4*i, 14 + 4*i).strip() for i in range(12)]
+            if system:
+                complete_scale(scale_pending)
+                entry = header["systems"].get(system)
+                if entry is None or len(entry["codes"]) != entry["declared"]:
+                    raise ValueError("scale requires complete prior observation type declaration")
+                factor = integer(text(line, 2, 6), 1, 1000, "scale factor")
+                if factor not in (1, 10, 100, 1000):
+                    raise ValueError("unqualified scale factor")
+                count = integer(text(line, 8, 10), 0, 99, "scale observation count", blank=0)
+                if count == 0:
+                    if any(descriptors):
+                        raise ValueError("all-code scale must not carry descriptors")
+                    complete_scale((system, factor, len(entry["codes"]), list(entry["codes"])))
+                    scale_pending = None
+                    continue
+                scale_pending = (system, factor, count, [])
+            elif scale_pending is None or text(line, 0, 10).strip():
+                raise ValueError("scale continuation requires a declaration")
+            system, factor, count, codes = scale_pending
+            for code in descriptors:
+                if not code:
+                    continue
+                if code not in header["systems"][system]["codes"] or code in codes or len(codes) >= count:
+                    raise ValueError("invalid, repeated or excess scale descriptor")
+                codes.append(code)
+            continue
+        complete_scale(scale_pending)
+        scale_pending = None
         if first and index == 0:
             if label != "RINEX VERSION / TYPE":
                 raise ValueError("RINEX VERSION / TYPE must be the first record")
@@ -225,6 +270,8 @@ def header_records(lines, header, *, first=False, event=False):
             # A singleton record may not be redeclared, in the header or in an update.
             raise ValueError("RINEX VERSION / TYPE may appear only as the first record")
         if label == "SYS / # / OBS TYPES":
+            if event and header["scale_factors"]:
+                raise ValueError("observation type remap after scaling is outside finite scope")
             system = text(line, 0, 1).strip().upper()
             descriptors = [text(line, 7 + 4 * i, 10 + 4 * i).strip() for i in range(13)]
             if system:
@@ -288,6 +335,7 @@ def header_records(lines, header, *, first=False, event=False):
     # Completeness is decided by the declared count against the descriptors read, in
     # finish_header. A complete declaration may legitimately be the last line of an update,
     # so a still-set current system is not evidence of anything.
+    complete_scale(scale_pending)
     return header
 
 
@@ -313,9 +361,9 @@ def finish_header(header, kind):
     return header
 
 
-def read_header(lines, kind):
+def read_header(lines, kind, reported_scale_factors=False):
     """Return the declared header facts, the GPS observation codes and the record counts."""
-    return finish_header(header_records(lines, new_header_state(), first=True), kind)
+    return finish_header(header_records(lines, new_header_state(reported_scale_factors), first=True), kind)
 
 
 def split_header(lines):
@@ -435,6 +483,10 @@ def satellite_rows(line, header, epoch, capture_time_us, line_index, report):
         row = dict(base, rinex_observation_code=code, rinex_observation_band=code[1],
                    rinex_observation_attribute=code[2])
         raw = text(line, start, start + 14)
+        factor = header["scale_factors"].get((system, code), 1)
+        if header["reported_scale_factors"]:
+            row["rinex_scale_divisor"] = factor
+            row["rinex_scale_basis"] = "DECLARED_DIVISOR" if (system, code) in header["scale_factors"] else "DEFAULT_ONE"
         if kind in UNQUALIFIED_TYPES:
             report["unqualified_code_records"] += 1
             row["rinex_observation_status"] = "UNQUALIFIED_OBSERVATION_TYPE_NO_VALUE_TYPED"
@@ -469,7 +521,10 @@ def satellite_rows(line, header, epoch, capture_time_us, line_index, report):
             row["rinex_observation_status"] = "NOT_OBSERVED"
         else:
             row["rinex_observation_status"] = "REPORTED"
-            row[TYPE_UNITS[kind][0]] = value
+            restored = value / factor if header["reported_scale_factors"] else value
+            if value != 0.0 and restored == 0.0:
+                raise ValueError("scaled observation underflows; refusing silent zero")
+            row[TYPE_UNITS[kind][0]] = restored
             if kind == "S":
                 row["rinex_signal_strength_unit_basis"] = header["signal_unit"]
         rows.append(row)
@@ -547,10 +602,12 @@ def convert_navigation(lines, header, capture_time_us, report):
         index += span
 
 
-def convert(data, kind, capture_time_us):
+def convert(data, kind, capture_time_us, *, reported_scale_factors=False):
     """Return the CSV and an accounting report. Nothing selected is silently dropped."""
     if kind not in ("obs", "nav"):
         raise ValueError("explicit obs or nav kind required")
+    if type(reported_scale_factors) is not bool or (reported_scale_factors and kind != "obs"):
+        raise ValueError("reported scale mode requires observation input")
     if type(capture_time_us) is not int or not 0 <= capture_time_us < 2 ** 63:
         raise ValueError("explicit nonnegative signed64 capture microseconds required")
     if not isinstance(data, (bytes, bytearray)) or not data or len(data) > MAX_INPUT:
@@ -566,7 +623,7 @@ def convert(data, kind, capture_time_us):
     if any(len(line) > MAX_LINE for line in lines):
         raise ValueError("RINEX line exceeds bound")
     head, records, header_lines = split_header(lines)
-    header = read_header(head, kind)
+    header = read_header(head, kind, reported_scale_factors)
     report = {"kind": kind, "header_lines": header_lines, "header_labels": header["labels"],
               "rinex_version": header["rinex_version"], "rinex_file_type": header["rinex_file_type"],
               "satellite_system_declared": header["satellite_system"],
@@ -603,7 +660,7 @@ def convert(data, kind, capture_time_us):
     report["header_source_lines"] = retained_header
     rows = (convert_observations(records, header, capture_time_us, report) if kind == "obs"
             else convert_navigation(records, header, capture_time_us, report))
-    fields = OBS_FIELDS if kind == "obs" else NAV_FIELDS
+    fields = (OBS_FIELDS + (["rinex_scale_divisor", "rinex_scale_basis"] if reported_scale_factors else [])) if kind == "obs" else NAV_FIELDS
     output = io.StringIO(newline="")
     writer = csv.DictWriter(output, fieldnames=fields, lineterminator="\n")
     writer.writeheader()
@@ -630,13 +687,16 @@ def main(argv=None):
                         help="declared record kind; the header's file type must agree")
     parser.add_argument("--capture-time-us", type=int, required=True,
                         help="caller capture microseconds, separate from the GNSS epoch")
+    parser.add_argument("--reported-scale-factors", action="store_true",
+                        help="apply fixed RINEX3.04 observation divisors; preserve native source")
     args = parser.parse_args(argv)
     try:
         with args.input.open("rb") as stream:
             data = stream.read(MAX_INPUT + 1)
         if len(data) > MAX_INPUT:
             raise ValueError("saved RINEX input limit")
-        text_output, report = convert(data, args.kind, args.capture_time_us)
+        text_output, report = convert(data, args.kind, args.capture_time_us,
+                                      reported_scale_factors=args.reported_scale_factors)
         args.output_directory.mkdir()  # Refuse an existing output, including the input path.
         with (args.output_directory / "observations.csv").open("w", encoding="utf-8", newline="") as stream:
             stream.write(text_output)

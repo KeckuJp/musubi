@@ -1,0 +1,15 @@
+profile_id = "agopen_field_origin_21be26aa"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "caller_capture_microseconds_not_source_timestamp"
+declared_origin_latitude_deg = "degrees_WGS84_declared_field_origin_not_vehicle_position"
+declared_origin_longitude_deg = "degrees_WGS84_declared_field_origin_not_vehicle_position"
+source_timestamp_hex = "hex_original_writer_DateTime_text_timezone_unspecified_not_UTC"

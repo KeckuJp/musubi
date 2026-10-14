@@ -1,0 +1,50 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "capture_time_us": {
+      "meaning": "capture_time_us",
+      "unit": "caller_supplied_microseconds_unknown_clock",
+      "basis": "declared"
+    },
+    "device_major": {
+      "meaning": "device_major",
+      "unit": "reported_linux_dev_major_not_authenticated",
+      "basis": "declared"
+    },
+    "device_minor": {
+      "meaning": "device_minor",
+      "unit": "reported_linux_dev_minor_not_authenticated",
+      "basis": "declared"
+    },
+    "request_sector_count": {
+      "meaning": "request_sector_count",
+      "unit": "reported_512_byte_sector_count",
+      "basis": "declared"
+    },
+    "request_sector_bytes": {
+      "meaning": "request_sector_bytes",
+      "unit": "byte_floor_of_reported_nr_bytes_to_512",
+      "basis": "declared"
+    },
+    "reported_negative_errno": {
+      "meaning": "reported_negative_errno",
+      "unit": "negative_linux_6_12_asm_generic_errno",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "one_based_original_physical_record",
+      "basis": "declared"
+    },
+    "source_record_byte_offset": {
+      "meaning": "source_record_byte_offset",
+      "unit": "byte_offset_in_original",
+      "basis": "declared"
+    }
+  }
+}

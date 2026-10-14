@@ -1,0 +1,23 @@
+{
+  "profile_id": "saved_controller_association_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "unlocated_zero_for_association_not_source_capture",
+    "source_capture_time_us": "us_on_separate_source_clock_no_sync",
+    "association_basis": "caller_declared_entity_not_authenticated_no_carryforward",
+    "source_row_index": "zero_based_input_CSV_row"
+  }
+}

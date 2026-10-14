@@ -1,0 +1,33 @@
+{
+  "profile_id": "saved_observation_age_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "evaluation_time_us"
+  },
+  "units": {
+    "evaluation_time_us": "explicit_evaluation_microseconds_not_source_time_or_trusted_UTC",
+    "evaluation_time_us_exact": "integer_prefix_preserves_exact_injected_evaluation_microseconds",
+    "source_time_us_exact": "integer_prefix_preserves_original_source_microseconds_empty_if_missing",
+    "maximum_age_us_exact": "integer_prefix_nonnegative_caller_maximum_age_microseconds",
+    "age_us_exact": "integer_prefix_exact_evaluation_minus_source_microseconds_empty_when_unqualified",
+    "age_disposition": "declared_age_comparison_not_freeze_cadence_physical_health_or_fresh_sampling",
+    "subject_disposition": "declared_subject_match_missing_or_unqualified_not_identity_authentication",
+    "clock_disposition": "declared_clock_domain_match_missing_or_unqualified_not_physical_synchronization",
+    "source_row_index": "zero_based_original_CSV_data_record_index",
+    "subject_hex": "hex_prefix_UTF8_JSON_of_original_subject_values",
+    "clock_domain_hex": "hex_prefix_UTF8_original_clock_domain_string",
+    "source_sha256": "original_source_byte_digest_not_authentication",
+    "profile_sha256": "source_profile_byte_digest",
+    "spec_sha256": "exact_declared_evaluation_policy_byte_digest"
+  }
+}

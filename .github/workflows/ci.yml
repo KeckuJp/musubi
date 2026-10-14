@@ -60,6 +60,7 @@ jobs:
           MUSUBI_TELEMETRY_READER: ${{ github.workspace }}/target/debug/examples/read_telemetry_csv
           MUSUBI_TELEMETRY_CSV_READER: ${{ github.workspace }}/target/debug/examples/read_telemetry_csv
           MUSUBI_MAVLOG_READER: ${{ github.workspace }}/target/debug/examples/read_mavlog_json
+          MUSUBI_MAVLOG_JSON_READER: ${{ github.workspace }}/target/debug/examples/read_mavlog_json
           MUSUBI_TLOG_NAV_EXPORTER: ${{ github.workspace }}/target/debug/examples/export_tlog_nav_csv
           MUSUBI_TLOG_PARAM_EXPORTER: ${{ github.workspace }}/target/debug/examples/export_tlog_param_csv
           MUSUBI_BLACKBOX_READER: ${{ github.workspace }}/target/debug/examples/read_blackbox_csv

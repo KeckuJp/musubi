@@ -12,9 +12,13 @@ fn independent_saved_layouts_reach_common_and_stream_without_commands() {
     ] {
         let p = parse_profile(
             if rtc {
-                include_str!("fixtures/edgetx-handset-clock--rtc-date-time.profile.toml")
+                include_str!(
+                    "../../../profiles/declared/edgetx-handset-clock/rtc-date-time.profile.toml"
+                )
             } else {
-                include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml")
+                include_str!(
+                    "../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"
+                )
             },
             "test",
         )
@@ -80,7 +84,7 @@ fn independent_saved_layouts_reach_common_and_stream_without_commands() {
 #[test]
 fn invalid_roles_words_ranges_and_clock_refuse() {
     let p = parse_profile(
-        include_str!("fixtures/edgetx-handset-clock--boot-counter.profile.toml"),
+        include_str!("../../../profiles/declared/edgetx-handset-clock/boot-counter.profile.toml"),
         "test",
     )
     .unwrap();

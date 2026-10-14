@@ -1,0 +1,110 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_reported_boot_or_explicit_caller_capture_see_record_time_basis_not_UTC",
+      "basis": "declared"
+    },
+    "latitude_deg": {
+      "meaning": "latitude_deg",
+      "unit": "degree_reported_latitude",
+      "basis": "declared"
+    },
+    "longitude_deg": {
+      "meaning": "longitude_deg",
+      "unit": "degree_reported_longitude",
+      "basis": "declared"
+    },
+    "altitude_msl_m": {
+      "meaning": "altitude_msl_m",
+      "unit": "m_reported_MSL_no_datum_conversion",
+      "basis": "declared"
+    },
+    "reported_relative_altitude_m": {
+      "meaning": "reported_relative_altitude_m",
+      "unit": "m_relative_alt_pinned_writer_describes_above_ground_not_inferred_home_datum",
+      "basis": "declared"
+    },
+    "velocity_north_m_s": {
+      "meaning": "velocity_north_m_s",
+      "unit": "m/s_reported_ground_velocity_positive_north",
+      "basis": "declared"
+    },
+    "velocity_east_m_s": {
+      "meaning": "velocity_east_m_s",
+      "unit": "m/s_reported_ground_velocity_positive_east",
+      "basis": "declared"
+    },
+    "velocity_down_m_s": {
+      "meaning": "velocity_down_m_s",
+      "unit": "m/s_reported_ground_velocity_positive_down",
+      "basis": "declared"
+    },
+    "heading_deg": {
+      "meaning": "heading_deg",
+      "unit": "degree_reported_heading_65535_withheld_before_scaling",
+      "basis": "declared"
+    },
+    "electrical_voltage_v": {
+      "meaning": "electrical_voltage_v",
+      "unit": "V_reported_battery_voltage_65535_withheld",
+      "basis": "declared"
+    },
+    "electrical_current_a": {
+      "meaning": "electrical_current_a",
+      "unit": "A_reported_battery_current_minus_one_withheld",
+      "basis": "declared"
+    },
+    "battery_remaining_fraction": {
+      "meaning": "battery_remaining_fraction",
+      "unit": "fraction_reported_remaining_minus_one_withheld",
+      "basis": "declared"
+    },
+    "source_sysid": {
+      "meaning": "source_sysid",
+      "unit": "reported_sender_system_not_authenticated_hardware_identity",
+      "basis": "declared"
+    },
+    "source_compid": {
+      "meaning": "source_compid",
+      "unit": "reported_sender_component_not_authenticated_hardware_identity",
+      "basis": "declared"
+    },
+    "custom_mode_raw": {
+      "meaning": "custom_mode_raw",
+      "unit": "autopilot_specific_uninterpreted_integer",
+      "basis": "declared"
+    },
+    "base_mode_raw": {
+      "meaning": "base_mode_raw",
+      "unit": "pinned_MAV_MODE_FLAG_reported_bitmask",
+      "basis": "declared"
+    },
+    "system_status_raw": {
+      "meaning": "system_status_raw",
+      "unit": "pinned_MAV_STATE_reported_code_unknown_codes_preserved",
+      "basis": "declared"
+    },
+    "system_status_reported": {
+      "meaning": "system_status_reported",
+      "unit": "reported_enum_label_not_physical_state_or_permission",
+      "basis": "declared"
+    },
+    "sensor_mask_basis": {
+      "meaning": "sensor_mask_basis",
+      "unit": "pinned_MAV_SYS_STATUS_SENSOR_each_named_boolean_is_reported_bit_not_physical_diagnosis",
+      "basis": "declared"
+    },
+    "source_row_hex": {
+      "meaning": "source_row_hex",
+      "unit": "exact_export_row_bytes_without_CRLF_unknown_fields_retained",
+      "basis": "declared"
+    }
+  }
+}

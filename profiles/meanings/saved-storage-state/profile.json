@@ -1,0 +1,50 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "capture_time_us": {
+      "meaning": "capture_time_us",
+      "unit": "caller_capture_microseconds_unknown_clock",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "one_based_source_physical_record",
+      "basis": "declared"
+    },
+    "partition_ordinal": {
+      "meaning": "partition_ordinal",
+      "unit": "zero_based_in_original_mount_inventory",
+      "basis": "declared"
+    },
+    "partition_count": {
+      "meaning": "partition_count",
+      "unit": "reported_mount_entries",
+      "basis": "declared"
+    },
+    "warning_byte": {
+      "meaning": "warning_byte",
+      "unit": "reported_nvme_critical_warning_bitmask",
+      "basis": "declared"
+    },
+    "unknown_warning_bits": {
+      "meaning": "unknown_warning_bits",
+      "unit": "uninterpreted_bits_6_7",
+      "basis": "declared"
+    },
+    "health_report": {
+      "meaning": "health_report",
+      "unit": "reported_self_assessment_not_physical_diagnosis",
+      "basis": "declared"
+    },
+    "mount_access_report": {
+      "meaning": "mount_access_report",
+      "unit": "reported_mount_option_not_verified_writeability",
+      "basis": "declared"
+    }
+  }
+}

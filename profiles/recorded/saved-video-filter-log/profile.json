@@ -1,0 +1,41 @@
+{
+  "profile_id": "saved_video_filter_log_cues_v1",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "event"
+  ],
+  "fields": {
+    "time": "record_time_us"
+  },
+  "units": {
+    "record_time_us": "caller_capture_microseconds_not_filming_time_or_trusted_UTC",
+    "source_document_sha256": "exact_saved_log_bytes_SHA256_not_media_digest_or_authentication",
+    "video_record_kind": "BLACK_INTERVAL_or_FREEZE_INTERVAL_independent_reported_cues_not_physical_faults",
+    "video_interval_index": "zero_based_index_within_kind_in_selected_document_order_no_cross_stream_order_inferred",
+    "video_start_s": "reported_stream_PTS_seconds_blank_for_NOPTS_never_zero_imputation",
+    "video_end_s": "reported_stream_PTS_seconds_blank_for_NOPTS_or_absent_end_read_end_disposition_black_writer_at_EOF_uses_last_picture_PTS_not_last_frame_end",
+    "video_duration_s": "reported_seconds_when_available_freeze_can_use_frame_rate_fallback_under_missing_or_reversed_PTS_read_duration_source_not_recomputed_from_frame_number",
+    "video_duration_source": "existing_REPORTED_BY_THE_DECODER_or_explicit_DERIVED_or_NOT_AVAILABLE_basis_preserves_reported_unknown_versus_unreported",
+    "video_end_disposition": "REPORTED_or_END_REPORTED_BUT_THE_DECODER_COULD_NOT_EXPRESS_ITS_TIMESTAMP_or_NO_END_REPORTED_BEFORE_THE_ANALYSIS_ENDED",
+    "video_start_attachment_frame": "always_blank_log_form_does_not_report_attachment_frame",
+    "video_start_attachment_pts_time_s": "always_blank_log_form_does_not_report_attachment_PTS",
+    "video_minimum_duration_qualification": "AT_OR_ABOVE_THE_DECLARED_MINIMUM_or_UNKNOWN_WITHOUT_A_DURATION_or_BELOW_THE_CALLER_DECLARED_MINIMUM_LOG_VALUES_AND_DECLARATION_NOT_RECONCILED_black_log_is_minimum_filtered_with_timebase_rounding_not_metadata_every_run_behavior",
+    "video_threshold_declaration": "caller_declared_five_analysis_parameters_and_basis_not_verified_from_saved_log",
+    "video_decoder_status": "caller_declared_status_not_inferred_from_diagnostics_no_absence_or_recording_success_claim",
+    "video_analysed_frame_count": "positive_caller_declared_count_no_frame_count_inferred_from_log",
+    "video_unselected_key_count": "zero_metadata_keys_in_this_form_use_report_unselected_lines_for_diagnostic_accounting",
+    "video_time_basis": "stream_PTS_seconds_with_reported_freeze_duration_frame_rate_fallback_not_UTC_no_inferred_frame_clock",
+    "video_cue_basis": "observed_interval_never_a_fault_static_or_dark_scenes_can_produce_same_cues",
+    "video_log_context_hex": "hex_UTF8_exact_caller_selected_logger_prefix_ephemeral_pointer_not_device_identity_or_same_stream_proof",
+    "video_source_line_start": "one_based_original_saved_log_start_line_join_with_exact_source_SHA",
+    "video_source_line_end": "one_based_original_saved_log_reported_end_line_blank_if_no_end_not_a_video_frame_number",
+    "video_pts_order": "NONDECREASING_REPORTED_PTS_or_REVERSED_PTS_WITH_REPORTED_DURATION_or_UNKNOWN_REPORTED_PTS_or_NO_REPORTED_END_reverse_is_preserved_only_for_freeze_with_known_reported_duration_no_clock_reset_or_trusted_timeline_inferred"
+  }
+}

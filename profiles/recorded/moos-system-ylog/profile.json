@@ -1,0 +1,23 @@
+{
+  "profile_id": "moos_saved_system_ylog_f56c",
+  "version": "1",
+  "family": "unknown",
+  "source_role": "recorded_export",
+  "format": "telemetry_csv_us",
+  "extensions": [
+    "csv"
+  ],
+  "default_clock_basis": "unknown",
+  "channels": [
+    "onboard"
+  ],
+  "fields": {
+    "time": "time_us"
+  },
+  "units": {
+    "time_us": "caller_capture_microseconds_unknown_clock",
+    "reported_relative_seconds": "reported_seconds_from_logger_app_start_not_UTC",
+    "source_line": "one_based_original_physical_line",
+    "payload_text_hex": "untyped_stored_payload_including_writer_padding_utf8_hex"
+  }
+}

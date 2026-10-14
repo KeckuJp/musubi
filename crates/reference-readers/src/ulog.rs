@@ -2,9 +2,11 @@ use musubi_reference_types::{ChannelId, FamilyProfile};
 
 use crate::{FieldValue, Observation, ProfileReader, ReadError, observation};
 
+/// PX4 `.ulg` reader。
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Px4UlgReader;
 
+/// Unsupported records are retained byte-for-byte, never promoted to observations.
 #[derive(Debug)]
 pub struct UnsupportedRecord {
     pub offset: usize,
@@ -14,6 +16,7 @@ pub struct UnsupportedRecord {
 
 #[derive(Debug)]
 pub struct ReadReport {
+    /// D observations belong to this explicitly selected uORB instance.
     pub selected_multi_id: u8,
     pub observations: Vec<Observation>,
     pub unsupported_records: Vec<UnsupportedRecord>,
@@ -128,6 +131,7 @@ fn flatten_fields(fields: &[Field], formats: &[(String, Vec<Field>)]) -> Option<
     Some(out)
 }
 
+/// topic 名 → channel。
 #[must_use]
 pub fn channel_for(topic: &str) -> ChannelId {
     match topic {
@@ -159,6 +163,7 @@ impl ProfileReader for Px4UlgReader {
 }
 
 impl Px4UlgReader {
+    /// Partial results require explicit report handling; `read` refuses hidden omissions.
     pub fn read_report(
         &self,
         profile: &FamilyProfile,
@@ -167,6 +172,8 @@ impl Px4UlgReader {
         self.read_instance_report(profile, bytes, 0)
     }
 
+    /// Read one instance without combining sensors. Other D records remain in the report.
+    /// Logging/dropout observations are file-wide, not attributed to the selected sensor.
     pub fn read_instance_report(
         &self,
         profile: &FamilyProfile,
@@ -243,6 +250,7 @@ impl Px4UlgReader {
                     {
                         subs[msg_id] = Some(f.clone());
                     } else {
+                        // Never reuse an earlier binding when an ID is reintroduced unsupported.
                         subs[msg_id] = None;
                     }
                 }
@@ -293,6 +301,7 @@ impl Px4UlgReader {
                             ok = false;
                             break;
                         };
+                        // ULog permits only the final padding field to be omitted.
                         if f.name
                             .rsplit('.')
                             .next()
@@ -438,6 +447,7 @@ impl Px4UlgReader {
                     o.anchor_unix_us = anchor;
                     out.push(o);
                     decoded_data_records += 1;
+                    // input_rc／telemetry_status の link 系 field は link_stats channel にも出す（recorded-input contract CH-LINKSTATS）。
                     if topic == "input_rc" {
                         let link: Vec<(String, FieldValue)> = vals
                             .iter()
@@ -499,6 +509,7 @@ impl Px4UlgReader {
                         true,
                     ));
                 }
+                // I／M／P／Q／C／S は構造・metadata（観測にしない）。
                 _ => {}
             }
             off = end;
@@ -517,6 +528,83 @@ impl Px4UlgReader {
             decoded_data_records,
         })
     }
+}
+
+/// Profile whose `vehicle_status` layout and `vehicle_type` enum are qualified at upstream PX4
+/// `4842c542b80e7dcc433424984aed98907e054052` (`msg/versioned/VehicleStatus.msg`, MESSAGE_VERSION 1).
+pub const PX4_4842C542_VEHICLE_STATE_PROFILE: &str = "upstream_px4_4842c542_vehicle_state_v1";
+/// Basis carried with an Air result: the producer's own report, never authenticated airframe identity.
+pub const REPORTED_AIR_BASIS: &str = "reported_vehicle_status_vehicle_type_rotary_or_fixed_wing_upstream_px4_4842c542_not_authenticated";
+
+/// Session-level domain from the producer's same-file `vehicle_status.vehicle_type` reports.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReportedDomain {
+    pub platform_domain: musubi_types::PlatformDomain,
+    /// Why this domain (or Unknown) was returned; Unknown always names its reason.
+    pub basis: &'static str,
+    /// Number of `vehicle_status` observations examined, and per reported `vehicle_type` code.
+    pub status_records: usize,
+    pub vehicle_type_counts: std::collections::BTreeMap<i64, usize>,
+    /// Boot-relative time of the first and last examined report; the qualification is session-level.
+    pub first_status_t_boot_us: Option<u64>,
+    pub last_status_t_boot_us: Option<u64>,
+}
+
+/// Opt-in: project the producer's reported locomotion to the common Air domain for the pinned
+/// upstream profile only. `vehicle_type` 1 (rotary wing) and 2 (fixed wing) are both Air, so a VTOL
+/// changing between them stays Air; 0 (unspecified) is no evidence. Anything else refuses Air: no
+/// report, an undecoded value, an undefined code, a rover (3) report, or rover mixed with air codes.
+/// VTOL capability and transition flags stay separate fields; nothing is read from a file name.
+#[must_use]
+pub fn qualify_reported_air_domain(profile: &FamilyProfile, report: &ReadReport) -> ReportedDomain {
+    use musubi_types::PlatformDomain;
+    let mut result = ReportedDomain {
+        platform_domain: PlatformDomain::Unknown,
+        basis: "profile_is_not_the_qualified_upstream_px4_4842c542_vehicle_state_profile",
+        status_records: 0,
+        vehicle_type_counts: std::collections::BTreeMap::new(),
+        first_status_t_boot_us: None,
+        last_status_t_boot_us: None,
+    };
+    if profile.profile_id != PX4_4842C542_VEHICLE_STATE_PROFILE {
+        return result;
+    }
+    let mut undecoded = false;
+    for o in &report.observations {
+        let Some((_, value)) = o
+            .fields
+            .iter()
+            .find(|(k, _)| k == "vehicle_status.vehicle_type")
+        else {
+            continue;
+        };
+        result.status_records += 1;
+        result.first_status_t_boot_us = result.first_status_t_boot_us.or(o.t_boot_us);
+        result.last_status_t_boot_us = o.t_boot_us.or(result.last_status_t_boot_us);
+        match value {
+            FieldValue::I64(code) => *result.vehicle_type_counts.entry(*code).or_default() += 1,
+            _ => undecoded = true,
+        }
+    }
+    let codes: Vec<i64> = result.vehicle_type_counts.keys().copied().collect();
+    let air = codes.iter().any(|c| matches!(c, 1 | 2));
+    result.basis = if result.status_records == 0 {
+        "no_vehicle_status_report_in_this_session"
+    } else if undecoded {
+        "vehicle_type_not_decoded_as_an_integer"
+    } else if codes.iter().any(|c| !(0..=3).contains(c)) {
+        "undefined_vehicle_type_code_reported"
+    } else if codes.contains(&3) && air {
+        "conflicting_rover_and_air_locomotion_reports_in_one_session"
+    } else if codes.contains(&3) {
+        "reported_rover_locomotion_is_not_air"
+    } else if air {
+        result.platform_domain = PlatformDomain::Air;
+        REPORTED_AIR_BASIS
+    } else {
+        "only_unspecified_vehicle_type_reported"
+    };
+    result
 }
 
 #[cfg(test)]
@@ -1031,6 +1119,7 @@ time = "timestamp"
             obs[1].stale,
             "dropout is a log-side gap, not a good observation"
         );
+        // 途中で切れた message は Malformed。
         b.extend_from_slice(&[9, 0, b'D', 0]);
         assert!(matches!(
             Px4UlgReader.read(&p, &b),

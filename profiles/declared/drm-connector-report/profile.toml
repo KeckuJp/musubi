@@ -1,0 +1,19 @@
+profile_id = "drm_connector_report_v1"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "record_time_us"
+[units]
+record_time_us = "caller_capture_microseconds_not_event_or_authenticated_clock"
+connector_id = "reported_DRM_connector_identifier_within_node_not_physical_identity"
+connector_type_reported = "raw_DRM_connector_type_number"
+connection_status_raw = "raw_DRM_connection_enum_not_mechanical_diagnosis"
+link_status = "reported_link_condition_not_loose_or_damaged_connector"
+link_value_hex = "exact_unsigned64_enum_word_hex"
+property_id = "reported_DRM_property_identifier"
+other_properties_count = "count_not_interpreted_original_retained"

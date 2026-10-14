@@ -7,6 +7,7 @@ SourceCode/GPS/IO/SectionFiles.cs with the patch semantics from Classes/CPatches
 import csv
 import importlib.util
 import io
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -42,6 +43,7 @@ class AgOpenSectionsTests(unittest.TestCase):
             patch(["300.000,400.000,0.00000", "301.000,400.000,0.00000",
                    "300.000,401.000,0.00000", "301.000,401.000,0.00000"])])
         observed = rows(document)
+        # Two patches of 6 and 5 saved vertices give 5 + 4 coordinate rows: the colour is separated.
         self.assertEqual(len(observed), 9)
         self.assertEqual([r["patch_index"] for r in observed], ["0"] * 5 + ["1"] * 4)
         self.assertEqual([r["vertex_index"] for r in observed[:5]], ["0", "1", "2", "3", "4"])
@@ -50,9 +52,11 @@ class AgOpenSectionsTests(unittest.TestCase):
         self.assertEqual(observed[5]["agopen_easting_m_local"], "300.0")
         self.assertEqual(observed[0]["patch_vertex_count"], "5")
         self.assertEqual(observed[5]["patch_vertex_count"], "4")
+        # The colour line travels beside the geometry verbatim, never as a coordinate or a section id.
         colours = {bytes.fromhex(r["agopen_patch_colour_line_hex"][4:]).decode() for r in observed}
         self.assertEqual(colours, {COLOUR})
         self.assertNotIn("27.0", [r["agopen_easting_m_local"] for r in observed])
+        # The third field is the literal zero the patch builder writes, not a heading.
         self.assertEqual({r["agopen_vertex_third_field"] for r in observed}, {"0.0"})
         self.assertIn("NOT_EVIDENCE_THAT_MATERIAL_WAS_APPLIED", observed[0]["agopen_coverage_basis"])
         self.assertIn("LOCAL_METRE_PLANE_PER_LOCALPLANE", observed[0]["agopen_plane_basis"])
@@ -65,11 +69,14 @@ class AgOpenSectionsTests(unittest.TestCase):
         vertices = ["100.125,200.250,0.00000", "101.125,200.250,0.00000",
                     "100.130,201.500,0.00000", "101.130,201.500,0.00000"]
         observed = rows(patch(vertices))
+        # Not the reparsed "100.125,200.25,0.0": the writer's own trailing zeros are preserved.
         self.assertEqual([bytes.fromhex(r["source_record_hex"][4:]).decode() for r in observed],
                          vertices)
         self.assertEqual(bytes.fromhex(observed[0]["agopen_patch_colour_line_hex"][4:]).decode(),
                          COLOUR)
+        # The parsed numbers stay available beside the retained text.
         self.assertEqual(observed[0]["agopen_easting_m_local"], "100.125")
+        # A non-zero third field is not refused: it is retained exactly as the file carried it.
         odd = rows(patch([vertices[0].replace("0.00000", "1.25000")] + vertices[1:]))
         self.assertEqual(odd[0]["agopen_vertex_third_field"], "1.25")
         self.assertEqual(bytes.fromhex(odd[0]["source_record_hex"][4:]).decode(),
@@ -81,16 +88,20 @@ class AgOpenSectionsTests(unittest.TestCase):
                     "100.130,201.500,0.00000", "101.130,201.500,0.00000"]
         document = patch(vertices)
         lf, crlf = rows(document + "\n"), rows(document.replace("\n", "\r\n") + "\r\n")
+        # The count line and every vertex line parse the same; only the terminator differed.
         self.assertEqual(len(crlf), 4)
         self.assertEqual(crlf[0]["patch_vertex_count"], "4")
         self.assertEqual((crlf[0]["agopen_easting_m_local"], crlf[0]["agopen_northing_m_local"]),
                          ("100.125", "200.25"))
+        # The digest covers the original bytes, so the two terminators are not the same document...
         self.assertNotEqual(crlf[0]["source_document_sha256"], lf[0]["source_document_sha256"])
+        # ...while every other field, the retained text included, is identical.
         for expected, observed in zip(lf, crlf):
             self.assertEqual({k: v for k, v in observed.items() if k != "source_document_sha256"},
                              {k: v for k, v in expected.items() if k != "source_document_sha256"})
         self.assertEqual(bytes.fromhex(crlf[0]["source_record_hex"][4:]).decode(), vertices[0])
         self.assertEqual(bytes.fromhex(crlf[0]["agopen_patch_colour_line_hex"][4:]).decode(), COLOUR)
+        # Only a terminating CR is removed: a CR inside a field is refused, never repaired away.
         with self.assertRaises(ValueError):
             module.convert(document.replace(vertices[0], "100.125\r,200.250,0.00000"), 1)
 
@@ -98,6 +109,7 @@ class AgOpenSectionsTests(unittest.TestCase):
         vertices = ["1.000,2.000,0.00000", "3.000,4.000,0.00000",
                     "5.000,6.000,0.00000", "7.000,8.000,0.00000"]
         document = patch(vertices)
+        # One trailing terminator is the writer's own and stays acceptable, in either convention.
         module.convert(document + "\n", 1)
         module.convert(document.replace("\n", "\r\n") + "\r\n", 1)
         for label, broken in (("blank between vertices", document.replace(vertices[1], "\n" + vertices[1])),
@@ -112,7 +124,9 @@ class AgOpenSectionsTests(unittest.TestCase):
         good = patch(["1.000,2.000,0.00000", "3.000,4.000,0.00000",
                       "5.000,6.000,0.00000", "7.000,8.000,0.00000"])
         for label, document in (
-                ("empty file is the writer's no-coverage state", ""),
+                ("blank line is not the zero-byte writer state", "\n"),
+                ("whitespace is not the zero-byte writer state", " "),
+                ("bare carriage return is not empty", "\r"),
                 ("non-integer count", "x\n1.0,2.0,3.0"),
                 ("count beyond the saved lines", "9\n1.0,2.0,3.0"),
                 ("shorter than the writer's own minimum", "4\n1.0,2.0,3.0\n1.0,2.0,3.0\n1.0,2.0,3.0\n1.0,2.0,3.0"),
@@ -138,6 +152,8 @@ class AgOpenSectionsTests(unittest.TestCase):
                           "10.500,21.750,0.00000", "11.500,21.750,0.00000"])
         with tempfile.TemporaryDirectory() as directory:
             source, target = Path(directory) / "Sections.txt", Path(directory) / "out.csv"
+            # Saved exactly as the .NET desktop writer leaves it: CRLF, and the CLI reads the file
+            # without newline translation, so this is the ordinary input reaching the common reader.
             source.write_bytes((document.replace("\n", "\r\n") + "\r\n").encode())
             subprocess.run([os.sys.executable, str(SCRIPT), str(source), str(target),
                             "--capture-time-us", "8080"], check=True, capture_output=True)
@@ -156,6 +172,27 @@ class AgOpenSectionsTests(unittest.TestCase):
         self.assertIn("metre_basis_comes_from_LocalPlane", units["agopen_easting_m_local"])
         self.assertIn("contains_no_timestamp_of_any_kind", units["record_time_us"])
         self.assertIn("not_evidence_that_material_was_applied", units["agopen_coverage_basis"])
+
+    def test_empty_writer_state_has_zero_common_observations_and_source_accounting(self):
+        report = {}
+        self.assertEqual(list(csv.DictReader(io.StringIO(module.convert("", 1, report=report)))), [])
+        self.assertEqual(report["source_document_sha256"], "sha256:" + hashlib.sha256(b"").hexdigest())
+        self.assertEqual((report["source_bytes"], report["patch_count"], report["observation_count"]), (0, 0, 0))
+        self.assertEqual(report["state"], "NO_SAVED_PATCHES")
+        if not Path(READER).exists():
+            if os.environ.get("MUSUBI_TELEMETRY_READER"):
+                self.fail("configured common reader missing")
+            self.skipTest("common reader not built")
+        with tempfile.TemporaryDirectory() as directory:
+            source, target, result = [Path(directory) / name for name in ("Sections.txt", "out.csv", "report.json")]
+            source.write_bytes(b"")
+            subprocess.run([os.sys.executable, str(SCRIPT), str(source), str(target),
+                            "--capture-time-us", "1", "--report", str(result)], check=True, capture_output=True)
+            self.assertEqual(json.loads(result.read_text()), report)
+            common = json.loads(subprocess.run([READER, str(CASE / "profile.toml"), str(target),
+                                                "--allow-equal-time", "--allow-empty-rows"], check=True, capture_output=True).stdout)
+        self.assertEqual(common["main_rows"], 0)
+        self.assertEqual(common["observations"], [])
 
 
 if __name__ == "__main__":

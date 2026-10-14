@@ -1,0 +1,16 @@
+profile_id = "tensorrt_10_7_saved_output"
+version = "1"
+family = "unknown"
+source_role = "recorded_export"
+format = "telemetry_csv_us"
+extensions = ["csv"]
+default_clock_basis = "unknown"
+channels = ["onboard"]
+[fields]
+time = "time_us"
+[units]
+value = "reported_tensor_number_no_physical_unit_or_dtype_inference"
+volume = "declared_shape_element_count"
+element_index = "zero_based_logical_row_major_index"
+tensor_index = "zero_based_export_array_order_not_network_execution_order"
+exact_number_text = "utf8_hex_exact_JSON_parsed_numeric_text_not_original_lexical_spelling"

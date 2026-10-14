@@ -27,9 +27,9 @@ receiver's clock, never verified, and the difference between it and the capture 
 latency**: those two clocks have no declared alignment, and a recorded sample without one cannot
 become end-to-end latency.
 
-Reception report blocks are counted, never decoded: loss, interarrival jitter, LSR and DLSR are
-what a *receiver* observed about someone else, and reading them here would turn a passive record
-into a quality verdict. No jitter, no loss rate and no round trip is computed anywhere.
+Reception report blocks are counted by default. Explicit opt-in carries the receiver's reported
+loss, jitter and last-SR fields; reporting those values is not a physical quality verdict. No loss
+is inferred from capture gaps, no jitter is recomputed and no round trip is computed.
 
 The saved-capture framing is the admitted one: this module calls `convert_imc_sensors`'s
 `read_pcap_records` and `iter_udp_datagrams`, the shared walker the passive converters already
@@ -37,7 +37,7 @@ use, so there is exactly one implementation of those rules.
 
 Pinned source: RFC 3550, Standards Track, July 2003 (`rfc3550.txt`, 259985 bytes, sha256
 `4c210e9434b5b4c029e8536ad8991f3709bc3cbfa0999e951bcb4c2143c539e8`).
-Contract and limits: docs/saved-inputs.md.
+Contract and limits: docs/saved-input-comparisons.md.
 """
 import argparse
 import csv
@@ -121,6 +121,64 @@ COLUMNS = ("record_time_us", "pcap_clock_basis", "pcap_packet_index", "pcap_sour
            "sdes_cname_hex", "sdes_uninterpreted_items_in_chunk",
            "sdes_unconsumed_trailing_bytes", "sdes_cname_basis",
            "rtcp_packet_sha256", "record_basis")
+
+RECEPTION_COLUMNS = (
+    "reception_blocks_declared", "reception_blocks_status", "reception_block_index",
+    "reception_reportee_ssrc", "reception_fraction_lost_raw", "reception_fraction_lost",
+    "reception_cumulative_lost_reported", "reception_extended_highest_sequence_reported",
+    "reception_jitter_rtp_ticks_reported", "reception_lsr_middle32_reported",
+    "reception_dlsr_ticks_reported", "reception_dlsr_seconds_text", "reception_last_sr_status",
+    "reception_block_hex", "reception_extension_bytes", "reception_extension_hex",
+    "reception_feedback_basis")
+FEEDBACK_BASIS = ("RECEIVER_REPORTED_ABOUT_THE_BLOCKS_SOURCE_NOT_PHYSICAL_LOSS_NOT_LATENCY_"
+                  "NOT_A_QUALITY_OR_CAUSE_VERDICT_FRACTION_IS_RAW_OVER_256_SIGNED_CUMULATIVE_"
+                  "LOSS_MAY_BE_NEGATIVE_FOR_DUPLICATES_JITTER_IS_RTP_TICKS_WITHOUT_A_RATE_"
+                  "LSR_HAS_NO_RESOLVED_ERA_OR_ALIGNMENT_DLSR_IS_REPORTED_SECONDS_SINCE_LAST_SR_"
+                  "ZERO_FRACTION_AND_ABSENT_BLOCK_DO_NOT_PROVE_NO_LOSS")
+
+
+def reception_information(packet):
+    """Fixed §6.4.1/2 blocks; raw bytes and signed reported values, never a loss estimator."""
+    body, count = packet["effective"], packet["count"]
+    start = COMMON_HEADER + 4 + (SENDER_INFO if packet["packet_type"] == SENDER_REPORT else 0)
+    if len(body) < start:
+        raise ValueError("a saved RTCP reception report is shorter than its own header")
+    end = start + count * REPORT_BLOCK
+    if len(body) < end:
+        raise ValueError("a saved RTCP reception report declares more blocks than its effective length")
+    reporter, = struct.unpack_from(">I", body, COMMON_HEADER)
+    summary = dict(reception_blocks_declared=count,
+                   reception_blocks_status=("RECEPTION_BLOCKS_REPORTED" if count else
+                                             "NO_RECEPTION_BLOCKS_REPORTED"),
+                   reception_extension_bytes=len(body) - end,
+                   reception_extension_hex="hex:" + body[end:].hex(),
+                   reception_feedback_basis=FEEDBACK_BASIS)
+    rows = []
+    for index in range(count):
+        raw = body[start + index * REPORT_BLOCK:start + (index + 1) * REPORT_BLOCK]
+        source, = struct.unpack_from(">I", raw)
+        fraction = raw[4]
+        lost = int.from_bytes(raw[5:8], "big", signed=True)
+        sequence, jitter, lsr, delay = struct.unpack_from(">IIII", raw, 8)
+        # Both denominators are powers of two; 40 decimal digits retain every input bit.
+        with decimal.localcontext() as context:
+            context.prec = 40
+            fraction_text = decimal.Decimal(fraction) / 256
+            delay_text = decimal.Decimal(delay) / 65536
+        rows.append(dict(reception_blocks_declared=count,
+                         reception_blocks_status="RECEPTION_BLOCKS_REPORTED",
+                         reception_block_index=index, reception_reportee_ssrc=source,
+                         reception_fraction_lost_raw=fraction, reception_fraction_lost=fraction_text,
+                         reception_cumulative_lost_reported=lost,
+                         reception_extended_highest_sequence_reported=sequence,
+                         reception_jitter_rtp_ticks_reported=jitter,
+                         reception_lsr_middle32_reported=lsr, reception_dlsr_ticks_reported=delay,
+                         reception_dlsr_seconds_text=delay_text,
+                         reception_last_sr_status=("LAST_SR_REFERENCE_REPORTED_NOT_ALIGNED" if lsr
+                                                  else "LAST_SR_REFERENCE_UNRESOLVED_ZERO_FIELD"),
+                         reception_block_hex="hex:" + raw.hex(),
+                         reception_feedback_basis=FEEDBACK_BASIS))
+    return reporter, summary, rows
 
 
 def compound_packets(payload):
@@ -285,12 +343,14 @@ def cname_items(effective, chunks):
     return found, len(body) - offset
 
 
-def convert(raw, rtcp_port, declared_form=None):
+def convert(raw, rtcp_port, declared_form=None, *, with_reception_reports=False):
     """One row per sender report and per declared canonical name, in saved capture order."""
     if not raw or len(raw) > LIMIT:
         raise ValueError("empty or oversized saved capture")
     if declared_form is not None and declared_form not in DECLARED_FORMS:
         raise ValueError("a declared sender time form must be one the pinned source names")
+    if type(with_reception_reports) is not bool:
+        raise ValueError("reception reports require an explicit boolean selection")
     # The port range is the shared walker's own rule and it raises on the first record; this
     # check only brings the same refusal forward for a caller that imports `convert` directly.
     if type(rtcp_port) is not int or not 1 <= rtcp_port <= 65535:
@@ -298,7 +358,8 @@ def convert(raw, rtcp_port, declared_form=None):
     records = read_pcap_records(raw)
     digest = "sha256:" + hashlib.sha256(raw).hexdigest()
     output = io.StringIO(newline="")
-    writer = csv.DictWriter(output, COLUMNS, lineterminator="\n")
+    writer = csv.DictWriter(output, COLUMNS + (RECEPTION_COLUMNS if with_reception_reports else ()),
+                            lineterminator="\n")
     writer.writeheader()
     report = dict(reference=REFERENCE, source_sha256=digest, source_bytes=len(raw),
                   rtcp_port=rtcp_port, datagrams_selected=0, rtcp_packets_read=0,
@@ -315,6 +376,10 @@ def convert(raw, rtcp_port, declared_form=None):
                   sender_report_sources=[], time_basis=("SENDER_DECLARED_PAIRING_OF_ITS_OWN_"
                                                         "CLOCKS_NO_UTC_NO_ERA_AND_NO_RECEIVER_"
                                                         "ALIGNMENT"))
+    if with_reception_reports:
+        report.update(reception_reports_selected=True, receiver_reports=0,
+                      reception_report_blocks_decoded=0, receiver_report_extension_bytes=0,
+                      reception_time_basis=CAPTURE_BASIS)
     sources, rows = [], 0
     for saved in iter_udp_datagrams(raw, rtcp_port, records):
         if saved.payload is None:
@@ -344,6 +409,9 @@ def convert(raw, rtcp_port, declared_form=None):
                           rtcp_packet_sha256="sha256:" + hashlib.sha256(
                               packet["body"]).hexdigest())
             report["padding_bytes_excluded"] += packet["padding_bytes"]
+            feedback_summary, feedback_rows = {}, []
+            if with_reception_reports and packet["packet_type"] in (SENDER_REPORT, RECEIVER_REPORT):
+                reporter, feedback_summary, feedback_rows = reception_information(packet)
             if packet["packet_type"] == SENDER_REPORT:
                 blocks = packet["count"]
                 (ssrc, seconds, fraction, media, packets, octets,
@@ -370,10 +438,18 @@ def convert(raw, rtcp_port, declared_form=None):
                     sr_sender_octet_count_reported=octets, sr_sender_count_basis=COUNT_BASIS,
                     sr_reception_report_blocks_declared=blocks,
                     sr_profile_extension_bytes=extension,
-                    sr_reception_report_basis=BLOCK_BASIS))
+                    sr_reception_report_basis=(FEEDBACK_BASIS if with_reception_reports else BLOCK_BASIS),
+                    **feedback_summary))
                 report["sender_reports"] += 1
                 if ssrc not in sources:
                     sources.append(ssrc)
+                rows += 1
+            elif with_reception_reports and packet["packet_type"] == RECEIVER_REPORT:
+                writer.writerow(dict(shared, rtcp_record_kind="RECEIVER_REPORT", rtcp_ssrc=reporter,
+                                     **feedback_summary))
+                report["receiver_reports"] += 1
+                report["receiver_report_extension_bytes"] += feedback_summary["reception_extension_bytes"]
+                report["reception_report_blocks_counted"] += packet["count"]
                 rows += 1
             elif packet["packet_type"] == SOURCE_DESCRIPTION:
                 chunks, trailing = cname_items(packet["effective"], packet["count"])
@@ -395,6 +471,13 @@ def convert(raw, rtcp_port, declared_form=None):
                         sdes_unconsumed_trailing_bytes=trailing))
                     report["canonical_names"] += 1
                     rows += 1
+            for feedback in feedback_rows:
+                writer.writerow(dict(shared, rtcp_record_kind="RECEPTION_REPORT_BLOCK",
+                                     rtcp_ssrc=reporter, **feedback))
+                rows += 1
+                report["reception_report_blocks_decoded"] += 1
+                if rows > MAX_ROWS or output.tell() > OUTPUT_LIMIT:
+                    raise ValueError("converted RTCP reception output exceeds row or byte bound")
             if rows > MAX_ROWS:
                 raise ValueError("saved capture exceeds this path's row bound")
             if output.tell() > OUTPUT_LIMIT:
@@ -418,10 +501,14 @@ def main(argv=None):
                              "sender reports carry. Without it the form stays unresolved, "
                              "because the pinned source separates the two forms by the high bit "
                              "only until the year 2036 and this path has no era of its own")
+    parser.add_argument("--with-reception-reports", action="store_true",
+                        help="also carry SR/RR reception blocks as reported receiver quantities; "
+                             "never physical loss, a quality verdict or end-to-end latency")
     args = parser.parse_args(argv)
     with args.input.open("rb") as handle:
         raw = handle.read(LIMIT + 1)
-    converted, report = convert(raw, args.rtcp_port, args.declared_sender_time_form)
+    converted, report = convert(raw, args.rtcp_port, args.declared_sender_time_form,
+                                 with_reception_reports=args.with_reception_reports)
     args.output_directory.mkdir()
     (args.output_directory / "observations.csv").write_text(converted, encoding="utf-8")
     (args.output_directory / "report.json").write_text(

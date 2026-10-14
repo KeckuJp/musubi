@@ -1,0 +1,100 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_of_original_saved_record_retained_without_wall_time_or_UTC_qualification_common_clock_remains_Unknown",
+      "basis": "declared"
+    },
+    "check_kind": {
+      "meaning": "check_kind",
+      "unit": "DECLARED_NUMERIC_RANGE_inclusive_comparison_of_exact_saved_decimal_against_caller_expectation_not_sensor_validity",
+      "basis": "declared"
+    },
+    "subject_hex": {
+      "meaning": "subject_hex",
+      "unit": "utf8_hex_JSON_array_of_actual_subject_values_in_declared_column_order_blank_components_remain_unqualified_not_identity_authentication",
+      "basis": "declared"
+    },
+    "subject_columns_hex": {
+      "meaning": "subject_columns_hex",
+      "unit": "utf8_hex_JSON_array_of_explicit_subject_column_names_in_tuple_order",
+      "basis": "declared"
+    },
+    "checked_column_hex": {
+      "meaning": "checked_column_hex",
+      "unit": "utf8_hex_name_of_checked_saved_column_not_a_device_channel",
+      "basis": "declared"
+    },
+    "value_meaning_hex": {
+      "meaning": "value_meaning_hex",
+      "unit": "utf8_hex_caller_citation_for_the_selected_saved_quantity_not_independent_producer_qualification",
+      "basis": "declared"
+    },
+    "reported_value_hex": {
+      "meaning": "reported_value_hex",
+      "unit": "utf8_hex_exact_saved_cell_finite_decimal_only_for_qualified_subject_blank_is_NOT_REPORTED_unqualified_subject_cells_are_uninterpreted_not_numeric_facts",
+      "basis": "declared"
+    },
+    "expectation_disposition": {
+      "meaning": "expectation_disposition",
+      "unit": "WITHIN_DECLARED_RANGE_including_endpoints_BELOW_DECLARED_RANGE_ABOVE_DECLARED_RANGE_NOT_REPORTED_or_UNQUALIFIED_SUBJECT_missing_and_unqualified_are_neither_inside_nor_outside_not_physical_fault",
+      "basis": "declared"
+    },
+    "declared_expectation_hex": {
+      "meaning": "declared_expectation_hex",
+      "unit": "utf8_hex_JSON_array_of_exact_minimum_maximum_and_literal_unit_from_caller_specification_not_producer_limits",
+      "basis": "declared"
+    },
+    "declared_clock_basis": {
+      "meaning": "declared_clock_basis",
+      "unit": "source_profile_clock_declaration_matched_to_caller_specification_unknown_or_boot_relative_not_verified_synchronization",
+      "basis": "declared"
+    },
+    "expectation_basis": {
+      "meaning": "expectation_basis",
+      "unit": "explicit_caller_range_subject_unit_clock_byte_binding_only_no_unit_conversion_no_authentication_no_physical_fault",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "sha256_of_exact_source_CSV_bytes_saved_as_source.csv_not_authentication",
+      "basis": "declared"
+    },
+    "source_row_index": {
+      "meaning": "source_row_index",
+      "unit": "zero_based_CSV_data_record_index_in_source.csv_not_physical_line_number_equal_times_preserve_source_order",
+      "basis": "declared"
+    },
+    "range_spec_sha256": {
+      "meaning": "range_spec_sha256",
+      "unit": "sha256_of_exact_required_range-spec.json_bytes_not_authentication",
+      "basis": "declared"
+    },
+    "range_profile_sha256": {
+      "meaning": "range_profile_sha256",
+      "unit": "sha256_of_exact_required_source-profile.toml_bytes_configuration_not_producer_software_version",
+      "basis": "declared"
+    },
+    "range_unit_hex": {
+      "meaning": "range_unit_hex",
+      "unit": "utf8_hex_literal_unit_exactly_matched_to_source_profile_units_for_selected_column_no_conversion_or_alias_inferred",
+      "basis": "declared"
+    },
+    "range_minimum_text": {
+      "meaning": "range_minimum_text",
+      "unit": "exact_decimal_lower_inclusive_bound_with_decimal_prefix_preserving_all_digits_not_binary64",
+      "basis": "declared"
+    },
+    "range_maximum_text": {
+      "meaning": "range_maximum_text",
+      "unit": "exact_decimal_upper_inclusive_bound_with_decimal_prefix_preserving_all_digits_not_binary64",
+      "basis": "declared"
+    }
+  }
+}

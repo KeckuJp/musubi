@@ -1,0 +1,155 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "us_since_epoch_at_journal_reception_not_crash_time_or_verified_UTC",
+      "basis": "declared"
+    },
+    "record_time_basis": {
+      "meaning": "record_time_basis",
+      "unit": "journal_address_field_CLOCK_REALTIME_not_trusted_absolute_time",
+      "basis": "declared"
+    },
+    "crash_event": {
+      "meaning": "crash_event",
+      "unit": "producer_reported_coredump_not_exit_code_inference_or_physical_cause",
+      "basis": "declared"
+    },
+    "event_basis": {
+      "meaning": "event_basis",
+      "unit": "exact_catalog_ID_plus_caller_fixed_producer_qualification_not_authentication",
+      "basis": "declared"
+    },
+    "reported_pid": {
+      "meaning": "reported_pid",
+      "unit": "positive_process_ID_in_producer_subject_namespace_not_reporter_PID",
+      "basis": "declared"
+    },
+    "reported_signal": {
+      "meaning": "reported_signal",
+      "unit": "reported_signal_number_architecture_dependent_no_ABI_translation",
+      "basis": "declared"
+    },
+    "reported_signal_name_hex": {
+      "meaning": "reported_signal_name_hex",
+      "unit": "hex_UTF8_reported_signal_name_no_inferred_number_name_correspondence",
+      "basis": "declared"
+    },
+    "reported_crash_time_us": {
+      "meaning": "reported_crash_time_us",
+      "unit": "kernel_reported_epoch_us_one_second_precision_not_verified_UTC",
+      "basis": "declared"
+    },
+    "reported_crash_time_precision_us": {
+      "meaning": "reported_crash_time_precision_us",
+      "unit": "us_precision_of_kernel_seconds_padded_by_fixed_writer",
+      "basis": "declared"
+    },
+    "reported_pid_status": {
+      "meaning": "reported_pid_status",
+      "unit": "REPORTED_ABSENT_or_WITHHELD_NULL",
+      "basis": "declared"
+    },
+    "reported_signal_status": {
+      "meaning": "reported_signal_status",
+      "unit": "REPORTED_ABSENT_or_WITHHELD_NULL",
+      "basis": "declared"
+    },
+    "reported_crash_time_us_status": {
+      "meaning": "reported_crash_time_us_status",
+      "unit": "REPORTED_ABSENT_or_WITHHELD_NULL",
+      "basis": "declared"
+    },
+    "reported_comm_hex": {
+      "meaning": "reported_comm_hex",
+      "unit": "hex_UTF8_reported_subject_command_name",
+      "basis": "declared"
+    },
+    "reported_exe_hex": {
+      "meaning": "reported_exe_hex",
+      "unit": "hex_UTF8_reported_subject_executable_path_may_be_container_relative",
+      "basis": "declared"
+    },
+    "reported_unit_hex": {
+      "meaning": "reported_unit_hex",
+      "unit": "hex_UTF8_reported_subject_unit_not_reporter_unit",
+      "basis": "declared"
+    },
+    "reported_forwarded_hex": {
+      "meaning": "reported_forwarded_hex",
+      "unit": "hex_UTF8_reported_forwarding_marker_no_global_namespace_inference",
+      "basis": "declared"
+    },
+    "reporter_pid_hex": {
+      "meaning": "reporter_pid_hex",
+      "unit": "hex_UTF8_journal_reporter_PID_not_crashed_subject",
+      "basis": "declared"
+    },
+    "reported_boot_id_hex": {
+      "meaning": "reported_boot_id_hex",
+      "unit": "hex_UTF8_reported_journal_boot_identifier_no_reboot_or_cause_inference",
+      "basis": "declared"
+    },
+    "reported_machine_id_hex": {
+      "meaning": "reported_machine_id_hex",
+      "unit": "hex_UTF8_reported_journal_machine_identifier_not_authentication",
+      "basis": "declared"
+    },
+    "journal_cursor_hex": {
+      "meaning": "journal_cursor_hex",
+      "unit": "hex_UTF8_original_journal_cursor",
+      "basis": "declared"
+    },
+    "identity_encoding_notes": {
+      "meaning": "identity_encoding_notes",
+      "unit": "explicit_absence_withheld_or_ambiguous_encoding_original_input_remains_required",
+      "basis": "declared"
+    },
+    "identity_basis": {
+      "meaning": "identity_basis",
+      "unit": "reported_namespace_context_not_authenticated_global_identity",
+      "basis": "declared"
+    },
+    "dump_body_status": {
+      "meaning": "dump_body_status",
+      "unit": "not_supplied_or_exporter_withheld_null_no_memory_analysis",
+      "basis": "declared"
+    },
+    "source_record_index": {
+      "meaning": "source_record_index",
+      "unit": "one_based_physical_line_index_blank_lines_counted",
+      "basis": "declared"
+    },
+    "source_sha256": {
+      "meaning": "source_sha256",
+      "unit": "SHA256_of_required_original_input_including_line_terminators",
+      "basis": "declared"
+    },
+    "record_sha256": {
+      "meaning": "record_sha256",
+      "unit": "SHA256_of_original_line_excluding_CR_LF_terminator",
+      "basis": "declared"
+    },
+    "uninterpreted_field_count": {
+      "meaning": "uninterpreted_field_count",
+      "unit": "fields_not_semantically_read_original_input_required",
+      "basis": "declared"
+    },
+    "uninterpreted_field_names_hex": {
+      "meaning": "uninterpreted_field_names_hex",
+      "unit": "hex_UTF8_JSON_names_only_values_not_copied_to_common",
+      "basis": "declared"
+    },
+    "source_pin": {
+      "meaning": "source_pin",
+      "unit": "fixed_systemd_export_and_coredump_writer_source",
+      "basis": "declared"
+    }
+  }
+}

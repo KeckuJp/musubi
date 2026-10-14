@@ -6,6 +6,31 @@
     "convention": "source declarations; no identity, frame or health inference"
   },
   "fields": {
+    "map_speed_type_selected_hex": {
+      "meaning": "map_speed_type_selected_hex",
+      "unit": "original_selected_speed_sign_type_utf8_hex",
+      "basis": "declared"
+    },
+    "map_speed_type_source": {
+      "meaning": "map_speed_type_source",
+      "unit": "fixed_source_selection_precedence_not_road_validity",
+      "basis": "declared"
+    },
+    "map_speed_type_alternate_hex": {
+      "meaning": "map_speed_type_alternate_hex",
+      "unit": "original_relation_sign_type_utf8_hex_not_automatically_applied",
+      "basis": "declared"
+    },
+    "map_speed_type_conflict": {
+      "meaning": "map_speed_type_conflict",
+      "unit": "different_declaration_preserved_not_legal_conflict_judgment",
+      "basis": "declared"
+    },
+    "map_traffic_rules_basis": {
+      "meaning": "map_traffic_rules_basis",
+      "unit": "fixed_Germany_vehicle_source_mapping_not_permission_or_law_certification",
+      "basis": "declared"
+    },
     "record_time_us": {
       "meaning": "record_time_us",
       "unit": "caller_supplied_capture_microseconds_not_map_creation_or_load_time",
@@ -124,6 +149,51 @@
     "map_declaration_basis": {
       "meaning": "map_declaration_basis",
       "unit": "declared_map_not_projected_routed_or_certified",
+      "basis": "declared"
+    },
+    "map_regulatory_subtype": {
+      "meaning": "map_regulatory_subtype",
+      "unit": "fixed_builtin_declared_subtype_or_UNQUALIFIED_SUBTYPE",
+      "basis": "declared"
+    },
+    "map_regulatory_parameter_meaning": {
+      "meaning": "map_regulatory_parameter_meaning",
+      "unit": "reported_subtype_specific_parameter_role_not_operational_rule",
+      "basis": "declared"
+    },
+    "map_associated_lanelet_id": {
+      "meaning": "map_associated_lanelet_id",
+      "unit": "declared_all_way_stop_same_role_order_lanelet_relation_id",
+      "basis": "declared"
+    },
+    "map_stop_line_pairing": {
+      "meaning": "map_stop_line_pairing",
+      "unit": "declared_order_pair_or_unqualified_count_target_not_geometric_validity",
+      "basis": "declared"
+    },
+    "map_declared_speed_limit_m_s": {
+      "meaning": "map_declared_speed_limit_m_s",
+      "unit": "m/s_reported_numeric_sign_type_not_inferred_from_sign_or_current_permission",
+      "basis": "declared"
+    },
+    "map_speed_limit_disposition": {
+      "meaning": "map_speed_limit_disposition",
+      "unit": "explicit_unit_documented_default_absent_or_unqualified_sign_text",
+      "basis": "declared"
+    },
+    "map_dynamic_disposition": {
+      "meaning": "map_dynamic_disposition",
+      "unit": "declared_yes_no_absent_or_unqualified_without_default_or_condition_evaluation",
+      "basis": "declared"
+    },
+    "map_fallback_disposition": {
+      "meaning": "map_fallback_disposition",
+      "unit": "declared_yes_no_absent_or_unqualified_without_priority_evaluation",
+      "basis": "declared"
+    },
+    "map_regulatory_basis": {
+      "meaning": "map_regulatory_basis",
+      "unit": "reported_parameters_not_rule_validity_permission_or_execution",
       "basis": "declared"
     }
   }

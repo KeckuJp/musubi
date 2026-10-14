@@ -1,0 +1,35 @@
+{
+  "schema": "recorded-meanings/v1",
+  "subject": {
+    "kind": "reported-source",
+    "frame": "unspecified",
+    "convention": "source declarations; no identity, frame or health inference"
+  },
+  "fields": {
+    "record_time_us": {
+      "meaning": "record_time_us",
+      "unit": "capture_microseconds_untrusted_clock",
+      "basis": "declared"
+    },
+    "vehicle_report_stamp_us": {
+      "meaning": "vehicle_report_stamp_us",
+      "unit": "reported_ROS_stamp_floor_microseconds_not_capture_or_UTC_original_ns_retained",
+      "basis": "declared"
+    },
+    "vehicle_gear_code": {
+      "meaning": "vehicle_gear_code",
+      "unit": "fixed_Autoware_uint8_report_not_command_or_verified_engagement",
+      "basis": "declared"
+    },
+    "vehicle_gear_name": {
+      "meaning": "vehicle_gear_name",
+      "unit": "enum_name_from_bb8e7bf5_not_motion_direction_or_physical_gear_ratio",
+      "basis": "declared"
+    },
+    "vehicle_gear_disposition": {
+      "meaning": "vehicle_gear_disposition",
+      "unit": "defined_NONE_or_unmapped_uint8_kept_distinct",
+      "basis": "declared"
+    }
+  }
+}

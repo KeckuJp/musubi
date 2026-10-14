@@ -40,7 +40,8 @@ def second_session():
             + event("23:59:59", "UDP Network Is On", "\r\n")
             + event("00:00:01", "UDP Network Failed to Connect", "\r\n")
             + event("00:00:02", "Using Default Profile At Start Warning", "\r\n")
-            + event("00:00:03", "RTCM List compilation error"))
+            + event("00:00:03", "RTCM List compilation error", "\r\n")
+            + event("00:00:04", "System.NullReferenceException: Object reference not set"))
 
 
 class AgioEventTests(unittest.TestCase):
@@ -63,9 +64,10 @@ class AgioEventTests(unittest.TestCase):
             self.assertEqual(report["event_classes"], {
                 "ERROR_REPORT": 1, "LOOPBACK_CONNECTED": 1, "SESSION_EXIT": 1, "SESSION_START": 1,
                 "UDP_NETWORK_CONNECTED": 1, "UDP_NETWORK_CONNECT_FAILED": 1, "UDP_NETWORK_ON": 1,
-                "UNCLASSIFIED_RETAINED": 1, "VERSION_REPORTED": 1})
+                "UDP_SERVER_LOAD_EXCEPTION": 1, "VERSION_REPORTED": 1})
             self.assertEqual([row["source_line"] for row in rows], [str(n) for n in range(1, 10)])
             self.assertEqual([row["unlocated_time_us"] for row in rows], ["0"] * 9)
+            # Equal reported clocks keep their source order; nothing is reordered.
             self.assertEqual([row["agio_reported_clock_hhmmss"] for row in rows][:2], ["07:01:02"] * 2)
             self.assertTrue(all(row["agio_reported_clock_basis"] == CLOCK_BASIS for row in rows))
             self.assertEqual(rows[3]["agio_event_class"], "UDP_NETWORK_CONNECTED")
@@ -73,19 +75,26 @@ class AgioEventTests(unittest.TestCase):
                              "192.168.5.255:9999")
             self.assertEqual(bytes.fromhex(rows[0]["agio_session_date_reported"][4:]).decode(),
                              "Monday, 17 August 2026 07:01")
+            # Only session lines carry a date; ordinary events get none invented.
             self.assertEqual([row["agio_session_date_reported"] for row in rows[1:8]], [""] * 7)
             self.assertEqual(rows[6]["agio_event_class"], "ERROR_REPORT")
             self.assertEqual(bytes.fromhex(rows[6]["agio_event_detail_hex"][4:]).decode(),
                              "AgIO - UDP: bind refused | Exception: Address in use")
-            self.assertEqual(rows[7]["agio_event_class"], "UNCLASSIFIED_RETAINED")
+            # The exception dump stays one record with its untimestamped continuations.
+            # The catch-site literal names the subsystem; the exception text stays retained detail.
+            self.assertEqual(rows[7]["agio_event_class"], "UDP_SERVER_LOAD_EXCEPTION")
+            self.assertTrue(bytes.fromhex(rows[7]["agio_event_detail_hex"][4:]).decode().startswith(
+                " System.Exception: boom"))
             self.assertEqual(rows[7]["agio_continuation_lines"], "2")
             whole = bytes.fromhex(rows[7]["agio_record_hex"][4:]).decode()
             self.assertEqual(whole, "07:03:00-> Catch -> Load UDP Server System.Exception: boom\n"
                                     "   at AgIO.Foo()\nLog trimmed to last 100 lines")
             self.assertEqual(report["upstream_trim_notice_candidates"], 1)
             self.assertEqual(report["continuation_lines"], 2)
-            self.assertIn("caller was not located", report["upstream_loss"])
-            self.assertIn("not established", report["upstream_loss"])
+            # A save implies an earlier CheckLogSize call; frequency, threshold and per-file trimming are not established.
+            self.assertIn("implies some earlier CheckLogSize call", report["upstream_loss"])
+            self.assertIn("100 only by default", report["upstream_loss"])
+            self.assertIn("whether any given file was trimmed are not established", report["upstream_loss"])
             self.assertEqual(report["clock"], "Unknown")
             if common:
                 self.assertEqual(common["main_rows"], 9)
@@ -96,18 +105,22 @@ class AgioEventTests(unittest.TestCase):
                     self.assertIsNone(record["anchor_unix_us"])
 
             rows, report, common = self.common(second_session(), directory, "second")
-            self.assertEqual(report["records"], 5)
+            self.assertEqual(report["records"], 6)
+            # A backwards clock is neither reordered nor resolved into a date.
             self.assertEqual([row["agio_reported_clock_hhmmss"] for row in rows],
-                             ["23:59:58", "23:59:59", "00:00:01", "00:00:02", "00:00:03"])
+                             ["23:59:58", "23:59:59", "00:00:01", "00:00:02", "00:00:03", "00:00:04"])
             self.assertEqual(report["date_basis"],
                              "SESSION_LINES_ONLY_NO_PER_EVENT_DATE_ZONE_OR_ROLLOVER")
             self.assertNotIn("SESSION_EXIT", report["event_classes"])
-            self.assertEqual(report["event_classes"]["UNCLASSIFIED_RETAINED"], 2)
-            self.assertEqual(rows[4]["agio_event_class"], "UNCLASSIFIED_RETAINED")
-            self.assertEqual(bytes.fromhex(rows[4]["agio_record_hex"][4:]).decode(),
-                             "00:00:03-> RTCM List compilation error")
+            self.assertEqual([row["agio_event_class"] for row in rows[3:]],
+                             ["PROFILE_NOT_SET_AT_START_WARNING", "RTCM_LIST_COMPILATION_ERROR",
+                              "UNCLASSIFIED_RETAINED"])
+            # FormLoop.cs:259 logs ex.ToString() with no literal prefix: it stays unclassified,
+            # whole text kept, never guessed from the exception type.
+            self.assertEqual(bytes.fromhex(rows[5]["agio_record_hex"][4:]).decode(),
+                             "00:00:04-> System.NullReferenceException: Object reference not set")
             if common:
-                self.assertEqual(common["main_rows"], 5)
+                self.assertEqual(common["main_rows"], 6)
                 self.assertTrue(all(record["clock_basis"] == "Unknown"
                                     for record in common["observations"]))
 
@@ -120,6 +133,7 @@ class AgioEventTests(unittest.TestCase):
         self.assertEqual(report["records"], 4)
         self.assertEqual(report["blank_lines"], 0)
         self.assertEqual(len(list(csv.DictReader(io.StringIO(converted)))), 4)
+        # A file that starts mid dump keeps the fragment apart from the first record.
         leading = "   at AgIO.Foo()\rLog trimmed to last 100 lines\r" + event("07:00:05", "UDP Network Is On")
         _, report = convert_agio_events(leading)
         self.assertEqual((report["records"], report["unanchored_leading_lines"]), (1, 2))
@@ -178,6 +192,7 @@ class AgioEventTests(unittest.TestCase):
             target = Path(directory) / "out"
             subprocess.run([os.sys.executable, str(SCRIPT), str(source), str(target)],
                            check=True, capture_output=True)
+            # The same content survives into the saved artifact, not only the return value.
             saved = json.loads((target / "report.json").read_text())
             self.assertEqual(len(saved["unanchored_leading"]), 40)
             self.assertEqual(bytes.fromhex(saved["unanchored_leading"][-1][4:]).decode(),
@@ -191,6 +206,7 @@ class AgioEventTests(unittest.TestCase):
         text = event("07:04:59", embedded) + event("07:05:01", "UDP Network Failed to Connect")
         converted, report = convert_agio_events(text)
         rows = list(csv.DictReader(io.StringIO(converted)))
+        # Under the stated rule the embedded line starts a record; nothing is dropped.
         self.assertEqual(report["records"], 3)
         self.assertEqual([row["agio_event_class"] for row in rows],
                          ["ERROR_REPORT", "UDP_NETWORK_ON", "UDP_NETWORK_CONNECT_FAILED"])
@@ -200,16 +216,18 @@ class AgioEventTests(unittest.TestCase):
                          "07:05:00-> UDP Network Is On\n   at AgIO.Inner()")
         self.assertEqual(bytes.fromhex(rows[0]["agio_record_hex"][4:]).decode(),
                          "07:04:59-> Error in AgIO - UDP: bind refused | Exception: first")
+        # Every original line is still present across the records.
         whole = "\n".join(bytes.fromhex(row["agio_record_hex"][4:]).decode() for row in rows)
         for line in ("Exception: first", "UDP Network Is On", "   at AgIO.Inner()"):
             self.assertIn(line, whole)
+        # The ambiguity is exposed rather than resolved by a heuristic.
         self.assertTrue(all(row["agio_event_class_basis"] == CLASS_BASIS for row in rows))
         self.assertIn("not a certified boundary", report["record_boundary_basis"])
         self.assertEqual(report["class_basis"], CLASS_BASIS)
         self.assertIn("CANDIDATE", CLASS_BASIS)
         self.assertNotIn("trims to the last 100 lines", report["upstream_loss"])
-        self.assertIn("caller was not located", report["upstream_loss"])
-        self.assertIn("clear the buffer when a save fails", report["upstream_loss"])
+        self.assertIn("implies some earlier CheckLogSize call", report["upstream_loss"])
+        self.assertIn("clears the buffer when a save fails", report["upstream_loss"])
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "embedded.csv"
             path.write_text(converted, encoding="utf-8", newline="")
@@ -217,6 +235,7 @@ class AgioEventTests(unittest.TestCase):
                 common = json.loads(subprocess.run([READER, str(PROFILE), str(path),
                     "--allow-equal-time"], check=True, capture_output=True, text=True).stdout)
                 self.assertEqual(common["main_rows"], 3)
+                # The qualification reaches common Observation, not just the report.
                 for record in common["observations"]:
                     self.assertEqual(record["fields"]["agio_event_class_basis"], CLASS_BASIS)
 
