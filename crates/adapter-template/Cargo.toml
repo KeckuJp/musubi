@@ -1,0 +1,18 @@
+[package]
+name = "musubi-adapter-template"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Copyable 'author your own adapter' template (read-only). A field implementer copies this crate, rewrites parse_my_device for THEIR device wire, and gets evidence-tagged CoT for free. Fictional synthetic device 'my-device'; trivial hand-parsed whitespace wire (NO serde, NO external crates). read-only tap; emits no command/heartbeat (X-NOWRITE / §5). Fuller worked 'integrate' example: crates/adapter-usv-json."
+
+[lints]
+workspace = true
+
+[dependencies]
+# Path deps ONLY — NO external crates (keeps Cargo.lock free of new external deps).
+# The wire is parsed BY HAND (str::split_whitespace + f64::parse), deliberately NOT serde,
+# so the shortest path stays dependency-free and the core stays no-net.
+musubi-types = { path = "../types" }       # COM types (PlatformState/Position/...) + MARK envelope.
+musubi-core = { path = "../core" }         # Normalizer trait, ObservationQuality/QualityNote, derive_mark, seal_digest.
+musubi-northbound = { path = "../northbound" } # CotPublisher (reuse the SAME serializer — never write your own).

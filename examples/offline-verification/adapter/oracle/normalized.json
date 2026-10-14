@@ -1,0 +1,15 @@
+{
+  "schema_version": "1",
+  "records": [
+    {"seq": 1, "event_ms": 1000, "position_m": 0.120, "speed_mps": 0.030, "link_present": true},
+    {"seq": 2, "event_ms": 1100, "position_m": 0.123, "speed_mps": 0.030, "link_present": true},
+    {"seq": 3, "event_ms": 1200, "position_m": 0.126, "speed_mps": 0.000, "link_present": false}
+  ],
+  "negative_fixtures_required": [
+    "bad_magic",
+    "duplicate_key",
+    "missing_event_time",
+    "non_numeric_position",
+    "unknown_field_preserved_or_rejected_explicitly"
+  ]
+}

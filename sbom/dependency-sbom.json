@@ -2,7 +2,7 @@
   "schemaVersion": "musubi.sbom.dependency/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "lockfileSha256": "sha256:af26019cad8e081a82e45e4d882680cc9dd196b078e70d9e543ea1429a5cdac6",
+    "lockfileSha256": "sha256:1806288e7715b19f59ccf86dc2154b5ba837bb27ed3f9403a51454c04a269bdf",
     "coveragePolicy": "ALL_LOCKFILE_PACKAGES_WITH_CHECKSUM_BOUND_LICENSE_EVIDENCE"
   },
   "generator": {
@@ -360,6 +360,7 @@
       "licenseEvidenceDigest": "sha256:de3213439e6937e9d898743aadb24dd7c08e3fd2b178cdc35a4dc2d7a214b463",
       "checksum": "1ddb117e43bbf7dacf0a4190fef4d345b9bad68dfc649cb349e7d17d28428e51",
       "directDependencyOf": [
+        "musubi-reference-fanout",
         "musubi-reference-viewer",
         "musubi-reference-writers"
       ]
@@ -1158,7 +1159,9 @@
       "spdxLicenseId": "MIT",
       "licenseEvidenceDigest": "sha256:8b3ae30c072200880a1dce8a9249833316711253f54f5117958d68680817753c",
       "checksum": "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981",
-      "directDependencyOf": []
+      "directDependencyOf": [
+        "musubi-cable-sim"
+      ]
     },
     {
       "name": "libredox",
@@ -1260,6 +1263,17 @@
       "directDependencyOf": []
     },
     {
+      "name": "musubi-adapter-mavlink",
+      "version": "0.0.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": [
+        "musubi-adapter-usv-json"
+      ]
+    },
+    {
       "name": "musubi-adapter-spi",
       "version": "0.0.0",
       "source": "workspace",
@@ -1267,6 +1281,44 @@
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
       "directDependencyOf": []
+    },
+    {
+      "name": "musubi-adapter-template",
+      "version": "0.0.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": []
+    },
+    {
+      "name": "musubi-adapter-usv-json",
+      "version": "0.0.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": []
+    },
+    {
+      "name": "musubi-cable-ml-eval",
+      "version": "0.0.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": []
+    },
+    {
+      "name": "musubi-cable-sim",
+      "version": "0.0.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": [
+        "musubi-cable-ml-eval"
+      ]
     },
     {
       "name": "musubi-civil-reference-pack",
@@ -1294,9 +1346,14 @@
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
       "directDependencyOf": [
+        "musubi-adapter-mavlink",
         "musubi-adapter-spi",
+        "musubi-adapter-template",
+        "musubi-adapter-usv-json",
         "musubi-civil-reference-pack",
-        "musubi-conformance"
+        "musubi-conformance",
+        "musubi-northbound",
+        "musubi-reference-fanout"
       ]
     },
     {
@@ -1320,8 +1377,20 @@
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
       "directDependencyOf": [
+        "musubi-cable-ml-eval",
+        "musubi-cable-sim",
+        "musubi-integration-case",
         "musubi-reference-viewer"
       ]
+    },
+    {
+      "name": "musubi-integration-case",
+      "version": "0.0.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": []
     },
     {
       "name": "musubi-jsonl-log",
@@ -1350,6 +1419,20 @@
       ]
     },
     {
+      "name": "musubi-northbound",
+      "version": "0.0.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": [
+        "musubi-adapter-mavlink",
+        "musubi-adapter-template",
+        "musubi-adapter-usv-json",
+        "musubi-reference-fanout"
+      ]
+    },
+    {
       "name": "musubi-recorded-readers",
       "version": "0.0.0",
       "source": "workspace",
@@ -1361,6 +1444,15 @@
       ]
     },
     {
+      "name": "musubi-reference-fanout",
+      "version": "0.0.0",
+      "source": "workspace",
+      "spdxLicenseId": "Apache-2.0",
+      "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
+      "checksum": null,
+      "directDependencyOf": []
+    },
+    {
       "name": "musubi-reference-pipeline",
       "version": "0.0.0",
       "source": "workspace",
@@ -1368,6 +1460,7 @@
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
       "directDependencyOf": [
+        "musubi-reference-fanout",
         "musubi-reference-viewer"
       ]
     },
@@ -1379,6 +1472,8 @@
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
       "directDependencyOf": [
+        "musubi-integration-case",
+        "musubi-reference-fanout",
         "musubi-reference-pipeline",
         "musubi-reference-viewer"
       ]
@@ -1391,6 +1486,7 @@
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
       "directDependencyOf": [
+        "musubi-reference-fanout",
         "musubi-reference-pipeline",
         "musubi-reference-readers",
         "musubi-reference-viewer",
@@ -1405,6 +1501,8 @@
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
       "directDependencyOf": [
+        "musubi-integration-case",
+        "musubi-reference-fanout",
         "musubi-reference-pipeline",
         "musubi-reference-readers",
         "musubi-reference-scenario",
@@ -1441,11 +1539,16 @@
       "licenseEvidenceDigest": "sha256:7ed699fe9e8b571355e5eabd72a707e15432bd38d61364926181a0b719538435",
       "checksum": null,
       "directDependencyOf": [
+        "musubi-adapter-mavlink",
         "musubi-adapter-spi",
+        "musubi-adapter-template",
+        "musubi-adapter-usv-json",
         "musubi-civil-reference-pack",
         "musubi-conformance",
         "musubi-core",
+        "musubi-northbound",
         "musubi-recorded-readers",
+        "musubi-reference-fanout",
         "musubi-reference-pipeline",
         "musubi-reference-readers",
         "musubi-reference-types"
@@ -2161,7 +2264,11 @@
       "licenseEvidenceDigest": "sha256:6dc96f3e1f38516a6e40158ec626eec59a7c06878d497f2c82a6e978343b179a",
       "checksum": "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e",
       "directDependencyOf": [
+        "musubi-adapter-usv-json",
+        "musubi-cable-ml-eval",
+        "musubi-cable-sim",
         "musubi-field-contracts",
+        "musubi-integration-case",
         "musubi-jsonl-log",
         "musubi-reference-readers"
       ]
@@ -2193,7 +2300,11 @@
       "checksum": "e8014e44b4736ed0538adeecded0fce2a272f22dc9578a7eb6b2d9993c74cfb9",
       "directDependencyOf": [
         "musubi-adapter-spi",
+        "musubi-adapter-usv-json",
+        "musubi-cable-ml-eval",
+        "musubi-cable-sim",
         "musubi-field-contracts",
+        "musubi-integration-case",
         "musubi-jsonl-log",
         "musubi-recorded-readers",
         "musubi-reference-pipeline",
@@ -2219,6 +2330,7 @@
       "checksum": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
       "directDependencyOf": [
         "musubi-adapter-spi",
+        "musubi-cable-ml-eval",
         "musubi-core",
         "musubi-field-contracts",
         "musubi-recorded-readers",

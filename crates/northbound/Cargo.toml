@@ -1,0 +1,20 @@
+[package]
+name = "musubi-northbound"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Northbound publish (CoT/NVG/MIP). read-only op only; no write endpoint (X-NOWRITE)."
+
+[lints]
+workspace = true
+
+[dependencies]
+musubi-types = { path = "../types" }
+
+[dev-dependencies]
+# contract fan-out の単一正本不変性 oracle（seal_digest で封じた envelope を fan-out しても
+# content_digest が不変であることを test で確認する）用。**dev 専用**＝northbound のランタイム
+# 依存は musubi-types のみ（read-only publish の zero-dep を維持）。core は no-net なので
+# dev-dep に入れても musubi-core 自身の依存閉包（no_net_in_core.sh の検査対象）は不変。
+musubi-core = { path = "../core" }

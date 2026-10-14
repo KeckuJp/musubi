@@ -1,20 +1,28 @@
 {
   "schemaVersion": "musubi.publication.public-release-manifest.v1",
   "releaseClass": "PUBLIC_SOURCE_PREVIEW",
-  "payloadCommit": "4dddf3b925d220479595e054140300e58eed8423",
-  "payloadManifestDigest": "sha256:9b48e4fa6d30eadeb64023074b8fbbb7bf90a65cf5c6733e4a5e605792f2f559",
-  "payloadTreeDigest": "sha256:add05231d8d11d19f754b70318bec1acb02c0a5440912ac9c24045d210447e5f",
+  "payloadCommit": "9d7d2af6eaf745c9dec1d0f16c72179cff6379a2",
+  "payloadManifestDigest": "sha256:6f5211552a9bc2650ebf2893c07d46a1c201d078cf9ebac2503cc47fa48d0c0a",
+  "payloadTreeDigest": "sha256:1e1079eb63980b40ef87641c68471bdd09e589bf4c51c75f817f0b3fdced9eb2",
   "sourceUrl": "https://github.com/KeckuJp/musubi",
   "targetPackages": [
+    "musubi-adapter-mavlink",
     "musubi-adapter-spi",
+    "musubi-adapter-template",
+    "musubi-adapter-usv-json",
+    "musubi-cable-ml-eval",
+    "musubi-cable-sim",
     "musubi-civil-reference-pack",
     "musubi-conformance",
     "musubi-core",
     "musubi-decoded-csv",
     "musubi-field-contracts",
+    "musubi-integration-case",
     "musubi-jsonl-log",
     "musubi-miniseed2",
+    "musubi-northbound",
     "musubi-recorded-readers",
+    "musubi-reference-fanout",
     "musubi-reference-pipeline",
     "musubi-reference-readers",
     "musubi-reference-scenario",
@@ -26,7 +34,7 @@
   "copyright": "Copyright 2026 Musubi contributors",
   "noticePath": "NOTICE",
   "version": "0.0.0",
-  "buildInstructions": "Use Rust 1.96.0 as pinned in rust-toolchain.toml; run cargo test --workspace --locked. See docs/reference-viewer.md for the native reference viewer and synthetic examples, and docs/recorded-observations.md for recorded input conversion. Optional Python 3.12 dependencies are documented separately. No hardware or device compatibility claim.",
+  "buildInstructions": "Use Rust 1.96.0 as pinned in rust-toolchain.toml; run cargo test --workspace --locked. See docs/reference-viewer.md for the native reference viewer and synthetic examples, and docs/recorded-observations.md for recorded input conversion. Optional Python 3.12 dependencies are documented separately. No hardware or device compatibility claim. See docs/offline-components.md for file fanout, authored verification and synthetic cable evaluation.",
   "license": {
     "spdxIdentifier": "Apache-2.0",
     "version": "2.0",
@@ -47,13 +55,13 @@
   },
   "dependencyLock": {
     "path": "Cargo.lock",
-    "digest": "sha256:af26019cad8e081a82e45e4d882680cc9dd196b078e70d9e543ea1429a5cdac6"
+    "digest": "sha256:1806288e7715b19f59ccf86dc2154b5ba837bb27ed3f9403a51454c04a269bdf"
   },
   "sbom": {
     "sourceSbomPath": "sbom/source-sbom.json",
-    "sourceSbomDigest": "sha256:2112eb460ca2b36b2ea3cf4aae42e6d7d0018a9f7c1866bcfb70f77a2145e0e4",
+    "sourceSbomDigest": "sha256:b02f1a7635b750077f2c13da75495c58d96931ad54680eeb0df090327ec02bb6",
     "dependencySbomPath": "sbom/dependency-sbom.json",
-    "dependencySbomDigest": "sha256:8ca21f8057c3721e8034bc7086ed6fd58247b96b99d62fb91bef3f26d5febe6c",
+    "dependencySbomDigest": "sha256:429363d8b4555e0daf20647c0871b04a2eab88413b172a557ade215545f356d8",
     "coveragePolicy": "SOURCE_PACKAGE_DEPENDENCY_INVENTORY_EXCLUDING_SBOM_AND_GENERATED_METADATA"
   },
   "policies": {

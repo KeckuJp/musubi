@@ -1,0 +1,184 @@
+{
+  "schema_version": "1",
+  "profile_id": "synthetic_cable_interaction_v1",
+  "semantic_version": "cable-interaction-profile-v1",
+  "tether_type": "synthetic_neutral_tether",
+  "nominal_length_m": 50.0,
+  "measurement_end": "both",
+  "reel_direction": "positive_pays_out",
+  "calibrations": [
+    {
+      "semantic_id": "vehicle.motor_torque_nm",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "N*m",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.payout_length_m",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "m",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.payout_rate_mps",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "m/s",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.reel_load_a",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "A",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.tension_scalar_n",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "N",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.vehicle_tension_x_n",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "N",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.vehicle_tension_y_n",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "N",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.vehicle_tension_z_n",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "N",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.reel_tension_x_n",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "N",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.reel_tension_y_n",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "N",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.reel_tension_z_n",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "N",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.exit_pitch_deg",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "deg",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.exit_yaw_deg",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "deg",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    },
+    {
+      "semantic_id": "tether.shape_proxy_lateral_offset_m",
+      "scale": 1.0,
+      "offset": 0.0,
+      "unit": "m",
+      "calibration_artifact": {
+        "digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+        "media_type": "text/markdown",
+        "role": "fixture"
+      }
+    }
+  ],
+  "baseline": [
+    {
+      "semantic_id": "tether.tension_magnitude_n",
+      "mean": 8.0,
+      "standard_deviation": 0.08,
+      "sample_count": 100
+    }
+  ],
+  "feature_transformer": {
+    "transformer_id": "cable_interaction_features",
+    "transformer_version": "1.0.0",
+    "configuration_digest": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca"
+  },
+  "thresholds": [],
+  "applicability_dimensions": {
+    "fixture_domain": "deterministic_timeseries",
+    "quality_fixture": "clock_and_calibration_abstention",
+    "sensor_tier_model": "t0_torque_t1_scalar_single_end_t2_vector_both_end_geometry_shape"
+  }
+}

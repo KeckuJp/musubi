@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "case_id": "profile_synth_v1",
+  "case_version": "1.0.0",
+  "candidate_kind": "profile",
+  "requirements_commit": "1111111111111111111111111111111111111111",
+  "implementation_commit": "2222222222222222222222222222222222222222",
+  "data_boundary": {
+    "classification": "synthetic",
+    "tenant_id": null,
+    "rights_digest": null,
+    "execution_environment": "isolated_synthetic",
+    "external_inference": {
+      "policy": "denied"
+    },
+    "export_policy": {
+      "policy": "denied"
+    },
+    "raw_logs_residency": "not_applicable",
+    "labels_residency": "not_applicable",
+    "model_weights_residency": "not_applicable",
+    "retention": {
+      "maximum_days": 30,
+      "deletion_authority_id": "synthetic_fixture_owner"
+    }
+  },
+  "oracle": {
+    "oracle_id": "profile_oracle",
+    "semantic_owner_id": "synthetic_semantic_owner",
+    "oracle_digest": "sha256:68f630a42642358ffc42caf90a54d7c722ec66c554ca98a1cb808dccf543f310"
+  },
+  "acceptance_owner_id": "synthetic_acceptance_owner",
+  "input_artifacts": [
+    {
+      "digest": "sha256:8227a9371621874feacf709f255ca35a3813586e8b12b800f29ac047c392135d",
+      "media_type": "text/csv",
+      "role": "fixture"
+    }
+  ],
+  "candidate_write_allowlist": [
+    "profile.toml"
+  ],
+  "allowed_tools": [
+    "profile_verify"
+  ],
+  "generator_actor_id": "coding_agent_candidate_generator",
+  "verifier_actor_id": "independent_fixture_verifier",
+  "required_checks": [
+    "MANIFEST_VALID",
+    "DECLARED_BASE_PIN_MATCH",
+    "INPUT_DIGEST_MATCH",
+    "ORACLE_DIGEST_MATCH",
+    "CANDIDATE_ARTIFACT_SET_WITHIN_ALLOWLIST",
+    "PROFILE_PARSE",
+    "PROFILE_AGAINST_SAMPLE",
+    "PROFILE_SCORE",
+    "GENERATOR_VERIFIER_DISTINCT"
+  ],
+  "network_policy": {
+    "policy": "deny_all"
+  },
+  "load_policy": "next_start_after_human_seal",
+  "claim_ceiling": "SIM_SELF_ATTEST"
+}

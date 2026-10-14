@@ -1,0 +1,66 @@
+{
+  "schema_version": "1",
+  "case_id": "adapter_synth_v1",
+  "case_version": "1.0.0",
+  "candidate_kind": "adapter",
+  "requirements_commit": "1111111111111111111111111111111111111111",
+  "implementation_commit": "2222222222222222222222222222222222222222",
+  "data_boundary": {
+    "classification": "synthetic",
+    "tenant_id": null,
+    "rights_digest": null,
+    "execution_environment": "isolated_synthetic",
+    "external_inference": {
+      "policy": "denied"
+    },
+    "export_policy": {
+      "policy": "denied"
+    },
+    "raw_logs_residency": "not_applicable",
+    "labels_residency": "not_applicable",
+    "model_weights_residency": "not_applicable",
+    "retention": {
+      "maximum_days": 30,
+      "deletion_authority_id": "synthetic_fixture_owner"
+    }
+  },
+  "oracle": {
+    "oracle_id": "adapter_normalization_oracle",
+    "semantic_owner_id": "synthetic_semantic_owner",
+    "oracle_digest": "sha256:fb44fc30dbe31bbdd49167bbe8cb94d738dedc6aa8cbbeb530f6ef88209738e2"
+  },
+  "acceptance_owner_id": "synthetic_acceptance_owner",
+  "input_artifacts": [
+    {
+      "digest": "sha256:eb07992c970e4bcee34a65c3253ea346d1e0783b9300bee3b9652b0a5ab521cf",
+      "media_type": "application/vnd.kecku.msyn",
+      "role": "fixture"
+    }
+  ],
+  "candidate_write_allowlist": [
+    "candidate/src"
+  ],
+  "allowed_tools": [
+    "adapter_conformance",
+    "architecture_fitness",
+    "runtime_egress_zero"
+  ],
+  "generator_actor_id": "coding_agent_candidate_generator",
+  "verifier_actor_id": "independent_fixture_verifier",
+  "required_checks": [
+    "MANIFEST_VALID",
+    "DECLARED_BASE_PIN_MATCH",
+    "INPUT_DIGEST_MATCH",
+    "ORACLE_DIGEST_MATCH",
+    "CANDIDATE_ARTIFACT_SET_WITHIN_ALLOWLIST",
+    "ADAPTER_CONFORMANCE",
+    "ARCHITECTURE_FITNESS",
+    "RUNTIME_EGRESS_ZERO",
+    "GENERATOR_VERIFIER_DISTINCT"
+  ],
+  "network_policy": {
+    "policy": "deny_all"
+  },
+  "load_policy": "next_start_after_human_seal",
+  "claim_ceiling": "SIM_SELF_ATTEST"
+}
