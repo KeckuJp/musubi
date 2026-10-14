@@ -1,0 +1,21 @@
+[package]
+name = "musubi-adapter-mavlink"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "MAVLink2 read-only tap (initial first adapter). Passive sniff; emits no heartbeat/command. WASI P2 component packaging is a future extension."
+
+[lints]
+workspace = true
+
+[dependencies]
+musubi-core = { path = "../core" }
+musubi-types = { path = "../types" }
+# Day-1 は zero-dep（最初の cargo build を確実に通す）。
+# 実デコードの `mavlink` crate 全面採用 ＋ WASI P2 component 化は 将来の拡張。
+
+[dev-dependencies]
+# initial walking skeleton の end-to-end test 用（raw → normalize → CoT XML）。
+# 北向きは dev 専用依存＝adapter のランタイム依存は core/types のみ（read-only tap）。
+musubi-northbound = { path = "../northbound" }

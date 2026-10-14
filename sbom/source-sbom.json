@@ -2,8 +2,8 @@
   "schemaVersion": "musubi.sbom.source/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "inventoryDigest": "sha256:f683f80934cabc2950e89eb740de9b9d8a62c948edd3e9c0bcf62f408239d798",
-    "inventoryFileCount": 1373,
+    "inventoryDigest": "sha256:61f6e49d26720bb20d3cff88efb1d2509c92c126ccd3370bf7b2fe2dd919ebcd",
+    "inventoryFileCount": 1440,
     "inventoryCoveragePolicy": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
     "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
     "excludedPaths": [
@@ -56,14 +56,14 @@
     },
     {
       "path": "Cargo.lock",
-      "sha256": "sha256:af26019cad8e081a82e45e4d882680cc9dd196b078e70d9e543ea1429a5cdac6",
-      "bytes": 86339,
+      "sha256": "sha256:1806288e7715b19f59ccf86dc2154b5ba837bb27ed3f9403a51454c04a269bdf",
+      "bytes": 87667,
       "spdxLicenseId": "Apache-2.0"
     },
     {
       "path": "Cargo.toml",
-      "sha256": "sha256:7016f512e51da5879beb1dc0f26e23b0aff58c2de0709317021c8554ed4f21c6",
-      "bytes": 2171,
+      "sha256": "sha256:57928e266eebf8d6450b71af8b8680bf6cb46e559d140b88dec293379baef81c",
+      "bytes": 2403,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -80,8 +80,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "sha256:c710f8ed80180f6556ed6895d0b4ac0494787ff2cd68e1077ebb4fdcff80596a",
-      "bytes": 9235,
+      "sha256": "sha256:83a9024f3296c9c27dbb59ef74f7086397feb044486cecfdf9b013d333ef5f25",
+      "bytes": 9351,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -94,6 +94,24 @@
       "path": "SUPPORT.md",
       "sha256": "sha256:5d7b0ef4c1ea3252a5fe295b01e28e2189618055c56045f2f013488a462c789b",
       "bytes": 1589,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-mavlink/Cargo.toml",
+      "sha256": "sha256:ebe586ae44269abf88d2fccc16b23b78cdb536de0db4dd70b9253bc342f8d28a",
+      "bytes": 846,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-mavlink/src/lib.rs",
+      "sha256": "sha256:923e48e1bda058fd906f4036ad2c3ee111088b7201e6c8d4c27adf25b24edfe6",
+      "bytes": 65012,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-mavlink/tests/platform_domain.rs",
+      "sha256": "sha256:ae9c79e048984d3b9c893fdc46f7939df594379bce1a8f4ecfa20e879041c639",
+      "bytes": 2558,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -190,6 +208,138 @@
       "path": "crates/adapter-spi/tests/recorded_jsonl.rs",
       "sha256": "sha256:48ed2c9765e5bd6bb88c1c35c87cbd28e3af676e8fbec4fac0ef56cb098fc2c4",
       "bytes": 8234,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-template/Cargo.toml",
+      "sha256": "sha256:d45e1f8f1cf076134aedf6e13549d9ed97e64f7911a99354d26ab97536f0cb76",
+      "bytes": 1198,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-template/src/lib.rs",
+      "sha256": "sha256:52048ddc5fbf66e80348a701630a03b9f5f480ce0105b01daf80247a05401aed",
+      "bytes": 31714,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-template/src/quarantine_tests.rs",
+      "sha256": "sha256:66599a356fdee20d20930c979b6142d8b5dcbf2660620c263b335d6fdf27f689",
+      "bytes": 2520,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-template/src/template_tests.rs",
+      "sha256": "sha256:31543c2b6585b0f3a234242c84802f5ed15000e7a8686e217d6df08889aaac2f",
+      "bytes": 22652,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-usv-json/Cargo.toml",
+      "sha256": "sha256:23347bfec622699279b4ea42cae9e16a0d9a9cc6d67b789cba9b6490de16314c",
+      "bytes": 1711,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-usv-json/src/heterogeneity.rs",
+      "sha256": "sha256:e249a37cfc73b086ab2935ef9ed2a7d3f1d84cdb25b9bd3db45ea97833ffa212",
+      "bytes": 7920,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-usv-json/src/lib.rs",
+      "sha256": "sha256:edee0af8d9ea8eb1ddc024dbc05510d622f3c40ce355070176b515a7305e0e44",
+      "bytes": 33884,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-usv-json/src/north_star_2x2.rs",
+      "sha256": "sha256:b58d8c090848a410889bda4f430371e35fda530671cf49bdff90a473738b22cc",
+      "bytes": 8277,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-usv-json/src/quarantine_tests.rs",
+      "sha256": "sha256:63032a8106e0455ffaa89bdd01ec7d7f888ce6d8880a889b7f8d42260f323b92",
+      "bytes": 6113,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/adapter-usv-json/src/usv_integrate.rs",
+      "sha256": "sha256:b129a0ea8958fd44f68f67fcbac3c324d7c1eb8c3851db9839c783bebe6ce527",
+      "bytes": 28358,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-ml-eval/Cargo.toml",
+      "sha256": "sha256:f77d52809676436d0055bc789c729e5b2b68d25232ea177552e74202bfe1c70c",
+      "bytes": 480,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-ml-eval/src/data.rs",
+      "sha256": "sha256:3a74c8972b5dedede49bec74c9d974773e2ad4984251fe3281c850272527c777",
+      "bytes": 6298,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-ml-eval/src/lib.rs",
+      "sha256": "sha256:5999efbdfb2e623d51d037598a26b5f27d094759cb0d2e4b9b91243a5a6d77b2",
+      "bytes": 23337,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-ml-eval/src/main.rs",
+      "sha256": "sha256:8acc12e4cd1b30fcae238ecff19c8211acd9d573d82c8d1fd37e3e549ba8dc60",
+      "bytes": 2898,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-ml-eval/src/models.rs",
+      "sha256": "sha256:4a83885eaad3352703f1e4835fa1a616812e608a96807a0f9a295931303fa9c3",
+      "bytes": 16923,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-ml-eval/src/report.rs",
+      "sha256": "sha256:6bea96cf9e07dc81ae3f98c93b07f5de7d89e591cc6523c2786ea6698e938598",
+      "bytes": 3377,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-sim/Cargo.toml",
+      "sha256": "sha256:b1005652806a873b614a3b0b40beac6c136b49f7ade202fc8bfb4fa350d2ca66",
+      "bytes": 427,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-sim/src/lib.rs",
+      "sha256": "sha256:79c73f344c8289e71af72e8903b2f6d3a8f685cd474968f88989b71c2385ab4c",
+      "bytes": 54193,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-sim/src/main.rs",
+      "sha256": "sha256:13a9c19c22834553b4ef92cd93bf7c71c70b2cd30898a50a0c37ddf4563a1ed6",
+      "bytes": 5164,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-sim/src/model.rs",
+      "sha256": "sha256:a516538796d6fa7d3e811dac64fa170adf171b6d15c93298827bb69a4b69a325",
+      "bytes": 13180,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-sim/tests/public_registry.rs",
+      "sha256": "sha256:aa35e1dbd50df0261277bd2bd3a106bef4da5501d2db35d30c907328ffe53bba",
+      "bytes": 6422,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/cable-sim/tests/regeneration_receipt.rs",
+      "sha256": "sha256:07cb541d230586d4721e903da40b6ce28ad40bfec4b9a244819b5ecf9c119d68",
+      "bytes": 2928,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -415,6 +565,48 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "crates/integration-case/Cargo.toml",
+      "sha256": "sha256:589d7a2f385369d06407f708c7b7edbc302678205513f16845ce0832bd136b00",
+      "bytes": 595,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/integration-case/src/lib.rs",
+      "sha256": "sha256:3b50d77b6abefd6b9a1f9130dcf30846f6c279a90759a13b22df5eaac21cb2e0",
+      "bytes": 2603,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/integration-case/src/main.rs",
+      "sha256": "sha256:fb31cf75a54451a198b2bddba132ad631133b0d02bf2b2c2fc0a22d663b1322f",
+      "bytes": 7736,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/integration-case/src/profile.rs",
+      "sha256": "sha256:90e943e042d5829791cc49e8e0bd6559137883248e54c17eae79980893767176",
+      "bytes": 48273,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/integration-case/src/report.rs",
+      "sha256": "sha256:78da328efc2c27eba0b78326fab5ae4805a9e4b7dfef9bb25e0860e308ca9586",
+      "bytes": 21197,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/integration-case/tests/adapter_fixture.rs",
+      "sha256": "sha256:5cdb55b98207cb3e1ffd56fc5f369cc4b5355cddcffd42826657f09341b33392",
+      "bytes": 5889,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/integration-case/tests/profile_fixture.rs",
+      "sha256": "sha256:7354aee648c6625103f8da50ec38d3d1d18d944db8f5908720052bb083d60c72",
+      "bytes": 4968,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "crates/jsonl-log/Cargo.toml",
       "sha256": "sha256:3b955f923ee747b3e7ad14cc5e2b58b18a93d6e1e896b08b2b89036ff5489db6",
       "bytes": 347,
@@ -478,6 +670,78 @@
       "path": "crates/miniseed2/tests/support/mod.rs",
       "sha256": "sha256:21f35fbbccd1ddb037d90f932e36db2c8aaa740490c5134db55ee9b0f9d35fe5",
       "bytes": 2102,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/Cargo.toml",
+      "sha256": "sha256:a54c086ddd4c9e0bdafcc046c91bcc52790b6535a6ef2f7ac075aee04e27f59b",
+      "bytes": 816,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/src/cot_policy.rs",
+      "sha256": "sha256:634b76efd6c4edbb9d2e123df752d8623d9133549570ed8172862ab079d96d39",
+      "bytes": 30979,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/src/fanout.rs",
+      "sha256": "sha256:11c5b219636ffe3d8d9eb71ba35b828069d87720d265cfcbcafe12f1daa93b0f",
+      "bytes": 55345,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/src/host_state_json.rs",
+      "sha256": "sha256:5258d05d6bbbfb95405c3a4aa452e8ec9acba030bbb5877d26692b4044a42ddd",
+      "bytes": 10617,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/src/lib.rs",
+      "sha256": "sha256:045d202d43ed6fab39f3b0ca57aabfd098810574693db663331cfa4ca0fc8941",
+      "bytes": 73817,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/src/nvg_policy.rs",
+      "sha256": "sha256:b8c2aff5d6465c5335ea352dabb94f63444ba5d46f69a43dfa05bbd3e14c98c8",
+      "bytes": 45570,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/src/wire_policy.rs",
+      "sha256": "sha256:a655e9a051d552af194835fbf733af7cbc671db021a89fac80dfd8f5f5947a79",
+      "bytes": 16952,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/tests/cot_tak_validity.rs",
+      "sha256": "sha256:93a1512ea6821d9a2da250d9e38cff2393e6855295c1727a9001e6d5ac04eb47",
+      "bytes": 17271,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/tests/fixtures/cot_degraded.xml",
+      "sha256": "sha256:fe75714d02aed382c21b219ce8edb07cddb27e1f3b4dbc8cf64f8821dcc3b840",
+      "bytes": 420,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/tests/fixtures/cot_ok.xml",
+      "sha256": "sha256:96ef3e673582b3322aa2b0b143659cd3d20a0623039ae1f9a567233445836e18",
+      "bytes": 412,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/tests/fixtures/cot_order_unknown.xml",
+      "sha256": "sha256:a3b50965d90624469b68127d37f828e3b695659734948c881bbbe6a858cc3ab8",
+      "bytes": 438,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/northbound/tests/fixtures/cot_withheld.xml",
+      "sha256": "sha256:5adaee20ad8695baf68d5c83136edbcab8682091dc3e30efcc74164fa17804ed",
+      "bytes": 430,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -556,6 +820,54 @@
       "path": "crates/recorded-readers/src/ulog.rs",
       "sha256": "sha256:ea6a0c516c050bb9d62a777f31b78981e67f055549cfe142689d929061cbefd3",
       "bytes": 41512,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-fanout/Cargo.toml",
+      "sha256": "sha256:80c59746e01d5c3028caa15e8f40cefd21cc4d6b84d9eaf74b7ea6bd2deeaaa2",
+      "bytes": 810,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-fanout/src/bin/fanout.rs",
+      "sha256": "sha256:47938c6c178e93426db59b05d734140750b4fabfe161cccd1beb304fc6cd742d",
+      "bytes": 13915,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-fanout/src/csvsink.rs",
+      "sha256": "sha256:b1cf2768da0c91d11f57315473a409f66b76137c9ae5910992a00b239d3ca1de",
+      "bytes": 8939,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-fanout/src/lib.rs",
+      "sha256": "sha256:38564f3d71e9dc73069373996a24a300fa8ca78f2c1f916513a48765a5558c0b",
+      "bytes": 39437,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-fanout/tests/declared_surface_domain.rs",
+      "sha256": "sha256:60db6f29893fd7ab13d881d4d700e65f3cd0bec68a89658d17463b61f289cde5",
+      "bytes": 12470,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-fanout/tests/golden.rs",
+      "sha256": "sha256:3746ebc66b431b57bf3b5406c43e58326a16e0f6ffdbe0045fb267dc6ce17de3",
+      "bytes": 22874,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-fanout/tests/tlog_sender_binding.rs",
+      "sha256": "sha256:9c26ce52b62eed4563a4f682947b082f9fe4e3153320168d9fc889e2cd418491",
+      "bytes": 20651,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "crates/reference-fanout/tests/unknown_family_domain.rs",
+      "sha256": "sha256:3a029d47297260088e051f06ef3f2382850d4e03994f7b5cd66c4d30f2eccf3b",
+      "bytes": 332,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -1597,6 +1909,12 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "docs/offline-components.md",
+      "sha256": "sha256:cc058f526e07ed95f7c17f83f1bad6bb7feeccfc6cb2f307f1ec63bc11a2bec6",
+      "bytes": 5250,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "docs/recorded-blackbox.md",
       "sha256": "sha256:815073be13e2e9fbd8a4e16e57f6cf65601fb91a87af3c15207496923ee06a01",
       "bytes": 6189,
@@ -1660,6 +1978,66 @@
       "path": "docs/saved-inputs.md",
       "sha256": "sha256:6b5c75bf81eb74e52348455a803a5d28ecd9b326802ee0a35f6bc1986d0b392c",
       "bytes": 6868,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/offline-verification/adapter/candidate/src/lib.rs",
+      "sha256": "sha256:38b181ab41a474bdbcb611418bea0fbb9233a5f67a686e209b260b7a51d748f9",
+      "bytes": 1913,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/offline-verification/adapter/input/sample.msyn",
+      "sha256": "sha256:eb07992c970e4bcee34a65c3253ea346d1e0783b9300bee3b9652b0a5ab521cf",
+      "bytes": 193,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/offline-verification/adapter/manifest.json",
+      "sha256": "sha256:cf7a55c89bcd4e87d6e78b87a677918b62a6d31adde42ee0bad888101e18dc1f",
+      "bytes": 1970,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/offline-verification/adapter/oracle/normalized.json",
+      "sha256": "sha256:fb44fc30dbe31bbdd49167bbe8cb94d738dedc6aa8cbbeb530f6ef88209738e2",
+      "bytes": 523,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/offline-verification/cable/regeneration-receipt-v1.json",
+      "sha256": "sha256:c7212ddbc5ca955cecc67c4da6a151f8fe3bfe5d8baf26748fb8810a1747975e",
+      "bytes": 1007,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/offline-verification/profile/candidate/profile.toml",
+      "sha256": "sha256:019cb552fd8f1fb89dd918f9e48f26af6cf852e02ff5c96bd138b3c0cd6c3622",
+      "bytes": 424,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/offline-verification/profile/input/sample.csv",
+      "sha256": "sha256:8227a9371621874feacf709f255ca35a3813586e8b12b800f29ac047c392135d",
+      "bytes": 44,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/offline-verification/profile/manifest.json",
+      "sha256": "sha256:e6d0576629c523ea119336a627f33bdf31beefa596c604b862389e7ed49d6be1",
+      "bytes": 1867,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/offline-verification/profile/oracle/profile-oracle.json",
+      "sha256": "sha256:68f630a42642358ffc42caf90a54d7c722ec66c554ca98a1cb808dccf543f310",
+      "bytes": 502,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "examples/offline-verification/profile/verification-receipt-v1.json",
+      "sha256": "sha256:b0e6fb9a9af5f7f67547c1fe0c6fbb856bf5ae40860ecd93fa6f9a32161936eb",
+      "bytes": 3236,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -4141,6 +4519,18 @@
       "spdxLicenseId": "Apache-2.0"
     },
     {
+      "path": "profiles/public/cable/README.md",
+      "sha256": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+      "bytes": 903,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/public/cable/cable-interaction-profile-v1.json",
+      "sha256": "sha256:719145b664a96f25c72495ab39fb20bca75672f6b0f697ffbd4e7b61968f3bfa",
+      "bytes": 5424,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
       "path": "profiles/public/catalog/failure_signatures.toml",
       "sha256": "sha256:5569c6b4d92f2d82665a05474ddaecb33cb1543eb538d6f72885b27e16d66430",
       "bytes": 3870,
@@ -4150,6 +4540,18 @@
       "path": "profiles/public/edgetx_handset_csv.toml",
       "sha256": "sha256:f4bf2d8a8658cacce0f94bf424553bac3d0c6127433d13240d28a25177cbccac",
       "bytes": 462,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/public/extensions/README.md",
+      "sha256": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af",
+      "bytes": 757,
+      "spdxLicenseId": "Apache-2.0"
+    },
+    {
+      "path": "profiles/public/extensions/cable-field-registry-v1.json",
+      "sha256": "sha256:7260c4e8ebfd976602046f52727d6f0adb0ae071b5c860b2d48fbbab252a4a12",
+      "bytes": 18968,
       "spdxLicenseId": "Apache-2.0"
     },
     {

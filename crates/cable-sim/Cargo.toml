@@ -1,0 +1,16 @@
+[package]
+name = "musubi-cable-sim"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Deterministic, read-only cable interaction fixture generator for client-local evaluation data."
+
+[lints]
+workspace = true
+
+[dependencies]
+libm = "=0.2.16"
+musubi-field-contracts = { path = "../field-contracts" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

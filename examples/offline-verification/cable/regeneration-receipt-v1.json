@@ -1,0 +1,23 @@
+{
+  "schema_version": "1",
+  "watermark": "SIMULATED",
+  "claim_ceiling": "SIM_SELF_ATTEST",
+  "generator": "musubi-cable-sim",
+  "config": {
+    "scenario": "partial_snag",
+    "sensor_tier": "t2",
+    "seed": 42,
+    "tick_count": 10
+  },
+  "expected": {
+    "fixture_manifest_sha256": "sha256:4099e357a693f0308d9971fe57892699266d02adb1e3b6d367c89bfeb7ab9ce0",
+    "public_profile_sha256": "sha256:719145b664a96f25c72495ab39fb20bca75672f6b0f697ffbd4e7b61968f3bfa",
+    "public_registry_sha256": "sha256:7260c4e8ebfd976602046f52727d6f0adb0ae071b5c860b2d48fbbab252a4a12",
+    "transformer_configuration_sha256": "sha256:cd4b578fbc2eb7141ed15e5521fbfa66279621ba6cbdae7b2fa9def46f7fbcca",
+    "pre_receipt_sha256": "sha256:a0f21fcf4c232840d64568d68d97f8b69731faa094bede9aa87b0f14da88e233",
+    "complete_ndjson_sha256": "sha256:8f92923a095c7e44312003b48fad2005807c3f2f17c6421f8315cd6bfebf1ec7",
+    "pre_receipt_byte_count": 253368,
+    "pre_receipt_record_count": 322,
+    "complete_record_count": 323
+  }
+}

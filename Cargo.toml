@@ -1,6 +1,15 @@
 [workspace]
 resolver = "3"
 members = [
+    "crates/reference-fanout",
+    "crates/integration-case",
+    "crates/adapter-template",
+    "crates/adapter-mavlink",
+    "crates/adapter-usv-json",
+    "crates/northbound",
+    "crates/cable-sim",
+    "crates/cable-ml-eval",
+
     "crates/field-contracts",
     "crates/reference-viewer",
     "crates/reference-pipeline",

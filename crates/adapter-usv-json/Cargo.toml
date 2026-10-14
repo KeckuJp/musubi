@@ -1,0 +1,30 @@
+[package]
+name = "musubi-adapter-usv-json"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Non-MAVLink USV telemetry JSON adapter (offline integrate boundary, contract). Adapter author parses a vendor JSON wire format and semantically maps it onto the COM PlatformState. read-only tap; emits no command/heartbeat (X-NOWRITE). serde_json lives here, NOT in core."
+
+[lints]
+workspace = true
+
+[dependencies]
+musubi-core = { path = "../core" }
+musubi-types = { path = "../types" }
+# integrate（contract / contract）: Musubi に標準デコーダが無い非 MAVLink wire 形式を
+# **アダプタ著者が自前 parse**する境界。テキスト JSON を typed struct へ堅くデコードするため
+# serde + serde_json を **この adapter crate にだけ**置く（core は no-net・zero-外部dep のまま）。
+# core の依存閉包に serde_json は入らない（scripts/fitness/no_net_in_core.sh が
+# `cargo tree -e normal -i serde_json -p musubi-core` の非存在で担保）。serde_json は no-std/
+# no-network の pure parser（socket を開かない）＝§5 #4 read-only と整合。
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+# heterogeneity walking-skeleton（UAV-MAVLink ＋ USV-JSON を 1 本の test で両方
+# normalize → 同一 CotPublisher で両方 CoT XML）用。
+# - adapter-mavlink: S0 の GOLDEN_FRAME（UAV 側 source）を借りる＝dev 専用。
+# - northbound: 北向き publisher を再利用（adapter のランタイム依存は core/types のみ）。
+musubi-adapter-mavlink = { path = "../adapter-mavlink" }
+musubi-northbound = { path = "../northbound" }

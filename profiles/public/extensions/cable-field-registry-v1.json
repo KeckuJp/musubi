@@ -1,0 +1,216 @@
+{
+  "schema_version": "1",
+  "scope": { "scope": "public" },
+  "entries": [
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "vehicle.position_x_m", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "m", "description": "Synthetic vehicle longitudinal position.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "vehicle.input_speed_mps", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "m/s", "description": "Synthetic observed input-speed reference.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "vehicle.ground_speed_mps", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "m/s", "description": "Synthetic vehicle ground speed.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "vehicle.motor_current_a", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "A", "description": "Synthetic traction-motor current.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "vehicle.motor_torque_nm", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "N*m", "description": "T0 synthetic observed motor torque.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "vehicle.motor_rpm", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "rpm", "description": "Synthetic traction-motor speed.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "vehicle.imu_longitudinal_accel_mps2", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "m/s^2", "description": "Synthetic longitudinal acceleration.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "vehicle.link_present", "semantic_version": "1.0.0" },
+      "value_kind": "bool", "unit": null, "description": "Synthetic vehicle telemetry-link continuity.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.continuity_present", "semantic_version": "1.0.0" },
+      "value_kind": "bool", "unit": null, "description": "Synthetic tether electrical or optical continuity.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.payout_length_m", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "m", "description": "T1 synthetic measured payout length.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.payout_rate_mps", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "m/s", "description": "T1 synthetic measured payout rate.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.reel_load_a", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "A", "description": "T1 synthetic reel electrical load.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.tension_scalar_n", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "N", "description": "T1 synthetic scalar tension at one end.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.vehicle_tension_x_n", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "N", "description": "T2 synthetic vehicle-end tension x component.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.vehicle_tension_y_n", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "N", "description": "T2 synthetic vehicle-end tension y component.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.vehicle_tension_z_n", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "N", "description": "T2 synthetic vehicle-end tension z component.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.reel_tension_x_n", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "N", "description": "T2 synthetic reel-end tension x component.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.reel_tension_y_n", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "N", "description": "T2 synthetic reel-end tension y component.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.reel_tension_z_n", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "N", "description": "T2 synthetic reel-end tension z component.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.exit_pitch_deg", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "deg", "description": "T2 synthetic tether-exit pitch geometry.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.exit_yaw_deg", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "deg", "description": "T2 synthetic tether-exit yaw geometry.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "tether.shape_proxy_lateral_offset_m", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "m", "description": "T2 synthetic lateral tether-shape proxy, not reconstructed geometry.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "vehicle.heading_deg", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "deg", "description": "T2 synthetic vehicle-heading geometry reference.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "observation", "namespace": "kecku.musubi.cable", "semantic_id": "observer.liveness", "semantic_version": "1.0.0" },
+      "value_kind": "bool", "unit": null, "description": "Synthetic observation-pipeline liveness.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "derived_feature", "namespace": "kecku.musubi.cable", "semantic_id": "tether.tension_magnitude_n", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "N", "description": "Synthetic profile baseline identifier for tension magnitude.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "derived_feature", "namespace": "kecku.musubi.cable", "semantic_id": "feature.progress_deficit", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "1", "description": "Deterministic progress deficit from observed speed reference.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "derived_feature", "namespace": "kecku.musubi.cable", "semantic_id": "feature.effort_to_progress", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "N*s", "description": "Deterministic observed motor-torque to progress ratio.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "derived_feature", "namespace": "kecku.musubi.cable", "semantic_id": "feature.payout_motion_residual", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "1", "description": "Deterministic residual between vehicle motion and payout.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "derived_feature", "namespace": "kecku.musubi.cable", "semantic_id": "feature.tension_model_residual", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "1", "description": "Deterministic residual from the synthetic tension baseline.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "derived_feature", "namespace": "kecku.musubi.cable", "semantic_id": "feature.force_transmission_ratio", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "1", "description": "Deterministic reel-end to vehicle-end tension-magnitude ratio.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "derived_feature", "namespace": "kecku.musubi.cable", "semantic_id": "feature.tether_angle_misalignment", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "deg", "description": "Deterministic wrapped tether-exit and vehicle-heading difference.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "derived_feature", "namespace": "kecku.musubi.cable", "semantic_id": "feature.continuity_fault", "semantic_version": "1.0.0" },
+      "value_kind": "bool", "unit": null, "description": "Deterministic negation of tether continuity presence.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "derived_feature", "namespace": "kecku.musubi.cable", "semantic_id": "feature.observer_health", "semantic_version": "1.0.0" },
+      "value_kind": "f64", "unit": "1", "description": "Deterministic observer-health indicator.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "annotation_label", "namespace": "kecku.musubi.cable_interaction", "semantic_id": "suspected_partial_snag", "semantic_version": "1.0.0" },
+      "value_kind": "text", "unit": null, "description": "Unconfirmed cause-candidate label for suspected partial snag.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "annotation_label", "namespace": "kecku.musubi.cable_interaction", "semantic_id": "confirmed_normal_drag", "semantic_version": "1.0.0" },
+      "value_kind": "text", "unit": null, "description": "Injected fixture truth for normal tether drag.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "annotation_label", "namespace": "kecku.musubi.cable_interaction", "semantic_id": "confirmed_partial_snag", "semantic_version": "1.0.0" },
+      "value_kind": "text", "unit": null, "description": "Injected fixture truth for partial tether snag.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "annotation_label", "namespace": "kecku.musubi.cable_interaction", "semantic_id": "confirmed_complete_restraint_or_loop", "semantic_version": "1.0.0" },
+      "value_kind": "text", "unit": null, "description": "Injected fixture truth for complete restraint or loop.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "annotation_label", "namespace": "kecku.musubi.cable_interaction", "semantic_id": "confirmed_reel_jam", "semantic_version": "1.0.0" },
+      "value_kind": "text", "unit": null, "description": "Injected fixture truth for reel jam.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "annotation_label", "namespace": "kecku.musubi.cable_interaction", "semantic_id": "confirmed_length_limit", "semantic_version": "1.0.0" },
+      "value_kind": "text", "unit": null, "description": "Injected fixture truth for tether length limit.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "annotation_label", "namespace": "kecku.musubi.cable_interaction", "semantic_id": "confirmed_tether_break", "semantic_version": "1.0.0" },
+      "value_kind": "text", "unit": null, "description": "Injected fixture truth for tether break.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "annotation_label", "namespace": "kecku.musubi.cable_interaction", "semantic_id": "confirmed_mobility_stall", "semantic_version": "1.0.0" },
+      "value_kind": "text", "unit": null, "description": "Injected fixture truth for non-tether mobility stall.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    },
+    {
+      "key": { "kind": "annotation_label", "namespace": "kecku.musubi.cable_interaction", "semantic_id": "confirmed_observer_fault", "semantic_version": "1.0.0" },
+      "value_kind": "text", "unit": null, "description": "Injected fixture truth for observation-pipeline fault.",
+      "provenance": { "digest": "sha256:88875c17fd98ced0e9c5c648d2be5b582f6284a4f96565c2a7881bb456f839af", "media_type": "text/markdown", "role": "fixture" }, "deprecated": false
+    }
+  ]
+}

@@ -1332,6 +1332,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "musubi-adapter-mavlink"
+version = "0.0.0"
+dependencies = [
+ "musubi-core",
+ "musubi-northbound",
+ "musubi-types",
+]
+
+[[package]]
 name = "musubi-adapter-spi"
 version = "0.0.0"
 dependencies = [
@@ -1342,6 +1351,48 @@ dependencies = [
  "musubi-types",
  "serde_json",
  "sha2",
+]
+
+[[package]]
+name = "musubi-adapter-template"
+version = "0.0.0"
+dependencies = [
+ "musubi-core",
+ "musubi-northbound",
+ "musubi-types",
+]
+
+[[package]]
+name = "musubi-adapter-usv-json"
+version = "0.0.0"
+dependencies = [
+ "musubi-adapter-mavlink",
+ "musubi-core",
+ "musubi-northbound",
+ "musubi-types",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "musubi-cable-ml-eval"
+version = "0.0.0"
+dependencies = [
+ "musubi-cable-sim",
+ "musubi-field-contracts",
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "musubi-cable-sim"
+version = "0.0.0"
+dependencies = [
+ "libm",
+ "musubi-field-contracts",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -1382,6 +1433,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "musubi-integration-case"
+version = "0.0.0"
+dependencies = [
+ "musubi-field-contracts",
+ "musubi-reference-readers",
+ "musubi-reference-types",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "musubi-jsonl-log"
 version = "0.1.0"
 dependencies = [
@@ -1394,6 +1456,14 @@ name = "musubi-miniseed2"
 version = "0.1.0"
 
 [[package]]
+name = "musubi-northbound"
+version = "0.0.0"
+dependencies = [
+ "musubi-core",
+ "musubi-types",
+]
+
+[[package]]
 name = "musubi-recorded-readers"
 version = "0.0.0"
 dependencies = [
@@ -1403,6 +1473,20 @@ dependencies = [
  "musubi-types",
  "serde_json",
  "sha2",
+]
+
+[[package]]
+name = "musubi-reference-fanout"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "musubi-core",
+ "musubi-northbound",
+ "musubi-reference-pipeline",
+ "musubi-reference-readers",
+ "musubi-reference-scenario",
+ "musubi-reference-types",
+ "musubi-types",
 ]
 
 [[package]]

@@ -1,0 +1,17 @@
+[package]
+name = "musubi-integration-case"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Offline, deterministic Profile/Adapter candidate manifest and verification reports. Candidate-only; no runtime loading, network, or operational authority."
+
+[lints]
+workspace = true
+
+[dependencies]
+musubi-field-contracts = { path = "../field-contracts" }
+musubi-reference-readers = { path = "../reference-readers" }
+musubi-reference-types = { path = "../reference-types" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "bindings": [
+    {
+      "role": "time",
+      "acceptable_fields": ["tmr10ms"]
+    },
+    {
+      "role": "status",
+      "acceptable_fields": ["Mode"]
+    },
+    {
+      "role": "link",
+      "acceptable_fields": ["RQly(%)"]
+    }
+  ],
+  "field_units": {
+    "tmr10ms": "10_ms_tick",
+    "Mode": "enum",
+    "RQly(%)": "percent"
+  },
+  "expectations": [
+    {
+      "channel": "link_stats",
+      "cadence_ms": 100,
+      "grace_k": 3,
+      "frozen_ms": null
+    }
+  ]
+}
