@@ -102,8 +102,8 @@ To write an adapter for your own device, read `crates/adapter-spi/src/template.r
 
 ## Read-only, by construction
 
-Musubi does not send anything back to a device. That is not a policy note; it is a property of
-the code that you can check:
+This preview does not send anything back to a device. That is not a policy note; it is a property
+of the code that you can check:
 
 - The tap trait has no send, connect or acknowledge method. An implementation cannot acquire
   one without changing the trait, which is a reviewable event.
@@ -130,7 +130,10 @@ Being specific about this is part of the work rather than a disclaimer.
   would otherwise be easy to assume otherwise.
 - **No independent-maintenance claim.** Whether someone outside the original authors can
   maintain this has not been demonstrated.
-- **Not a control system.** Musubi originates and transports no instruction to any device.
+- **No instructions to devices.** This preview is Musubi core, the read-only part of Musubi
+  (everything in this repository, not only the `musubi-core` crate). Musubi core originates and
+  transports no instruction to any device; that is the role of a separate SDK, Musubi Control
+  SDK, which is not part of this preview.
 
 ## Licence
 
