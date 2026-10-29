@@ -2,7 +2,7 @@
   "schemaVersion": "musubi.sbom.source/1",
   "subject": {
     "repository": "KeckuJp/musubi",
-    "inventoryDigest": "sha256:61f6e49d26720bb20d3cff88efb1d2509c92c126ccd3370bf7b2fe2dd919ebcd",
+    "inventoryDigest": "sha256:8a1019519e44918cb36e06d1f90c4c215bc34bf1691adf49e562e5cc62554c6f",
     "inventoryFileCount": 1440,
     "inventoryCoveragePolicy": "NON_GENERATED_ALLOWLISTED_SOURCE_FILES_EXCLUDING_BOTH_SBOMS_AND_BOTH_METADATA_MANIFESTS",
     "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
@@ -80,8 +80,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "sha256:83a9024f3296c9c27dbb59ef74f7086397feb044486cecfdf9b013d333ef5f25",
-      "bytes": 9351,
+      "sha256": "sha256:f79c5c6edebc217791027d0e7b9d76198cc0923d96bbe0205d55b422c0567f90",
+      "bytes": 9590,
       "spdxLicenseId": "Apache-2.0"
     },
     {
@@ -218,8 +218,8 @@
     },
     {
       "path": "crates/adapter-template/src/lib.rs",
-      "sha256": "sha256:52048ddc5fbf66e80348a701630a03b9f5f480ce0105b01daf80247a05401aed",
-      "bytes": 31714,
+      "sha256": "sha256:e17afd5e6f4beff5599ab055cd4362fa34010d13675e68c8f78edde65b0b839d",
+      "bytes": 31719,
       "spdxLicenseId": "Apache-2.0"
     },
     {

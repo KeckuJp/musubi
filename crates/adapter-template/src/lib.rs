@@ -49,7 +49,7 @@
 //! [`MyDeviceManifest`] mirrors `UsvManifest`: `egress_bytes = 0`, no heartbeat, no command.
 //! This is the read-only contract expressed as a value AND asserted by a test — not promised
 //! in prose. The tap ([`QueuedMyDeviceTap`]) only **consumes** a receive queue via `poll()`
-//! and holds no send API. Musubi originates/transports NO command (kinetic or non-kinetic).
+//! and holds no send API. Musubi core originates/transports NO command (kinetic or non-kinetic).
 //!
 //! ## Scope
 //!

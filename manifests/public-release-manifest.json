@@ -1,9 +1,9 @@
 {
   "schemaVersion": "musubi.publication.public-release-manifest.v1",
   "releaseClass": "PUBLIC_SOURCE_PREVIEW",
-  "payloadCommit": "9d7d2af6eaf745c9dec1d0f16c72179cff6379a2",
-  "payloadManifestDigest": "sha256:6f5211552a9bc2650ebf2893c07d46a1c201d078cf9ebac2503cc47fa48d0c0a",
-  "payloadTreeDigest": "sha256:1e1079eb63980b40ef87641c68471bdd09e589bf4c51c75f817f0b3fdced9eb2",
+  "payloadCommit": "3ed31a94cec19c8671df767c6b0e2eb648b6693a",
+  "payloadManifestDigest": "sha256:98af7a6ad1a152b7d166aebea96823408f7e128aafc0f5d25e561cce0ee91b93",
+  "payloadTreeDigest": "sha256:c5513770905dfca76200a7ac5713b39f86e3f38c6599bd8832e9251c27bc2dcd",
   "sourceUrl": "https://github.com/KeckuJp/musubi",
   "targetPackages": [
     "musubi-adapter-mavlink",
@@ -59,7 +59,7 @@
   },
   "sbom": {
     "sourceSbomPath": "sbom/source-sbom.json",
-    "sourceSbomDigest": "sha256:b02f1a7635b750077f2c13da75495c58d96931ad54680eeb0df090327ec02bb6",
+    "sourceSbomDigest": "sha256:29bd516296d985befccccf76426f0f9e2f93f34146c22e58053b31db3ce420f7",
     "dependencySbomPath": "sbom/dependency-sbom.json",
     "dependencySbomDigest": "sha256:429363d8b4555e0daf20647c0871b04a2eab88413b172a557ade215545f356d8",
     "coveragePolicy": "SOURCE_PACKAGE_DEPENDENCY_INVENTORY_EXCLUDING_SBOM_AND_GENERATED_METADATA"

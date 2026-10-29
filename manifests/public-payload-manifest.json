@@ -1,8 +1,8 @@
 {
   "schemaVersion": "musubi.publication.public-payload-manifest.v1",
-  "payloadCommit": "9d7d2af6eaf745c9dec1d0f16c72179cff6379a2",
-  "payloadGitTreeOid": "b7379cbc01c4df31b3e9f69f5687994a57004809",
-  "payloadTreeDigest": "sha256:1e1079eb63980b40ef87641c68471bdd09e589bf4c51c75f817f0b3fdced9eb2",
+  "payloadCommit": "3ed31a94cec19c8671df767c6b0e2eb648b6693a",
+  "payloadGitTreeOid": "1b182d6a10e851830ed7bb57bbbdeb99561d7c6c",
+  "payloadTreeDigest": "sha256:c5513770905dfca76200a7ac5713b39f86e3f38c6599bd8832e9251c27bc2dcd",
   "treeDigestSpecVersion": "musubi-content-mode-tree-v1",
   "coveragePolicy": "ALL_PAYLOAD_COMMIT_FILES_EXCLUDING_THIS_AND_RELEASE_MANIFEST",
   "fileCount": 1442,
@@ -59,7 +59,7 @@
     },
     {
       "path": "README.md",
-      "contentDigest": "sha256:83a9024f3296c9c27dbb59ef74f7086397feb044486cecfdf9b013d333ef5f25",
+      "contentDigest": "sha256:f79c5c6edebc217791027d0e7b9d76198cc0923d96bbe0205d55b422c0567f90",
       "mode": "100644"
     },
     {
@@ -174,7 +174,7 @@
     },
     {
       "path": "crates/adapter-template/src/lib.rs",
-      "contentDigest": "sha256:52048ddc5fbf66e80348a701630a03b9f5f480ce0105b01daf80247a05401aed",
+      "contentDigest": "sha256:e17afd5e6f4beff5599ab055cd4362fa34010d13675e68c8f78edde65b0b839d",
       "mode": "100644"
     },
     {
@@ -4779,7 +4779,7 @@
     },
     {
       "path": "sbom/source-sbom.json",
-      "contentDigest": "sha256:b02f1a7635b750077f2c13da75495c58d96931ad54680eeb0df090327ec02bb6",
+      "contentDigest": "sha256:29bd516296d985befccccf76426f0f9e2f93f34146c22e58053b31db3ce420f7",
       "mode": "100644"
     },
     {
