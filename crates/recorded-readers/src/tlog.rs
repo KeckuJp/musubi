@@ -61,34 +61,8 @@ pub const fn defining_dialect(msgid: u32) -> Option<DefiningDialect> {
 }
 
 #[must_use]
-pub const fn crc_extra(msgid: u32) -> Option<u8> {
-    match msgid {
-        0 => Some(50),
-        1 => Some(124),
-        2 => Some(137),
-        24 => Some(24),
-        26 => Some(170),
-        29 => Some(115),
-        30 => Some(39),
-        32 => Some(185),
-        33 => Some(104),
-        42 => Some(28),
-        46 => Some(11),
-        65 => Some(118),
-        109 => Some(185),
-        116 => Some(76),
-        129 => Some(46),
-        132 => Some(85),
-        137 => Some(195),
-        143 => Some(131),
-        147 => Some(154),
-        148 => Some(178),
-        193 => Some(71),
-        253 => Some(83),
-        262 => Some(12),
-        270 => Some(59),
-        _ => None,
-    }
+pub fn crc_extra(msgid: u32) -> Option<u8> {
+    mavlink_tlog::message_info(msgid).map(|info| info.crc_extra)
 }
 
 fn mavlink1_length(msgid: u32) -> Option<usize> {
@@ -1485,5 +1459,44 @@ impl ProfileReader for TlogReader {
             }
         }
         Ok(out)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn record(msgid: u32, payload: &[u8], corrupt_crc: bool) -> Vec<u8> {
+        let mut fr = vec![MAVLINK2_MAGIC, payload.len() as u8, 0, 0, 7, 1, 1];
+        fr.extend_from_slice(&msgid.to_le_bytes()[..3]);
+        fr.extend_from_slice(payload);
+        let extra = crc_extra(msgid).expect("msgid in table");
+        let crc = crc_x25(&[extra], crc_x25(&fr[1..], 0xFFFF)) ^ u16::from(corrupt_crc);
+        fr.extend_from_slice(&crc.to_le_bytes());
+        let mut rec = 1_000_u64.to_be_bytes().to_vec();
+        rec.extend_from_slice(&fr);
+        rec
+    }
+
+    #[test]
+    fn crc_is_checked_beyond_the_hand_copied_ids() {
+        // ATTITUDE_QUATERNION (31) and VFR_HUD (74) were outside the old 24-id table.
+        assert_eq!(crc_extra(31), Some(246));
+        assert_eq!(crc_extra(74), Some(20));
+        assert_eq!(crc_extra(0), Some(50));
+        let profile = crate::profile::parse_profile(include_str!(
+            "../../../profiles/recorded/public/ardupilot_plane_tlog.json"
+        ))
+        .unwrap();
+        let payload = [0u8; 20];
+        assert!(
+            TlogReader
+                .read(&profile, &record(74, &payload, false))
+                .is_ok()
+        );
+        let err = TlogReader
+            .read(&profile, &record(74, &payload, true))
+            .unwrap_err();
+        assert!(format!("{err:?}").contains("CRC mismatch on msgid 74"));
     }
 }
