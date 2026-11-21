@@ -14,3 +14,4 @@ musubi-jsonl-log = { path = "../jsonl-log" }
 musubi-miniseed2 = { path = "../miniseed2" }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 sha2 = { version = "0.10", default-features = false }
+mavlink-tlog = { version = "0.1.3", default-features = false }
